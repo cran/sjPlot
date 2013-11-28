@@ -1,0 +1,654 @@
+# bind global variables
+if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "pv", "p"))
+
+
+#' @title Plot One-Way-Anova tables
+#' @name sjp.aov1
+#' 
+#' @description Plot One-Way-Anova table sum of squares (SS) of each factor level (group) 
+#'                against the dependent variable. The SS of the factor variable against the 
+#'                dependent variable (variance within and between groups) is printed to
+#'                the model summary.
+#' @seealso \link{sju.aov1.levene}
+#'                
+#' @param depVar The dependent variable. Will be used with following formular:
+#'          \code{aov(depVar ~ grpVar)}
+#' @param grpVar The grouping variable, as unordered factor. Will be used with following formular:
+#'          \code{aov(depVar ~ grpVar)}
+#' @param meansums If \code{TRUE}, the values reported are the true group mean values. If \code{FALSE} (default),
+#'          the values are reported in the standard way, i.e. the values indicate the difference of
+#'          the group mean in relation to the intercept (reference group).
+#' @param type Indicates Whether the group means should be plotted as \code{"dots"} (aka forest plots, default)
+#'          or as \code{"bars"}.
+#' @param hideErrorBars If \code{TRUE}, the error bars that indicate the confidence intervals of the group means are not
+#'          shown. Only applies if parameter \code{type} is \code{"bars"}. Default value is \code{FALSE}.
+#' @param title Diagram's title as string.
+#'          Example: \code{title=c("my title")}
+#' @param titleSize The size of the plot title. Default is 1.3.
+#' @param titleColor The color of the plot title. Default is \code{"black"}.
+#' @param axisLabels.y Value labels of the grouping variable \code{grpVar} that are used for labelling the
+#'          grouping variable axis. Passed as vector of strings.
+#'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}. \cr
+#'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
+#'          list object with label string. The labels may also be passed as list object. They will be unlisted and
+#'          converted to character vector automatically. See examples below. \cr
+#'          Note: In case \code{type} is \code{"bars"}, the \code{grpVar} will be plotted along
+#'          the x-axis.
+#' @param reverseOrder If \code{TRUE}, the order of the factor categories (groups) is reversed.
+#'          Default is \code{FALSE}.
+#' @param stringIntercept A string that indicates the reference group (intercept), that is appended to
+#'          the value label of the grouping variable. Default is \code{"(Intercept)"}.
+#' @param showAxisLabels.y Whether y axis text (category value) should be shown (use \code{TRUE})
+#'          or not. Default is \code{TRUE}.
+#' @param axisLabelSize The size of value labels in the diagram. Default is 4, recommended values range
+#'          between 2 and 8.
+#' @param axisLabelColor The color of the category labels (predictor labels). Default is a dark grey (grey30).
+#' @param axisTitle.x A label for the x axis. Default is \code{NULL}, which means no x-axis title.
+#' @param axisTitleColor The color of the x axis label.
+#' @param axisTitleSize The size of the x axis label. Default is 1.2.
+#' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
+#'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
+#'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
+#' @param valueLabelColor Colour of the values inside the diagram. Only applies, when parameter
+#'          \code{showValueLabels} is set to \code{TRUE}. Use any valid colour value, e.g. \code{valueLabelColor="grey50"} or
+#'          \code{valueLabelColor=c("#cc3366")}. Default is \code{"grey20"}.
+#' @param valueLabelColorNS Colour of the non significant values inside the diagram.
+#'          Only applies, when parameter \code{showValueLabels} is set to \code{TRUE}. Use any valid colour value, e.g. 
+#'          \code{valueLabelColor="grey50"} or \code{valueLabelColor=c("#cc3366")}. Default is \code{"grey50"}.
+#' @param valueLabelSize Size of the value labels. Drfault is 4.5. Recommended Values range from
+#'          2 to 8
+#' @param valueLabelAlpha The alpha level (transparancy) of the value labels. Default is 0.8, use
+#'          any value from 0 to 1.
+#' @param axisLabelAngle.y Angle for axis-labels, passed as numeric value.
+#' @param errorBarColor The color of the error bars that indicate the confidence intervalls
+#'          of the group means. Default is \code{NULL}, which means that if \code{type} is \code{"dots"},
+#'          the \code{pointColor} value will be used as error bar color. In case \code{type} is \code{"bars"},
+#'          black will be used as error bar color.
+#' @param errorBarWidth The width of the error bar ends. Default is 0.
+#' @param errorBarSize The size of the error bar. Default is 0.8.
+#' @param errorBarLineType The linetype of error bars. Default is \code{1} (solid line).
+#' @param pointColor The colour of the points that indicate the beta-value.
+#' @param pointSize The size of the points that indicate the beta-value. Default is 3.
+#' @param barColor The color of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is \code{"#3366a0"}.
+#' @param barWidth The width of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is 0.5
+#' @param barAlpha The alpha value of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is 1
+#' @param barOutline If \code{TRUE}, each bar gets a colored outline. Only applies if parameter \code{type} is \code{bars}.
+#'          Default is \code{FALSE}.
+#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#'          Default is black.
+#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
+#'          one line and when a line break is inserted into the title
+#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
+#'          one line and when a line break is inserted
+#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
+#'          grid is being printed. Default is 2.
+#' @param borderColor User defined color of whole diagram border (panel border).
+#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
+#'          the diagram border).
+#' @param theme specifies The diagram's background theme. default (parameter \code{NULL}) is a gray 
+#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
+#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
+#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
+#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
+#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
+#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
+#' @param showTickMarks Whether tick marks of axes should be shown or not
+#' @param showValueLabels Whether the value labels (mean differences) should be plotted 
+#'          to each dot or not.
+#' @param showPValueLabels Whether the significance levels of each category/group should be appended
+#'          to values or not.
+#' @param showModelSummary If \code{TRUE} (default), a summary of the anova model with 
+#'          Sum of Squares between groups (ssb), Sum of Squares within groups (ssw), multiple and adjusted 
+#'          R-square and F-Test is printed to the lower right corner
+#'          of the diagram. Default is \code{TRUE}.
+#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
+#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
+#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' 
+#' @examples
+#' data(efc)
+#' sjp.aov1(efc$c12hour, as.factor(efc$e42dep))
+#' 
+#' 
+#' data(efc)
+#' efc.val <- sji.getValueLabels(efc)
+#' efc.var <- sji.getVariableLabels(efc)
+#' sjp.aov1(efc$c12hour,
+#'          as.factor(efc$e42dep),
+#'          axisLabels.y=efc.val['e42dep'],
+#'          axisTitle.x=efc.var[['c12hour']])
+#'          
+#' sjp.aov1(efc$c12hour,
+#'          as.factor(efc$e42dep),
+#'          axisLabels.y=efc.val['e42dep'],
+#'          title=efc.var[['c12hour']],
+#'          type="bars",
+#'          meansums=TRUE,
+#'          hideErrorBars=TRUE,
+#'          theme="minimal",
+#'          minorGridColor="white",
+#'          showTickMarks=FALSE,
+#'          showModelSummary=FALSE,
+#'          hideGrid.x=TRUE)
+#' 
+#' 
+#' @import ggplot2
+#' @export
+sjp.aov1 <- function(depVar,
+                    grpVar,
+                    meansums=FALSE,
+                    type="dots",
+                    hideErrorBars=FALSE,
+                    title=NULL,
+                    titleSize=1.3,
+                    titleColor="black",
+                    axisLabels.y=NULL, 
+                    reverseOrder=FALSE,
+                    stringIntercept="(Intercept)",
+                    showAxisLabels.y=TRUE,
+                    axisLabelSize=1.1,
+                    axisLabelColor="gray30",
+                    axisTitle.x=NULL,
+                    axisTitleSize=1.2,
+                    axisTitleColor=c("#444444"),
+                    axisLimits=NULL,
+                    valueLabelColor="grey20",
+                    valueLabelColorNS="grey50",
+                    valueLabelSize=4.5,
+                    valueLabelAlpha=0.8,
+                    axisLabelAngle.y=0, 
+                    errorBarColor=NULL,
+                    errorBarWidth=0,
+                    errorBarSize=0.8,
+                    errorBarLineType=1,
+                    pointColor="#3366a0",
+                    pointSize=3,
+                    barColor="#3366a0",
+                    barWidth=0.5,
+                    barAlpha=1,
+                    barOutline=FALSE,
+                    outlineColor="black",
+                    breakTitleAt=50, 
+                    breakLabelsAt=12, 
+                    gridBreaksAt=NULL,
+                    borderColor=NULL, 
+                    axisColor=NULL, 
+                    theme=NULL,
+                    majorGridColor=NULL,
+                    minorGridColor=NULL,
+                    hideGrid.x=FALSE,
+                    hideGrid.y=FALSE,
+                    showTickMarks=TRUE,
+                    showValueLabels=TRUE, 
+                    showPValueLabels=TRUE,
+                    showModelSummary=TRUE,
+                    returnPlot=FALSE) {
+  # --------------------------------------------------------
+  # unlist labels
+  # --------------------------------------------------------
+  # Help function that unlists a list into a vector
+  unlistlabels <- function(lab) {
+    dummy <- unlist(lab)
+    labels <- c()
+    for (i in 1:length(dummy)) {
+      labels <- c(labels, as.character(dummy[i]))
+    }
+    return (labels)
+  }
+  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
+    axisLabels.y <- unlistlabels(axisLabels.y)
+    # append "intercept" string, to mark the reference category
+    axisLabels.y[1] <- paste(axisLabels.y[1], stringIntercept)
+  }
+  
+
+  # --------------------------------------------------------
+  # Parameter check
+  # --------------------------------------------------------
+  
+  # --------------------------------------------------------
+  # Check spelling of type-param
+  # --------------------------------------------------------
+  if (type=="dot" || type=="d") {
+    type <- "dots"
+  }
+  if (type=="bar" || type=="b") {
+    type <- "bars"
+  }
+  # --------------------------------------------------------
+  # check whether we colors for error bars. if not, use point color
+  # in case of dots or "black" in case of bars.
+  # --------------------------------------------------------
+  if (is.null(errorBarColor)) {
+    errorBarColor <- ifelse((type=="dots"), pointColor, "black")
+  }
+  # --------------------------------------------------------
+  # check whether we have x-axis title. if not, use standard
+  # value
+  # --------------------------------------------------------
+  if (is.null(axisTitle.x)) {
+    axisTitle.x <- c("")
+  }
+  # --------------------------------------------------------
+  # check whether bars should have an outline
+  # --------------------------------------------------------
+  if (!barOutline) {
+    outlineColor <- waiver()
+  }  
+  
+  
+  # check length of diagram title and split longer string at into new lines
+  # every 50 chars
+  if (!is.null(title)) {
+    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
+    title <- gsub(pattern, '\\1\n', title)
+  }
+  # check length of x-axis title and split longer string at into new lines
+  # every 50 chars
+  if (!is.null(axisTitle.x)) {
+    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
+    axisTitle.x <- gsub(pattern, '\\1\n', axisTitle.x)
+  }
+  # check length of x-axis-labels and split longer strings at into new lines
+  # every 10 chars, so labels don't overlap
+  if (!is.null(axisLabels.y)) {
+    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
+    for (n in 1:length(axisLabels.y))
+      axisLabels.y[n] <- gsub(pattern, '\\1\n', axisLabels.y[n])
+  }
+  
+  
+  # ----------------------------
+  # Calculate one-way-anova. Since we have
+  # only one group variable, Type of SS does
+  # not matter.
+  # ----------------------------
+  fit <- aov(depVar ~ grpVar)
+  # coefficients (group mean)
+  means <- summary.lm(fit)$coefficients[,1]
+  # p-values of means
+  means.p <- summary.lm(fit)$coefficients[,4]
+  # lower confidence intervals of coefficients (group mean)
+  means.lci <- confint(fit)[,1]
+  # upper confidence intervals of coefficients (group mean)
+  means.uci <- confint(fit)[,2]
+  
+  
+  # ----------------------------
+  # Check whether true group means should be reported
+  # or the differences of group means in relation to the
+  # intercept (reference group). The latter is the default.
+  # ----------------------------
+  if (meansums) {
+    for (i in 2:length(means)) {
+      means[i] <- means[i]+means[1]
+      means.lci[i] <- means.lci[i]+means[1]
+      means.uci[i] <- means.uci[i]+means[1]
+    }
+  }
+
+  
+  # ----------------------------
+  # create expression with model summarys. used
+  # for plotting in the diagram later
+  # ----------------------------
+  if (showModelSummary) {
+    # sum of squares
+    ss <- summary(fit)[[1]]['Sum Sq']
+    # multiple r2
+    r2 <- summary.lm(fit)$r.squared
+    # adj. r2
+    r2.adj <- summary.lm(fit)$adj.r.squared
+    # get F-statistics
+    fstat <- summary.lm(fit)$fstatistic[1]
+    # p-value for F-test
+    pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
+    # indicate significance level by stars
+    pan <- c("")
+    if (pval<=0.005) {
+      pan <- c("***")
+    }
+    else  if (pval<=0.01) {
+      pan <- c("**")
+    }
+    else  if (pval<=0.05) {
+      pan <- c("*")
+    }
+    # create mathematical term
+    modsum <- as.character(as.expression(
+      substitute(italic(SS[B]) == ssb * "," ~~ italic(SS[W]) == ssw * "," ~~ R^2 == mr2 * "," ~~ "adj." * R^2 == ar2 * "," ~~ "F" == f * panval,
+                 list(ssb=sprintf("%.2f", ss[1,]),
+                      ssw=sprintf("%.2f", ss[2,]),
+                      mr2=sprintf("%.3f", r2),
+                      ar2=sprintf("%.3f", r2),
+                      f=sprintf("%.2f", fstat),
+                      panval=pan))))
+  }
+  
+  
+  # ----------------------------
+  # print coefficients and p-values in plot
+  # ----------------------------
+  # init data column for p-values
+  ps <- c(round(means,2))
+  # if no values should be shown, clear
+  # vector now
+  if (!showValueLabels) {
+    ps <- rep(c(""), length(ps))
+  }
+
+  
+  # --------------------------------------------------------
+  # copy p-values into data column
+  # --------------------------------------------------------
+  if (showPValueLabels) {
+    for (i in 1:length(means.p)) {
+      if (means.p[i]>=0.05) {
+      }
+      else if (means.p[i]>=0.01 && means.p[i]<0.05) {
+        ps[i] <- paste(ps[i], "*")
+      }
+      else if (means.p[i]>=0.001 && means.p[i]<0.01) {
+        ps[i] <- paste(ps[i], "**")
+      }
+      else {
+        ps[i] <- paste(ps[i], "***")
+      }
+    }  
+  }
+  
+  
+  # --------------------------------------------------------
+  # check whether order of category items should be reversed
+  # or not
+  # --------------------------------------------------------
+  if (reverseOrder) {
+    catorder <- c(length(means):1)
+  }
+  else {
+    catorder <- c(1:length(means))
+  }
+  # --------------------------------------------------------
+  # create new data.frame, since ggplot requires data.frame as parameter
+  # The data frame contains means, CI and p-values
+  # --------------------------------------------------------
+  df <- data.frame(cbind(
+    # Append coefficients
+    means,
+    # append CI
+    means.lci,
+    means.uci,
+    # append p-value
+    means.p,
+    ps,
+    catorder))
+  
+                    
+  # --------------------------------------------------------
+  # check if user defined labels have been supplied
+  # if not, use variable names from data frame
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- row.names(df)
+  }
+  # order labels
+  axisLabels.y <- axisLabels.y[catorder]
+
+  
+  # give columns names
+  names(df) <- c("means", "lower", "upper", "p", "pv", "xv")
+  df$means <- as.numeric(as.character(df$means))
+  df$lower <- as.numeric(as.character(df$lower))
+  df$upper <- as.numeric(as.character(df$upper))
+  df$p <- as.numeric(as.character(df$p))
+  df$pv <- as.character(df$pv)
+  
+  
+  # --------------------------------------------------------
+  # Calculate axis limits. The range is from lowest lower-CI
+  # to highest upper-CI, or a user-defined range (if "axisLimits"
+  # is not NULL)
+  # --------------------------------------------------------
+  if (is.null(axisLimits)) {
+    # check whether we have bar chart and error bars hidden
+    # in this case, the upper limit does not correspond to the
+    # upper CI, but to the highest OR value
+    if (type=="bars" && hideErrorBars) {
+      maxval <- max(df$means)+10
+      minval <- 0
+    }
+    else {
+      # else we have confindence intervals displayed, so
+      # the range corresponds to the boundaries given by
+      # the CI's
+      maxval <- max(df$upper)
+      minval <- min(df$lower)
+    }
+    upper_lim <- (ceiling(10*maxval)) / 10
+    lower_lim <- ifelse(minval==0, 0, (floor(10*minval)) / 10)
+  }
+  else {
+    lower_lim <- axisLimits[1]
+    upper_lim <- axisLimits[2]
+  }
+  # determine gridbreaks
+  if (is.null(gridBreaksAt)) {
+    gridBreaksAt <- 1
+    while ((upper_lim-lower_lim) > (10*gridBreaksAt)) {
+      gridBreaksAt <- gridBreaksAt*10
+    }
+  }
+  ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
+  
+  
+  # --------------------------------------------------------
+  # Set theme and default grid colours. grid colours
+  # might be adjusted later
+  # --------------------------------------------------------
+  hideGridColor <- c("white")
+  if (is.null(theme)) {
+    ggtheme <- theme_gray()
+    hideGridColor <- c("gray90")
+  }
+  else if (theme=="bw") {
+    ggtheme <- theme_bw()
+  }
+  else if (theme=="classic") {
+    ggtheme <- theme_classic()
+  }
+  else if (theme=="minimal") {
+    ggtheme <- theme_minimal()
+  }
+  else if (theme=="none") {
+    ggtheme <- theme_minimal()
+    majorGridColor <- c("white")
+    minorGridColor <- c("white")
+    showTickMarks <-FALSE
+  }
+  
+  
+  # --------------------------------------------------------
+  # Set up grid colours
+  # --------------------------------------------------------
+  majorgrid <- NULL
+  minorgrid <- NULL
+  if (!is.null(majorGridColor)) {
+    majorgrid <- element_line(colour=majorGridColor)
+  }
+  if (!is.null(minorGridColor)) {
+    minorgrid <- element_line(colour=minorGridColor)
+  }
+  hidegrid <- element_line(colour=hideGridColor)
+  
+  
+  # --------------------------------------------------------
+  # Set up visibility of tick marks
+  # --------------------------------------------------------
+  if (!showTickMarks) {
+    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
+  }
+  if (!showAxisLabels.y) {
+    axisLabels.y <- c("")
+  }
+  
+  
+  # --------------------------------------------------------
+  # Set up plot padding (margins inside diagram). In case of
+  # bars, we don't want margins.
+  # --------------------------------------------------------
+  if (type=="bars") {
+    scaley <- scale_y_continuous(limits=c(lower_lim,upper_lim), expand=c(0,0), breaks=ticks, labels=ticks)    
+  }
+  else {
+    scaley <- scale_y_continuous(limits=c(lower_lim,upper_lim), breaks=ticks, labels=ticks)    
+  }
+  
+  
+  # --------------------------------------------------------
+  # Start plot here!
+  # --------------------------------------------------------
+  if (type=="dots") {
+    anovaplot <- ggplot(df, aes(y=means, x=xv)) +
+      # print point
+      geom_point(size=pointSize, colour=pointColor) +
+      # and error bar
+      geom_errorbar(aes(ymin=lower, ymax=upper), size=errorBarSize, width=errorBarWidth, colour=errorBarColor, linetype=errorBarLineType) +
+      # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
+      geom_text(aes(label=pv, y=means, colour=p>0.05), vjust=-0.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+  }
+  # --------------------------------------------------------
+  # start with bar plots here
+  # --------------------------------------------------------
+  else if (type=="bars") {
+    # check whether we have error bars. if yes, adjust horizontal
+    # posizion of labels
+    hlabj <- ifelse(hideErrorBars==FALSE, 1.3, 0.5)
+    anovaplot <- ggplot(df, aes(y=means, x=xv)) +
+      # stat-parameter indicates statistics
+      # stat="bin": y-axis relates to count of variable
+      # stat="identity": y-axis relates to value of variable
+      geom_bar(stat="identity", position="identity", width=barWidth, fill=barColor, colour=outlineColor, alpha=barAlpha) +
+      # print value labels and p-values
+      geom_text(aes(label=pv, y=means, colour=p>0.05), vjust=-1, hjust=hlabj, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+    if (hideErrorBars==FALSE) {
+      anovaplot <- anovaplot +
+        # print confidence intervalls (error bars)
+        geom_errorbar(aes(ymin=lower, ymax=upper), colour=errorBarColor, width=errorBarWidth, size=errorBarSize, linetype=errorBarLineType)
+    }
+  }
+  # --------------------------------------------------------
+  # continue with other plot elements
+  # --------------------------------------------------------
+  anovaplot <- anovaplot +
+    # give value labels different colours depending on significance level
+    scale_colour_manual(values=c(valueLabelColor, valueLabelColorNS)) +
+    # set y-scale-limits, breaks and tick labels
+    scaley +
+    # set value labels to x-axis
+    scale_x_discrete(labels=axisLabels.y, limits=c(1:nrow(df))) +
+    # flip coordinates
+    labs(title=title, x=NULL, y=axisTitle.x) +
+    ggtheme +
+    # set axes text and 
+    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+          axis.text.y = element_text(angle=axisLabelAngle.y),
+          plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  # --------------------------------------------------------
+  # Flip coordinates when we have dots
+  # --------------------------------------------------------
+  if (type=="dots") {
+    anovaplot <- anovaplot + coord_flip()
+  }
+  # the panel-border-property can only be applied to the bw-theme
+  if (!is.null(borderColor)) {
+    if (!is.null(theme) && theme=="bw") {
+      anovaplot <- anovaplot + 
+        theme(panel.border = element_rect(colour=borderColor))
+    }
+    else {
+      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+    }
+  }
+  if (!is.null(axisColor)) {
+    anovaplot <- anovaplot + 
+      theme(axis.line = element_line(colour=axisColor))
+  }
+  if (!is.null(minorgrid)) {
+    anovaplot <- anovaplot + 
+      theme(panel.grid.minor = minorgrid)
+  }
+  if (!is.null(majorgrid)) {
+    anovaplot <- anovaplot + 
+      theme(panel.grid.major = majorgrid)
+  }
+  if (hideGrid.x) {
+    anovaplot <- anovaplot + 
+      theme(panel.grid.major.x = hidegrid,
+            panel.grid.minor.x = hidegrid)
+  }
+  if (hideGrid.y) {
+    anovaplot <- anovaplot + 
+      theme(panel.grid.major.y = hidegrid,
+            panel.grid.minor.y = hidegrid)
+  }
+  
+  
+  # check whether modelsummary should be printed
+  if (showModelSummary) {
+    # add annotations with model summary
+    # annotations include intercept-value and model's r-square
+    if (type=="dots") {
+      anovaplot <- anovaplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha, vjust=-0.5, hjust=1.1)
+    }
+    else {
+      anovaplot <- anovaplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha, vjust=1.2, hjust=-0.02)
+    }
+  }
+  # ---------------------------------------------------------
+  # Check whether ggplot object should be returned or plotted
+  # ---------------------------------------------------------
+  if (returnPlot) {
+    return(anovaplot)
+  }
+  else {
+    # print plot
+    print(anovaplot)
+  }
+}
+
+
+
+#' @title Plot Levene-Test for One-Way-Anova
+#' @name sju.aov1.levene
+#' 
+#' @description Plot results of Levene's Test for Equality of Variances for One-Way-Anova.
+#' @seealso \link{sjp.aov1}
+#'                
+#' @param depVar The dependent variable. Will be used with following formular:
+#'          \code{aov(depVar ~ grpVar)}
+#' @param grpVar The grouping variable, as unordered factor. Will be used with following formular:
+#'          \code{aov(depVar ~ grpVar)}
+#' 
+#' @examples
+#' data(efc)
+#' sju.aov1.levene(efc$c12hour, as.factor(efc$e42dep))
+#' 
+#' @export
+sju.aov1.levene <- function(depVar, grpVar) {
+  means <- tapply(depVar, grpVar, mean)
+  depVarNew <- abs(depVar - means[grpVar])
+  cat("Levene's Test for Homogeneity of Variances\n---------------------------------------\n")
+  fit <- aov(depVarNew ~ grpVar)
+  print(summary(fit))
+  pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
+  # print "summary" of test
+  cat("\nConclusion:\n")
+  if (pval>0.05) {
+    cat("Groups are homogeneous. Everything's fine.")
+  }
+  else {
+    cat("Groups are not homogeneous! Consider logarithmic transformation.")
+  }
+}

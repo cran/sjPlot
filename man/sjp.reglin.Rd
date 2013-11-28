@@ -1,0 +1,88 @@
+\name{sjp.reglin}
+\alias{sjp.reglin}
+\title{Plot regression lines for each predictor}
+\usage{
+  sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE,
+    ciLevel = 0.95, pointAlpha = 0.2, pointColor = "black",
+    showScatterPlot = TRUE, showLoess = TRUE,
+    loessLineColor = "red", showLoessCI = FALSE,
+    loessCiLevel = 0.95)
+}
+\arguments{
+  \item{fit}{The model of the linear regression
+  (lm-Object).}
+
+  \item{data}{The data/dataset/dataframe used in the fitted
+  model.}
+
+  \item{lineColor}{The color of the regression line.
+  Default is \code{"blue"}.}
+
+  \item{showCI}{If \code{TRUE} (default), a confidence
+  region for the regression line will be plotted. Use
+  \code{ciLevel} to specifiy the confidence level.}
+
+  \item{ciLevel}{The confidence level of the confidence
+  region. Only applies when \code{showCI} is \code{TRUE}.
+  Default is 0.95.}
+
+  \item{pointAlpha}{The alpha values of the scatter plot's
+  point-geoms.  Default is 0.2.}
+
+  \item{pointColor}{The color of the scatter plot's
+  point-geoms. Only applies when \code{showScatterPlot} is
+  \code{TRUE}. Default is \code{"black"}.}
+
+  \item{showScatterPlot}{If \code{TRUE} (default), a
+  scatter plot of response and predictor values for each
+  predictor of the fitted model \code{fit} is plotted.}
+
+  \item{showLoess}{If \code{TRUE} (default), an additional
+  loess-smoothed line is plotted.}
+
+  \item{loessLineColor}{The color of the loess-smoothed
+  line. Default is \code{"red"}. Only applies, if
+  \code{showLoess} is \code{TRUE}.}
+
+  \item{showLoessCI}{If \code{TRUE}, a confidence region
+  for the loess-smoothed line will be plotted. Default is
+  \code{FALSE}. Use \code{loessCiLevel} to specifiy the
+  confidence level.  Only applies, if \code{showLoess} is
+  \code{TRUE}.}
+
+  \item{loessCiLevel}{The confidence level of the
+  loess-line's confidence region.  Only applies, if
+  \code{showLoessCI} is \code{TRUE}. Default is 0.95.}
+}
+\description{
+  Plot regression lines with confidence intervals for each
+  single predictor of a fitted model. This method extracts
+  all predictors of a fitted model and fits each of them
+  against the response variable. \cr \cr This function
+  plots two lines: The resulting linear regression line
+  including confidence interval (in blue) and a
+  loess-smoothed line without confidence interval (in red).
+  The better the linear relationship of predictor and
+  response is, the more both lines should overlap (i.e. the
+  red loess-smoothed line is almost linear). \cr \cr
+  Furthermore, a scatter plot of response and predictor
+  values is plotted.
+}
+\examples{
+data(efc)
+fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
+
+# reression line and scatter plot
+sjp.reglin(fit, efc)
+
+# reression line w/o scatter plot
+sjp.reglin(fit, efc, showScatterPlot=FALSE)
+
+# reression line w/o CI
+sjp.reglin(fit, efc, showCI=FALSE)
+}
+\seealso{
+  \code{\link{sjp.lm}} \cr \code{\link{sjp.lm.ma}} \cr
+  \code{\link{sjp.lm.int}}
+}
+

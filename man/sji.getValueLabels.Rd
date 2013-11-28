@@ -1,0 +1,31 @@
+\name{sji.getValueLabels}
+\alias{sji.getValueLabels}
+\title{Retrieve value labels of a SPSS-importet data frame}
+\usage{
+  sji.getValueLabels(dat)
+}
+\arguments{
+  \item{dat}{a data frame containing imported SPSS data}
+}
+\value{
+  a list with all value labels from the SPSS dataset
+}
+\description{
+  This function retrieves the value labels of an importet
+  SPSS data set and returns the result as list.
+}
+\examples{
+# import SPSS data set
+# mydat <- sji.SPSS("my_spss_data.sav", enc="UTF-8")
+
+# retrieve variable labels
+# mydat.var <- sji.getVariableLabels(mydat)
+
+# retrieve value labels
+# mydat.val <- sji.getValueLabels(mydat)
+}
+\seealso{
+  \link{sji.SPSS} \cr \link{sji.getVariableLabels} \cr
+  \link{sji.convertToLabel} \cr \link{sji.convertToValue}
+}
+

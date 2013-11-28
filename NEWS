@@ -1,0 +1,67 @@
+Version 0.8
+------------------------------------------------------------------------------
+* Added parameter "showConfInt" to function "sjt.lm", so CI may be omitted from table output.
+* Added parameter "showConfInt" to function "sjt.glm", so CI may be omitted from table output.
+* Added parameter "orderBy" to function "sjp.stackfrq" so items can be ordered according their counts of first or last item category.
+* Added "utils::globalVariables" to source to avoid notes during R CMD check.
+* Updated imports and dependencies, so with selected importing of functions attaching requested libraries is no longer needed.
+* Spell correction of function "sju.ao1.levene", which is now named "sju.aov1.levene".
+
+Version 0.7
+------------------------------------------------------------------------------
+* Added function "sji.convertToValue" to convert factor variables to numeric variables.
+* Added parameter "hideGrid.x" to various functions, so the x-axis-gridlines can be hidden.
+* Added parameter "hideGrid.y" to various functions, so the y-axis-gridlines can be hidden.
+* Added parameter "returnPlot" to most plotting function, so the complete ggplot-object is returned by the function and can be further manipulated.
+
+Version 0.6
+------------------------------------------------------------------------------
+* Added function "sjt.lm" to print results of linear regressions to HTML-tables.
+* Added function "sjp.aov1" to plot results of One-Way-Anovas.
+* Added function "sju.ao1.levene" to show results of a Levene-test for One-Way-Anovas.
+* Added more variables to sample data set "efc".
+* "geomAlpha" now also changes the alpha value of tiled geoms in function "sjp.corr".
+* Fixed bug in "sjp.pca" function when calculating Cronbach's alpha from a dataframe with missing values.
+* Fixed bug in "sjp.pca" function with "breakLabelsAt" parameter, which did not work when no axis-labels were supplied and the dataframe's column names were used as labels.
+* Renamed function "sjp.lmma" to "sjp.lm.ma".
+* Renamed function "sjp.glmma" to "sjp.glm.ma".
+* Renamed function "sjp.lmint" to "sjp.lm.int".
+* Added examples to functions "sjp.stackfrq", "sjp.corr", "sjp.pca".
+
+Version 0.5
+------------------------------------------------------------------------------
+* Added "sju.betaCoef" function to calculate std. beta coefficients of linear models.
+* Added more diagnostic plots to "sjp.glmma" function.
+* Added loess-line to "sjp.reglin" function to compare linear with loess regression. See "?sjp.reglin" for more information.
+* Added parameters "interactionVar" and "interactionVarLabel" to function "sjp.frq".
+* Updated weblog reference URLs.
+* Renamed parameters "y" in function "sjp.frq" to "varCount".
+* Renamed parameters "y" and "x" in function "sjp.grpfrq" to "varCount" and "varGroup".
+* Added examples to function "sjp.grpfrq".
+* Added examples to function "sjp.frq".
+
+Version 0.4
+------------------------------------------------------------------------------
+* Added parameters "titleSize" and "titleColor" to many functions, so the plot's title size and color can be modified.
+* Fixed bug in "sjp.likert" function.
+* Changed parameter "axisLabels.x" to "axisLabels.y" in "sjp.likert" function.
+* Changed parameter "axisLabels.x" to "axisLabels.y" in "sjp.stackfrq" function.
+* Default gray from axis labels was changed (darkened) from "darkgray" to "gray30" (which seems more suitable when creating graphics for presentation slides).
+
+Version 0.3
+------------------------------------------------------------------------------
+* Added new function "sjp.reglin" to plot and analyse single predictors against response for fitted linear models.
+* Inlcuded sample dataset "efc".
+* Added some examples using the new sample dataset.
+* Fixed bug in function sjp.xtab with labelling the total-column.
+* Fixed bug with "maxYlim" parameter in "sjp.frq".
+* Fixed bug with "maxYlim" parameter in "sjp.grpfrq".
+* Minor spelling and formatting corrections of help files.
+
+Version 0.2
+------------------------------------------------------------------------------
+* Fixed bugs in documentation so package succeeds the check.
+
+Version 0.1
+------------------------------------------------------------------------------
+* First release of sjPlot package.
