@@ -1,0 +1,22 @@
+Package: sjPlot
+Type: Package
+Encoding: UTF-8
+Title: sjPlot - data visualization for statistics in social science
+Version: 0.8
+Date: 2013-11-28
+Author: Daniel Lüdecke <d.luedecke@uke.de>
+Maintainer: Daniel Luedecke <d.luedecke@uke.de>
+Description: Collection of several plotting functions for visualizing data and
+    utility functions.
+License: GPL-3
+Imports: ggplot2, MASS, car, foreign, lmtest, plyr, reshape2, scales
+Collate: 'sjImportSPSS.R' 'sjPlotClusterAnalysis.R' 'sjPlotCorr.R'
+        'sjPlotFrequencies.R' 'sjPlotGroupFrequencies.R'
+        'sjPlotInteractions.R' 'sjPlotLikert.R' 'sjPlotLinreg.R'
+        'sjPlotOdds.R' 'sjPlotPCA.R' 'sjPlotPearsonsChi2Test.R'
+        'sjPlotPropTable.R' 'sjPlotStackFrequencies.R' 'sjRecode.R'
+        'sjTabOdds.R' 'efc.R' 'sjTabLinReg.R' 'sjPlotAnova.R'
+Packaged: 2013-11-28 16:48:04 UTC; Luedeke
+NeedsCompilation: no
+Repository: CRAN
+Date/Publication: 2013-11-29 08:58:48
