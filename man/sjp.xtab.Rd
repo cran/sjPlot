@@ -2,33 +2,26 @@
 \alias{sjp.xtab}
 \title{Plot proportional crosstables}
 \usage{
-  sjp.xtab(y, x, title = NULL, titleSize = 1.3,
-    titleColor = "black", legendTitle = NULL,
-    weightBy = NULL, weightByTitleString = NULL,
-    type = "bars", tableIndex = "col", reverseX = FALSE,
-    maxYlim = TRUE, upperYlim = NULL, axisLabels.x = NULL,
-    axisLabelColor.x = "darkgray", axisLabelAngle.x = 0,
-    axisLabelSize.x = 1.1, legendLabels = NULL,
-    valueLabelSize = 4, valueLabelColor = "black",
-    valueLabelPosOnTop = TRUE, stringTotal = "Total",
-    breakTitleAt = 50, breakLabelsAt = 12,
-    breakLegendTitleAt = 20, breakLegendLabelsAt = 20,
-    gridBreaksAt = 0.2, barWidth = 0.7, barSpace = 0.1,
-    barPosition = "dodge", barColor = NULL,
-    colorPalette = "GnBu", barAlpha = 1, lineType = 1,
-    lineSize = 1, lineAlpha = 1, lineDotSize = 3,
-    smoothLines = FALSE, borderColor = NULL,
-    axisColor = NULL, barOutline = FALSE,
-    outlineColor = "black", majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE, showValueLabels = TRUE,
-    showCategoryLabels = TRUE, showTickMarks = TRUE,
-    showTableSummary = TRUE, tableSummaryPos = "r",
-    showTotalColumn = TRUE, hideLegend = FALSE,
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    theme = NULL, flipCoordinates = FALSE,
-    returnPlot = FALSE)
+sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
+  legendTitle = NULL, weightBy = NULL, weightByTitleString = NULL,
+  type = "bars", tableIndex = "col", reverseOrder = FALSE,
+  maxYlim = TRUE, upperYlim = NULL, axisLabels.x = NULL,
+  axisLabelColor.x = "darkgray", axisLabelAngle.x = 0,
+  axisLabelSize.x = 1.1, legendLabels = NULL, valueLabelSize = 4,
+  valueLabelColor = "black", valueLabelPosOnTop = TRUE,
+  stringTotal = "Total", breakTitleAt = 50, breakLabelsAt = 12,
+  breakLegendTitleAt = 20, breakLegendLabelsAt = 20, gridBreaksAt = 0.2,
+  barWidth = 0.7, barSpace = 0.1, barPosition = "dodge",
+  barColor = NULL, colorPalette = "GnBu", barAlpha = 1, lineType = 1,
+  lineSize = 1, lineAlpha = 1, lineDotSize = 3, smoothLines = FALSE,
+  borderColor = NULL, axisColor = NULL, barOutline = FALSE,
+  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, showValueLabels = TRUE,
+  showCategoryLabels = TRUE, showTickMarks = TRUE,
+  showTableSummary = TRUE, tableSummaryPos = "r", showTotalColumn = TRUE,
+  hideLegend = FALSE, axisTitle.x = NULL, axisTitle.y = NULL,
+  axisTitleColor = "black", axisTitleSize = 1.3, theme = NULL,
+  flipCoordinates = FALSE, returnPlot = FALSE)
 }
 \arguments{
   \item{y}{The variable which proportions (percentage
@@ -74,8 +67,8 @@
   be shown or not. Default is \code{FALSE}, thus the legend
   is shown.}
 
-  \item{reverseX}{Whether the categories along the x-axis
-  should apper in reversed order or not.}
+  \item{reverseOrder}{Whether the categories along the
+  x-axis should apper in reversed order or not.}
 
   \item{maxYlim}{Indicates how to calculate the maximum
   limit of the y-axis.  If \code{TRUE}, the y-axes ranges
@@ -273,7 +266,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -284,12 +279,12 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot proportional crosstables of two variables as ggplot
-  diagram.
+Plot proportional crosstables of two variables as ggplot
+diagram.
 }
 \examples{
 # create 4-category-items
@@ -339,8 +334,8 @@ sjp.xtab(efc$e16sex,
          flipCoordinates=TRUE)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 }
 

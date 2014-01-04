@@ -2,8 +2,7 @@
 \alias{sjp.lm.ma}
 \title{Plot model assumptions of lm's}
 \usage{
-  sjp.lm.ma(linreg, showOriginalModelOnly = TRUE,
-    completeDiagnostic = FALSE)
+sjp.lm.ma(linreg, showOriginalModelOnly = TRUE, completeDiagnostic = FALSE)
 }
 \arguments{
   \item{linreg}{a fitted lm-model}
@@ -18,12 +17,12 @@
   tests are performed. Default is \code{FALSE}}
 }
 \value{
-  an updated fitted linear model where outliers are dropped
-  out.
+an updated fitted linear model where outliers are dropped
+out.
 }
 \description{
-  Plots model assumptions of linear models to verify if
-  linear regression is applicable
+Plots model assumptions of linear models to verify if
+linear regression is applicable
 }
 \examples{
 # fit linear model
@@ -31,7 +30,7 @@ fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Sola
 fit.updated <- sjp.lm.ma(fit)
 }
 \seealso{
-  \code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
-  \code{\link{sjp.lm.int}}
+\code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
+\code{\link{sjp.lm.int}}
 }
 

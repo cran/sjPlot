@@ -20,7 +20,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param orderBy Indicates whether the \code{items} should be ordered by total sum of positive or negative answers.
 #'          Use \code{"pos"} to order descending by sum of positive answers, \code{"neg"} for sorting descending
 #'          negative answers or \code{NULL} (default) for no sorting.
-#' @param reverseItems If \code{TRUE}, the item order (positive/negative) are reversed. Default is \code{FALSE}.
+#' @param reverseOrder If \code{TRUE}, the item order (positive/negative) are reversed. Default is \code{FALSE}.
 #' @param dropLevels Indicates specific factor levels that should be dropped from the items
 #'          before the likert scale is plotted. Default is \code{NULL}, hence all factor levels
 #'          are included. Exampe to drop first factor level: \code{dropLevels=c(1)}.
@@ -103,6 +103,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
 #'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
@@ -158,7 +160,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 sjp.likert <- function(items,
                         legendLabels,
                         orderBy=NULL,
-                        reverseItems=FALSE,
+                        reverseOrder=FALSE,
                         dropLevels=NULL,
                         weightBy=NULL,
                         weightByTitleString=NULL,
@@ -240,7 +242,7 @@ sjp.likert <- function(items,
       # transform to factor
       items[,w] <- as.factor(items[,w])
       # check whether factor levels should be reversed
-      if (reverseItems) {
+      if (reverseOrder) {
         # if yes, reverse levels. since not all variables/items may contain all possible factor
         # levels (i.e. some answer categories are missing), we determine the amount of factor
         # levels by the length of legend labels. The legend labels indicate the correct amount
@@ -256,7 +258,7 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # reverse legend labels, if factor levels should be reversed
   # --------------------------------------------------------
-  if (!is.null(legendLabels) && reverseItems) {
+  if (!is.null(legendLabels) && reverseOrder) {
     legendLabels <- rev(legendLabels)
   }
   

@@ -81,10 +81,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
-#' @param showPercentageValues \code{TRUE} if percentage values should be plotted to each bar. If \code{FALSE},
-#'          percentage values are removed.
-#' @param showAxisLabels.x Whether x axis text (category names) should be shown or not.
+#' @param showValueLabels Whether counts and percentage values should be plotted to each bar. Default
+#'          is \code{TRUE}.
+#' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
+#'          count values are removed.
+#' @param showPercentageValues If \code{TRUE} (default), percentage values are be plotted to each bar, if \code{FALSE},
+#'          percentage-values are removed.
+#' @param showAxisLabels.x Whether x axis labels (category names) should be shown or not.
+#' @param showAxisLabels.y Whether y axis labels (count values) should be shown or not.
 #' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showMeanIntercept If \code{TRUE}, a vertical line in histograms is drawn to indicate the mean value of the count
 #'          variables. Only applies to histogram-charts.
@@ -117,6 +121,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped. Default is \code{FALSE}.
 #' @param omitNA If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
@@ -215,8 +221,10 @@ sjp.frq <- function(varCount,
                     hideGrid.x=FALSE,
                     hideGrid.y=FALSE,
                     showValueLabels=TRUE,
+                    showCountValues=TRUE,
                     showPercentageValues=TRUE,
                     showAxisLabels.x=TRUE,
+                    showAxisLabels.y=TRUE,
                     showTickMarks=TRUE,
                     showMeanIntercept=FALSE,
                     showMeanValue=TRUE,
@@ -571,13 +579,13 @@ sjp.frq <- function(varCount,
   if (flipCoordinates) {
     # adjust vertical position for labels, based on whether percentage values
     # are shown or not
-    vert <- ifelse(showPercentageValues == TRUE, 0.5, 0.1)
+    vert <- ifelse((showPercentageValues == TRUE && showCountValues == TRUE), 0.5, 0.1)
     hort <- 1.5
   }
   else {
     # adjust vertical position for labels, based on whether percentage values
     # are shown or not
-    vert <- ifelse(showPercentageValues == TRUE, -0.2, -0.6)
+    vert <- ifelse((showPercentageValues == TRUE && showCountValues == TRUE), -0.2, -0.6)
     hort <- waiver()
   }
   # --------------------------------------------------------
@@ -589,20 +597,32 @@ sjp.frq <- function(varCount,
   }
   if (showValueLabels) {
     # here we have counts and percentages
-    if (showPercentageValues) {
+    if (showPercentageValues && showCountValues) {
       ggvaluelabels <-  geom_text(label=sprintf("%i\n(%.01f%%)", mydat$frq, mydat$prz),
                                   size=valueLabelSize,
                                   vjust=vert,
                                   hjust = hort,
                                   colour=valueLabelColor)
     }
-    else {
+    else if (showCountValues) {
       # here we have counts, without percentages
       ggvaluelabels <-  geom_text(label=sprintf("%i", mydat$frq),
                                   hjust = hort,
                                   size=valueLabelSize,
                                   vjust=vert,
                                   colour=valueLabelColor)
+    }
+    else if (showPercentageValues) {
+      # here we have counts, without percentages
+      ggvaluelabels <-  geom_text(label=sprintf("%.01f%%", mydat$prz),
+                                  hjust = hort,
+                                  size=valueLabelSize,
+                                  vjust=vert,
+                                  colour=valueLabelColor)
+    }
+    else {
+      # no labels
+      ggvaluelabels <-  geom_text(label="")
     }
   }
   else {
@@ -639,7 +659,12 @@ sjp.frq <- function(varCount,
   # set Y-axis, depending on the calculated upper y-range.
   # It either corresponds to the maximum amount of cases in the data set
   # (length of var) or to the highest count of var's categories.
-  yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=c(0,0), breaks=gridbreaks)
+  if (showAxisLabels.y) {
+    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=c(0,0), breaks=gridbreaks)
+  }
+  else {
+    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=c(0,0), breaks=gridbreaks, labels=NULL)
+  }
   # ----------------------------------
   # Print plot
   # ----------------------------------

@@ -2,17 +2,13 @@
 \alias{sjp.chi2}
 \title{Plot Pearson's Chi2-Test of multiple contingency tables}
 \usage{
-  sjp.chi2(df,
-    title = "Pearson's Chi2-Test of Independence",
-    titleSize = 1.3, titleColor = "black",
-    axisLabels = NULL, valueLabelColor = "black",
-    valueLabelSize = 4.5, valueLabelAlpha = 1,
-    outlineColor = "black", outlineSize = 0.5,
-    axisColor = NULL, axisLabelSize = 1.1,
-    axisLabelColor = "gray30", axisLabelAngle.x = 0,
-    axisLabelAngle.y = 0, breakTitleAt = 50,
-    breakLabelsAt = 12, hideLegend = TRUE,
-    legendTitle = NULL, returnPlot = FALSE)
+sjp.chi2(df, title = "Pearson's Chi2-Test of Independence", titleSize = 1.3,
+  titleColor = "black", axisLabels = NULL, valueLabelColor = "black",
+  valueLabelSize = 4.5, valueLabelAlpha = 1, outlineColor = "black",
+  outlineSize = 0.5, axisColor = NULL, axisLabelSize = 1.1,
+  axisLabelColor = "gray30", axisLabelAngle.x = 0, axisLabelAngle.y = 0,
+  breakTitleAt = 50, breakLabelsAt = 12, hideLegend = TRUE,
+  legendTitle = NULL, returnPlot = FALSE)
 }
 \arguments{
   \item{df}{a data frame of (dichotomous) factor
@@ -84,15 +80,15 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot Pearson's Chi2-Test of multiple contingency tables
-  as ellipses or tiles.  Requires a data frame with
-  dichotomous (dummy) variables.  Calculation of
-  Chi2-matrix taken from following blog-posting:
-  \url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
+Plot Pearson's Chi2-Test of multiple contingency tables as
+ellipses or tiles.  Requires a data frame with dichotomous
+(dummy) variables.  Calculation of Chi2-matrix taken from
+following blog-posting:
+\url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
 }
 \examples{
 # create data frame with 5 dichotomous (dummy) variables
@@ -108,8 +104,8 @@ items <- list(c("Item 1", "Item 2", "Item 3", "Item 4", "Item 5"))
 sjp.chi2(df, axisLabels=items)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr
-  \url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr
+\url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
 }
 

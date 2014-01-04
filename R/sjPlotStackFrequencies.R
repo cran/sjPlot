@@ -17,13 +17,13 @@
 #'          \code{"last"} to order ascending by lowest count of last category
 #'          or \code{NULL} (default) for no sorting.
 #'          In case you want to revers order (descending from highest count), use
-#'          \code{reverseX} parameter.
+#'          \code{reverseOrder} parameter.
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
 #' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
 #'          may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
 #'          cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString=" (weighted)"}.
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param reverseX If \code{TRUE}, the item order on the x-axis is reversed.
+#' @param reverseOrder If \code{TRUE}, the item order on the x-axis is reversed.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
@@ -92,6 +92,8 @@
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
 #'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
@@ -152,7 +154,7 @@ sjp.stackfrq <- function(items,
                         weightBy=NULL,
                         weightByTitleString=NULL,
                         hideLegend=FALSE,
-                        reverseX=TRUE,
+                        reverseOrder=TRUE,
                         title=NULL,
                         titleSize=1.3,
                         titleColor="black",
@@ -358,7 +360,7 @@ sjp.stackfrq <- function(items,
     # we now need their order as subsequent vector: 1 4 2 3
     # (i.e. item 1 is on first pos, item 2 is on fourth pos, item 3 is on
     # second pos and item 4 is on third pos in order)
-    if (reverseX) {
+    if (reverseOrder) {
       dummy2[rev(facord)] <- dummy1
     }
     else {
@@ -379,7 +381,7 @@ sjp.stackfrq <- function(items,
   # check if category-oder on x-axis should be reversed
   # change category label order then
   # --------------------------------------------------------
-  if (reverseX && is.null(orderBy)) {
+  if (reverseOrder && is.null(orderBy)) {
     axisLabels.y <- rev(axisLabels.y)
   }
 
@@ -507,7 +509,7 @@ sjp.stackfrq <- function(items,
   # check if category-oder on x-axis should be reversed
   # change x axis order then
   # --------------------------------------------------------
-  if (reverseX && is.null(orderBy)) {
+  if (reverseOrder && is.null(orderBy)) {
     baseplot <- ggplot(mydat, aes(x=rev(grp), y=prc, fill=cat))
   }
   else {

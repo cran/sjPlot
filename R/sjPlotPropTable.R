@@ -29,7 +29,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          parameter) or stacked (use \code{"stack"} as parameter).
 #' @param hideLegend Indicates whether legend (guide) should be shown or not. Default is \code{FALSE}, thus
 #'          the legend is shown.
-#' @param reverseX Whether the categories along the x-axis should apper in reversed order or not.
+#' @param reverseOrder Whether the categories along the x-axis should apper in reversed order or not.
 #' @param maxYlim Indicates how to calculate the maximum limit of the y-axis.
 #'          If \code{TRUE}, the y-axes ranges from 0 to 100%.
 #'          If \code{FALSE}, the maximum y-axis depends on the highest percentage value of a
@@ -118,6 +118,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
 #'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
@@ -185,7 +187,7 @@ sjp.xtab <- function(y,
                     weightByTitleString=NULL,
                     type="bars",
                     tableIndex="col",
-                    reverseX=FALSE,
+                    reverseOrder=FALSE,
                     maxYlim=TRUE, 
                     upperYlim=NULL, 
                     axisLabels.x=NULL, 
@@ -558,7 +560,7 @@ sjp.xtab <- function(y,
   # check if category-oder on x-axis should be reversed
   # change category label order then
   # --------------------------------------------------------
-  if (reverseX) {
+  if (reverseOrder) {
     axisLabels.x <- rev(axisLabels.x)
   }
 
@@ -759,7 +761,7 @@ sjp.xtab <- function(y,
   else if (type=="lines") {
     # if category order is reversed, we also have to apply this to the
     # mapping of geom_line
-    if (reverseX) {
+    if (reverseOrder) {
       # check whether lines should be smoothed or not
       if (smoothLines) {
         geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
@@ -781,7 +783,7 @@ sjp.xtab <- function(y,
   # check if category-oder on x-axis should be reversed
   # change x axis order then
   # --------------------------------------------------------
-  if (reverseX) {
+  if (reverseOrder) {
     baseplot <- ggplot(df, aes(x=rev(Count), y=Perc, fill=Group))
   }
   else {

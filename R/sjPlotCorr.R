@@ -81,6 +81,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
 #'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
 #' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.

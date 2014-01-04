@@ -2,32 +2,26 @@
 \alias{sjp.frq}
 \title{Plot frequencies of (count) variables}
 \usage{
-  sjp.frq(varCount, title = NULL, titleSize = 1.3,
-    titleColor = "black", weightBy = NULL,
-    weightByTitleString = NULL, interactionVar = NULL,
-    maxYlim = FALSE, upperYlim = NULL, order = "none",
-    type = "bars", axisLabels.x = NULL,
-    interactionVarLabels = NULL, axisLabelAngle.x = 0,
-    axisLabelSize = 1.1, axisLabelColor = "gray30",
-    valueLabelSize = 4, valueLabelColor = "black",
-    breakTitleAt = 50, breakLabelsAt = 12,
-    gridBreaksAt = NULL, barWidth = 0.6, barColor = NULL,
-    barAlpha = 1, barOutline = FALSE, barOutlineSize = 0.2,
-    innerBoxPlotWidth = 0.15, innerBoxPlotDotSize = 3,
-    borderColor = NULL, axisColor = NULL,
-    outlineColor = "black", majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE, showValueLabels = TRUE,
-    showPercentageValues = TRUE, showAxisLabels.x = TRUE,
-    showTickMarks = TRUE, showMeanIntercept = FALSE,
-    showMeanValue = TRUE, showStandardDeviation = TRUE,
-    showNormalCurve = FALSE, meanInterceptLineType = 2,
-    meanInterceptLineSize = 0.5, normalCurveColor = "red",
-    normalCurveSize = 0.7, normalCurveAlpha = 0.4,
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    theme = NULL, flipCoordinates = FALSE, omitNA = TRUE,
-    returnPlot = FALSE)
+sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
+  weightBy = NULL, weightByTitleString = NULL, interactionVar = NULL,
+  maxYlim = FALSE, upperYlim = NULL, order = "none", type = "bars",
+  axisLabels.x = NULL, interactionVarLabels = NULL, axisLabelAngle.x = 0,
+  axisLabelSize = 1.1, axisLabelColor = "gray30", valueLabelSize = 4,
+  valueLabelColor = "black", breakTitleAt = 50, breakLabelsAt = 12,
+  gridBreaksAt = NULL, barWidth = 0.6, barColor = NULL, barAlpha = 1,
+  barOutline = FALSE, barOutlineSize = 0.2, innerBoxPlotWidth = 0.15,
+  innerBoxPlotDotSize = 3, borderColor = NULL, axisColor = NULL,
+  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, showValueLabels = TRUE,
+  showCountValues = TRUE, showPercentageValues = TRUE,
+  showAxisLabels.x = TRUE, showAxisLabels.y = TRUE, showTickMarks = TRUE,
+  showMeanIntercept = FALSE, showMeanValue = TRUE,
+  showStandardDeviation = TRUE, showNormalCurve = FALSE,
+  meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
+  normalCurveColor = "red", normalCurveSize = 0.7, normalCurveAlpha = 0.4,
+  axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
+  axisTitleSize = 1.3, theme = NULL, flipCoordinates = FALSE,
+  omitNA = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -179,14 +173,22 @@
   are hidden. Default if \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
-  values should be plotted to each bar.}
+  values should be plotted to each bar. Default is
+  \code{TRUE}.}
 
-  \item{showPercentageValues}{\code{TRUE} if percentage
-  values should be plotted to each bar. If \code{FALSE},
-  percentage values are removed.}
+  \item{showCountValues}{If \code{TRUE} (default), count
+  values are be plotted to each bar. If \code{FALSE}, count
+  values are removed.}
 
-  \item{showAxisLabels.x}{Whether x axis text (category
+  \item{showPercentageValues}{If \code{TRUE} (default),
+  percentage values are be plotted to each bar, if
+  \code{FALSE}, percentage-values are removed.}
+
+  \item{showAxisLabels.x}{Whether x axis labels (category
   names) should be shown or not.}
+
+  \item{showAxisLabels.y}{Whether y axis labels (count
+  values) should be shown or not.}
 
   \item{showTickMarks}{Whether tick marks of axes should be
   shown or not.}
@@ -254,7 +256,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped. Default is \code{FALSE}.}
@@ -268,12 +272,12 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot frequencies of a (count) variable as bar graph,
-  histogram, box plot etc. using ggplot.
+Plot frequencies of a (count) variable as bar graph,
+histogram, box plot etc. using ggplot.
 }
 \examples{
 # boxplot
@@ -330,8 +334,8 @@ sjp.frq(efc$e17age,
         type="box")
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
 }
 

@@ -2,32 +2,25 @@
 \alias{sjp.likert}
 \title{Plot likert scales as centered stacked bars}
 \usage{
-  sjp.likert(items, legendLabels, orderBy = NULL,
-    reverseItems = FALSE, dropLevels = NULL,
-    weightBy = NULL, weightByTitleString = NULL,
-    hideLegend = FALSE, title = NULL, titleSize = 1.3,
-    titleColor = "black", legendTitle = NULL,
-    includeN = TRUE, axisLabels.y = NULL,
-    axisLabelSize = 1.1, axisLabelAngle.x = 0,
-    axisLabelColor = "gray30", valueLabelSize = 4,
-    valueLabelColor = "black", breakTitleAt = 50,
-    breakLabelsAt = 30, breakLegendTitleAt = 30,
-    breakLegendLabelsAt = 28, gridRange = 1,
-    gridBreaksAt = 0.2, diagramMargins = TRUE,
-    barWidth = 0.5, barColor = NULL, colorPalette = "GnBu",
-    barAlpha = 1, borderColor = NULL, axisColor = NULL,
-    barOutline = FALSE, outlineColor = "black",
-    majorGridColor = NULL, minorGridColor = NULL,
-    hideGrid.x = FALSE, hideGrid.y = FALSE,
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    theme = NULL, showTickMarks = FALSE,
-    showValueLabels = TRUE, showItemLabels = TRUE,
-    showSeparatorLine = FALSE,
-    separatorLineColor = "grey80", separatorLineSize = 0.3,
-    legendPos = "right", legendSize = 1,
-    legendBorderColor = "white", legendBackColor = "white",
-    flipCoordinates = TRUE, returnPlot = FALSE)
+sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
+  dropLevels = NULL, weightBy = NULL, weightByTitleString = NULL,
+  hideLegend = FALSE, title = NULL, titleSize = 1.3,
+  titleColor = "black", legendTitle = NULL, includeN = TRUE,
+  axisLabels.y = NULL, axisLabelSize = 1.1, axisLabelAngle.x = 0,
+  axisLabelColor = "gray30", valueLabelSize = 4,
+  valueLabelColor = "black", breakTitleAt = 50, breakLabelsAt = 30,
+  breakLegendTitleAt = 30, breakLegendLabelsAt = 28, gridRange = 1,
+  gridBreaksAt = 0.2, diagramMargins = TRUE, barWidth = 0.5,
+  barColor = NULL, colorPalette = "GnBu", barAlpha = 1,
+  borderColor = NULL, axisColor = NULL, barOutline = FALSE,
+  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
+  axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
+  theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
+  showItemLabels = TRUE, showSeparatorLine = FALSE,
+  separatorLineColor = "grey80", separatorLineSize = 0.3,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", flipCoordinates = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -43,7 +36,7 @@
   answers, \code{"neg"} for sorting descending negative
   answers or \code{NULL} (default) for no sorting.}
 
-  \item{reverseItems}{If \code{TRUE}, the item order
+  \item{reverseOrder}{If \code{TRUE}, the item order
   (positive/negative) are reversed. Default is
   \code{FALSE}.}
 
@@ -239,7 +232,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -250,17 +245,17 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot likert scales as centered stacked bars. "Neutral"
-  categories (odd-numbered categories) will be removed from
-  the plot.
+Plot likert scales as centered stacked bars. "Neutral"
+categories (odd-numbered categories) will be removed from
+the plot.
 }
 \note{
-  Transformation of data and ggplot-code taken from
-  \url{http://statisfactions.com/2012/improved-net-stacked-distribution-graphs-via-ggplot2-trickery/}
+Transformation of data and ggplot-code taken from
+\url{http://statisfactions.com/2012/improved-net-stacked-distribution-graphs-via-ggplot2-trickery/}
 }
 \examples{
 # prepare data for dichotomous likert scale, 5 items
@@ -306,11 +301,11 @@ sjp.likert(likert_6, legendLabels=levels_6, barColor="brown",
            axisLabels.y=items, orderBy="pos")
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
 }
 \seealso{
-  \code{\link{sjp.stackfrq}}
+\code{\link{sjp.stackfrq}}
 }
 

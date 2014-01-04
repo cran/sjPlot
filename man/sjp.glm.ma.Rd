@@ -2,7 +2,7 @@
 \alias{sjp.glm.ma}
 \title{Plot model assumptions of glm's}
 \usage{
-  sjp.glm.ma(logreg, showOriginalModelOnly = TRUE)
+sjp.glm.ma(logreg, showOriginalModelOnly = TRUE)
 }
 \arguments{
   \item{logreg}{a fitted glm-model}
@@ -14,12 +14,12 @@
   automatically excluded are also plotted.}
 }
 \value{
-  an updated fitted generalized linear model where outliers
-  are dropped out.
+an updated fitted generalized linear model where outliers
+are dropped out.
 }
 \description{
-  Plots model assumptions of generalized linear models to
-  verify if generalized linear regression is applicable
+Plots model assumptions of generalized linear models to
+verify if generalized linear regression is applicable
 }
 \examples{
 # prepare dichotomous dependent variable
@@ -33,6 +33,6 @@ fitOR <- glm(y ~ swiss$Education + swiss$Examination + swiss$Infant.Mortality + 
 sjp.glm.ma(fitOR)
 }
 \seealso{
-  \code{\link{sjp.glm}}
+\code{\link{sjp.glm}}
 }
 

@@ -2,7 +2,7 @@
 \alias{sjc.cluster}
 \title{Compute hierarchical or kmeans cluster analysis}
 \usage{
-  sjc.cluster(data, groupcount, method = "h")
+sjc.cluster(data, groupcount, method = "h")
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -21,15 +21,14 @@
   compute a k-means clustering.}
 }
 \value{
-  The group classification for each observation as vector.
-  This group classification is needed for
-  \code{\link{sjc.grpdisc}}-function to check the goodness
-  of classification.
+The group classification for each observation as vector.
+This group classification is needed for
+\code{\link{sjc.grpdisc}}-function to check the goodness of
+classification.
 }
 \description{
-  Compute hierarchical or kmeans cluster analysis and
-  returns the group association for each observation as
-  vector.
+Compute hierarchical or kmeans cluster analysis and returns
+the group association for each observation as vector.
 }
 \examples{
 # Hierarchical clustering of mtcars-dataset
@@ -39,7 +38,7 @@ groups <- sjc.cluster(mtcars, 5)
 groups <- sjc.cluster(mtcars, 5, method="k")
 }
 \seealso{
-  \code{\link{sjc.dend}} \cr \code{\link{sjc.grpdisc}} \cr
-  \code{\link{sjc.elbow}}
+\code{\link{sjc.dend}} \cr \code{\link{sjc.grpdisc}} \cr
+\code{\link{sjc.elbow}}
 }
 

@@ -1,3 +1,21 @@
+Version 0.9
+------------------------------------------------------------------------------
+* Added function "sju.adjustPlotRange.y" to adjust y-range of ggplot-objects, for instance if labels are out of visible range.
+* Added parameter "showAxisLabels.y" to function "sjp.frq" and "sjp.grpfrq", so the tick mark values on the y-axis can be hidden.
+* Added parameter "showCountValues" to function "sjp.frq" and "sjp.grpfrq". Now either count or percentage values, or both can be printed or hidden. Use "showValueLabels" to generally hide value labels, and then use "showCountValues" and "showPercentageValues" to show/hide each.
+* Added parameter "plevel" to function "sjp.lm.int", so also interactions that are above the 0.05 significance level may be plotted.
+* With "sjp.aov1", positive and negative means can now be plotted in different colors. Thus, parameters "pointColor" and "barColor" were renamed and do now require a vector with two color values (instead of just one).
+* Changed automatic calculation of grid breaks in function "sjp.aov1" to have more pretty grid breaks at x axis.
+* Changed automatic calculation of grid breaks in function "sjp.lm" to have more pretty grid breaks at x axis.
+* Added parameter "axisLabelAngle.x" to function "sjp.aov1", which is helpful if bars are plotted and category labels that appear on the x-axis need to be rotated.
+* Renamed parameter "pointColor" to "pointColors" in function "sjp.aov1".
+* Renamed parameter "barColor" to "barColors" in function "sjp.aov1".
+* Renamed parameter "reverseItems" to "reverseOrder" in function "sjp.likert".
+* Renamed parameter "reverseX" to "reverseOrder" in function "sjp.stackfrq".
+* Renamed parameter "reverseX" to "reverseOrder" in function "sjp.xtab".
+* Fixed bug in function "sjp.aov1" when using type="bars" and showing error bars.
+* Fixed bug in function "sjp.lm.int" that used wrong values for the predictor on the x-axis (value index instead of value itself was used).
+
 Version 0.8
 ------------------------------------------------------------------------------
 * Added parameter "showConfInt" to function "sjt.lm", so CI may be omitted from table output.
@@ -18,7 +36,7 @@ Version 0.6
 ------------------------------------------------------------------------------
 * Added function "sjt.lm" to print results of linear regressions to HTML-tables.
 * Added function "sjp.aov1" to plot results of One-Way-Anovas.
-* Added function "sju.ao1.levene" to show results of a Levene-test for One-Way-Anovas.
+* Added function "sju.aov1.levene" to show results of a Levene-test for One-Way-Anovas.
 * Added more variables to sample data set "efc".
 * "geomAlpha" now also changes the alpha value of tiled geoms in function "sjp.corr".
 * Fixed bug in "sjp.pca" function when calculating Cronbach's alpha from a dataframe with missing values.

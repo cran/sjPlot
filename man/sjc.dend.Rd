@@ -2,7 +2,7 @@
 \alias{sjc.dend}
 \title{Compute hierarchical cluster analysis and visualize group classification}
 \usage{
-  sjc.dend(data, groupcount)
+sjc.dend(data, groupcount)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -15,11 +15,11 @@
   to inspect the goodness of grouping.}
 }
 \description{
-  Computes a hierarchical cluster analysis and plots a
-  hierarchical dendogram with highlighting rectangles
-  around the classified groups.  Can be used, for instance,
-  as visual tool to verify the elbow-criterion (see
-  \code{\link{sjc.elbow}}).
+Computes a hierarchical cluster analysis and plots a
+hierarchical dendogram with highlighting rectangles around
+the classified groups.  Can be used, for instance, as
+visual tool to verify the elbow-criterion (see
+\code{\link{sjc.elbow}}).
 }
 \examples{
 # Plot dendogram of hierarchical clustering of mtcars-dataset
@@ -27,7 +27,7 @@
 sjc.dend(mtcars, 5)
 }
 \seealso{
-  \code{\link{sjc.cluster}} \cr \code{\link{sjc.grpdisc}}
-  \cr \code{\link{sjc.elbow}}
+\code{\link{sjc.cluster}} \cr \code{\link{sjc.grpdisc}} \cr
+\code{\link{sjc.elbow}}
 }
 

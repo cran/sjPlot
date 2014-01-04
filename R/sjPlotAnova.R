@@ -59,17 +59,22 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          2 to 8
 #' @param valueLabelAlpha The alpha level (transparancy) of the value labels. Default is 0.8, use
 #'          any value from 0 to 1.
-#' @param axisLabelAngle.y Angle for axis-labels, passed as numeric value.
+#' @param axisLabelAngle.x Angle for x-axis-labels, passed as numeric value.
+#' @param axisLabelAngle.y Angle for y-axis-labels, passed as numeric value.
 #' @param errorBarColor The color of the error bars that indicate the confidence intervalls
 #'          of the group means. Default is \code{NULL}, which means that if \code{type} is \code{"dots"},
-#'          the \code{pointColor} value will be used as error bar color. In case \code{type} is \code{"bars"},
-#'          black will be used as error bar color.
+#'          the \code{pointColors} value will be used as error bar color. In case \code{type} is \code{"bars"},
+#'          \code{"black"} will be used as error bar color.
 #' @param errorBarWidth The width of the error bar ends. Default is 0.
 #' @param errorBarSize The size of the error bar. Default is 0.8.
 #' @param errorBarLineType The linetype of error bars. Default is \code{1} (solid line).
-#' @param pointColor The colour of the points that indicate the beta-value.
-#' @param pointSize The size of the points that indicate the beta-value. Default is 3.
-#' @param barColor The color of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is \code{"#3366a0"}.
+#' @param pointColors The colours of the points that indicate the mean-value. \code{pointColors} is a 
+#'          vector with two values: the first indicating groups with positive means and the second 
+#'          indicating negative means. Default is \code{c("#3366a0", "#aa6633")}.
+#' @param pointSize The size of the points that indicate the mean-value. Default is 3.
+#' @param barColors The colors of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. \code{barColors} is a 
+#'          vector with two values: the first indicating groups with positive means and the second 
+#'          indicating negative means. Default is \code{c("#3366a0", "#aa6633")}.
 #' @param barWidth The width of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is 0.5
 #' @param barAlpha The alpha value of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is 1
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Only applies if parameter \code{type} is \code{bars}.
@@ -81,7 +86,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is 2.
+#'          grid is being printed. Default is \code{NULL}, so \link{pretty} gridbeaks will be used.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
@@ -89,6 +94,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -132,7 +139,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          showModelSummary=FALSE,
 #'          hideGrid.x=TRUE)
 #' 
-#' 
+#' sjp.aov1(efc$c12hour,
+#'          as.factor(efc$c172code),
+#'          axisLabels.y=efc.val['c172code'],
+#'          title=efc.var[['c12hour']],
+#'          type="bars",
+#'          showTickMarks=FALSE,
+#'          showModelSummary=FALSE,
+#'          axisLabelAngle.x=90)
+#'
 #' @import ggplot2
 #' @export
 sjp.aov1 <- function(depVar,
@@ -157,14 +172,15 @@ sjp.aov1 <- function(depVar,
                     valueLabelColorNS="grey50",
                     valueLabelSize=4.5,
                     valueLabelAlpha=0.8,
+                    axisLabelAngle.x=0, 
                     axisLabelAngle.y=0, 
                     errorBarColor=NULL,
                     errorBarWidth=0,
                     errorBarSize=0.8,
                     errorBarLineType=1,
-                    pointColor="#3366a0",
+                    pointColors=c("#3366a0", "#aa3333"),
                     pointSize=3,
-                    barColor="#3366a0",
+                    barColors=c("#3366a0", "#aa3333"),
                     barWidth=0.5,
                     barAlpha=1,
                     barOutline=FALSE,
@@ -196,8 +212,11 @@ sjp.aov1 <- function(depVar,
     }
     return (labels)
   }
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
+  if (!is.null(axisLabels.y)) {
+    # if labels are lists, unlist
+    if (is.list(axisLabels.y)) {
+      axisLabels.y <- unlistlabels(axisLabels.y)
+    }
     # append "intercept" string, to mark the reference category
     axisLabels.y[1] <- paste(axisLabels.y[1], stringIntercept)
   }
@@ -208,6 +227,12 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   
   # --------------------------------------------------------
+  # Check if grpVar is factor. If not, convert to factor
+  # --------------------------------------------------------
+  if (!is.factor(grpVar)) {
+    grpVar <- as.factor(grpVar)
+  }
+  # --------------------------------------------------------
   # Check spelling of type-param
   # --------------------------------------------------------
   if (type=="dot" || type=="d") {
@@ -217,11 +242,28 @@ sjp.aov1 <- function(depVar,
     type <- "bars"
   }
   # --------------------------------------------------------
+  # set geom colors
+  # --------------------------------------------------------
+  if (type=="dots") {
+    geomcols <- pointColors
+  }
+  else {
+    geomcols <- barColors
+  }
+  # --------------------------------------------------------
   # check whether we colors for error bars. if not, use point color
   # in case of dots or "black" in case of bars.
   # --------------------------------------------------------
   if (is.null(errorBarColor)) {
-    errorBarColor <- ifelse((type=="dots"), pointColor, "black")
+    if (type=="dots") {
+      errorBarColors <- geomcols
+    }
+    else {
+      errorBarColors <- c("black", "black")
+    }
+  }
+  else {
+    errorBarColors <- c(errorBarColor, errorBarColor)
   }
   # --------------------------------------------------------
   # check whether we have x-axis title. if not, use standard
@@ -403,6 +445,12 @@ sjp.aov1 <- function(depVar,
   df$upper <- as.numeric(as.character(df$upper))
   df$p <- as.numeric(as.character(df$p))
   df$pv <- as.character(df$pv)
+  # bind color values to data frame, because we cannot use several
+  # different color aesthetics in ggplot
+  df <- cbind(df,
+              geocol=ifelse(df$means>=0, geomcols[1], geomcols[2]), 
+              labcol=ifelse(df$p<0.05, valueLabelColor, valueLabelColorNS),
+              errcol=ifelse(df$means>=0, errorBarColors[1], errorBarColors[2]))
   
   
   # --------------------------------------------------------
@@ -414,9 +462,23 @@ sjp.aov1 <- function(depVar,
     # check whether we have bar chart and error bars hidden
     # in this case, the upper limit does not correspond to the
     # upper CI, but to the highest OR value
-    if (type=="bars" && hideErrorBars) {
-      maxval <- max(df$means)+10
-      minval <- 0
+    if (type=="bars") {
+      # if errorbars are hidden, the axis range is defined
+      # by the mean values
+      if (hideErrorBars) {
+        maxval <- max(df$means)+10
+        minval <- min(df$means)
+      }
+      # if errorbars are shown, axis range is defined
+      # by confidence interval
+      else {
+        maxval <- max(df$upper)
+        minval <- min(df$lower)
+      }
+      # if minval is > 0, set it to zero, so we have a proper baseline
+      if (minval>0) minval <- 0
+      # if maxval is < 0, set it to zero, so we have a proper baseline
+      if (maxval<0) maxval <- 0
     }
     else {
       # else we have confindence intervals displayed, so
@@ -425,8 +487,10 @@ sjp.aov1 <- function(depVar,
       maxval <- max(df$upper)
       minval <- min(df$lower)
     }
-    upper_lim <- (ceiling(10*maxval)) / 10
-    lower_lim <- ifelse(minval==0, 0, (floor(10*minval)) / 10)
+    if (maxval>0) limfac <- ifelse(abs(maxval)<5, 5, 10)
+    else limfac <- ifelse(abs(minval)<5, 5, 10)
+    upper_lim <- ifelse(maxval==0, 0, limfac*ceiling((maxval+1)/limfac))
+    lower_lim <- ifelse(minval==0, 0, limfac*floor(minval/limfac))
   }
   else {
     lower_lim <- axisLimits[1]
@@ -434,12 +498,15 @@ sjp.aov1 <- function(depVar,
   }
   # determine gridbreaks
   if (is.null(gridBreaksAt)) {
-    gridBreaksAt <- 1
-    while ((upper_lim-lower_lim) > (10*gridBreaksAt)) {
-      gridBreaksAt <- gridBreaksAt*10
-    }
+#     gridBreaksAt <- 1
+#     while ((upper_lim-lower_lim) > (10*gridBreaksAt)) {
+#       gridBreaksAt <- gridBreaksAt*10
+#     }
+    ticks <- pretty(c(lower_lim, upper_lim))
   }
-  ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
+  else {
+    ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
+  }
   
   
   # --------------------------------------------------------
@@ -511,11 +578,11 @@ sjp.aov1 <- function(depVar,
   if (type=="dots") {
     anovaplot <- ggplot(df, aes(y=means, x=xv)) +
       # print point
-      geom_point(size=pointSize, colour=pointColor) +
+      geom_point(size=pointSize, colour=df$geocol) +
       # and error bar
-      geom_errorbar(aes(ymin=lower, ymax=upper), size=errorBarSize, width=errorBarWidth, colour=errorBarColor, linetype=errorBarLineType) +
+      geom_errorbar(aes(ymin=lower, ymax=upper), colour=df$errcol, size=errorBarSize, width=errorBarWidth, linetype=errorBarLineType) +
       # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
-      geom_text(aes(label=pv, y=means, colour=p>0.05), vjust=-0.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+      geom_text(aes(label=pv, y=means), colour=df$labcol, vjust=-0.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
   }
   # --------------------------------------------------------
   # start with bar plots here
@@ -528,21 +595,19 @@ sjp.aov1 <- function(depVar,
       # stat-parameter indicates statistics
       # stat="bin": y-axis relates to count of variable
       # stat="identity": y-axis relates to value of variable
-      geom_bar(stat="identity", position="identity", width=barWidth, fill=barColor, colour=outlineColor, alpha=barAlpha) +
+      geom_bar(fill=df$geocol, stat="identity", position="identity", width=barWidth, colour=outlineColor, alpha=barAlpha) +
       # print value labels and p-values
-      geom_text(aes(label=pv, y=means, colour=p>0.05), vjust=-1, hjust=hlabj, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+      geom_text(aes(label=pv, y=means), colour=df$labcol, vjust=ifelse(df$means>=0, -1, 1), hjust=hlabj, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
     if (hideErrorBars==FALSE) {
       anovaplot <- anovaplot +
         # print confidence intervalls (error bars)
-        geom_errorbar(aes(ymin=lower, ymax=upper), colour=errorBarColor, width=errorBarWidth, size=errorBarSize, linetype=errorBarLineType)
+        geom_errorbar(aes(ymin=lower, ymax=upper), colour=df$errcol, width=errorBarWidth, size=errorBarSize, linetype=errorBarLineType)
     }
   }
   # --------------------------------------------------------
   # continue with other plot elements
   # --------------------------------------------------------
   anovaplot <- anovaplot +
-    # give value labels different colours depending on significance level
-    scale_colour_manual(values=c(valueLabelColor, valueLabelColorNS)) +
     # set y-scale-limits, breaks and tick labels
     scaley +
     # set value labels to x-axis
@@ -554,6 +619,7 @@ sjp.aov1 <- function(depVar,
     theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
           axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
           axis.text.y = element_text(angle=axisLabelAngle.y),
+          axis.text.x = element_text(angle=axisLabelAngle.x),
           plot.title = element_text(size=rel(titleSize), colour=titleColor))
   # --------------------------------------------------------
   # Flip coordinates when we have dots

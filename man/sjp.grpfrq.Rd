@@ -2,40 +2,32 @@
 \alias{sjp.grpfrq}
 \title{Plot grouped or stacked frequencies}
 \usage{
-  sjp.grpfrq(varCount, varGroup, weightBy = NULL,
-    weightByTitleString = NULL, interactionVar = NULL,
-    type = "bars", dotSize = 4, hideLegend = FALSE,
-    maxYlim = FALSE, upperYlim = NULL,
-    useFacetGrid = FALSE, title = NULL, titleSize = 1.3,
-    titleColor = "black", legendTitle = NULL,
-    axisLabels.x = NULL, axisLabelSize = 1.1,
-    axisLabelColor = "gray30", axisLabelAngle.x = 0,
-    interactionVarLabels = NULL, legendLabels = NULL,
-    valueLabelSize = 4, valueLabelColor = "black",
-    breakTitleAt = 50, breakLabelsAt = 12,
-    breakLegendTitleAt = 20, breakLegendLabelsAt = 20,
-    gridBreaksAt = NULL, barPosition = "dodge",
-    barWidth = 0.6, barSpace = 0.1, barColor = NULL,
-    barAlpha = 1, innerBoxPlotWidth = 0.15,
-    innerBoxPlotDotSize = 3, colorPalette = "GnBu",
-    lineType = 1, lineSize = 1, lineAlpha = 1,
-    smoothLines = FALSE, borderColor = NULL,
-    axisColor = NULL, barOutline = FALSE,
-    outlineColor = "black", majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE, showValueLabels = TRUE,
-    showPercentageValues = TRUE, showAxisLabels.x = TRUE,
-    showTickMarks = TRUE, showPlotAnnotation = TRUE,
-    showMeanIntercept = FALSE, showMeanValue = TRUE,
-    showStandardDeviation = FALSE, showTableSummary = TRUE,
-    showGroupCount = FALSE, tableSummaryPos = "r",
-    meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    theme = NULL, legendPos = "right", legendSize = 1,
-    legendBorderColor = "white", legendBackColor = "white",
-    flipCoordinates = FALSE, omitNA = TRUE,
-    returnPlot = FALSE)
+sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
+  interactionVar = NULL, type = "bars", dotSize = 4, hideLegend = FALSE,
+  maxYlim = FALSE, upperYlim = NULL, useFacetGrid = FALSE, title = NULL,
+  titleSize = 1.3, titleColor = "black", legendTitle = NULL,
+  axisLabels.x = NULL, axisLabelSize = 1.1, axisLabelColor = "gray30",
+  axisLabelAngle.x = 0, interactionVarLabels = NULL, legendLabels = NULL,
+  valueLabelSize = 4, valueLabelColor = "black", breakTitleAt = 50,
+  breakLabelsAt = 12, breakLegendTitleAt = 20, breakLegendLabelsAt = 20,
+  gridBreaksAt = NULL, barPosition = "dodge", barWidth = 0.6,
+  barSpace = 0.1, barColor = NULL, barAlpha = 1,
+  innerBoxPlotWidth = 0.15, innerBoxPlotDotSize = 3,
+  colorPalette = "GnBu", lineType = 1, lineSize = 1, lineAlpha = 1,
+  smoothLines = FALSE, borderColor = NULL, axisColor = NULL,
+  barOutline = FALSE, outlineColor = "black", majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  showValueLabels = TRUE, showCountValues = TRUE,
+  showPercentageValues = TRUE, showAxisLabels.x = TRUE,
+  showAxisLabels.y = TRUE, showTickMarks = TRUE,
+  showPlotAnnotation = TRUE, showMeanIntercept = FALSE,
+  showMeanValue = TRUE, showStandardDeviation = FALSE,
+  showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
+  meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
+  axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
+  axisTitleSize = 1.3, theme = NULL, legendPos = "right",
+  legendSize = 1, legendBorderColor = "white", legendBackColor = "white",
+  flipCoordinates = FALSE, omitNA = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -247,14 +239,22 @@
   are hidden. Default if \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
-  values should be plotted to each bar.}
+  values should be plotted to each bar. Default is
+  \code{TRUE}.}
 
-  \item{showPercentageValues}{\code{TRUE} if percentage
-  values should be plotted to each bar, if \code{FALSE},
-  percentage-values are removed.}
+  \item{showCountValues}{If \code{TRUE} (default), count
+  values are be plotted to each bar. If \code{FALSE}, count
+  values are removed.}
 
-  \item{showAxisLabels.x}{Whether x axis text (category
+  \item{showPercentageValues}{If \code{TRUE} (default),
+  percentage values are be plotted to each bar, if
+  \code{FALSE}, percentage-values are removed.}
+
+  \item{showAxisLabels.x}{Whether x axis labels (category
   names) should be shown or not.}
+
+  \item{showAxisLabels.y}{Whether y axis labels (count
+  values) should be shown or not.}
 
   \item{showTickMarks}{Whether tick marks of axes should be
   shown or not.}
@@ -330,7 +330,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{legendPos}{The position of the legend, if a legend
   is drawn. Use \code{"bottom"}, \code{"top"},
@@ -362,13 +364,12 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot grouped or stacked frequencies of variables as
-  bar/dor graphs, box or violin plots, histograms etc.
-  using ggplot.
+Plot grouped or stacked frequencies of variables as bar/dor
+graphs, box or violin plots, histograms etc.  using ggplot.
 }
 \examples{
 # histogram plot
@@ -439,8 +440,8 @@ sjp.grpfrq(efc$e17age,
            type="box")
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/03/05/easily-plotting-grouped-bars-with-ggplot}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/03/05/easily-plotting-grouped-bars-with-ggplot}
 }
 

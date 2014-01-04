@@ -3,24 +3,32 @@
 #' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
 #'             \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
 #' 
-#' @description Plot regression curves of significant interaction terms in linear models (lm).
+#' @description Plot regression curves of significant interaction terms in linear models (lm). Note that beside interaction
+#'                terms, also the single predictors of each interaction also must be included in the fitted model.
+#'                Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
+#' 
+#' @note Beside interaction terms, also the single predictors of each interaction also must be included in the fitted model.
+#'         Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
+#' 
 #' @seealso \code{\link{sjp.lm}} \cr
 #'          \code{\link{sjp.reglin}} \cr
 #'          \code{\link{sjp.lm.ma}}
 #' 
 #' @param fit the fitted linear model (lm) object, including interaction terms
-#' @param smooth smoothes the regression line in case it is not linear. Default is \code{none}, so no smoothing
-#'          is applied. Use \code{loess} for loess-smoothing or \code{lm} to force linear regression lines.
+#' @param smooth smoothes the regression line in case it is not linear. Default is \code{"none"}, so no smoothing
+#'          is applied. Use \code{"loess"} for loess-smoothing or \code{"lm"} to force linear regression lines.
 #' @param diff if \code{FALSE} (default), the minimum and maximum interaction effects of predictor 2 on predictor 1
 #'          are shown (one line each). if \code{TRUE}, only the difference between minimum and maximum interaction effect
 #'          is shown (single line)
 #' @param swapPredictors if \code{TRUE}, the predictor with less unique values is printed along the x-axis. Default is
 #'          \code{FALSE}, so the predictor with more unique values is printed along the x-axis.
+#' @param plevel Indicates at which p-value an interaction term is considered as significant. Default is
+#'          0.05 (5 percent).
 #' @param title a default title used for the plots. Default value is \code{NULL}, which means that each plot's title
 #'          includes the dependent variable as well as the names of the interaction terms.
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
-#' @param fillColor fill color of the shaded area between the minimum and maximum lines. Default is \code{grey}.
+#' @param fillColor fill color of the shaded area between the minimum and maximum lines. Default is \code{"grey"}.
 #'          Either set \code{fillColor} to \code{NULL} or use 0 for \code{fillAlpha} if you want to hide the shaded area.
 #' @param fillAlpha alpha value (transparancy) of the shaded area between the minimum and maximum lines. Default is 0.4.
 #'          Use either 0 or set \code{fillColor} to \code{NULL} if you want to hide the shaded area.
@@ -63,9 +71,9 @@
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}.
 #' @param theme specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{bw} for a white background with gray grids, \code{classic} for
-#'          a classic theme (black border, no grids), \code{minimal} for a minimalistic theme (no border,
-#'          gray grids) or \code{none} for no borders, grids and ticks.
+#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
+#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
+#'          gray grids) or \code{"none"} for no borders, grids and ticks.
 #' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param borderColor user defined color of whole diagram border (panel border)
 #' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
@@ -90,18 +98,26 @@
 #' sjp.lm.int(fit, showValueLabels=TRUE)
 #' 
 #' 
+#' # load sample data set
+#' data(efc)
+#' # create data frame with variables that should be included
+#' # in the model
+#' df <- as.data.frame(cbind(usage=efc$tot_sc_e,
+#'                           sex=efc$c161sex, 
+#'                           education=efc$c172code, 
+#'                           burden=efc$neg_c_7, 
+#'                           dependency=efc$e42dep))
+#' # convert gender predictor to factor                         
+#' df$sex <- relevel(factor(df$sex), ref="2")
 #' # fit "dummy" model
-#' fit <- lm(Fertility ~ .*., data=swiss, na.action=na.omit, x=TRUE)
-#' 
-#' # show summary to see significant interactions
+#' fit <- lm(usage ~ .*., data=df, x=TRUE)
 #' summary(fit)
 #' 
-#' # plot regression line of interaction terms
+#' # plot interactions
 #' sjp.lm.int(fit)
-#' # plot smoothes regression line of interaction terms
-#' sjp.lm.int(fit, smooth="loess")
-#' # plot linear regression line of interaction terms
-#' sjp.lm.int(fit, smooth="lm")
+#' # plot interactions, including those with p-value up to 0.1
+#' sjp.lm.int(fit, plevel=0.1)
+#' 
 #' 
 #' @import ggplot2
 #' @export
@@ -109,6 +125,7 @@ sjp.lm.int <- function(fit,
                       smooth="none",
                       diff=FALSE,
                       swapPredictors=FALSE,
+                      plevel=0.05,
                       title=NULL,
                       titleSize=1.3,
                       titleColor="black",
@@ -151,6 +168,21 @@ sjp.lm.int <- function(fit,
   if (is.null(gridBreaksAt)) {
     gridbreaks.x <- gridbreaks.y <- waiver()
   }
+  # --------------------------------------------------------
+  # unlist labels
+  # --------------------------------------------------------
+  # Help function that unlists a list into a vector
+  unlistlabels <- function(lab) {
+    dummy <- unlist(lab)
+    labels <- c()
+    for (i in 1:length(dummy)) {
+      labels <- c(labels, as.character(dummy[i]))
+    }
+    return (labels)
+  }
+  if (!is.null(legendLabels) && is.list(legendLabels)) {
+    legendLabels <- unlistlabels(legendLabels)
+  }
   # -----------------------------------------------------------
   # retrieve amount of predictor variables
   # -----------------------------------------------------------
@@ -186,17 +218,55 @@ sjp.lm.int <- function(fit,
   # thus, the starting point is first position after all single
   # predictor variables
   # -----------------------------------------------------------
-  # save names of interaction predictor variables into this object
-  intnames <- c()
-  for (i in (predvars.length+1):length(pval)) {
-    if (pval[i] < 0.05) {
-      intnames <- c(intnames, names(pval[i]))
+  # retrieve position of interaction terms
+  it <- rownames(summary(fit)$coefficients)[-1]
+  # init indicator for first term
+  firstit <- 0
+  # iterate all rownames. interaction terms contain a colon...
+  for (i in 1:length(it)) {
+    # check whether current interactio term name contains a ":",
+    # and firstit is not already set
+    pos <- grep(":", it[i], fixed=FALSE)
+    if (length(pos)>0) {
+      # set position to first interaction term in model
+      firstit <- i
+      break;
     }
   }
+  # check whether we have any interaction terms included at all
+  if(firstit==0) {
+    stop("No interaction term found in fitted model...", call.=FALSE)
+  }
+#   if((predvars.length+1) > length(pval)) {
+#     stop("No interaction term found in fitted model...", call.=FALSE)
+#   }
+  # save names of interaction predictor variables into this object
+  intnames <- c()
+  for (i in firstit:length(pval)) {
+    if (pval[i] < plevel) {
+      intnames <- c(intnames, it[i])
+    }
+  }
+  #   for (i in (predvars.length+1):length(pval)) {
+#     if (pval[i] < plevel) {
+#       intnames <- c(intnames, names(pval[i]))
+#     }
+#   }
   # check for any signigicant interactions, stop if nothing found
   if (is.null(intnames)) {
     stop("No significant interactions found...", call.=FALSE)
   }
+  
+  
+  # --------------------------------------------------------
+  # Check whether we have any estimate names. this variable is
+  # null in case we only have one interaction in the fitted
+  # model.
+  # --------------------------------------------------------
+  if (is.null(estimates.names)) {
+    estimates.names <- it
+  }
+
   
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -241,7 +311,14 @@ sjp.lm.int <- function(fit,
   }
   hidegrid <- element_line(colour=hideGridColor)
   
-  
+
+  # -----------------------------------------------------------
+  # check whether parameter X=TRUE was set when fitting the linear
+  # model. if not, we cannot procede here
+  # -----------------------------------------------------------
+  if(class(fit$x)!="matrix") {
+    stop("The model matrix is not available! Please use \"x=TRUE\" in your lm-command...", call.=FALSE)
+  }
   # -----------------------------------------------------------
   # copy variable values to data frame
   # -----------------------------------------------------------
@@ -329,10 +406,10 @@ sjp.lm.int <- function(fit,
         # maxy = (b0 + (b1*pr) + (b2*ymax) + (b3*pr*ymax))
         maxy = (b0 + (b1*pr) + (b3*pr*ymax))
         # store in df
-        tmp <- as.data.frame(cbind(x=j, y=miny, ymin=miny, ymax=maxy, grp="min"))
+        tmp <- as.data.frame(cbind(x=pr, y=miny, ymin=miny, ymax=maxy, grp="min"))
         intdf <- as.data.frame(rbind(intdf, tmp))
         # store in df
-        tmp <- as.data.frame(cbind(x=j, y=maxy, ymin=miny, ymax=maxy, grp="max"))
+        tmp <- as.data.frame(cbind(x=pr, y=maxy, ymin=miny, ymax=maxy, grp="max"))
         intdf <- as.data.frame(rbind(intdf, tmp))
       }
     }
@@ -368,10 +445,10 @@ sjp.lm.int <- function(fit,
         # maxy = (b0 + (b1*ymax) + (b2*pr) + (b3*pr*ymax))
         maxy = (b0 + (b2*pr) + (b3*pr*ymax))
         # store in df
-        tmp <- as.data.frame(cbind(x=j, y=miny, ymin=miny, ymax=maxy, grp="min"))
+        tmp <- as.data.frame(cbind(x=pr, y=miny, ymin=miny, ymax=maxy, grp="min"))
         intdf <- as.data.frame(rbind(intdf, tmp))
         # store in df
-        tmp <- as.data.frame(cbind(x=j, y=maxy, ymin=miny, ymax=maxy, grp="max"))
+        tmp <- as.data.frame(cbind(x=pr, y=maxy, ymin=miny, ymax=maxy, grp="max"))
         intdf <- as.data.frame(rbind(intdf, tmp))
       }
     }

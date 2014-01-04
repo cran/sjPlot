@@ -2,14 +2,12 @@
 \alias{sjt.lm}
 \title{Save linear regression as HTML-Table}
 \usage{
-  sjt.lm(..., file, labelPredictors = NULL,
-    labelDependentVariables = NULL,
-    stringPredictors = "Predictors",
-    stringDependentVariables = "Dependent Variables",
-    stringModel = "Model", stringIntercept = "(Intercept)",
-    showConfInt = TRUE, showStdBeta = FALSE,
-    pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
-    separateConfColumn = FALSE, showAbbrHeadline = TRUE)
+sjt.lm(..., file, labelPredictors = NULL, labelDependentVariables = NULL,
+  stringPredictors = "Predictors",
+  stringDependentVariables = "Dependent Variables", stringModel = "Model",
+  stringIntercept = "(Intercept)", showConfInt = TRUE,
+  showStdBeta = FALSE, pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
+  separateConfColumn = FALSE, showAbbrHeadline = TRUE)
 }
 \arguments{
   \item{...}{One or more fitted lm-objects.}
@@ -65,10 +63,10 @@
   p-values.}
 }
 \description{
-  Save (multiple) fitted linear models (beta coefficients,
-  std. beta values etc.)  as HTML-Table. The fitted lm's
-  should have the same predictor variables and differ only
-  in their response (dependent variable).
+Save (multiple) fitted linear models (beta coefficients,
+std. beta values etc.)  as HTML-Table. The fitted lm's
+should have the same predictor variables and differ only in
+their response (dependent variable).
 }
 \examples{
 # Now fit the models. Note that both models share the same predictors
@@ -102,9 +100,9 @@ sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact")
        file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
 }
 \seealso{
-  \link{sjt.glm}
+\link{sjt.glm}
 }
 

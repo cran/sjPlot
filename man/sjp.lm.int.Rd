@@ -2,32 +2,27 @@
 \alias{sjp.lm.int}
 \title{Plot interaction terms of linear models}
 \usage{
-  sjp.lm.int(fit, smooth = "none", diff = FALSE,
-    swapPredictors = FALSE, title = NULL, titleSize = 1.3,
-    titleColor = "black", fillColor = "grey",
-    fillAlpha = 0.4, lowerBoundColor = "#3366cc",
-    upperBoundColor = "#cc3300", lineColor = "#33cc66",
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisLabelColor = "gray30", axisLabelSize = 1.1,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    legendLabels = NULL, legendLabelSize = 0.9,
-    legendLabelColor = "black", showValueLabels = FALSE,
-    valueLabelSize = 4, valueLabelColor = "black",
-    valueLabelAlpha = 0.8, breakTitleAt = 50,
-    breakLegendLabelsAt = 20, gridBreaksAt = NULL,
-    theme = NULL, showTickMarks = TRUE, borderColor = NULL,
-    axisColor = NULL, majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE)
+sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
+  plevel = 0.05, title = NULL, titleSize = 1.3, titleColor = "black",
+  fillColor = "grey", fillAlpha = 0.4, lowerBoundColor = "#3366cc",
+  upperBoundColor = "#cc3300", lineColor = "#33cc66", axisTitle.x = NULL,
+  axisTitle.y = NULL, axisLabelColor = "gray30", axisLabelSize = 1.1,
+  axisTitleColor = "black", axisTitleSize = 1.3, legendLabels = NULL,
+  legendLabelSize = 0.9, legendLabelColor = "black",
+  showValueLabels = FALSE, valueLabelSize = 4, valueLabelColor = "black",
+  valueLabelAlpha = 0.8, breakTitleAt = 50, breakLegendLabelsAt = 20,
+  gridBreaksAt = NULL, theme = NULL, showTickMarks = TRUE,
+  borderColor = NULL, axisColor = NULL, majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE)
 }
 \arguments{
   \item{fit}{the fitted linear model (lm) object, including
   interaction terms}
 
   \item{smooth}{smoothes the regression line in case it is
-  not linear. Default is \code{none}, so no smoothing is
-  applied. Use \code{loess} for loess-smoothing or
-  \code{lm} to force linear regression lines.}
+  not linear. Default is \code{"none"}, so no smoothing is
+  applied. Use \code{"loess"} for loess-smoothing or
+  \code{"lm"} to force linear regression lines.}
 
   \item{diff}{if \code{FALSE} (default), the minimum and
   maximum interaction effects of predictor 2 on predictor 1
@@ -39,6 +34,10 @@
   less unique values is printed along the x-axis. Default
   is \code{FALSE}, so the predictor with more unique values
   is printed along the x-axis.}
+
+  \item{plevel}{Indicates at which p-value an interaction
+  term is considered as significant. Default is 0.05 (5
+  percent).}
 
   \item{title}{a default title used for the plots. Default
   value is \code{NULL}, which means that each plot's title
@@ -52,7 +51,7 @@
   \code{"black"}.}
 
   \item{fillColor}{fill color of the shaded area between
-  the minimum and maximum lines. Default is \code{grey}.
+  the minimum and maximum lines. Default is \code{"grey"}.
   Either set \code{fillColor} to \code{NULL} or use 0 for
   \code{fillAlpha} if you want to hide the shaded area.}
 
@@ -141,10 +140,10 @@
 
   \item{theme}{specifies the diagram's background theme.
   default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{bw} for a white background with
-  gray grids, \code{classic} for a classic theme (black
-  border, no grids), \code{minimal} for a minimalistic
-  theme (no border, gray grids) or \code{none} for no
+  white grids. Use \code{"bw"} for a white background with
+  gray grids, \code{"classic"} for a classic theme (black
+  border, no grids), \code{"minimal"} for a minimalistic
+  theme (no border, gray grids) or \code{"none"} for no
   borders, grids and ticks.}
 
   \item{showTickMarks}{Whether tick marks of axes should be
@@ -170,8 +169,18 @@
   are hidden. Default if \code{FALSE}.}
 }
 \description{
-  Plot regression curves of significant interaction terms
-  in linear models (lm).
+Plot regression curves of significant interaction terms in
+linear models (lm). Note that beside interaction terms,
+also the single predictors of each interaction also must be
+included in the fitted model.  Thus,
+\code{lm(dep~pred1*pred2)} will work, but
+\code{lm(dep~pred1:pred2)} won't!
+}
+\note{
+Beside interaction terms, also the single predictors of
+each interaction also must be included in the fitted model.
+Thus, \code{lm(dep~pred1*pred2)} will work, but
+\code{lm(dep~pred1:pred2)} won't!
 }
 \examples{
 # Note that the data sets used in this example may not be perfectly suitable for
@@ -189,26 +198,33 @@ sjp.lm.int(fit)
 sjp.lm.int(fit, showValueLabels=TRUE)
 
 
+# load sample data set
+data(efc)
+# create data frame with variables that should be included
+# in the model
+df <- as.data.frame(cbind(usage=efc$tot_sc_e,
+                          sex=efc$c161sex,
+                          education=efc$c172code,
+                          burden=efc$neg_c_7,
+                          dependency=efc$e42dep))
+# convert gender predictor to factor
+df$sex <- relevel(factor(df$sex), ref="2")
 # fit "dummy" model
-fit <- lm(Fertility ~ .*., data=swiss, na.action=na.omit, x=TRUE)
-
-# show summary to see significant interactions
+fit <- lm(usage ~ .*., data=df, x=TRUE)
 summary(fit)
 
-# plot regression line of interaction terms
+# plot interactions
 sjp.lm.int(fit)
-# plot smoothes regression line of interaction terms
-sjp.lm.int(fit, smooth="loess")
-# plot linear regression line of interaction terms
-sjp.lm.int(fit, smooth="lm")
+# plot interactions, including those with p-value up to 0.1
+sjp.lm.int(fit, plevel=0.1)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
 }
 \seealso{
-  \code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
-  \code{\link{sjp.lm.ma}}
+\code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
+\code{\link{sjp.lm.ma}}
 }
 
