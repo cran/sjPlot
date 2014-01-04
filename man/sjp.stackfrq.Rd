@@ -2,31 +2,24 @@
 \alias{sjp.stackfrq}
 \title{Plot stacked proportional bars}
 \usage{
-  sjp.stackfrq(items, legendLabels, orderBy = NULL,
-    weightBy = NULL, weightByTitleString = NULL,
-    hideLegend = FALSE, reverseX = TRUE, title = NULL,
-    titleSize = 1.3, titleColor = "black",
-    legendTitle = NULL, includeN = TRUE,
-    axisLabels.y = NULL, axisLabelSize = 1.1,
-    axisLabelAngle.x = 0, axisLabelColor = "gray30",
-    valueLabelSize = 4, valueLabelColor = "black",
-    breakTitleAt = 50, breakLabelsAt = 30,
-    breakLegendTitleAt = 30, breakLegendLabelsAt = 28,
-    gridBreaksAt = 0.2, diagramMargins = FALSE,
-    barWidth = 0.5, barColor = NULL, colorPalette = "GnBu",
-    barAlpha = 1, borderColor = NULL, axisColor = NULL,
-    barOutline = FALSE, outlineColor = "black",
-    majorGridColor = NULL, minorGridColor = NULL,
-    hideGrid.x = FALSE, hideGrid.y = FALSE,
-    axisTitle.x = NULL, axisTitle.y = NULL,
-    axisTitleColor = "black", axisTitleSize = 1.3,
-    theme = NULL, showTickMarks = FALSE,
-    showValueLabels = TRUE, showItemLabels = TRUE,
-    showSeparatorLine = FALSE,
-    separatorLineColor = "grey80", separatorLineSize = 0.3,
-    legendPos = "right", legendSize = 1,
-    legendBorderColor = "white", legendBackColor = "white",
-    flipCoordinates = TRUE, returnPlot = FALSE)
+sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
+  weightByTitleString = NULL, hideLegend = FALSE, reverseOrder = TRUE,
+  title = NULL, titleSize = 1.3, titleColor = "black",
+  legendTitle = NULL, includeN = TRUE, axisLabels.y = NULL,
+  axisLabelSize = 1.1, axisLabelAngle.x = 0, axisLabelColor = "gray30",
+  valueLabelSize = 4, valueLabelColor = "black", breakTitleAt = 50,
+  breakLabelsAt = 30, breakLegendTitleAt = 30, breakLegendLabelsAt = 28,
+  gridBreaksAt = 0.2, diagramMargins = FALSE, barWidth = 0.5,
+  barColor = NULL, colorPalette = "GnBu", barAlpha = 1,
+  borderColor = NULL, axisColor = NULL, barOutline = FALSE,
+  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
+  axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
+  theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
+  showItemLabels = TRUE, showSeparatorLine = FALSE,
+  separatorLineColor = "grey80", separatorLineSize = 0.3,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", flipCoordinates = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -43,7 +36,7 @@
   ascending by lowest count of last category or \code{NULL}
   (default) for no sorting.  In case you want to revers
   order (descending from highest count), use
-  \code{reverseX} parameter.}
+  \code{reverseOrder} parameter.}
 
   \item{weightBy}{A weight factor that will be applied to
   weight all cases from \code{items}.}
@@ -58,7 +51,7 @@
   \item{hideLegend}{Indicates whether legend (guide) should
   be shown or not.}
 
-  \item{reverseX}{If \code{TRUE}, the item order on the
+  \item{reverseOrder}{If \code{TRUE}, the item order on the
   x-axis is reversed.}
 
   \item{title}{Title of the diagram, plotted above the
@@ -225,7 +218,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -236,19 +231,19 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot items (variables) of a scale as stacked proportional
-  bars. This function is useful when several items with
-  identical scale/categoroies should be plotted to compare
-  the distribution of answers.
+Plot items (variables) of a scale as stacked proportional
+bars. This function is useful when several items with
+identical scale/categoroies should be plotted to compare
+the distribution of answers.
 }
 \note{
-  Thanks to Forrest Stevens
-  (\url{http://www.clas.ufl.edu/users/forrest/}) for bug
-  fixes
+Thanks to Forrest Stevens
+(\url{http://www.clas.ufl.edu/users/forrest/}) for bug
+fixes
 }
 \examples{
 # -------------------------------
@@ -296,11 +291,11 @@ items <- list(varlabs[c(start:end)])
 sjp.stackfrq(efc[,c(start:end)], legendLabels=levels, axisLabels.y=items)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
 }
 \seealso{
-  \code{\link{sjp.likert}}
+\code{\link{sjp.likert}}
 }
 

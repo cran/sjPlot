@@ -2,7 +2,7 @@
 \alias{sjc.elbow}
 \title{Plot elbow values of a k-means cluster analysis}
 \usage{
-  sjc.elbow(data, steps = 15)
+sjc.elbow(data, steps = 15)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -13,20 +13,20 @@
   displayed. Default is \code{15}.}
 }
 \description{
-  Plot elbow values of a k-means cluster analysis. This
-  function computes a k-means cluster analysis on the
-  provided data frame and produces two plots: one with the
-  different elbow values and a second plot that maps the
-  differences between each "step" (i.e. between elbow
-  values) on the y-axis. An increase in the second plot may
-  indicate the elbow criterion.
+Plot elbow values of a k-means cluster analysis. This
+function computes a k-means cluster analysis on the
+provided data frame and produces two plots: one with the
+different elbow values and a second plot that maps the
+differences between each "step" (i.e. between elbow values)
+on the y-axis. An increase in the second plot may indicate
+the elbow criterion.
 }
 \examples{
 # plot elbow values of mtcars dataset
 sjc.elbow(mtcars)
 }
 \seealso{
-  \code{\link{sjc.dend}} \cr \code{\link{sjc.cluster}} \cr
-  \code{\link{sjc.grpdisc}}
+\code{\link{sjc.dend}} \cr \code{\link{sjc.cluster}} \cr
+\code{\link{sjc.grpdisc}}
 }
 

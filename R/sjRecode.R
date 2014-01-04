@@ -164,3 +164,53 @@ sju.betaCoef <- function(fit) {
   beta <- b * sx/sy
   return(beta)
 }
+
+
+
+#' @title Adjust y range of ggplot-objects
+#' @name sju.adjustPlotRange.y
+#' @description This method adjurts the y-range of a ggplot-object, which is useful when
+#'                value labels are outside of the plot region. A modified ggplot-object will
+#'                be returned with adjusted y-range so everything should be visible.
+#'                Note that this function only works on \code{scale_y_continuous}.
+#'
+#' @note Note that this function only works on \code{scale_y_continuous}.
+#' 
+#' @references \url{http://www.r-bloggers.com/setting-axis-limits-on-ggplot-charts/}
+#' 
+#' @param gp A ggplot-object. Usually, this will be returned by most of this
+#'          package's plotting functions via the \code{returnPlot} parameter.
+#' @param upperMargin Defines the margin of the upper y bound of the plot. This value will
+#'          be multiplied with the total y range. Default is 1.05, which means that the upper
+#'          margin of the plot is about 5 percent of the "visible" plot area (i.e. the y-range
+#'          is 105 percent of the actual needed range to make all object visible).
+#' @return The same ggplot-object, with adjusted y-range, so all graphics and labels
+#'          should be visible.
+#' 
+#' @examples
+#' # sample sata set
+#' data(efc)
+#' # show frequencies of relationship-variable and
+#' # retrieve plot object
+#' gp <- sjp.frq(efc$e15relat, returnPlot=TRUE)
+#' # show current plot
+#' plot(gp)
+#' # show adjusted plot
+#' sju.adjustPlotRange.y(gp)
+#' 
+#' @export
+sju.adjustPlotRange.y <- function(gp, upperMargin=1.05) {
+  # retrieve y-range of original plot
+  gp <- gp + scale_y_continuous(limits=NULL)
+  # build ggplot object
+  gy <- ggplot_build(gp)
+  # calculate new limit
+  ylo <- abs(gy$panel$ranges[[1]]$y.range[1])
+  yhi <- abs(gy$panel$ranges[[1]]$y.range[2]*upperMargin)
+  # change y scale
+  gp <- gp + scale_y_continuous(expand=c(0,0), 
+                                limits=c(0,ylo+yhi))
+  # return plot
+  return(gp)
+}
+

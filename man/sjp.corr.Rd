@@ -2,24 +2,19 @@
 \alias{sjp.corr}
 \title{Plot correlation matrix}
 \usage{
-  sjp.corr(data, title = NULL, titleSize = 1.3,
-    titleColor = "black", axisLabels = NULL,
-    type = "circle", sortCorrelations = TRUE, decimals = 3,
-    missingDeletion = "listwise", corMethod = "spearman",
-    geomAlpha = 0.8, valueLabelColor = "black",
-    valueLabelSize = 4.5, valueLabelAlpha = 1,
-    circleSize = 15, outlineColor = "black",
-    outlineSize = 1, axisColor = NULL, borderColor = NULL,
-    axisLabelSize = 1.1, axisLabelColor = "gray30",
-    axisLabelAngle.x = 0, axisLabelAngle.y = 0,
-    breakTitleAt = 50, breakLabelsAt = 12,
-    hideDiagCircle = TRUE, hideLegend = TRUE,
-    legendTitle = NULL, showCorrelationValueLabels = TRUE,
-    showCorrelationPValues = TRUE,
-    pvaluesAsNumbers = FALSE, showTickMarks = FALSE,
-    fillColor = NULL, majorGridColor = NULL,
-    minorGridColor = NULL, theme = NULL,
-    returnPlot = FALSE)
+sjp.corr(data, title = NULL, titleSize = 1.3, titleColor = "black",
+  axisLabels = NULL, type = "circle", sortCorrelations = TRUE,
+  decimals = 3, missingDeletion = "listwise", corMethod = "spearman",
+  geomAlpha = 0.8, valueLabelColor = "black", valueLabelSize = 4.5,
+  valueLabelAlpha = 1, circleSize = 15, outlineColor = "black",
+  outlineSize = 1, axisColor = NULL, borderColor = NULL,
+  axisLabelSize = 1.1, axisLabelColor = "gray30", axisLabelAngle.x = 0,
+  axisLabelAngle.y = 0, breakTitleAt = 50, breakLabelsAt = 12,
+  hideDiagCircle = TRUE, hideLegend = TRUE, legendTitle = NULL,
+  showCorrelationValueLabels = TRUE, showCorrelationPValues = TRUE,
+  pvaluesAsNumbers = FALSE, showTickMarks = FALSE, fillColor = NULL,
+  majorGridColor = NULL, minorGridColor = NULL, theme = NULL,
+  returnPlot = FALSE)
 }
 \arguments{
   \item{data}{A correlation object, built with the
@@ -162,7 +157,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{returnPlot}{If \code{TRUE}, the ggplot-object with
   the complete plot will be returned (and not plotted).
@@ -170,16 +167,16 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot correlations as ellipses or tiles. Required
-  parameter is either a data frame or a computed
-  \code{cor}-object. In case of ellipses, the ellipses size
-  indicates the strength of the correlation. Furthermore,
-  blue and red colors indicate positive or negative
-  correlations, where stronger correlations are darkened.
+Plot correlations as ellipses or tiles. Required parameter
+is either a data frame or a computed \code{cor}-object. In
+case of ellipses, the ellipses size indicates the strength
+of the correlation. Furthermore, blue and red colors
+indicate positive or negative correlations, where stronger
+correlations are darkened.
 }
 \examples{
 # create data frame with 5 random variables
@@ -214,8 +211,8 @@ colnames(df) <- varlabs[c(start:end)]
 sjp.corr(df, type="tile", theme="none", outlineColor="white", hideLegend=FALSE)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 }
 

@@ -37,9 +37,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @param axisLabelSize The size of value labels in the diagram. Default is 4, recommended values range
 #'          between 2 and 8.
 #' @param axisLabelColor The color of the category labels (predictor labels). Default is a dark grey (grey30).
-#' @param axisTitle.x A label for the x axis.
-#' @param axisTitleColor The color of the x axis label.
-#' @param axisTitleSize The size of the x axis label.
+#' @param axisTitle.x A label for the x axis. Default is \code{"Estimates"}.
+#' @param axisTitleColor The color of the x axis label. Default is a dark grey.
+#' @param axisTitleSize The size of the x axis label. Default is 1.4.
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
 #'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
@@ -73,14 +73,16 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is 2.
+#'          grid is being printed. Default is \code{NULL}, so \link{pretty} gridbeaks will be used.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
 #' @param theme specifies The diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{bw} for a white background with gray grids, \code{classic} for
-#'          a classic theme (black border, no grids), \code{minimal} for a minimalistic theme (no border,
-#'          gray grids) or \code{none} for no borders, grids and ticks.
+#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
+#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
+#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -109,7 +111,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' sjp.lm(fit, gridBreaksAt=2)
 #' 
 #' # plot estimates with CI without standardized beta-values
-#' # and with ugly narrow tick marks (because "gridBreaksAt" was not specified)
+#' # and with narrower tick marks (because "gridBreaksAt" was not specified)
 #' sjp.lm(fit, showStandardBeta=FALSE)
 #' 
 #' @import ggplot2
@@ -143,7 +145,7 @@ sjp.lm <- function(fit,
                     stdBetaLineAlpha=0.3,
                     breakTitleAt=50, 
                     breakLabelsAt=12, 
-                    gridBreaksAt=2,
+                    gridBreaksAt=NULL,
                     borderColor=NULL, 
                     axisColor=NULL, 
                     theme=NULL,
@@ -338,7 +340,13 @@ sjp.lm <- function(fit,
     lower_lim <- axisLimits[1]
     upper_lim <- axisLimits[2]
   }
-  ticks<-c(seq(lower_lim, upper_lim, by=gridBreaksAt))
+  # determine gridbreaks
+  if (is.null(gridBreaksAt)) {
+    ticks <- pretty(c(lower_lim, upper_lim))
+  }
+  else {
+    ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
+  }
   
   
   # --------------------------------------------------------

@@ -108,10 +108,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
-#' @param showPercentageValues \code{TRUE} if percentage values should be plotted to each bar, if \code{FALSE},
+#' @param showValueLabels Whether counts and percentage values should be plotted to each bar. Default
+#'          is \code{TRUE}.
+#' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
+#'          count values are removed.
+#' @param showPercentageValues If \code{TRUE} (default), percentage values are be plotted to each bar, if \code{FALSE},
 #'          percentage-values are removed.
-#' @param showAxisLabels.x Whether x axis text (category names) should be shown or not.
+#' @param showAxisLabels.x Whether x axis labels (category names) should be shown or not.
+#' @param showAxisLabels.y Whether y axis labels (count values) should be shown or not.
 #' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showPlotAnnotation If \code{TRUE}, the groups of dots in a dot-plot are highlighted with a shaded rectangle.
 #' @param showMeanIntercept if \code{TRUE}, a vertical line in histograms is drawn to indicate the mean value of the count
@@ -145,6 +149,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
 #'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. Right
 #'          positioning is default.
@@ -279,8 +285,10 @@ sjp.grpfrq <- function(varCount,
                        hideGrid.x=FALSE,
                        hideGrid.y=FALSE,
                        showValueLabels=TRUE,
+                       showCountValues=TRUE,
                        showPercentageValues=TRUE,
                        showAxisLabels.x=TRUE,
+                       showAxisLabels.y=TRUE,
                        showTickMarks=TRUE,
                        showPlotAnnotation=TRUE,
                        showMeanIntercept=FALSE,
@@ -855,7 +863,7 @@ sjp.grpfrq <- function(varCount,
     if (barPosition=="stack") {
       vert <- waiver()
     }
-    else if (showPercentageValues) {
+    else if (showPercentageValues && showCountValues) {
       # value labels need a different vertical adjustement, depending on
       # whether we plot dots or bars
       vert <- ifelse(type == "dots", -0.5, -0.2)
@@ -1000,39 +1008,57 @@ sjp.grpfrq <- function(varCount,
     # so we need to take this into account here
     if (useFacetGrid) {
       # if we want percentage values, we have different sprintf-parameters
-      if (showPercentageValues) {
+      if (showPercentageValues && showCountValues) {
         ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%i\n(%.01f%%)", frq, prz), group=group),
                                     size=valueLabelSize,
                                     vjust=vert,
                                     colour=valueLabelColor)
       }
-      else {
+      else if (showCountValues) {
         ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%i", frq), group=group),
                                     size=valueLabelSize,
                                     vjust=vert,
                                     colour=valueLabelColor)
       }
+      else if (showPercentageValues) {
+        ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%.01f%%", prz), group=group),
+                                    size=valueLabelSize,
+                                    vjust=vert,
+                                    colour=valueLabelColor)
+      }
+      else {
+        ggvaluelabels <-  geom_text(label="")
+      }
     }
     else {
       # if we have stacked bars, we need to apply this stacked y-position to the labels as well
       if (barPosition=="stack") {
-        if (showPercentageValues) {
+        if (showPercentageValues && showCountValues) {
           ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%i\n(%.01f%%)", frq, prz)),
                                       size=valueLabelSize,
                                       vjust=vert,
                                       colour=valueLabelColor)
         }
-        else {
+        if (showCountValues) {
           ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%i", frq)),
                                       size=valueLabelSize,
                                       vjust=vert,
                                       colour=valueLabelColor)
         }
+        if (showPercentageValues) {
+          ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", prz)),
+                                      size=valueLabelSize,
+                                      vjust=vert,
+                                      colour=valueLabelColor)
+        }
+        else {
+          ggvaluelabels <-  geom_text(label="")
+        }
       }
       else {
         # if we have dodged bars or dots, we have to use a slightly dodged position for labels
         # as well, sofor better reading
-        if (showPercentageValues) {
+        if (showPercentageValues && showCountValues) {
           if (flipCoordinates) {
             ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%i (%.01f%%)", frq, prz)),
                                         size=valueLabelSize,
@@ -1050,13 +1076,24 @@ sjp.grpfrq <- function(varCount,
                                         colour=valueLabelColor)
           }
         }
-        else {
+        else if (showCountValues) {
           ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%i", frq)),
                                       position=position_dodge(posdodge),
                                       size=valueLabelSize,
                                       hjust=hort,
                                       vjust=vert,
                                       colour=valueLabelColor)
+        }
+        else if (showPercentageValues) {
+          ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%.01f%%", prz)),
+                                      position=position_dodge(posdodge),
+                                      size=valueLabelSize,
+                                      hjust=hort,
+                                      vjust=vert,
+                                      colour=valueLabelColor)
+        }
+        else {
+          ggvaluelabels <-  geom_text(label="")
         }
       }
     }
@@ -1181,13 +1218,25 @@ sjp.grpfrq <- function(varCount,
       }
     }
   }
+  # ------------------------------
+  # prepare y-axis and
+  # show or hide y-axis-labels
+  # ------------------------------
+  if (showAxisLabels.y) {
+    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=c(0,0))
+  }
+  else {
+    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=c(0,0), labels=NULL)
+  }
+  # ------------------------------
   # continue with plot objects...
+  # ------------------------------
   baseplot <- baseplot +
     # set Y-axis, depending on the calculated upper y-range.
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
     # coord_cartesian(ylim=c(0, upper_lim)) +
-    scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=c(0,0)) +
+    y_scale +
     # guide / legend
     gguide +
     # show absolute and percentage value of each bar.

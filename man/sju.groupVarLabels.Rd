@@ -2,8 +2,7 @@
 \alias{sju.groupVarLabels}
 \title{Create labels for recoded groups}
 \usage{
-  sju.groupVarLabels(var, groupsize = 5,
-    rightInterval = FALSE)
+sju.groupVarLabels(var, groupsize = 5, rightInterval = FALSE)
 }
 \arguments{
   \item{var}{The scale variable, which should recoded into
@@ -21,20 +20,20 @@
   ranges from 51-55, 56-60, 61-65 etc.}
 }
 \value{
-  A string vector containing labels based on the grouped
-  counts of \code{var}, formatted as "from lower bound to
-  upper bound", e.g. \code{"10-19" "20-29" "30-39"} etc.
-  See example below.
+A string vector containing labels based on the grouped
+counts of \code{var}, formatted as "from lower bound to
+upper bound", e.g. \code{"10-19" "20-29" "30-39"} etc.  See
+example below.
 }
 \description{
-  Creates the related labels for the grouped variable
-  created by the \code{\link{sju.groupVar}} function.
+Creates the related labels for the grouped variable created
+by the \code{\link{sju.groupVar}} function.
 }
 \note{
-  Usually you should use the same values for
-  \code{groupsize} and \code{rightInterval} as used in the
-  \code{\link{sju.groupVar}} function if you want to create
-  labels for the related recoded variable.
+Usually you should use the same values for \code{groupsize}
+and \code{rightInterval} as used in the
+\code{\link{sju.groupVar}} function if you want to create
+labels for the related recoded variable.
 }
 \examples{
 age <- abs(round(rnorm(100, 65, 20)))
@@ -69,6 +68,6 @@ sjp.frq(ageGrp,
         maxYlim=FALSE)
 }
 \seealso{
-  \code{\link{sju.groupVar}}
+\code{\link{sju.groupVar}}
 }
 

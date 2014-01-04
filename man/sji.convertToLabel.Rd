@@ -2,22 +2,22 @@
 \alias{sji.convertToLabel}
 \title{Replaces variable values with their associated value labels}
 \usage{
-  sji.convertToLabel(variable)
+sji.convertToLabel(variable)
 }
 \arguments{
   \item{variable}{A (factor) variable.}
 }
 \value{
-  A factor variable containing with the replaced value
-  labels.
+A factor variable containing with the replaced value
+labels.
 }
 \description{
-  This function converts (replaces) variable values (of
-  factors) with their associated value labels. Might be
-  helpful for factor variables. For instance, if you have a
-  Gender variable with 0/1, and associated labels are
-  male/female, this function would convert all 0 to male
-  and all 1 to female in the data frame.
+This function converts (replaces) variable values (of
+factors) with their associated value labels. Might be
+helpful for factor variables. For instance, if you have a
+Gender variable with 0/1, and associated labels are
+male/female, this function would convert all 0 to male and
+all 1 to female in the data frame.
 }
 \examples{
 data(efc)
@@ -30,7 +30,7 @@ table(efc$e42dep)
 table(sji.convertToLabel(efc$e42dep))
 }
 \seealso{
-  \link{sji.convertToValue} \cr \link{sji.getValueLabels}
-  \cr \link{sji.getVariableLabels} \cr \link{sji.SPSS}
+\link{sji.convertToValue} \cr \link{sji.getValueLabels} \cr
+\link{sji.getVariableLabels} \cr \link{sji.SPSS}
 }
 

@@ -2,28 +2,24 @@
 \alias{sjp.aov1}
 \title{Plot One-Way-Anova tables}
 \usage{
-  sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
-    hideErrorBars = FALSE, title = NULL, titleSize = 1.3,
-    titleColor = "black", axisLabels.y = NULL,
-    reverseOrder = FALSE, stringIntercept = "(Intercept)",
-    showAxisLabels.y = TRUE, axisLabelSize = 1.1,
-    axisLabelColor = "gray30", axisTitle.x = NULL,
-    axisTitleSize = 1.2, axisTitleColor = c("#444444"),
-    axisLimits = NULL, valueLabelColor = "grey20",
-    valueLabelColorNS = "grey50", valueLabelSize = 4.5,
-    valueLabelAlpha = 0.8, axisLabelAngle.y = 0,
-    errorBarColor = NULL, errorBarWidth = 0,
-    errorBarSize = 0.8, errorBarLineType = 1,
-    pointColor = "#3366a0", pointSize = 3,
-    barColor = "#3366a0", barWidth = 0.5, barAlpha = 1,
-    barOutline = FALSE, outlineColor = "black",
-    breakTitleAt = 50, breakLabelsAt = 12,
-    gridBreaksAt = NULL, borderColor = NULL,
-    axisColor = NULL, theme = NULL, majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE, showTickMarks = TRUE,
-    showValueLabels = TRUE, showPValueLabels = TRUE,
-    showModelSummary = TRUE, returnPlot = FALSE)
+sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
+  hideErrorBars = FALSE, title = NULL, titleSize = 1.3,
+  titleColor = "black", axisLabels.y = NULL, reverseOrder = FALSE,
+  stringIntercept = "(Intercept)", showAxisLabels.y = TRUE,
+  axisLabelSize = 1.1, axisLabelColor = "gray30", axisTitle.x = NULL,
+  axisTitleSize = 1.2, axisTitleColor = c("#444444"), axisLimits = NULL,
+  valueLabelColor = "grey20", valueLabelColorNS = "grey50",
+  valueLabelSize = 4.5, valueLabelAlpha = 0.8, axisLabelAngle.x = 0,
+  axisLabelAngle.y = 0, errorBarColor = NULL, errorBarWidth = 0,
+  errorBarSize = 0.8, errorBarLineType = 1, pointColors = c("#3366a0",
+  "#aa3333"), pointSize = 3, barColors = c("#3366a0", "#aa3333"),
+  barWidth = 0.5, barAlpha = 1, barOutline = FALSE,
+  outlineColor = "black", breakTitleAt = 50, breakLabelsAt = 12,
+  gridBreaksAt = NULL, borderColor = NULL, axisColor = NULL,
+  theme = NULL, majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, showTickMarks = TRUE,
+  showValueLabels = TRUE, showPValueLabels = TRUE,
+  showModelSummary = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{depVar}{The dependent variable. Will be used with
@@ -125,15 +121,19 @@
   the value labels. Default is 0.8, use any value from 0 to
   1.}
 
-  \item{axisLabelAngle.y}{Angle for axis-labels, passed as
-  numeric value.}
+  \item{axisLabelAngle.x}{Angle for x-axis-labels, passed
+  as numeric value.}
+
+  \item{axisLabelAngle.y}{Angle for y-axis-labels, passed
+  as numeric value.}
 
   \item{errorBarColor}{The color of the error bars that
   indicate the confidence intervalls of the group means.
   Default is \code{NULL}, which means that if \code{type}
-  is \code{"dots"}, the \code{pointColor} value will be
+  is \code{"dots"}, the \code{pointColors} value will be
   used as error bar color. In case \code{type} is
-  \code{"bars"}, black will be used as error bar color.}
+  \code{"bars"}, \code{"black"} will be used as error bar
+  color.}
 
   \item{errorBarWidth}{The width of the error bar ends.
   Default is 0.}
@@ -144,15 +144,21 @@
   \item{errorBarLineType}{The linetype of error bars.
   Default is \code{1} (solid line).}
 
-  \item{pointColor}{The colour of the points that indicate
-  the beta-value.}
+  \item{pointColors}{The colours of the points that
+  indicate the mean-value. \code{pointColors} is a vector
+  with two values: the first indicating groups with
+  positive means and the second indicating negative means.
+  Default is \code{c("#3366a0", "#aa6633")}.}
 
   \item{pointSize}{The size of the points that indicate the
-  beta-value. Default is 3.}
+  mean-value. Default is 3.}
 
-  \item{barColor}{The color of the bars in bar charts. Only
-  applies if parameter \code{type} is \code{"bars"}.
-  Default is \code{"#3366a0"}.}
+  \item{barColors}{The colors of the bars in bar charts.
+  Only applies if parameter \code{type} is \code{"bars"}.
+  \code{barColors} is a vector with two values: the first
+  indicating groups with positive means and the second
+  indicating negative means. Default is \code{c("#3366a0",
+  "#aa6633")}.}
 
   \item{barWidth}{The width of the bars in bar charts. Only
   applies if parameter \code{type} is \code{"bars"}.
@@ -181,7 +187,8 @@
 
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.
-  Default is 2.}
+  Default is \code{NULL}, so \link{pretty} gridbeaks will
+  be used.}
 
   \item{borderColor}{User defined color of whole diagram
   border (panel border).}
@@ -196,7 +203,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
@@ -233,15 +242,14 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot One-Way-Anova table sum of squares (SS) of each
-  factor level (group) against the dependent variable. The
-  SS of the factor variable against the dependent variable
-  (variance within and between groups) is printed to the
-  model summary.
+Plot One-Way-Anova table sum of squares (SS) of each factor
+level (group) against the dependent variable. The SS of the
+factor variable against the dependent variable (variance
+within and between groups) is printed to the model summary.
 }
 \examples{
 data(efc)
@@ -268,8 +276,17 @@ sjp.aov1(efc$c12hour,
          showTickMarks=FALSE,
          showModelSummary=FALSE,
          hideGrid.x=TRUE)
+
+sjp.aov1(efc$c12hour,
+         as.factor(efc$c172code),
+         axisLabels.y=efc.val['c172code'],
+         title=efc.var[['c12hour']],
+         type="bars",
+         showTickMarks=FALSE,
+         showModelSummary=FALSE,
+         axisLabelAngle.x=90)
 }
 \seealso{
-  \link{sju.aov1.levene}
+\link{sju.aov1.levene}
 }
 

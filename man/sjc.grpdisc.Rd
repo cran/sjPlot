@@ -2,8 +2,7 @@
 \alias{sjc.grpdisc}
 \title{Compute a linear discriminant analysis on classified cluster groups}
 \usage{
-  sjc.grpdisc(data, groups, groupcount,
-    showTotalCorrect = TRUE)
+sjc.grpdisc(data, groups, groupcount, showTotalCorrect = TRUE)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -26,9 +25,9 @@
   classification goodness.}
 }
 \description{
-  Computes linear discriminant analysis on classified
-  cluster groups.  This function plots a bar graph
-  indicating the goodness of classification for each group.
+Computes linear discriminant analysis on classified cluster
+groups.  This function plots a bar graph indicating the
+goodness of classification for each group.
 }
 \examples{
 # retrieve group classification from hierarchical cluster analysis
@@ -39,7 +38,7 @@ groups <- sjc.cluster(mtcars, 5)
 sjc.grpdisc(mtcars, groups, 5)
 }
 \seealso{
-  \code{\link{sjc.dend}} \cr \code{\link{sjc.cluster}} \cr
-  \code{\link{sjc.elbow}}
+\code{\link{sjc.dend}} \cr \code{\link{sjc.cluster}} \cr
+\code{\link{sjc.elbow}}
 }
 

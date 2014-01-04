@@ -2,22 +2,17 @@
 \alias{sjp.pca}
 \title{Plot PCA results}
 \usage{
-  sjp.pca(data, numberOfFactors = NULL,
-    factorLoadingTolerance = 0.1, plotEigenvalues = FALSE,
-    title = NULL, titleSize = 1.3, titleColor = "black",
-    axisLabels.y = NULL, type = "tile", geomAlpha = 0.8,
-    valueLabelColor = "black", valueLabelSize = 4.5,
-    valueLabelAlpha = 1, circleSize = 10,
-    outlineColor = "black", outlineSize = 0.2,
-    axisColor = NULL, borderColor = NULL,
-    axisLabelSize = 1.1, axisLabelColor = "gray30",
-    axisLabelAngle.x = 0, axisLabelAngle.y = 0,
-    breakTitleAt = 50, breakLabelsAt = 20,
-    hideLegend = TRUE, legendTitle = NULL,
-    showValueLabels = TRUE, showTickMarks = FALSE,
-    showCronbachsAlpha = TRUE, fillColor = NULL,
-    majorGridColor = NULL, minorGridColor = NULL,
-    theme = NULL)
+sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
+  plotEigenvalues = FALSE, title = NULL, titleSize = 1.3,
+  titleColor = "black", axisLabels.y = NULL, type = "tile",
+  geomAlpha = 0.8, valueLabelColor = "black", valueLabelSize = 4.5,
+  valueLabelAlpha = 1, circleSize = 10, outlineColor = "black",
+  outlineSize = 0.2, axisColor = NULL, borderColor = NULL,
+  axisLabelSize = 1.1, axisLabelColor = "gray30", axisLabelAngle.x = 0,
+  axisLabelAngle.y = 0, breakTitleAt = 50, breakLabelsAt = 20,
+  hideLegend = TRUE, legendTitle = NULL, showValueLabels = TRUE,
+  showTickMarks = FALSE, showCronbachsAlpha = TRUE, fillColor = NULL,
+  majorGridColor = NULL, minorGridColor = NULL, theme = NULL)
 }
 \arguments{
   \item{data}{A data frame with factors (each columns one
@@ -163,19 +158,19 @@
   borders, grids and ticks.}
 }
 \value{
-  An updated data frame containing all factors that have a
-  clear loading on a specific scale in case \code{data} was
-  a data frame (See parameter \code{factorLoadingTolerance}
-  for more details). Or the varimax-rotated factor loading
-  matrix in case \code{data} was a \code{cor}-object.
+An updated data frame containing all factors that have a
+clear loading on a specific scale in case \code{data} was a
+data frame (See parameter \code{factorLoadingTolerance} for
+more details). Or the varimax-rotated factor loading matrix
+in case \code{data} was a \code{cor}-object.
 }
 \description{
-  Plot correlations as ellipses or tiles. \cr \cr In case a
-  data frame is used as parameter, the cronbach's alpha
-  value for each factor scale will be calculated, i.e. all
-  variables with the highest loading for a factor are taken
-  for the reliability test. The result is an alpha value
-  for each factor dimension.
+Plot correlations as ellipses or tiles. \cr \cr In case a
+data frame is used as parameter, the cronbach's alpha value
+for each factor scale will be calculated, i.e. all
+variables with the highest loading for a factor are taken
+for the reliability test. The result is an alpha value for
+each factor dimension.
 }
 \examples{
 # randomly create data frame with 7 items, each consisting of 4 categories
@@ -220,8 +215,8 @@ colnames(df) <- varlabs[c(start:end)]
 sjp.pca(df)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/07/08/plotting-principal-component-analysis-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/07/08/plotting-principal-component-analysis-with-ggplot-rstats/}
 }
 

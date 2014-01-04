@@ -2,18 +2,18 @@
 \alias{sju.betaCoef}
 \title{Retrieve std. beta coefficients of lm}
 \usage{
-  sju.betaCoef(fit)
+sju.betaCoef(fit)
 }
 \arguments{
   \item{fit}{A fitted linear model.}
 }
 \value{
-  The standardiized beta coefficients of the fitted linear
-  model.
+The standardiized beta coefficients of the fitted linear
+model.
 }
 \description{
-  Returns the standardized beta coefficients of a fitted
-  linear model.
+Returns the standardized beta coefficients of a fitted
+linear model.
 }
 \examples{
 # fit linear model
@@ -22,6 +22,6 @@ fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Sola
 sju.betaCoef(fit)
 }
 \seealso{
-  \code{\link{sjp.lm}}
+\code{\link{sjp.lm}}
 }
 

@@ -2,30 +2,23 @@
 \alias{sjp.glm}
 \title{Plot odds ratios (forest plots)}
 \usage{
-  sjp.glm(fit, sortOdds = TRUE, title = NULL,
-    titleSize = 1.3, titleColor = "black",
-    axisLabels.y = NULL, axisLabelSize = 1.1,
-    axisLabelAngle.y = 0, axisLabelColor = "gray30",
-    axisTitle.x = "Odds Ratios", axisTitleSize = 1.2,
-    axisTitleColor = c("#444444"), axisLimits = NULL,
-    breakTitleAt = 50, breakLabelsAt = 12,
-    gridBreaksAt = 0.5, transformTicks = FALSE,
-    type = "dots", hideErrorBars = FALSE,
-    errorBarWidth = 0, errorBarSize = 0.8,
-    errorBarLineType = 1, pointSize = 3,
-    colorPalette = "Paired", barColor = NULL,
-    barWidth = 0.3, barAlpha = 1,
-    valueLabelColor = "black", valueLabelSize = 4.5,
-    valueLabelAlpha = 1, axisColor = NULL,
-    borderColor = NULL, barOutline = FALSE,
-    outlineColor = "black", interceptLineType = 2,
-    interceptLineColor = "grey70", majorGridColor = NULL,
-    minorGridColor = NULL, hideGrid.x = FALSE,
-    hideGrid.y = FALSE, theme = NULL,
-    showIntercept = FALSE, showAxisLabels.y = TRUE,
-    showTickMarks = TRUE, showValueLabels = TRUE,
-    showPValueLabels = TRUE, showModelSummary = TRUE,
-    returnPlot = FALSE)
+sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
+  titleColor = "black", axisLabels.y = NULL, axisLabelSize = 1.1,
+  axisLabelAngle.y = 0, axisLabelColor = "gray30",
+  axisTitle.x = "Odds Ratios", axisTitleSize = 1.2,
+  axisTitleColor = c("#444444"), axisLimits = NULL, breakTitleAt = 50,
+  breakLabelsAt = 12, gridBreaksAt = 0.5, transformTicks = FALSE,
+  type = "dots", hideErrorBars = FALSE, errorBarWidth = 0,
+  errorBarSize = 0.8, errorBarLineType = 1, pointSize = 3,
+  colorPalette = "Paired", barColor = NULL, barWidth = 0.3,
+  barAlpha = 1, valueLabelColor = "black", valueLabelSize = 4.5,
+  valueLabelAlpha = 1, axisColor = NULL, borderColor = NULL,
+  barOutline = FALSE, outlineColor = "black", interceptLineType = 2,
+  interceptLineColor = "grey70", majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  theme = NULL, showIntercept = FALSE, showAxisLabels.y = TRUE,
+  showTickMarks = TRUE, showValueLabels = TRUE, showPValueLabels = TRUE,
+  showModelSummary = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{fit}{The fitted model of a logistic regression
@@ -206,7 +199,9 @@
   gray grids, \code{"classic"} for a classic theme (black
   border, no grids), \code{"minimal"} for a minimalistic
   theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{showIntercept}{If \code{TRUE}, the intercept of the
   fitted model is also plotted.  Default is \code{FALSE}.
@@ -231,16 +226,16 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot odds ratios with confidence intervalls as bar chart
-  or dot plot
+Plot odds ratios with confidence intervalls as bar chart or
+dot plot
 }
 \note{
-  Based on the script from surefoss:
-  \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+Based on the script from surefoss:
+\url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
 }
 \examples{
 # prepare dichotomous dependent variable
@@ -286,11 +281,11 @@ fit <- glm(y ~., data=df, family=binomial(link="logit"))
 sjp.glm(fit, title=labs[['neg_c_7']], axisLabels.y=predlab)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
 }
 \seealso{
-  \code{\link{sjp.glm.ma}}
+\code{\link{sjp.glm.ma}}
 }
 

@@ -2,8 +2,7 @@
 \alias{sju.groupVar}
 \title{Recode scales into grouped factors}
 \usage{
-  sju.groupVar(var, groupsize = 5, asNumeric = TRUE,
-    rightInterval = FALSE)
+sju.groupVar(var, groupsize = 5, asNumeric = TRUE, rightInterval = FALSE)
 }
 \arguments{
   \item{var}{The scale variable, which should recoded into
@@ -25,11 +24,11 @@
   ranges from 51-55, 56-60, 61-65 etc.}
 }
 \value{
-  A grouped variables, either as numeric or as factor (see
-  paramter \code{asNumeric}).
+A grouped variables, either as numeric or as factor (see
+paramter \code{asNumeric}).
 }
 \description{
-  Recode scales into grouped factors.
+Recode scales into grouped factors.
 }
 \examples{
 age <- abs(round(rnorm(100, 65, 20)))
@@ -60,6 +59,6 @@ sjp.frq(ageGrp,
         maxYlim=FALSE)
 }
 \seealso{
-  \code{\link{sju.groupVarLabels}}
+\code{\link{sju.groupVarLabels}}
 }
 

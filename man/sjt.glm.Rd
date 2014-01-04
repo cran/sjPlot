@@ -2,14 +2,12 @@
 \alias{sjt.glm}
 \title{Save odds Ratios as HTML-Table}
 \usage{
-  sjt.glm(..., file, labelPredictors = NULL,
-    labelDependentVariables = NULL,
-    stringPredictors = "Predictors",
-    stringDependentVariables = "Dependent Variables",
-    stringModel = "Model", stringIntercept = "(Intercept)",
-    pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
-    showConfInt = TRUE, separateConfColumn = FALSE,
-    showAbbrHeadline = TRUE)
+sjt.glm(..., file, labelPredictors = NULL, labelDependentVariables = NULL,
+  stringPredictors = "Predictors",
+  stringDependentVariables = "Dependent Variables", stringModel = "Model",
+  stringIntercept = "(Intercept)", pvaluesAsNumbers = FALSE,
+  boldpvalues = TRUE, showConfInt = TRUE, separateConfColumn = FALSE,
+  showAbbrHeadline = TRUE)
 }
 \arguments{
   \item{...}{One or more fitted glm-objects.}
@@ -60,10 +58,10 @@
   odds ratios, confidence interval and p-values.}
 }
 \description{
-  Save (multiple) generalized linear models (Odds Ratios)
-  as HTML-Table. The fitted glm's should have the same
-  predictor variables and differ only in their response
-  (dependent variable).
+Save (multiple) generalized linear models (Odds Ratios) as
+HTML-Table. The fitted glm's should have the same predictor
+variables and differ only in their response (dependent
+variable).
 }
 \examples{
 # prepare dummy variable for binary logistic regression
@@ -103,11 +101,11 @@ sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Agriculture"),
         file="or_table4.html", pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
 }
 \seealso{
-  \link{sjt.lm}
+\link{sjt.lm}
 }
 

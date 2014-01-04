@@ -2,11 +2,10 @@
 \alias{sjp.reglin}
 \title{Plot regression lines for each predictor}
 \usage{
-  sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE,
-    ciLevel = 0.95, pointAlpha = 0.2, pointColor = "black",
-    showScatterPlot = TRUE, showLoess = TRUE,
-    loessLineColor = "red", showLoessCI = FALSE,
-    loessCiLevel = 0.95)
+sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE, ciLevel = 0.95,
+  pointAlpha = 0.2, pointColor = "black", showScatterPlot = TRUE,
+  showLoess = TRUE, loessLineColor = "red", showLoessCI = FALSE,
+  loessCiLevel = 0.95)
 }
 \arguments{
   \item{fit}{The model of the linear regression
@@ -55,18 +54,17 @@
   \code{showLoessCI} is \code{TRUE}. Default is 0.95.}
 }
 \description{
-  Plot regression lines with confidence intervals for each
-  single predictor of a fitted model. This method extracts
-  all predictors of a fitted model and fits each of them
-  against the response variable. \cr \cr This function
-  plots two lines: The resulting linear regression line
-  including confidence interval (in blue) and a
-  loess-smoothed line without confidence interval (in red).
-  The better the linear relationship of predictor and
-  response is, the more both lines should overlap (i.e. the
-  red loess-smoothed line is almost linear). \cr \cr
-  Furthermore, a scatter plot of response and predictor
-  values is plotted.
+Plot regression lines with confidence intervals for each
+single predictor of a fitted model. This method extracts
+all predictors of a fitted model and fits each of them
+against the response variable. \cr \cr This function plots
+two lines: The resulting linear regression line including
+confidence interval (in blue) and a loess-smoothed line
+without confidence interval (in red). The better the linear
+relationship of predictor and response is, the more both
+lines should overlap (i.e. the red loess-smoothed line is
+almost linear). \cr \cr Furthermore, a scatter plot of
+response and predictor values is plotted.
 }
 \examples{
 data(efc)
@@ -82,7 +80,7 @@ sjp.reglin(fit, efc, showScatterPlot=FALSE)
 sjp.reglin(fit, efc, showCI=FALSE)
 }
 \seealso{
-  \code{\link{sjp.lm}} \cr \code{\link{sjp.lm.ma}} \cr
-  \code{\link{sjp.lm.int}}
+\code{\link{sjp.lm}} \cr \code{\link{sjp.lm.ma}} \cr
+\code{\link{sjp.lm.int}}
 }
 

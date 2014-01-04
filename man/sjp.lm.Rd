@@ -2,27 +2,23 @@
 \alias{sjp.lm}
 \title{Plot beta coefficients of lm}
 \usage{
-  sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
-    titleColor = "black", axisLabels.y = NULL,
-    showAxisLabels.y = TRUE, axisLabelSize = 1.1,
-    axisLabelColor = "gray30", axisTitle.x = "Estimates",
-    axisTitleSize = 1.4, axisTitleColor = c("#444444"),
-    axisLimits = NULL, valueLabelColor = "grey20",
-    valueLabelColorNS = "grey50", valueLabelSize = 4.5,
-    valueLabelAlpha = 0.8, axisLabelAngle.y = 0,
-    errorBarColor = "#3366a0", errorBarWidth = 0,
-    errorBarSize = 0.8, pointColor = "#3366a0",
-    pointSize = 3, pointColorStdBeta = "#cc5533",
-    pointSizeStdBeta = 3, stdBetaLineType = 2,
-    stdBetaLineAlpha = 0.3, breakTitleAt = 50,
-    breakLabelsAt = 12, gridBreaksAt = 2,
-    borderColor = NULL, axisColor = NULL, theme = NULL,
-    majorGridColor = NULL, minorGridColor = NULL,
-    hideGrid.x = FALSE, hideGrid.y = FALSE,
-    showTickMarks = TRUE, showValueLabels = TRUE,
-    showPValueLabels = TRUE, showModelSummary = TRUE,
-    showStandardBeta = TRUE, showStandardBetaLine = FALSE,
-    returnPlot = FALSE)
+sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
+  titleColor = "black", axisLabels.y = NULL, showAxisLabels.y = TRUE,
+  axisLabelSize = 1.1, axisLabelColor = "gray30",
+  axisTitle.x = "Estimates", axisTitleSize = 1.4,
+  axisTitleColor = c("#444444"), axisLimits = NULL,
+  valueLabelColor = "grey20", valueLabelColorNS = "grey50",
+  valueLabelSize = 4.5, valueLabelAlpha = 0.8, axisLabelAngle.y = 0,
+  errorBarColor = "#3366a0", errorBarWidth = 0, errorBarSize = 0.8,
+  pointColor = "#3366a0", pointSize = 3, pointColorStdBeta = "#cc5533",
+  pointSizeStdBeta = 3, stdBetaLineType = 2, stdBetaLineAlpha = 0.3,
+  breakTitleAt = 50, breakLabelsAt = 12, gridBreaksAt = NULL,
+  borderColor = NULL, axisColor = NULL, theme = NULL,
+  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
+  hideGrid.y = FALSE, showTickMarks = TRUE, showValueLabels = TRUE,
+  showPValueLabels = TRUE, showModelSummary = TRUE,
+  showStandardBeta = TRUE, showStandardBetaLine = FALSE,
+  returnPlot = FALSE)
 }
 \arguments{
   \item{fit}{The model of the linear regression
@@ -63,11 +59,14 @@
   \item{axisLabelColor}{The color of the category labels
   (predictor labels). Default is a dark grey (grey30).}
 
-  \item{axisTitle.x}{A label for the x axis.}
+  \item{axisTitle.x}{A label for the x axis. Default is
+  \code{"Estimates"}.}
 
-  \item{axisTitleColor}{The color of the x axis label.}
+  \item{axisTitleColor}{The color of the x axis label.
+  Default is a dark grey.}
 
-  \item{axisTitleSize}{The size of the x axis label.}
+  \item{axisTitleSize}{The size of the x axis label.
+  Default is 1.4.}
 
   \item{axisLimits}{Defines the range of the axis where the
   beta coefficients and their confidence intervalls are
@@ -140,7 +139,8 @@
 
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.
-  Default is 2.}
+  Default is \code{NULL}, so \link{pretty} gridbeaks will
+  be used.}
 
   \item{borderColor}{User defined color of whole diagram
   border (panel border).}
@@ -151,11 +151,13 @@
 
   \item{theme}{specifies The diagram's background theme.
   default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{bw} for a white background with
-  gray grids, \code{classic} for a classic theme (black
-  border, no grids), \code{minimal} for a minimalistic
-  theme (no border, gray grids) or \code{none} for no
-  borders, grids and ticks.}
+  white grids. Use \code{"bw"} for a white background with
+  gray grids, \code{"classic"} for a classic theme (black
+  border, no grids), \code{"minimal"} for a minimalistic
+  theme (no border, gray grids) or \code{"none"} for no
+  borders, grids and ticks.  The ggplot-object can be
+  returned with \code{returnPlot} set to \code{TRUE} in
+  order to further modify the plot's theme.}
 
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
@@ -197,18 +199,18 @@
   plotted, not returned.}
 }
 \value{
-  The ggplot-object with the complete plot in case
-  \code{returnPlot} is \code{TRUE}.
+The ggplot-object with the complete plot in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
-  Plot beta coefficients of linear regressions with
-  confidence intervalls as dot plot (forest plot).
-  Additionally, the standardized beta values are plotted as
-  red dots.
+Plot beta coefficients of linear regressions with
+confidence intervalls as dot plot (forest plot).
+Additionally, the standardized beta values are plotted as
+red dots.
 }
 \note{
-  Based on an an idea from surefoss:
-  \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+Based on an an idea from surefoss:
+\url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
 }
 \examples{
 # fit linear model
@@ -218,16 +220,16 @@ fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Sola
 sjp.lm(fit, gridBreaksAt=2)
 
 # plot estimates with CI without standardized beta-values
-# and with ugly narrow tick marks (because "gridBreaksAt" was not specified)
+# and with narrower tick marks (because "gridBreaksAt" was not specified)
 sjp.lm(fit, showStandardBeta=FALSE)
 }
 \references{
-  \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-  \cr \cr
-  \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\cr \cr
+\url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
 }
 \seealso{
-  \code{\link{sjp.lm.ma}} \cr \code{\link{sjp.reglin}} \cr
-  \code{\link{sjp.lm.int}} \cr \code{\link{sju.betaCoef}}
+\code{\link{sjp.lm.ma}} \cr \code{\link{sjp.reglin}} \cr
+\code{\link{sjp.lm.int}} \cr \code{\link{sju.betaCoef}}
 }
 
