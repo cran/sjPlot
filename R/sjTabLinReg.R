@@ -9,7 +9,9 @@
 #' @seealso \link{sjt.glm}
 #' 
 #' @param ... One or more fitted lm-objects.
-#' @param file The destination file, which will be in html-format.
+#' @param file The destination file, which will be in html-format. If no filepath is specified,
+#'          the file will be saved as temporary file and openend either in the RStudio View pane or
+#'          in the default web browser.
 #' @param labelPredictors Labels of the predictor variables, provided as char vector.
 #' @param labelDependentVariables Labels of the dependent variables of all fitted models
 #'          which have been used as first parameter(s), provided as char vector.
@@ -22,6 +24,8 @@
 #'          Default is \code{"Model"}.
 #' @param stringIntercept String constant used as headline for the Intercept row
 #'          default is \code{"Intercept"}.
+#' @param stringObservations String constant used in the summary row for the count of observation
+#'          (cases). Default is \code{"Observations"}.
 #' @param showConfInt If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 #'          \code{FALSE} to omit the CI in the table.
 #' @param showStdBeta If \code{TRUE}, the standardized beta-coefficients are also printed.
@@ -33,7 +37,18 @@
 #'          Default is \code{FALSE}.
 #' @param showAbbrHeadline If \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for beta- and std. beta-values, confidence interval and p-values.
+#' @param showR2 If \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
+#'          in the model summary.
+#' @param showFStat If \code{TRUE}, the F-statistics for each model is printed
+#'          in the model summary. Default is \code{FALSE}.
+#' @param showAIC If \code{TRUE}, the AIC value for each model is printed
+#'          in the model summary. Default is \code{FALSE}.
 #'
+#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
+#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
+#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
+#'         default behaviour (i.e. \code{file=NULL}).
+#' 
 #' @examples
 #' # Now fit the models. Note that both models share the same predictors
 #' # and only differ in their dependent variable
@@ -44,20 +59,22 @@
 #' # fit second model
 #' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 #' 
-#' # save HTML-tables to "lm_table1.html"
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        file="lm_table1.html")
+#' # create and open HTML-table in RStudio Viewer Pane or web browser
+#' ## Note that example may open browser, thus it is outcommented
+#' # sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#' #        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))
 #' 
 #' # save HTML-tables to "lm_table2.html", indicating p-values as numbers
 #' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
 #'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
 #'        file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)
 #' 
-#' # save HTML-tables to "lm_table3.html", printing CI in a separate column
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        file="lm_table3.html", separateConfColumn=TRUE)
+#' # create and open HTML-table in RStudio Viewer Pane or web browser,
+#' # printing CI in a separate column
+#' ## Note that example may open browser, thus it is outcommented
+#' # sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#' #        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
+#' #        separateConfColumn=TRUE)
 #' 
 #' # save HTML-tables to "lm_table4.html", indicating p-values as numbers
 #' # and printing CI in a separate column
@@ -67,21 +84,25 @@
 #' 
 #' @export
 sjt.lm <- function (..., 
-                     file, 
+                     file=NULL, 
                      labelPredictors=NULL, 
                      labelDependentVariables=NULL, 
                      stringPredictors="Predictors", 
                      stringDependentVariables="Dependent Variables", 
                      stringModel="Model",
                      stringIntercept="(Intercept)",
+                     stringObservations="Observations",
                      showConfInt=TRUE,
                      showStdBeta=FALSE,
                      pvaluesAsNumbers=FALSE,
                      boldpvalues=TRUE,
                      separateConfColumn=FALSE,
-                     showAbbrHeadline=TRUE) {
+                     showAbbrHeadline=TRUE,
+                     showR2=TRUE,
+                     showFStat=FALSE,
+                     showAIC=FALSE) {
   
-  toWrite = '<html>\n<head>\n<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\ntd.summary { padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-bottom: double; }\n</style>\n</head>\n<body>\n'
+  toWrite = '<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">\n<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\ntd.summary { padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-bottom: double; }\n</style>\n</head>\n<body>\n'
   toWrite = paste(toWrite, "<table>", "\n")
   
   input_list <- list(...)
@@ -366,7 +387,7 @@ sjt.lm <- function (...,
   else {
     colspanstring <- c("<td class=\"summary\">")
   }
-  toWrite = paste(toWrite, "  <tr style=\"border-top:1px solid\">\n    <td class=\"summary\">Observations</td>\n")
+  toWrite = paste(toWrite, sprintf("  <tr style=\"border-top:1px solid\">\n    <td class=\"summary\">%s</td>\n", stringObservations))
   for (i in 1:length(input_list)) {
     toWrite = paste(toWrite, sprintf("    %s%i</td>\n", colspanstring, summary(input_list[[i]])$df[2]))
   }
@@ -374,43 +395,49 @@ sjt.lm <- function (...,
   # -------------------------------------
   # Model-Summary: r2 and sdj. r2
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">R<sup>2</sup> / adj. R<sup>2</sup></td>\n")
-  for (i in 1:length(input_list)) {
-    rsqu <- summary(input_list[[i]])$r.squared
-    adjrsqu <- summary(input_list[[i]])$adj.r.squared
-    toWrite = paste(toWrite, sprintf("    %s%.3f / %.3f</td>\n", colspanstring, rsqu, adjrsqu))
+  if (showR2) {
+    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">R<sup>2</sup> / adj. R<sup>2</sup></td>\n")
+    for (i in 1:length(input_list)) {
+      rsqu <- summary(input_list[[i]])$r.squared
+      adjrsqu <- summary(input_list[[i]])$adj.r.squared
+      toWrite = paste(toWrite, sprintf("    %s%.3f / %.3f</td>\n", colspanstring, rsqu, adjrsqu))
+    }
+    toWrite = paste(toWrite, "  </tr>\n")
   }
-  toWrite = paste(toWrite, "  </tr>\n")
   # -------------------------------------
   # Model-Summary: F-statistics
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">F-statistics</td>\n")
-  for (i in 1:length(input_list)) {
-    fstat <- summary(input_list[[i]])$fstatistic
-    # Calculate p-value for F-test
-    pval <- pf(fstat[1], fstat[2], fstat[3],lower.tail = FALSE)
-    # indicate significance level by stars
-    pan <- c("")
-    if (pval<=0.005) {
-      pan <- c("***")
+  if (showFStat) {
+    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">F-statistics</td>\n")
+    for (i in 1:length(input_list)) {
+      fstat <- summary(input_list[[i]])$fstatistic
+      # Calculate p-value for F-test
+      pval <- pf(fstat[1], fstat[2], fstat[3],lower.tail = FALSE)
+      # indicate significance level by stars
+      pan <- c("")
+      if (pval<=0.005) {
+        pan <- c("***")
+      }
+      else  if (pval<=0.01) {
+        pan <- c("**")
+      }
+      else  if (pval<=0.05) {
+        pan <- c("*")
+      }
+      toWrite = paste(toWrite, sprintf("    %s%.2f%s</td>\n", colspanstring, fstat[1], pan))
     }
-    else  if (pval<=0.01) {
-      pan <- c("**")
-    }
-    else  if (pval<=0.05) {
-      pan <- c("*")
-    }
-    toWrite = paste(toWrite, sprintf("    %s%.2f%s</td>\n", colspanstring, fstat[1], pan))
+    toWrite = paste(toWrite, "  </tr>\n")
   }
-  toWrite = paste(toWrite, "  </tr>\n")
   # -------------------------------------
   # Model-Summary: AIC
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">AIC</td>\n")
-  for (i in 1:length(input_list)) {
-    toWrite = paste(toWrite, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
+  if (showAIC) {
+    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">AIC</td>\n")
+    for (i in 1:length(input_list)) {
+      toWrite = paste(toWrite, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
+    }
+    toWrite = paste(toWrite, "  </tr>\n")
   }
-  toWrite = paste(toWrite, "  </tr>\n")
   
   
   # -------------------------------------
@@ -423,5 +450,26 @@ sjt.lm <- function (...,
   # finish table
   # -------------------------------------
   toWrite = paste(toWrite, "</table>\n</body></html>", "\n")
-  write(toWrite, file=file)  
+  # -------------------------------------
+  # check if we have filename specified
+  # -------------------------------------
+  if (!is.null(file)) {
+    # write file
+    write(toWrite, file=file)
+  }
+  else {
+    # else create and browse temporary file
+    htmlFile <- tempfile(fileext=".html")
+    write(toWrite, file=htmlFile)
+    # check whether we have RStudio Viewer
+    viewer <- getOption("viewer")
+    if (!is.null(viewer)) {
+      viewer(htmlFile)
+    }
+    else {
+      utils::browseURL(htmlFile)    
+    }
+    # delete temp file
+    # unlink(htmlFile)
+  }
 }

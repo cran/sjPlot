@@ -125,14 +125,11 @@ sjp.chi2 <- function(df,
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels))
-      axisLabels[n] <- gsub(pattern, '\\1\n', axisLabels[n])
+    axisLabels <- sju.wordwrap(axisLabels, breakLabelsAt)
   }
   # --------------------------------------------------------
   # start with base plot object here

@@ -1,13 +1,15 @@
 #' @title Plot interaction terms of linear models
 #' @name sjp.lm.int
 #' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
-#' 
+#'             \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/} \cr \cr
+#'             \url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/} \cr \cr
+#'             \url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
+#'             
 #' @description Plot regression curves of significant interaction terms in linear models (lm). Note that beside interaction
-#'                terms, also the single predictors of each interaction also must be included in the fitted model.
+#'                terms, also the single predictors of each interaction must be included in the fitted model as well.
 #'                Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
 #' 
-#' @note Beside interaction terms, also the single predictors of each interaction also must be included in the fitted model.
+#' @note Beside interaction terms, also the single predictors of each interaction must be included in the fitted model as well.
 #'         Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
 #' 
 #' @seealso \code{\link{sjp.lm}} \cr
@@ -68,6 +70,9 @@
 #'          displayed in one line and when a line break is inserted. Default is \code{50}.
 #' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are 
 #'          displayed in one line and when a line break is inserted. Default is \code{20}.
+#' @param breakAnnotationLabelsAt Wordwrap for diagram annotation labels. Determines how many chars of the legend labels are 
+#'          displayed in one line and when a line break is inserted. Default is \code{50}.
+#'          Only applies if \code{showInterceptLine} is \code{TRUE}.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}.
 #' @param theme specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
@@ -75,12 +80,29 @@
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
 #' @param showTickMarks Whether tick marks of axes should be shown or not
+#' @param showInterceptLines If \code{TRUE}, the intercept and the estimate of the predictor
+#'          (reference category of predictor in case interaction is not present) are plotted.
+#' @param showInterceptLabels If \code{TRUE} (default), the intercept lines are labelled. Only
+#'          applies if \code{showInterceptLines} is \code{TRUE}.
+#' @param interceptLineColor The line color of the model's intercept line. Only applies, if
+#'          \code{showInterceptLines} is \code{TRUE}.
+#' @param estLineColor The line color of the model's predictor's estimate line. Only applies, if
+#'          \code{showInterceptLines} is \code{TRUE}.
+#' @param lineLabelSize The size of the intercept line annotations inside the plot. Only applies
+#'          if \code{showInterceptLines} is \code{TRUE}. Default is 3.7.
+#' @param lineLabelColor The color of the intercept line annotations inside the plot. Only applies
+#'          if \code{showInterceptLines} is \code{TRUE}. Default is \code{"black"}.
+#' @param lineLabelString Default string for the intercept lines that is appended to the predictor
+#'          variable name. By default, this string is \code{"(no interaction)"}.
 #' @param borderColor user defined color of whole diagram border (panel border)
 #' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #' @param majorGridColor specifies the color of the major grid lines of the diagram background
 #' @param minorGridColor specifies the color of the minor grid lines of the diagram background
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
+#' @param returnPlot If \code{TRUE}, the ggplot-objects with all plots will be returned (and not plotted).
+#'          Default is \code{FALSE}, hence the ggplot objects will be plotted, not returned.
+#' @return The ggplot-objects as \code{list} with all plots in case \code{returnPlot} is \code{TRUE}.
 #' 
 #' @examples
 #' # Note that the data sets used in this example may not be perfectly suitable for
@@ -116,7 +138,7 @@
 #' # plot interactions
 #' sjp.lm.int(fit)
 #' # plot interactions, including those with p-value up to 0.1
-#' sjp.lm.int(fit, plevel=0.1)
+#' sjp.lm.int(fit, plevel=0.1, showInterceptLines=TRUE)
 #' 
 #' 
 #' @import ggplot2
@@ -149,15 +171,24 @@ sjp.lm.int <- function(fit,
                       valueLabelAlpha=0.8,
                       breakTitleAt=50,
                       breakLegendLabelsAt=20,
+                      breakAnnotationLabelsAt=50,
                       gridBreaksAt=NULL,
                       theme=NULL,
                       showTickMarks=TRUE,
+                      showInterceptLines=FALSE,
+                      showInterceptLabels=TRUE,
+                      interceptLineColor="#3366cc",
+                      estLineColor="#cc3300",
+                      lineLabelSize=3.7,
+                      lineLabelColor="black",
+                      lineLabelString="(no interaction)",
                       borderColor=NULL, 
                       axisColor=NULL, 
                       majorGridColor=NULL,
                       minorGridColor=NULL,
                       hideGrid.x=FALSE,
-                      hideGrid.y=FALSE) {
+                      hideGrid.y=FALSE,
+                      returnPlot=FALSE) {
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
@@ -323,6 +354,8 @@ sjp.lm.int <- function(fit,
   # copy variable values to data frame
   # -----------------------------------------------------------
   fitdat <- as.data.frame(fit$x)
+  # init vector that saves ggplot objects
+  plotlist <- list()
   # -----------------------------------------------------------
   # Now iterate all significant interaction terms
   # and manually calculate the linear regression by inserting
@@ -345,6 +378,13 @@ sjp.lm.int <- function(fit,
     b1 <- as.numeric(estimates[match(interactionterms[[1]][1], estimates.names)])
     b2 <- as.numeric(estimates[match(interactionterms[[1]][2], estimates.names)])
     b3 <- as.numeric(estimates[match(intnames[cnt], estimates.names)])
+    # -----------------------------------------------------------
+    # check whether each predictor was included in the model 
+    # as single term as well
+    # -----------------------------------------------------------
+    if(is.na(b1) || is.na(b2) || is.na(b3)) {
+      stop("Predictors of interaction terms must be included as single term as well. See Note in ?sjp.lm.int", call.=FALSE)
+    }
     # -----------------------------------------------------------
     # retrieve number of unique values in each predictor variable.
     # depending on the amount of values the variable for the x-axis
@@ -380,6 +420,8 @@ sjp.lm.int <- function(fit,
       predy <- c(interactionterms[[1]][2])
       ymin <- min(pred2uniquevals)
       ymax <- max(pred2uniquevals)
+      # intercept of predictor's reference category
+      est_b <- b2+b0
       # -----------------------------------------------------------
       # Create data frame for plotting the interactions by
       # manually calculating the linear regression by inserting
@@ -418,6 +460,8 @@ sjp.lm.int <- function(fit,
       predy <- c(interactionterms[[1]][1])
       ymin <- min(pred1uniquevals)
       ymax <- max(pred1uniquevals)
+      # intercept of predictor's reference category
+      est_b <- b1+b0
       # -----------------------------------------------------------
       # Create data frame for plotting the interactions by
       # manually calculating the linear regression by inserting
@@ -469,6 +513,23 @@ sjp.lm.int <- function(fit,
     lowerLim.y <- floor(min(intdf$y))
     upperLim.y <- ceiling(max(intdf$y))
     # -----------------------------------------------------------
+    # check whether we have to modify axis limits in case intercept
+    # lines are also plotted
+    # -----------------------------------------------------------
+    if (showInterceptLines) {
+      # retrieve intercept bounds
+      ilmin <- min(b0, est_b)
+      ilmax <- min(b0, est_b)
+      # adjust lower lim if necessary
+      if (ilmin < lowerLim.y) {
+        lowerLim.y <- floor(ilmin)
+      }
+      # adjust upper lim if necessary
+      if (ilmax > upperLim.y) {
+        upperLim.y <- ceiling(max(ilmax))
+      }
+    }
+    # -----------------------------------------------------------
     # check whether user defined grid breaks / tick marks are used
     # -----------------------------------------------------------
     if (!is.null(gridBreaksAt)) {
@@ -501,18 +562,19 @@ sjp.lm.int <- function(fit,
     if (!is.null(axisTitle.y)) {
       laby <- axisTitle.y
     }
+    # -----------------------------------------------------------
+    # prepare annotation labels
+    # -----------------------------------------------------------
+    annoLabels <- paste(lLabels[1], lineLabelString)
+    annoLabels <- c(annoLabels, paste(lLabels[2], lineLabelString))
     # wrap title
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(labtitle)) {
-      labtitle[n] <- gsub(pattern, '\\1\n', labtitle[n])
-    }
+    labtitle <- sju.wordwrap(labtitle, breakTitleAt)
     # wrap legend labels
-    pattern <- c(paste('(.{1,', breakLegendLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(lLabels)) {
-      lLabels[n] <- gsub(pattern, '\\1\n', lLabels[n])
-    }
-    
-    
+    lLabels <- sju.wordwrap(lLabels, breakLegendLabelsAt)
+    # wrap annotation labels
+    annoLabels <- sju.wordwrap(annoLabels, breakAnnotationLabelsAt)
+
+                    
     # -----------------------------------------------------------
     # prepare base plot of interactions
     # -----------------------------------------------------------
@@ -533,9 +595,26 @@ sjp.lm.int <- function(fit,
           # add a shaded region between minimun and maximum curve of interactions
           geom_ribbon(aes(x=x, ymin=ymin, ymax=ymax), fill=fillColor, alpha=fillAlpha) +
           geom_line(aes(x=x, y=y, colour=grp))
+        # ------------------------------------------------------------
+        # plot value labels
+        # ------------------------------------------------------------
         if (showValueLabels) {
           baseplot <- baseplot +
             geom_text(aes(label=round(y,1), x=x, y=y), colour=valueLabelColor, vjust=1.5, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+        }
+        # ------------------------------------------------------------
+        # plot intercept line and estimate line (i.e. reference category
+        # of predictor, in case interaction is not present)
+        # ------------------------------------------------------------
+        if (showInterceptLines) {
+          baseplot <- baseplot +
+            geom_abline(intercept=b0, slope=0, colour=interceptLineColor) +
+            geom_abline(intercept=est_b, slope=0, colour=estLineColor)
+          if (showInterceptLabels) {
+            baseplot <- baseplot +
+              annotate("text", label=annoLabels[1], x=-Inf, hjust=-0.05, vjust=-0.5, colour=lineLabelColor, size=lineLabelSize, y=b0) +
+              annotate("text", label=annoLabels[2], x=-Inf, hjust=-0.05, vjust=-0.5, colour=lineLabelColor, size=lineLabelSize, y=est_b)
+          }
         }
       }
     }
@@ -574,10 +653,27 @@ sjp.lm.int <- function(fit,
         # use the loess data to add the 'ribbon' to plot
         # add a shaded region between minimun and maximum curve of interactions
         baseplot <- baseplot + geom_ribbon(data = loessdf, aes(x = x, ymin = ymin, ymax = ymax), fill = fillColor, alpha = fillAlpha)
+        # ------------------------------------------------------------
+        # plot value labels
+        # ------------------------------------------------------------
         if (showValueLabels) {
           baseplot <- baseplot +
             geom_text(data = loessdf, aes(label=round(ymin,1), x=x, y=ymin), colour=valueLabelColor, vjust=1.5, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE) +
             geom_text(data = loessdf, aes(label=round(ymax,1), x=x, y=ymax), colour=valueLabelColor, vjust=1.5, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+        }
+        # ------------------------------------------------------------
+        # plot intercept line and estimate line (i.e. reference category
+        # of predictor, in case interaction is not present)
+        # ------------------------------------------------------------
+        if (showInterceptLines) {
+          baseplot <- baseplot +
+            geom_abline(intercept=b0, slope=0, colour=interceptLineColor) +
+            geom_abline(intercept=est_b, slope=0, colour=estLineColor)
+          if (showInterceptLabels) {
+            baseplot <- baseplot +
+              annotate("text", label=annoLabels[1], x=-Inf, hjust=-0.05, vjust=-0.5, colour=lineLabelColor, size=lineLabelSize, y=b0) +
+              annotate("text", label=annoLabels[2], x=-Inf, hjust=-0.05, vjust=-0.5, colour=lineLabelColor, size=lineLabelSize, y=est_b)
+          }
         }
       }
     }
@@ -644,9 +740,20 @@ sjp.lm.int <- function(fit,
         theme(panel.grid.major.y = hidegrid,
               panel.grid.minor.y = hidegrid)
     }
-    # ------------------------------------------------------------------------------------
-    # plot final object
-    # ------------------------------------------------------------------------------------
-    print(baseplot)
+    # ---------------------------------------------------------
+    # Check whether ggplot object should be returned or plotted
+    # ---------------------------------------------------------
+    if (returnPlot) {
+      # concatenate plot object
+      plotlist[[length(plotlist)+1]] <- baseplot
+    }
+    else {
+      # print plot
+      print(baseplot)
+    }
+  }
+  # if user wanted plots, return them
+  if (returnPlot) {
+    return(plotlist)
   }
 }

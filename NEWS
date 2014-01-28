@@ -1,3 +1,35 @@
+Version 1.0
+------------------------------------------------------------------------------
+* New function "sjp.lmm" to plot multiple fitted lm's in one plot.
+* New function "sjp.glmm" to plot multiple fitted glm's in one plot.
+* New function "sjp.lm1" to plot regression lines of fitted linear models with only one predictor (lm(y~x)).
+* New function "sjt.frq" to save (multiple) frequency tables as HTML file.
+* New function "sju.recodeTo" to recode variable's category values.
+* New function "sju.dicho" to dichotomize variables.
+* HTML tables generated with function "sjt.lm" can now also be displayed in RStudio Viewer Pane or opened via web browser, if parameter "file=NULL" (default).
+* HTML tables generated with function "sjt.glm" can now also be displayed in RStudio Viewer Pane or opened via web browser, if parameter "file=NULL" (default).
+* Added VIF check (multicollinearity) for function "sjp.glm.ma".
+* Enhanced function "sju.groupVar". It's now possible to use "groupsize=auto" to automatically group variables into a maximum of 30 groups (ggplot-default binwidth-adjustment of histograms). The maximum amount of group can also be specified by the "autoGroupCount" parameter.
+* Enhanced function "sju.groupVarLabels". It's now possible to use "groupsize=auto" to automatically create variable labels for grouped variables with a maximum of 30 groups (ggplot-default binwidth-adjustment of histograms). The maximum amount of group can also be specified by the "autoGroupCount" parameter.
+* Added parameter "autoGroupAt" to function "sjp.frq" to automatically group variable with larger number of unique values into smaller units to prevent too many bars to be plotted.
+* Added parameter "autoGroupAt" to function "sjp.grpfrq" to automatically group variable with larger number of unique values into smaller units to prevent too many bars to be plotted.
+* Added parameter "dots" to function "sjp.frq" to plot dot-plots.
+* Added parameter "startAxisAt" to function "sjp.frq" for cases where variable values have a range starting with a higher lowest value (e.g. ranging from 5-15).
+* Added parameter "flipCoordinates" to function "sjp.lm".
+* Added parameter "axisLabelsAngle.x" to function "sjp.lm".
+* Added parameter "flipCoordinates" to function "sjp.glm".
+* Added parameter "axisLabelsAngle.x" to function "sjp.glm".
+* Added several parameters to function "sjt.lm" to show/hide the different model summary elements.
+* Added several parameters to function "sjt.glm" to show/hide the different model summary elements.
+* Added parameter "labelDigits" to function "sjp.lm" to change digits after decimal points for esitmators (value labels).
+* Added parameter "labelDigits" to function "sjp.glm" to change digits after decimal points for esitmators (value labels).
+* Added parameter "labelDigits" to function "sjp.aov1" to change digits after decimal points for means (value labels).
+* Added new parameters to function "sjp.lm.int" to plot intercept lines of predictors w/o interactions.
+* Added parameter "returnPlot" to function "sjp.lm.in". Multiple ggplot object will be returned as list.
+* Added parameter "returnPlot" to function "sjp.reglin". Multiple ggplot object will be returned as list.
+* Fixed bug that added unnessecary line break in axis-, title- and legend-labels, which let them appear a bit misaligned.
+* Fixed bug in VIF calculation (see "sjp.lm.ma").
+
 Version 0.9
 ------------------------------------------------------------------------------
 * Added function "sju.adjustPlotRange.y" to adjust y-range of ggplot-objects, for instance if labels are out of visible range.

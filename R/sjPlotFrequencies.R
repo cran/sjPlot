@@ -8,6 +8,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
 #'             \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
 #' 
+#' @seealso \link{sjt.frq}
+#' 
 #' @description Plot frequencies of a (count) variable as bar graph, histogram,
 #'                box plot etc. using ggplot.
 #' 
@@ -36,6 +38,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          \code{"desc"} for sorting categories ascending or descending in relation to the frequencies.
 #' @param type Specifies the type of distribution plot that will be plotted. \cr
 #'          \code{"bar"}, \code{"bars"} or \code{"b"} for simple bars (the default setting). \cr
+#'          \code{"dots"} or \code{"dot"} for a dot plot. \cr
 #'          \code{"h"}, \code{"hist"} or \code{"histogram"} for a histogram. \cr
 #'          \code{"line"}, \code{"lines"} or \code{"l"} for a histogram with filled area with line. \cr
 #'          \code{"dens"}, \code{"d"} or \code{"density"} for a density plot. \cr
@@ -62,6 +65,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed.
 #' @param barWidth Width of bars. Default is 0.6, recommended values range from 0.2 to 2.0
+#' @param dotSize The size of dots in case of dot-plots (\code{type="dots"}).
 #' @param innerBoxPlotWidth The width of the inner box plot that is plotted inside of violin plots. Only applies 
 #'          if \code{type} is \code{"violin"}. Default value is 0.15
 #' @param innerBoxPlotDotSize Size of mean dot insie a violin plot. Applies only when \code{type} is set to \code{"violin"}.
@@ -117,6 +121,19 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          or category labels.
 #' @param axisTitleSize the size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y}, not to the tick mark 
 #'          or category labels. Default is 1.3.
+#' @param startAxisAt Determines the first value on the x-axis. By default, this value is 1,
+#'          i.e. the value range on the x axis starts with 1, independent from the lowest
+#'          value of \code{varCount} (which means, you may have zero counts and hence no bars plotted
+#'          for these values in such cases). Change this parameter, if variables with a value range
+#'          starting from greater values than one (e.g. 5-10) should be plotted to avoid empty
+#'          bars in the plot.
+#' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
+#'          is automatically grouped into smaller units (see \link{sju.groupVar}). If \code{varCount} has large 
+#'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
+#'          to group such variables. Default value is 50, i.e. if \code{varCount} has 50 and more unique values 
+#'          it will be grouped using \link{sju.groupVar} with \code{groupsize="auto"} parameter. By default, 
+#'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
+#'          groups are built.
 #' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
@@ -183,6 +200,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'         interactionVarLabels=efc.val['e16sex'],
 #'         type="box")
 #' 
+#' # negative impact scale, ranging from 7-28, assuming that
+#' # variable scale (lowest value) starts with 1 (default assumption)
+#' sjp.frq(efc$neg_c_7)
+#' 
+#' # negative impact scale, ranging from 7-28, setting
+#' # start index of x-axis to lowest value (7)
+#' sjp.frq(efc$neg_c_7, startAxisAt=7)
+#' 
 #' @import ggplot2
 #' @export
 sjp.frq <- function(varCount, 
@@ -207,6 +232,7 @@ sjp.frq <- function(varCount,
                     breakLabelsAt=12, 
                     gridBreaksAt=NULL,
                     barWidth=0.6,
+                    dotSize=4,
                     barColor=NULL, 
                     barAlpha=1,
                     barOutline=FALSE, 
@@ -239,6 +265,8 @@ sjp.frq <- function(varCount,
                     axisTitle.y=NULL,
                     axisTitleColor="black",
                     axisTitleSize=1.3,
+                    startAxisAt=1,
+                    autoGroupAt=50,
                     theme=NULL,
                     flipCoordinates=FALSE,
                     omitNA=TRUE,
@@ -258,6 +286,9 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   if (type=="b" || type=="bar") {
     type <- c("bars")
+  }
+  if (type=="dot") {
+    type <- c("dots")
   }
   if (type=="h" || type=="hist") {
     type <- c("histogram")
@@ -279,18 +310,45 @@ sjp.frq <- function(varCount,
   #---------------------------------------------------
   # weight variable
   #---------------------------------------------------
+#   weightby <- function(var, weight) {
+#     items <- unique(var)
+#     newvar <- c()
+#     for (i in 1:length(items)) {
+#       newcount = round(sum(weight[which(var==items[i])]))
+#       newvar <- c(newvar, rep(items[i], newcount))
+#     }
+#     return (newvar)
+#   }
   weightby <- function(var, weight) {
-    items <- unique(var)
-    newvar <- c()
-    for (i in 1:length(items)) {
-      newcount = round(sum(weight[which(var==items[i])]))
-      newvar <- c(newvar, rep(items[i], newcount))
+    # init values
+    weightedvar <- c()
+    wtab <- round(xtabs(weight ~ var, data=data.frame(cbind(weight=weight,var=var))))
+    # iterate all table values
+    for (w in 1:length(wtab)) {
+      # retrieve count of each table cell
+      w_count <- wtab[[w]]
+      # retrieve "cell name" which is identical to the variable value
+      w_value <- as.numeric(names(wtab[w]))
+      # append variable value, repeating it "w_count" times.
+      weightedvar <- c(weightedvar, rep(w_value, w_count))
     }
-    return (newvar)
+    return(weightedvar)
   }
   if (!is.null(weightBy)) {
     varCount <- weightby(varCount, weightBy)
   }
+  #---------------------------------------------------
+  # check whether variable should be auto-grouped
+  #---------------------------------------------------
+  if (length(unique(varCount))>=autoGroupAt) {
+    cat(sprintf("Variable has %i unique values and was grouped...\n", length(unique(varCount))))
+    agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
+    axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
+    varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
+  }
+  #---------------------------------------------------
+  # create frequency data frame
+  #---------------------------------------------------
   df <- as.data.frame(table(varCount))
   names(df) <- c("y", "Freq")
   
@@ -367,12 +425,12 @@ sjp.frq <- function(varCount,
   # create new data frame. We now have a data frame with all
   # variable categories abd their related counts, including
   # zero counts, but no(!) missings!
-  mydat <- as.data.frame(cbind(var=1:catcount, frq))
+  mydat <- as.data.frame(cbind(var=startAxisAt:catcount, frq=frq[startAxisAt:catcount]))
   # caculate missings here
   missingcount <- length(which(is.na(varCount)))
   # --------------------------------------------------------
-  
-  
+
+
   # --------------------------------------------------------
   # Trim labels and title to appropriate size
   # --------------------------------------------------------
@@ -383,40 +441,33 @@ sjp.frq <- function(varCount,
     if (!is.null(weightByTitleString)) {
       title <- paste(title, weightByTitleString, sep="")
     }
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)    
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.x <- gsub(pattern, '\\1\n', axisTitle.x)
+    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)    
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.y)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.y <- gsub(pattern, '\\1\n', axisTitle.y)
+    axisTitle.y <- sju.wordwrap(axisTitle.y, breakTitleAt)    
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.x)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.x))
-      axisLabels.x[n] <- gsub(pattern, '\\1\n', axisLabels.x[n])
+    axisLabels.x <- sju.wordwrap(axisLabels.x, breakLabelsAt)    
   }
   # If axisLabels.x were not defined, simply set numbers from 1 to
   # amount of categories (=number of rows) in dataframe instead
   else  {
-    axisLabels.x <- c(1:nrow(mydat))
+    axisLabels.x <- c(startAxisAt:(nrow(mydat)+startAxisAt-1))
   }
   # check length of x-axis-labels of interaction variable and split 
   # longer strings into new lines
   if (!is.null(interactionVar)) {
     if (!is.null(interactionVarLabels)) {
-      pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-      for (n in 1:length(interactionVarLabels))
-        interactionVarLabels[n] <- gsub(pattern, '\\1\n', interactionVarLabels[n])
+      interactionVarLabels <- sju.wordwrap(interactionVarLabels, breakLabelsAt)    
     }
     # If interaction-variable-labels were not defined, simply set numbers from 1 to
     # amount of categories instead
@@ -460,7 +511,12 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   # If we have a histogram, caluclate means of groups
   # --------------------------------------------------------
-  mittelwert <- mean(varCount, na.rm=TRUE)
+  if (is.null(weightBy)) {
+    mittelwert <- mean(varCount, na.rm=TRUE)
+  }
+  else {
+    mittelwert <- weighted.mean(varCount, weightBy, na.rm=TRUE)
+  }
   stddev <- sd(varCount, na.rm=TRUE)
   
   
@@ -491,7 +547,7 @@ sjp.frq <- function(varCount,
   else {
     # in case we have a histrogram, calculate
     # max. y lim depending on highest value
-    if (type!="bars") {
+    if (type!="bars" && type!="dots") {
       # if we have boxplots, we have different ranges, so we can adjust
       # the y axis
       if (type=="boxplots" || type=="violin") {
@@ -532,13 +588,23 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   # check whether barcolor is defined
   if (is.null(barColor)) {
-    geob <- geom_bar(stat="identity", colour=outlineColor, width=barWidth, alpha=barAlpha)
     # set default color for histograms
     barColor <- c("#4080c0")
+    if (type=="bars") {
+      geob <- geom_bar(stat="identity", colour=outlineColor, width=barWidth, alpha=barAlpha)
+    }
+    else if (type=="dots") {
+      geob <- geom_point(size=dotSize, alpha=barAlpha)
+    }
   }
   else {
     # continue here, if barcolor is defined.
-    geob <- geom_bar(stat="identity", fill=barColor, colour=outlineColor, width=barWidth, alpha=barAlpha)
+    if (type=="bars") {
+      geob <- geom_bar(stat="identity", fill=barColor, colour=outlineColor, width=barWidth, alpha=barAlpha)
+    }
+    else if (type=="dots") {
+      geob <- geom_point(colour=barColor, size=dotSize, alpha=barAlpha)
+    }
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -672,7 +738,7 @@ sjp.frq <- function(varCount,
   # If it exceeds the user defined limits, plot
   # histrogram instead of bar chart
   # ----------------------------------
-  if (type=="bars") {
+  if (type=="bars" || type=="dots") {
     # mydat is a data frame that only contains one variable (var).
     # Must be declared as factor, so the bars are central aligned to
     # each x-axis-break. 
@@ -898,9 +964,10 @@ freqYlim <- function(var) {
   
   anzahl <- 5
   while (len>=(10*anzahl)) {
-    anzahl <- anzahl +5
+    anzahl <- anzahl + 5
   }
-  return (10*anzahl)  
+  correct <- 10+(floor(log10(len))-1)
+  return (correct*anzahl)  
 }
 
 histYlim <- function(var) {

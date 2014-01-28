@@ -5,7 +5,7 @@
 sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE, ciLevel = 0.95,
   pointAlpha = 0.2, pointColor = "black", showScatterPlot = TRUE,
   showLoess = TRUE, loessLineColor = "red", showLoessCI = FALSE,
-  loessCiLevel = 0.95)
+  loessCiLevel = 0.95, returnPlot = FALSE)
 }
 \arguments{
   \item{fit}{The model of the linear regression
@@ -52,6 +52,15 @@ sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE, ciLevel = 0.95,
   \item{loessCiLevel}{The confidence level of the
   loess-line's confidence region.  Only applies, if
   \code{showLoessCI} is \code{TRUE}. Default is 0.95.}
+
+  \item{returnPlot}{If \code{TRUE}, the ggplot-objects with
+  all plots will be returned (and not plotted).  Default is
+  \code{FALSE}, hence the ggplot objects will be plotted,
+  not returned.}
+}
+\value{
+The ggplot-objects as \code{list} with all plots in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
 Plot regression lines with confidence intervals for each

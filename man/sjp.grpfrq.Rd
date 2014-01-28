@@ -25,9 +25,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, theme = NULL, legendPos = "right",
-  legendSize = 1, legendBorderColor = "white", legendBackColor = "white",
-  flipCoordinates = FALSE, omitNA = TRUE, returnPlot = FALSE)
+  axisTitleSize = 1.3, autoGroupAt = 50, theme = NULL,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", flipCoordinates = FALSE, omitNA = TRUE,
+  returnPlot = FALSE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -323,6 +324,19 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{axisTitleSize}{The size of the x and y axis labels.
   Refers to \code{axisTitle.x} and \code{axisTitle.y}, not
   to the tick mark or category labels.}
+
+  \item{autoGroupAt}{A value indicating at which length of
+  unique values of \code{varCount} the variable is
+  automatically grouped into smaller units (see
+  \link{sju.groupVar}). If \code{varCount} has large
+  numbers of unique values, too many bars for the graph
+  have to be plotted. Hence it's recommended to group such
+  variables. Default value is 50, i.e. if \code{varCount}
+  has 50 and more unique values it will be grouped using
+  \link{sju.groupVar} with \code{groupsize="auto"}
+  parameter. By default, the maximum group count is 30.
+  However, if \code{autoGroupAt} is less than 30,
+  \code{autoGroupAt} groups are built.}
 
   \item{theme}{Specifies the diagram's background theme.
   default (parameter \code{NULL}) is a gray background with

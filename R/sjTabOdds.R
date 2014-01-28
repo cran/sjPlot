@@ -10,7 +10,9 @@
 #' @seealso \link{sjt.lm}
 #' 
 #' @param ... One or more fitted glm-objects.
-#' @param file The destination file, which will be in html-format.
+#' @param file The destination file, which will be in html-format. If no filepath is specified,
+#'          the file will be saved as temporary file and openend either in the RStudio View pane or
+#'          in the default web browser.
 #' @param labelPredictors Labels of the predictor variables, provided as char vector.
 #' @param labelDependentVariables Labels of the dependent variables of all fitted models
 #'          which have been used as first parameter(s), provided as char vector.
@@ -23,6 +25,8 @@
 #'          Default is \code{"Model"}.
 #' @param stringIntercept String constant used as headline for the Intercept row
 #'          default is \code{"Intercept"}.
+#' @param stringObservations String constant used in the summary row for the count of observation
+#'          (cases). Default is \code{"Observations"}.
 #' @param pvaluesAsNumbers If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
 #'          p-values are indicated by asterisks.
 #' @param boldpvalues If \code{TRUE} (default), significant p-values are shown bold faced.
@@ -32,60 +36,79 @@
 #'          Default is \code{FALSE}.
 #' @param showAbbrHeadline If \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for odds ratios, confidence interval and p-values.
+#' @param showPseudoR If \code{TRUE} (default), the pseudo R2 values for each model are printed
+#'          in the model summary. R2cs is the Cox-Snell-pseudo R-square value, R2n is Nagelkerke's 
+#'          pseudo R-square value.
+#' @param showLogLik If \code{TRUE}, the Log-Likelihood for each model is printed
+#'          in the model summary. Default is \code{FALSE}.
+#' @param showAIC If \code{TRUE}, the AIC value for each model is printed
+#'          in the model summary. Default is \code{FALSE}.
 #'
+#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
+#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
+#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
+#'         default behaviour (i.e. \code{file=NULL}).
+#'         
 #' @examples
-#' # prepare dummy variable for binary logistic regression
+#' # prepare dummy variables for binary logistic regression
 #' y1 <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
-#' # prepare dummy variable for binary logistic regression
-#' y2 <- ifelse(swiss$Agriculture<median(swiss$Agriculture), 0, 1)
+#' y2 <- ifelse(swiss$Infant.Mortality<median(swiss$Infant.Mortality), 0, 1)
+#' y3 <- ifelse(swiss$Agriculture<median(swiss$Agriculture), 0, 1)
 #' 
 #' # Now fit the models. Note that both models share the same predictors
-#' # and only differ in their dependent variable (y1 and y2)
-#' 
-#' # fit first model
-#' fitOR1 <- glm(y1 ~ swiss$Education+swiss$Examination+swiss$Infant.Mortality+swiss$Catholic,
+#' # and only differ in their dependent variable (y1, y2 and y3)
+#' fitOR1 <- glm(y1 ~ swiss$Education+swiss$Examination+swiss$Catholic,
 #'               family=binomial(link="logit"))
-#' # fit second model
-#' fitOR2 <- glm(y2 ~ swiss$Education+swiss$Examination+swiss$Infant.Mortality+swiss$Catholic,
+#' fitOR2 <- glm(y2 ~ swiss$Education+swiss$Examination+swiss$Catholic,
 #'               family=binomial(link="logit"))
+#' fitOR3 <- glm(y3 ~ swiss$Education+swiss$Examination+swiss$Catholic,
+#'               family=binomial(link="logit"))
+#'
+#' # open HTML-table in RStudio Viewer Pane or web browser
+#' ## Note that example may open browser, thus it is outcommented
+#' # sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
+#' #         labelPredictors=c("Education", "Examination", "Catholic"))
 #' 
-#' # save HTML-tables to "or_table1.html"
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Agriculture"),
-#'         labelPredictors=c("Education", "Examination", "Infant Mortality", "Catholic"),
-#'         file="or_table1.html")
-#' 
-#' # save HTML-tables to "or_table2.html", indicating p-values as numbers
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Agriculture"),
-#'         labelPredictors=c("Education", "Examination", "Infant Mortality", "Catholic"),
-#'         file="or_table2.html", pvaluesAsNumbers=TRUE)
+#' # open HTML-table in RStudio Viewer Pane or web browser,
+#' # table indicating p-values as numbers
+#' ## Note that example may open browser, thus it is outcommented
+#' # sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
+#' #         labelPredictors=c("Education", "Examination", "Catholic"),
+#' #         pvaluesAsNumbers=TRUE)
 #' 
 #' # save HTML-tables to "or_table3.html", printing CI in a separate column
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Agriculture"),
-#'         labelPredictors=c("Education", "Examination", "Infant Mortality", "Catholic"),
+#' sjt.glm(fitOR1, fitOR2, fitOR3,
+#'         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
+#'         labelPredictors=c("Education", "Examination", "Catholic"),
 #'         file="or_table3.html", separateConfColumn=TRUE)
 #' 
 #' # save HTML-tables to "or_table4.html", indicating p-values as numbers 
 #' # and printing CI in a separate column
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Agriculture"),
-#'         labelPredictors=c("Education", "Examination", "Infant Mortality", "Catholic"),
+#' sjt.glm(fitOR1, fitOR2, fitOR3,
+#'         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
+#'         labelPredictors=c("Education", "Examination", "Catholic"),
 #'         file="or_table4.html", pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
 #' 
 #' @export
 sjt.glm <- function (..., 
-                     file, 
+                     file=NULL, 
                      labelPredictors=NULL, 
                      labelDependentVariables=NULL, 
                      stringPredictors="Predictors", 
                      stringDependentVariables="Dependent Variables", 
                      stringModel="Model",
                      stringIntercept="(Intercept)",
+                     stringObservations="Observations",
                      pvaluesAsNumbers=FALSE,
                      boldpvalues=TRUE,
                      showConfInt=TRUE,
                      separateConfColumn=FALSE,
-                     showAbbrHeadline=TRUE) {
+                     showAbbrHeadline=TRUE,
+                     showPseudoR=TRUE,
+                     showLogLik=FALSE,
+                     showAIC=FALSE) {
   
-  toWrite = '<html>\n<head>\n<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\ntd.summary { padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-bottom: double; }\n</style>\n</head>\n<body>\n'
+  toWrite = '<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">\n<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\ntd.summary { padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-bottom: double; }\n</style>\n</head>\n<body>\n'
   toWrite = paste(toWrite, "<table>", "\n")
   
   input_list <- list(...)
@@ -313,7 +336,7 @@ sjt.glm <- function (...,
   else {
     colspanstring <- c("<td class=\"summary\">")
   }
-  toWrite = paste(toWrite, "  <tr style=\"border-top:1px solid\">\n    <td class=\"summary\">Observations</td>\n")
+  toWrite = paste(toWrite, sprintf("  <tr style=\"border-top:1px solid\">\n    <td class=\"summary\">%s</td>\n", stringObservations))
   for (i in 1:length(input_list)) {
     psr <- PseudoR2(input_list[[i]])
     toWrite = paste(toWrite, sprintf("    %s%i</td>\n", colspanstring, psr[1]))
@@ -322,12 +345,14 @@ sjt.glm <- function (...,
   # -------------------------------------
   # Model-Summary: pseudo r2
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr>\n    <td class=\"summary\">Pseudo-R<sup>2</sup></td>\n")
-  for (i in 1:length(input_list)) {
-    psr <- PseudoR2(input_list[[i]])
-    toWrite = paste(toWrite, sprintf("    %sR<sup>2</sup><sub>CS</sub> = %.3f<br>R<sup>2</sup><sub>N</sub> = %.3f</td>\n", colspanstring, psr[2], psr[3]))
+  if (showPseudoR) {
+    toWrite = paste(toWrite, "  <tr>\n    <td class=\"summary\">Pseudo-R<sup>2</sup></td>\n")
+    for (i in 1:length(input_list)) {
+      psr <- PseudoR2(input_list[[i]])
+      toWrite = paste(toWrite, sprintf("    %sR<sup>2</sup><sub>CS</sub> = %.3f<br>R<sup>2</sup><sub>N</sub> = %.3f</td>\n", colspanstring, psr[2], psr[3]))
+    }
+    toWrite = paste(toWrite, "  </tr>\n")
   }
-  toWrite = paste(toWrite, "  </tr>\n")
   # -------------------------------------
   # Model-Summary: chisquare
   # -------------------------------------
@@ -340,13 +365,24 @@ sjt.glm <- function (...,
   # -------------------------------------
   # Model-Summary: log likelihood
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr>\n    <td class=\"summary\">-2 Log-Likelihood</td>\n")
-  for (i in 1:length(input_list)) {
-    psr <- PseudoR2(input_list[[i]])
-    toWrite = paste(toWrite, sprintf("    %s%.3f</td>\n", colspanstring, -2*logLik(input_list[[i]])))
+  if (showLogLik) {
+    toWrite = paste(toWrite, "  <tr>\n    <td class=\"summary\">-2 Log-Likelihood</td>\n")
+    for (i in 1:length(input_list)) {
+      psr <- PseudoR2(input_list[[i]])
+      toWrite = paste(toWrite, sprintf("    %s%.3f</td>\n", colspanstring, -2*logLik(input_list[[i]])))
+    }
+    toWrite = paste(toWrite, "  </tr>\n")
   }
-  toWrite = paste(toWrite, "  </tr>\n")
-  
+  # -------------------------------------
+  # Model-Summary: AIC
+  # -------------------------------------
+  if (showAIC) {
+    toWrite = paste(toWrite, "  <tr>\n    <td class=\"summary\">AIC</td>\n")
+    for (i in 1:length(input_list)) {
+      toWrite = paste(toWrite, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
+    }
+    toWrite = paste(toWrite, "  </tr>\n")
+  }
   
     
   # -------------------------------------
@@ -359,5 +395,26 @@ sjt.glm <- function (...,
   # finish table
   # -------------------------------------
   toWrite = paste(toWrite, "</table>\n</body></html>", "\n")
-  write(toWrite, file=file)  
+  # -------------------------------------
+  # check if we have filename specified
+  # -------------------------------------
+  if (!is.null(file)) {
+    # write file
+    write(toWrite, file=file)
+  }
+  else {
+    # else create and browse temporary file
+    htmlFile <- tempfile(fileext=".html")
+    write(toWrite, file=htmlFile)
+    # check whether we have RStudio Viewer
+    viewer <- getOption("viewer")
+    if (!is.null(viewer)) {
+      viewer(htmlFile)
+    }
+    else {
+      utils::browseURL(htmlFile)    
+    }
+    # delete temp file
+    # unlink(htmlFile)
+  }
 }

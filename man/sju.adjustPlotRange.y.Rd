@@ -21,7 +21,7 @@ The same ggplot-object, with adjusted y-range, so all
 graphics and labels should be visible.
 }
 \description{
-This method adjurts the y-range of a ggplot-object, which
+This method adjusts the y-range of a ggplot-object, which
 is useful when value labels are outside of the plot region.
 A modified ggplot-object will be returned with adjusted
 y-range so everything should be visible.  Note that this
@@ -32,7 +32,7 @@ Note that this function only works on
 \code{scale_y_continuous}.
 }
 \examples{
-# sample sata set
+# sample data set
 data(efc)
 # show frequencies of relationship-variable and
 # retrieve plot object

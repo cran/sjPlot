@@ -37,6 +37,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
 #'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
+#' @param axisLabelAngle.x Angle for axis-labels where the odds ratios are printed. Note
+#'          that due to the coordinate flip, the acutal y-axis with odds ratio labels are appearing on the x-axis.
 #' @param axisLabelAngle.y Angle for axis-labels where the predictor labels (\code{axisLabels.y}) are printed. Note
 #'          that due to the coordinate flip, the acutal x-axis with predictor labels are appearing on the y-axis.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
@@ -95,12 +97,16 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'          gray grids) or \code{"none"} for no borders, grids and ticks.
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
+#' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
+#'          values are plotted on the x-axis.
 #' @param showIntercept If \code{TRUE}, the intercept of the fitted model is also plotted.
 #'          Default is \code{FALSE}. Please note that due to exp-transformation of
 #'          estimates, the intercept in some cases can not be calculated, thus the
 #'          function call is interrupted and no plot printed.
 #' @param showValueLabels Whether the beta and standardized beta values should be plotted 
 #'          to each dot or not.
+#' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
+#'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each coefficient should be appended
 #'          to values or not.
 #' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with 
@@ -162,6 +168,7 @@ sjp.glm <- function(fit,
                     titleColor="black",
                     axisLabels.y=NULL, 
                     axisLabelSize=1.1,
+                    axisLabelAngle.x=0, 
                     axisLabelAngle.y=0, 
                     axisLabelColor="gray30", 
                     axisTitle.x="Odds Ratios",
@@ -196,10 +203,12 @@ sjp.glm <- function(fit,
                     hideGrid.x=FALSE,
                     hideGrid.y=FALSE,
                     theme=NULL,
+                    flipCoordinates=TRUE,
                     showIntercept=FALSE,
                     showAxisLabels.y=TRUE,
                     showTickMarks=TRUE,
                     showValueLabels=TRUE, 
+                    labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
                     returnPlot=FALSE) {
@@ -225,20 +234,16 @@ sjp.glm <- function(fit,
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)    
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.x <- gsub(pattern, '\\1\n', axisTitle.x)
+    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)    
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.y))
-      axisLabels.y[n] <- gsub(pattern, '\\1\n', axisLabels.y[n])
+    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)    
   }
   
 
@@ -266,7 +271,7 @@ sjp.glm <- function(fit,
   # ----------------------------
   if (showValueLabels) {
     for (i in 1:length(pv)) {
-      ps[i] <- c(round(ov[i],2))
+      ps[i] <- c(round(ov[i],labelDigits))
     }
   }
   # ----------------------------
@@ -618,12 +623,19 @@ sjp.glm <- function(fit,
     scale_y_log10(limits=c(lower_lim, upper_lim), breaks=ticks, labels=ticks) +
     scalecolors +
     ggtheme +
-    coord_flip() +
     # set axes text and 
     theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
           axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+          axis.text.x = element_text(angle=axisLabelAngle.x),
           axis.text.y = element_text(angle=axisLabelAngle.y),
           plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  # --------------------------------------------------------
+  # flip coordinates?
+  # --------------------------------------------------------
+  if (flipCoordinates)  {
+    plotHeader <- plotHeader +
+      coord_flip()
+  }
   # the panel-border-property can only be applied to the bw-theme
   if (!is.null(borderColor)) {
     if (!is.null(theme) && theme=="bw") {
@@ -745,6 +757,16 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
               maxloops-(maxcnt+1), 
               logreg$aic, 
               model$aic))
+  
+  modelOptmized <- ifelse(removedcases>0, TRUE, FALSE)
+  if (showOriginalModelOnly) modelOptmized <- FALSE
+  
+  # ---------------------------------
+  # show VIF-Values
+  # ---------------------------------
+  sjp.vif(logreg, printnumbers=FALSE)
+  if (modelOptmized) sjp.vif(model, printnumbers=FALSE)
+  
   
   # ------------------------------------------------------
   # Overdispersion

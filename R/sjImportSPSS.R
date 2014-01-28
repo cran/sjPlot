@@ -35,9 +35,9 @@ sji.SPSS <- function(path, enc=NA) {
 }
 
 
-#' @title Retrieve value labels of a SPSS-importet data frame
+#' @title Retrieve value labels of an SPSS-imported data frame
 #' @name sji.getValueLabels
-#' @description This function retrieves the value labels of an importet
+#' @description This function retrieves the value labels of an imported
 #' SPSS data set and returns the result as list.
 #' 
 #' @seealso \link{sji.SPSS} \cr
@@ -71,9 +71,9 @@ getValLabels <- function(x){
 
 
 
-#' @title Retrieve variable labels of a SPSS-importet data frame
+#' @title Retrieve variable labels of an SPSS-imported data frame
 #' @name sji.getVariableLabels
-#' @description This function retrieves the variable labels of an importet
+#' @description This function retrieves the variable labels of an imported
 #' SPSS data set and returns the result as list.
 #' 
 #' @seealso \link{sji.getValueLabels} \cr

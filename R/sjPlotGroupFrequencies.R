@@ -145,6 +145,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          not to the tick mark or category labels.
 #' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
+#' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
+#'          is automatically grouped into smaller units (see \link{sju.groupVar}). If \code{varCount} has large 
+#'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
+#'          to group such variables. Default value is 50, i.e. if \code{varCount} has 50 and more unique values 
+#'          it will be grouped using \link{sju.groupVar} with \code{groupsize="auto"} parameter. By default, 
+#'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
+#'          groups are built.
 #' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
 #'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
 #'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
@@ -303,6 +310,7 @@ sjp.grpfrq <- function(varCount,
                        axisTitle.y=NULL,
                        axisTitleColor="black",
                        axisTitleSize=1.3,
+                       autoGroupAt=50,
                        theme=NULL,
                        legendPos="right",
                        legendSize=1,
@@ -317,7 +325,16 @@ sjp.grpfrq <- function(varCount,
   if (is.factor(varCount)) {
     varCount <- as.numeric(as.character(varCount))
   }
-
+  #---------------------------------------------------
+  # check whether variable should be auto-grouped
+  #---------------------------------------------------
+  if (length(unique(varCount))>=autoGroupAt) {
+    cat(sprintf("Variable has %i unique values and was grouped...\n", length(unique(varCount))))
+    agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
+    axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
+    varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
+  }
+  
   
   # --------------------------------------------------------
   # We have several options to name the diagram type
@@ -715,13 +732,11 @@ sjp.grpfrq <- function(varCount,
     legendLabels <- c(dfgrp$Var1)
   }
   # wrap legend text lines
-  pattern <- c(paste('(.{1,', breakLegendLabelsAt, '})(\\s|$)', sep=""))
-  legendLabels <- gsub(pattern, '\\1\n', legendLabels)
+  legendLabels <- sju.wordwrap(legendLabels, breakLegendLabelsAt)
   # check whether we have a title for the legend
   if (!is.null(legendTitle)) {
     # if yes, wrap legend title line
-    pattern <- c(paste('(.{1,', breakLegendTitleAt, '})(\\s|$)', sep=""))
-    legendTitle <- gsub(pattern, '\\1\n', legendTitle)
+    legendTitle <- sju.wordwrap(legendTitle, breakLegendTitleAt)
   }
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
@@ -730,27 +745,22 @@ sjp.grpfrq <- function(varCount,
     if (!is.null(weightByTitleString)) {
       title <- paste(title, weightByTitleString, sep="")
     }
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.x <- gsub(pattern, '\\1\n', axisTitle.x)
+    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.y)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.y <- gsub(pattern, '\\1\n', axisTitle.y)
+    axisTitle.y <- sju.wordwrap(axisTitle.y, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.x)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.x))
-      axisLabels.x[n] <- gsub(pattern, '\\1\n', axisLabels.x[n])
+    axisLabels.x <- sju.wordwrap(axisLabels.x, breakLabelsAt)
   }
   # If axisLabels.x were not defined, simply set numbers from 1 to
   # amount of categories (=number of rows) in dataframe instead
@@ -761,9 +771,7 @@ sjp.grpfrq <- function(varCount,
   # longer strings into new lines
   if (!is.null(interactionVar)) {
     if (!is.null(interactionVarLabels)) {
-      pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-      for (n in 1:length(interactionVarLabels))
-        interactionVarLabels[n] <- gsub(pattern, '\\1\n', interactionVarLabels[n])
+      interactionVarLabels <- sju.wordwrap(interactionVarLabels, breakLabelsAt)
     }
     # If interaction-variable-labels were not defined, simply set numbers from 1 to
     # amount of categories instead
