@@ -1,34 +1,29 @@
-\name{sjp.glm}
-\alias{sjp.glm}
-\title{Plot odds ratios (forest plots)}
+\name{sjp.glmm}
+\alias{sjp.glmm}
+\title{Plot odds ratios (forest plots) of multiple fitted glm's}
 \usage{
-sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
-  titleColor = "black", axisLabels.y = NULL, axisLabelSize = 1.1,
-  axisLabelAngle.x = 0, axisLabelAngle.y = 0, axisLabelColor = "gray30",
-  axisTitle.x = "Odds Ratios", axisTitleSize = 1.2,
-  axisTitleColor = c("#444444"), axisLimits = NULL, breakTitleAt = 50,
-  breakLabelsAt = 12, gridBreaksAt = 0.5, transformTicks = FALSE,
-  type = "dots", hideErrorBars = FALSE, errorBarWidth = 0,
-  errorBarSize = 0.8, errorBarLineType = 1, pointSize = 3,
-  colorPalette = "Paired", barColor = NULL, barWidth = 0.3,
-  barAlpha = 1, valueLabelColor = "black", valueLabelSize = 4.5,
-  valueLabelAlpha = 1, axisColor = NULL, borderColor = NULL,
-  barOutline = FALSE, outlineColor = "black", interceptLineType = 2,
-  interceptLineColor = "grey70", majorGridColor = NULL,
-  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
-  theme = NULL, flipCoordinates = TRUE, showIntercept = FALSE,
+sjp.glmm(..., title = NULL, titleSize = 1.3, titleColor = "black",
+  labelDependentVariables = NULL, legendDepVarTitle = "Dependent Variables",
+  legendPValTitle = "p-level", stringModel = "Model", axisLabels.y = NULL,
+  axisLabelSize = 1.1, axisLabelAngle.x = 0, axisLabelAngle.y = 0,
+  axisLabelColor = "gray30", axisTitle.x = "Odds Ratios",
+  axisTitleSize = 1.2, axisTitleColor = c("#444444"), axisLimits = NULL,
+  breakTitleAt = 50, breakLabelsAt = 12, breakLegendAt = 20,
+  gridBreaksAt = 0.5, transformTicks = FALSE, errorBarWidth = 0,
+  errorBarSize = 0.5, errorBarLineType = 1, pointSize = 3,
+  modelPlotSpace = 0.4, colorPalette = "Paired", modelColors = NULL,
+  valueLabelColor = "black", valueLabelSize = 4, valueLabelAlpha = 1,
+  nsAlpha = 1, usePShapes = FALSE, axisColor = NULL, borderColor = NULL,
+  interceptLineType = 2, interceptLineColor = "grey70",
+  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
+  hideGrid.y = FALSE, theme = NULL, flipCoordinates = TRUE,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", showIntercept = FALSE,
   showAxisLabels.y = TRUE, showTickMarks = TRUE, showValueLabels = TRUE,
-  labelDigits = 2, showPValueLabels = TRUE, showModelSummary = TRUE,
-  returnPlot = FALSE)
+  labelDigits = 2, showPValueLabels = TRUE, returnPlot = FALSE)
 }
 \arguments{
-  \item{fit}{The fitted model of a logistic regression
-  (glm-Object).}
-
-  \item{sortOdds}{If \code{TRUE} (default), the odds ratios
-  are ordered according their OR value from highest first
-  to lowest last. Use \code{FALSE} if you don't want to
-  change the order of the predictors.}
+  \item{...}{One or more fitted glm-objects.}
 
   \item{title}{Diagram's title as string.  Example:
   \code{title=c("my title")}}
@@ -39,14 +34,33 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   \item{titleColor}{The color of the plot title. Default is
   \code{"black"}.}
 
+  \item{labelDependentVariables}{Labels of the dependent
+  variables of all fitted models which have been used as
+  first parameter(s), provided as char vector.}
+
+  \item{legendDepVarTitle}{A character vector used for the
+  title of the dependent variable's legend.  Default is
+  \code{"Dependent Variables"}.}
+
+  \item{legendPValTitle}{A character vector used for the
+  title of the significance level's legend.  Default is
+  \code{"p-level"}. Only applies if \code{usePShapes} is
+  \code{TRUE}.}
+
+  \item{stringModel}{String constant used as legend text
+  for the model names in case no labels for the dependent
+  variables are provided (see
+  \code{labelDependentVariables}).  Default is
+  \code{"Model"}.}
+
   \item{axisLabels.y}{Labels of the predictor variables
   (independent vars, odds) that are used for labelling the
   axis. Passed as vector of strings.  Example:
   \code{axisLabels.y=c("Label1", "Label2", "Label3")} Note:
   If you use the \code{\link{sji.SPSS}} function and the
   \code{\link{sji.getValueLabels}} function, you receive a
-  \code{list} object with label string. The labels may also
-  be passed as list object. They will be unlisted and
+  \code{list} object with label strings. The labels may
+  also be passed as list object. They will be unlisted and
   converted to character vector automatically.}
 
   \item{axisLabelSize}{The size of value labels in the
@@ -74,8 +88,8 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
 
   \item{axisLabelAngle.x}{Angle for axis-labels where the
   odds ratios are printed. Note that due to the coordinate
-  flip, the acutal y-axis with odds ratio labels are
-  appearing on the x-axis.}
+  flip, the acutal y-axis with odds ratios are appearing on
+  the x-axis.}
 
   \item{axisLabelAngle.y}{Angle for axis-labels where the
   predictor labels (\code{axisLabels.y}) are printed. Note
@@ -91,6 +105,13 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   Determines how many chars of the category labels are
   displayed in one line and when a line break is inserted}
 
+  \item{breakLegendAt}{Wordwrap for legend, i.e. names of
+  the dependent variables of each fitted model.  See
+  parameter \code{labelDependentVariables}. Determines how
+  many chars of each dependent variable name is displayed
+  in one line in the legend and when a line break is
+  inserted}
+
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.
   Default is 0.5}
@@ -102,46 +123,31 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   \code{gridBreaksAt}'s position, thus the grid bars become
   narrower with higher odds ratio values.}
 
-  \item{type}{Indicates Whether the Odds Ratios should be
-  plotted as \code{"dots"} (aka forest plots, default) or
-  as \code{"bars"}.}
-
-  \item{hideErrorBars}{If \code{TRUE}, the error bars that
-  indicate the confidence intervals of the odds ratios are
-  not shown. Only applies if parameter \code{type} is
-  \code{bars}. Default value is \code{FALSE}.}
-
   \item{pointSize}{The size of the points that indicate the
   beta-value. Default is 3.}
 
-  \item{barColor}{A vector with colors for representing the
-  odds values (i.e. points and error bars in case the
-  parameter \code{type} is \code{"dots"} or the bar charts
-  in case of \code{"bars"}). The first color value
-  indicates odds ratio values larger than 1, the second
-  color value indicates odds ratio values lower or equal to
-  1.  Default colors is a blue/red-scheme. You can also use
+  \item{modelPlotSpace}{Defines the space between the dots
+  and error bars of the plotted fitted models. Default is
+  0.3.}
+
+  \item{modelColors}{A vector with colors for representing
+  the odds values (i.e. points and error bars) of the
+  different fitted models. Thus, the length of this vector
+  must be equal to the length of supplied fitted models, so
+  each model is represented by its own color.  You can use
   \code{"bw"} or \code{"black"} for only one colouring in
   almost black, \code{"gray"} / \code{"grey"} / \code{"gs"}
   for a grayscale or \code{"brewer"} for colours from the
-  color brewer palette.  If barColors is \code{"brewer"},
+  color brewer palette.  If modelColors is \code{"brewer"},
   use the \code{colorPalette} parameter to specify a
   palette of the color brewer.  Else specify your own color
-  values as vector (e.g. \code{barColors=c("#f00000",
+  values as vector (e.g. \code{modelColors=c("#f00000",
   "#00ff00")}).}
 
-  \item{colorPalette}{If parameter \code{barColor} is
+  \item{colorPalette}{If parameter \code{modelColors} is
   \code{brewer}, specify a color palette from the color
   brewer here.  All color brewer palettes supported by
   ggplot are accepted here.}
-
-  \item{barWidth}{The width of the bars in bar charts. only
-  applies if parameter \code{type} is \code{bars}. Default
-  is 0.5}
-
-  \item{barAlpha}{The alpha value of the bars in bar
-  charts. only applies if parameter \code{type} is
-  \code{bars}. Default is 1}
 
   \item{axisLabelColor}{Colour of the tick labels at the
   axis (variable names, odds names).}
@@ -151,11 +157,20 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   beside the bar charts. default color is \code{"black"}.}
 
   \item{valueLabelSize}{Size of the value labels. Drfault
-  is 4.5. Recommended Values range from 2 to 8}
+  is 4. Recommended Values range from 2 to 8}
 
   \item{valueLabelAlpha}{The alpha level (transparancy) of
   the value labels. Default is 1, use any value from 0 to
   1.}
+
+  \item{nsAlpha}{The alpha level (transparancy) of non
+  significant predicors. Points and error bars are affected
+  by this value and plotted with a slight transparancy.
+  Default is 1.}
+
+  \item{usePShapes}{If \code{TRUE}, significant levels are
+  distinguished by different point shapes and a related
+  legend is plotted. Default is \code{FALSE}.}
 
   \item{axisColor}{User defined color of axis border (y-
   and x-axis, in case the axes should have different colors
@@ -163,14 +178,6 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
 
   \item{borderColor}{User defined color of whole diagram
   border (panel border).}
-
-  \item{barOutline}{If \code{TRUE}, each bar gets a colored
-  outline. only applies if parameter \code{type} is
-  \code{bars}.  Default is \code{FALSE}.}
-
-  \item{outlineColor}{The color of the bar outline. Only
-  applies, if \code{barOutline} is set to \code{TRUE}.
-  Default is black.}
 
   \item{interceptLineType}{The linetype of the intercept
   line (zero point). Default is \code{2} (dashed line).}
@@ -182,7 +189,7 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   Default is \code{0}}
 
   \item{errorBarSize}{The size (thickness) of the error
-  bars. Default is \code{0.8}}
+  bars. Default is \code{0.5}}
 
   \item{errorBarLineType}{The linetype of error bars.
   Default is \code{1} (solid line).}
@@ -213,6 +220,24 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   predictors are plotted on the left y-axis and estimate
   values are plotted on the x-axis.}
 
+  \item{legendPos}{The position of the legend, if a legend
+  is drawn. Use \code{"bottom"}, \code{"top"},
+  \code{"left"} or \code{"right"} to position the legend
+  above, below, on the left or right side of the diagram.
+  Right positioning is default.}
+
+  \item{legendSize}{The text size of the legend. Default is
+  1. Relative size, so recommended values are from 0.3 to
+  2.5}
+
+  \item{legendBorderColor}{Color of the legend's border.
+  Default is \code{"white"}, so no visible border is
+  drawn.}
+
+  \item{legendBackColor}{Fill color of the legend's
+  background. Default is \code{"white"}, so no visible
+  background is drawn.}
+
   \item{showIntercept}{If \code{TRUE}, the intercept of the
   fitted model is also plotted.  Default is \code{FALSE}.
   Please note that due to exp-transformation of estimates,
@@ -229,11 +254,6 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   \item{showPValueLabels}{Whether the significance levels
   of each coefficient should be appended to values or not.}
 
-  \item{showModelSummary}{If \code{TRUE} (default), a
-  summary of the regression model with Intercept, R-square,
-  F-Test and AIC-value is printed to the lower right corner
-  of the diagram.}
-
   \item{returnPlot}{If \code{TRUE}, the ggplot-object with
   the complete plot will be returned (and not plotted).
   Default is \code{FALSE}, hence the ggplot object will be
@@ -244,62 +264,40 @@ The ggplot-object with the complete plot in case
 \code{returnPlot} is \code{TRUE}.
 }
 \description{
-Plot odds ratios with confidence intervalls as bar chart or
-dot plot
-}
-\note{
-Based on the script from surefoss:
-\url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+Plot odds ratios (forest plots) of multiple fitted glm's
+with confidence intervalls in one plot.
 }
 \examples{
-# prepare dichotomous dependent variable
-y <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
+# prepare dummy variables for binary logistic regression
+y1 <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
+y2 <- ifelse(swiss$Infant.Mortality<median(swiss$Infant.Mortality), 0, 1)
+y3 <- ifelse(swiss$Agriculture<median(swiss$Agriculture), 0, 1)
 
-# fit model
-fitOR <- glm(y ~ swiss$Education + swiss$Examination + swiss$Infant.Mortality + swiss$Catholic,
-             family=binomial(link="logit"))
+# Now fit the models. Note that all models share the same predictors
+# and only differ in their dependent variable (y1, y2 and y3)
+fitOR1 <- glm(y1 ~ swiss$Education+swiss$Examination+swiss$Catholic,
+              family=binomial(link="logit"))
+fitOR2 <- glm(y2 ~ swiss$Education+swiss$Examination+swiss$Catholic,
+              family=binomial(link="logit"))
+fitOR3 <- glm(y3 ~ swiss$Education+swiss$Examination+swiss$Catholic,
+              family=binomial(link="logit"))
 
-# print Odds Ratios as dots
-sjp.glm(fitOR)
+# plot multiple models
+sjp.glmm(fitOR1, fitOR2, fitOR3)
 
-# print Odds Ratios as bars
-sjp.glm(fitOR, type="bars")
-
-
-# -------------------------------
-# Predictors for negative impact
-# of care. Data from the EUROFAMCARE
-# sample dataset
-# -------------------------------
-data(efc)
-# retrieve predictor variable labels
-labs <- sji.getVariableLabels(efc)
-predlab <- c(labs[['c161sex']],
-             labs[['e42dep']],
-             paste0(labs[['c172code']], " (mid)"),
-             paste0(labs[['c172code']], " (high)"))
-# create binary response
-y <- ifelse(efc$neg_c_7<median(na.omit(efc$neg_c_7)), 0, 1)
-# create dummy variables for educational status
-edu.mid <- ifelse(efc$c172code==2, 1, 0)
-edu.high <- ifelse(efc$c172code==3, 1, 0)
-# create data frame for fitted model
-df <- na.omit(as.data.frame(cbind(y,
-                as.factor(efc$c161sex),
-                as.factor(efc$e42dep),
-                as.factor(edu.mid),
-                as.factor(edu.high))))
-# fit model
-fit <- glm(y ~., data=df, family=binomial(link="logit"))
-# plot odds
-sjp.glm(fit, title=labs[['neg_c_7']], axisLabels.y=predlab)
+# plot multiple models with legend labels and point shapes instead of value  labels
+sjp.glmm(fitOR1, fitOR2, fitOR3,
+         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
+         showValueLabels=FALSE,
+         showPValueLabels=FALSE,
+         usePShapes=TRUE,
+         nsAlpha=0.2)
 }
 \references{
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
-\url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
 }
 \seealso{
-\code{\link{sjp.glm.ma}}
+\code{\link{sjp.glm}} \cr \code{\link{sjt.glm}} \cr
+\code{\link{sjp.glm.ma}} \cr \code{\link{sjp.lmm}}
 }
 

@@ -11,9 +11,13 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
   legendLabelSize = 0.9, legendLabelColor = "black",
   showValueLabels = FALSE, valueLabelSize = 4, valueLabelColor = "black",
   valueLabelAlpha = 0.8, breakTitleAt = 50, breakLegendLabelsAt = 20,
-  gridBreaksAt = NULL, theme = NULL, showTickMarks = TRUE,
-  borderColor = NULL, axisColor = NULL, majorGridColor = NULL,
-  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE)
+  breakAnnotationLabelsAt = 50, gridBreaksAt = NULL, theme = NULL,
+  showTickMarks = TRUE, showInterceptLines = FALSE,
+  showInterceptLabels = TRUE, interceptLineColor = "#3366cc",
+  estLineColor = "#cc3300", lineLabelSize = 3.7, lineLabelColor = "black",
+  lineLabelString = "(no interaction)", borderColor = NULL,
+  axisColor = NULL, majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, returnPlot = FALSE)
 }
 \arguments{
   \item{fit}{the fitted linear model (lm) object, including
@@ -134,6 +138,12 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
   are displayed in one line and when a line break is
   inserted. Default is \code{20}.}
 
+  \item{breakAnnotationLabelsAt}{Wordwrap for diagram
+  annotation labels. Determines how many chars of the
+  legend labels are displayed in one line and when a line
+  break is inserted. Default is \code{50}.  Only applies if
+  \code{showInterceptLine} is \code{TRUE}.}
+
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.
   Default is \code{NULL}.}
@@ -148,6 +158,37 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
 
   \item{showTickMarks}{Whether tick marks of axes should be
   shown or not}
+
+  \item{showInterceptLines}{If \code{TRUE}, the intercept
+  and the estimate of the predictor (reference category of
+  predictor in case interaction is not present) are
+  plotted.}
+
+  \item{showInterceptLabels}{If \code{TRUE} (default), the
+  intercept lines are labelled. Only applies if
+  \code{showInterceptLines} is \code{TRUE}.}
+
+  \item{interceptLineColor}{The line color of the model's
+  intercept line. Only applies, if
+  \code{showInterceptLines} is \code{TRUE}.}
+
+  \item{estLineColor}{The line color of the model's
+  predictor's estimate line. Only applies, if
+  \code{showInterceptLines} is \code{TRUE}.}
+
+  \item{lineLabelSize}{The size of the intercept line
+  annotations inside the plot. Only applies if
+  \code{showInterceptLines} is \code{TRUE}. Default is
+  3.7.}
+
+  \item{lineLabelColor}{The color of the intercept line
+  annotations inside the plot. Only applies if
+  \code{showInterceptLines} is \code{TRUE}. Default is
+  \code{"black"}.}
+
+  \item{lineLabelString}{Default string for the intercept
+  lines that is appended to the predictor variable name. By
+  default, this string is \code{"(no interaction)"}.}
 
   \item{borderColor}{user defined color of whole diagram
   border (panel border)}
@@ -167,19 +208,28 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
+
+  \item{returnPlot}{If \code{TRUE}, the ggplot-objects with
+  all plots will be returned (and not plotted).  Default is
+  \code{FALSE}, hence the ggplot objects will be plotted,
+  not returned.}
+}
+\value{
+The ggplot-objects as \code{list} with all plots in case
+\code{returnPlot} is \code{TRUE}.
 }
 \description{
 Plot regression curves of significant interaction terms in
 linear models (lm). Note that beside interaction terms,
-also the single predictors of each interaction also must be
-included in the fitted model.  Thus,
+also the single predictors of each interaction must be
+included in the fitted model as well.  Thus,
 \code{lm(dep~pred1*pred2)} will work, but
 \code{lm(dep~pred1:pred2)} won't!
 }
 \note{
 Beside interaction terms, also the single predictors of
-each interaction also must be included in the fitted model.
-Thus, \code{lm(dep~pred1*pred2)} will work, but
+each interaction must be included in the fitted model as
+well.  Thus, \code{lm(dep~pred1*pred2)} will work, but
 \code{lm(dep~pred1:pred2)} won't!
 }
 \examples{
@@ -216,12 +266,16 @@ summary(fit)
 # plot interactions
 sjp.lm.int(fit)
 # plot interactions, including those with p-value up to 0.1
-sjp.lm.int(fit, plevel=0.1)
+sjp.lm.int(fit, plevel=0.1, showInterceptLines=TRUE)
 }
 \references{
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 \cr \cr
 \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
+\cr \cr
+\url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/}
+\cr \cr
+\url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
 }
 \seealso{
 \code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr

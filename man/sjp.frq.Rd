@@ -8,20 +8,21 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   axisLabels.x = NULL, interactionVarLabels = NULL, axisLabelAngle.x = 0,
   axisLabelSize = 1.1, axisLabelColor = "gray30", valueLabelSize = 4,
   valueLabelColor = "black", breakTitleAt = 50, breakLabelsAt = 12,
-  gridBreaksAt = NULL, barWidth = 0.6, barColor = NULL, barAlpha = 1,
-  barOutline = FALSE, barOutlineSize = 0.2, innerBoxPlotWidth = 0.15,
-  innerBoxPlotDotSize = 3, borderColor = NULL, axisColor = NULL,
-  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
-  hideGrid.x = FALSE, hideGrid.y = FALSE, showValueLabels = TRUE,
-  showCountValues = TRUE, showPercentageValues = TRUE,
-  showAxisLabels.x = TRUE, showAxisLabels.y = TRUE, showTickMarks = TRUE,
+  gridBreaksAt = NULL, barWidth = 0.6, dotSize = 4, barColor = NULL,
+  barAlpha = 1, barOutline = FALSE, barOutlineSize = 0.2,
+  innerBoxPlotWidth = 0.15, innerBoxPlotDotSize = 3, borderColor = NULL,
+  axisColor = NULL, outlineColor = "black", majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  showValueLabels = TRUE, showCountValues = TRUE,
+  showPercentageValues = TRUE, showAxisLabels.x = TRUE,
+  showAxisLabels.y = TRUE, showTickMarks = TRUE,
   showMeanIntercept = FALSE, showMeanValue = TRUE,
   showStandardDeviation = TRUE, showNormalCurve = FALSE,
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   normalCurveColor = "red", normalCurveSize = 0.7, normalCurveAlpha = 0.4,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, theme = NULL, flipCoordinates = FALSE,
-  omitNA = TRUE, returnPlot = FALSE)
+  axisTitleSize = 1.3, startAxisAt = 1, autoGroupAt = 50, theme = NULL,
+  flipCoordinates = FALSE, omitNA = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -76,6 +77,7 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   \item{type}{Specifies the type of distribution plot that
   will be plotted. \cr \code{"bar"}, \code{"bars"} or
   \code{"b"} for simple bars (the default setting). \cr
+  \code{"dots"} or \code{"dot"} for a dot plot. \cr
   \code{"h"}, \code{"hist"} or \code{"histogram"} for a
   histogram. \cr \code{"line"}, \code{"lines"} or
   \code{"l"} for a histogram with filled area with line.
@@ -123,6 +125,9 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{barWidth}{Width of bars. Default is 0.6,
   recommended values range from 0.2 to 2.0}
+
+  \item{dotSize}{The size of dots in case of dot-plots
+  (\code{type="dots"}).}
 
   \item{innerBoxPlotWidth}{The width of the inner box plot
   that is plotted inside of violin plots. Only applies if
@@ -250,6 +255,28 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   Refers to \code{axisTitle.x} and \code{axisTitle.y}, not
   to the tick mark or category labels. Default is 1.3.}
 
+  \item{startAxisAt}{Determines the first value on the
+  x-axis. By default, this value is 1, i.e. the value range
+  on the x axis starts with 1, independent from the lowest
+  value of \code{varCount} (which means, you may have zero
+  counts and hence no bars plotted for these values in such
+  cases). Change this parameter, if variables with a value
+  range starting from greater values than one (e.g. 5-10)
+  should be plotted to avoid empty bars in the plot.}
+
+  \item{autoGroupAt}{A value indicating at which length of
+  unique values of \code{varCount} the variable is
+  automatically grouped into smaller units (see
+  \link{sju.groupVar}). If \code{varCount} has large
+  numbers of unique values, too many bars for the graph
+  have to be plotted. Hence it's recommended to group such
+  variables. Default value is 50, i.e. if \code{varCount}
+  has 50 and more unique values it will be grouped using
+  \link{sju.groupVar} with \code{groupsize="auto"}
+  parameter. By default, the maximum group count is 30.
+  However, if \code{autoGroupAt} is less than 30,
+  \code{autoGroupAt} groups are built.}
+
   \item{theme}{Specifies the diagram's background theme.
   default (parameter \code{NULL}) is a gray background with
   white grids. Use \code{"bw"} for a white background with
@@ -332,10 +359,21 @@ sjp.frq(efc$e17age,
         interactionVar=efc$e16sex,
         interactionVarLabels=efc.val['e16sex'],
         type="box")
+
+# negative impact scale, ranging from 7-28, assuming that
+# variable scale (lowest value) starts with 1 (default assumption)
+sjp.frq(efc$neg_c_7)
+
+# negative impact scale, ranging from 7-28, setting
+# start index of x-axis to lowest value (7)
+sjp.frq(efc$neg_c_7, startAxisAt=7)
 }
 \references{
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 \cr \cr
 \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
+}
+\seealso{
+\link{sjt.frq}
 }
 

@@ -8,15 +8,16 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
   axisTitle.x = "Estimates", axisTitleSize = 1.4,
   axisTitleColor = c("#444444"), axisLimits = NULL,
   valueLabelColor = "grey20", valueLabelColorNS = "grey50",
-  valueLabelSize = 4.5, valueLabelAlpha = 0.8, axisLabelAngle.y = 0,
-  errorBarColor = "#3366a0", errorBarWidth = 0, errorBarSize = 0.8,
-  pointColor = "#3366a0", pointSize = 3, pointColorStdBeta = "#cc5533",
-  pointSizeStdBeta = 3, stdBetaLineType = 2, stdBetaLineAlpha = 0.3,
-  breakTitleAt = 50, breakLabelsAt = 12, gridBreaksAt = NULL,
-  borderColor = NULL, axisColor = NULL, theme = NULL,
+  valueLabelSize = 4.5, valueLabelAlpha = 0.8, axisLabelAngle.x = 0,
+  axisLabelAngle.y = 0, errorBarColor = "#3366a0", errorBarWidth = 0,
+  errorBarSize = 0.8, pointColor = "#3366a0", pointSize = 3,
+  pointColorStdBeta = "#cc5533", pointSizeStdBeta = 3,
+  stdBetaLineType = 2, stdBetaLineAlpha = 0.3, breakTitleAt = 50,
+  breakLabelsAt = 12, gridBreaksAt = NULL, borderColor = NULL,
+  axisColor = NULL, theme = NULL, flipCoordinates = TRUE,
   majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
   hideGrid.y = FALSE, showTickMarks = TRUE, showValueLabels = TRUE,
-  showPValueLabels = TRUE, showModelSummary = TRUE,
+  labelDigits = 2, showPValueLabels = TRUE, showModelSummary = TRUE,
   showStandardBeta = TRUE, showStandardBetaLine = FALSE,
   returnPlot = FALSE)
 }
@@ -89,12 +90,17 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
   valid colour value, e.g.  \code{valueLabelColor="grey50"}
   or \code{valueLabelColor=c("#cc3366")}.}
 
-  \item{valueLabelSize}{Size of the value labels. Drfault
+  \item{valueLabelSize}{Size of the value labels. Default
   is 4.5. Recommended Values range from 2 to 8}
 
   \item{valueLabelAlpha}{The alpha level (transparancy) of
   the value labels. Default is 0.8, use any value from 0 to
   1.}
+
+  \item{axisLabelAngle.x}{Angle for axis-labels where the
+  estimates are printed. Note that due to the coordinate
+  flip, the acutal y-axis with estimates labels are
+  appearing on the x-axis.}
 
   \item{axisLabelAngle.y}{Angle for axis-labels, passed as
   numeric value.}
@@ -159,6 +165,10 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
   returned with \code{returnPlot} set to \code{TRUE} in
   order to further modify the plot's theme.}
 
+  \item{flipCoordinates}{If \code{TRUE} (default),
+  predictors are plotted on the left y-axis and estimate
+  values are plotted on the x-axis.}
+
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
 
@@ -176,6 +186,10 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
 
   \item{showValueLabels}{Whether the beta and standardized
   beta values should be plotted to each dot or not.}
+
+  \item{labelDigits}{The amount of digits for rounding the
+  estimations (see \code{showValueLabels}).  Default is 2,
+  i.e. estimators have 2 digits after decimal point.}
 
   \item{showPValueLabels}{Whether the significance levels
   of each coefficient should be appended to values or not}

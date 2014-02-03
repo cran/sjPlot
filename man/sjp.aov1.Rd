@@ -18,7 +18,7 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   gridBreaksAt = NULL, borderColor = NULL, axisColor = NULL,
   theme = NULL, majorGridColor = NULL, minorGridColor = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, showTickMarks = TRUE,
-  showValueLabels = TRUE, showPValueLabels = TRUE,
+  showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
   showModelSummary = TRUE, returnPlot = FALSE)
 }
 \arguments{
@@ -224,6 +224,10 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
 
   \item{showValueLabels}{Whether the value labels (mean
   differences) should be plotted to each dot or not.}
+
+  \item{labelDigits}{The amount of digits for rounding the
+  estimations (see \code{showValueLabels}).  Default is 2,
+  i.e. estimators have 2 digits after decimal point.}
 
   \item{showPValueLabels}{Whether the significance levels
   of each category/group should be appended to values or

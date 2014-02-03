@@ -515,15 +515,11 @@ sjp.xtab <- function(y,
   }
   legendLabels <- c(legendLabels, stringTotal)
   # wrap legend text lines
-  pattern <- c(paste('(.{1,', breakLegendLabelsAt, '})(\\s|$)', sep=""))
-  for (n in 1:length(legendLabels)) {
-    legendLabels[n] <- gsub(pattern, '\\1\n', legendLabels[n])
-  }
+  legendLabels <- sju.wordwrap(legendLabels, breakLegendLabelsAt)
   # check whether we have a title for the legend
   if (!is.null(legendTitle)) {
     # if yes, wrap legend title line
-    pattern <- c(paste('(.{1,', breakLegendTitleAt, '})(\\s|$)', sep=""))
-    legendTitle <- gsub(pattern, '\\1\n', legendTitle)
+    legendTitle <- sju.wordwrap(legendTitle, breakLegendTitleAt)
   }
   
   
@@ -537,16 +533,12 @@ sjp.xtab <- function(y,
     if (!is.null(weightByTitleString)) {
       title <- paste(title, weightByTitleString, sep="")
     }
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.x)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.x)) {
-      axisLabels.x[n] <- gsub(pattern, '\\1\n', axisLabels.x[n])
-    }
+    axisLabels.x <- sju.wordwrap(axisLabels.x, breakLabelsAt)
   }
   # If axisLabels.x were not defined, simply set numbers from 1 to
   # amount of categories (=number of rows) in dataframe instead

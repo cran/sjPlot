@@ -2,7 +2,8 @@
 \alias{sju.groupVarLabels}
 \title{Create labels for recoded groups}
 \usage{
-sju.groupVarLabels(var, groupsize = 5, rightInterval = FALSE)
+sju.groupVarLabels(var, groupsize = 5, rightInterval = FALSE,
+  autoGroupCount = 30)
 }
 \arguments{
   \item{var}{The scale variable, which should recoded into
@@ -10,7 +11,12 @@ sju.groupVarLabels(var, groupsize = 5, rightInterval = FALSE)
 
   \item{groupsize}{The group-size, i.e. the range for
   grouping. By default, for each 5 categories new group is
-  built.}
+  built, i.e. \code{groupsize=5}. Use
+  \code{groupsize="auto"} to automatically resize a
+  variable into a maximum of 30 groups (which is the
+  ggplot-default grouping when plotting histograms). Use
+  parameter \code{autoGroupCount} to define the amount of
+  groups.}
 
   \item{rightInterval}{If \code{TRUE}, grouping starts with
   the lower bound of \code{groupsize}. In this case, groups
@@ -18,6 +24,12 @@ sju.groupVarLabels(var, groupsize = 5, rightInterval = FALSE)
   \code{FALSE} (default), grouping starts with the upper
   bound of \code{groupsize}. In this case, groups cover the
   ranges from 51-55, 56-60, 61-65 etc.}
+
+  \item{autoGroupCount}{Sets the maximum number of groups
+  that are built when auto-grouping is on
+  (\code{groupsize="auto"}). Default is 30. If
+  \code{groupsize} is not set to \code{"auto"}, this
+  parameter will be ignored.}
 }
 \value{
 A string vector containing labels based on the grouped

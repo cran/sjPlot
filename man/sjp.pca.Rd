@@ -17,8 +17,8 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
 \arguments{
   \item{data}{A data frame with factors (each columns one
   variable) that should be used to compute a PCA, or a
-  correlation object computed with the
-  R-\code{cor}-function.}
+  prcomp object computed with the
+  R-\code{prcomp}-function.}
 
   \item{numberOfFactors}{A predefined number of factors to
   use for the calculating the varimax rotation. By default,

@@ -103,6 +103,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param showValueLabels Whether the value labels (mean differences) should be plotted 
 #'          to each dot or not.
+#' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
+#'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each category/group should be appended
 #'          to values or not.
 #' @param showModelSummary If \code{TRUE} (default), a summary of the anova model with 
@@ -197,6 +199,7 @@ sjp.aov1 <- function(depVar,
                     hideGrid.y=FALSE,
                     showTickMarks=TRUE,
                     showValueLabels=TRUE, 
+                    labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
                     returnPlot=FALSE) {
@@ -283,21 +286,17 @@ sjp.aov1 <- function(depVar,
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    axisTitle.x <- gsub(pattern, '\\1\n', axisTitle.x)
+    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.y)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.y))
-      axisLabels.y[n] <- gsub(pattern, '\\1\n', axisLabels.y[n])
+    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
   
   
@@ -373,7 +372,7 @@ sjp.aov1 <- function(depVar,
   # print coefficients and p-values in plot
   # ----------------------------
   # init data column for p-values
-  ps <- c(round(means,2))
+  ps <- c(round(means,labelDigits))
   # if no values should be shown, clear
   # vector now
   if (!showValueLabels) {

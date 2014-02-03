@@ -1,6 +1,6 @@
 \name{sji.getVariableLabels}
 \alias{sji.getVariableLabels}
-\title{Retrieve variable labels of a SPSS-importet data frame}
+\title{Retrieve variable labels of an SPSS-imported data frame}
 \usage{
 sji.getVariableLabels(dat)
 }
@@ -11,7 +11,7 @@ sji.getVariableLabels(dat)
 A list with all variable labels from the SPSS dataset.
 }
 \description{
-This function retrieves the variable labels of an importet
+This function retrieves the variable labels of an imported
 SPSS data set and returns the result as list.
 }
 \examples{

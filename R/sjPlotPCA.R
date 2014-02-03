@@ -9,7 +9,7 @@
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
-#'          to compute a PCA, or a correlation object computed with the R-\code{cor}-function.
+#'          to compute a PCA, or a prcomp object computed with the R-\code{prcomp}-function.
 #' @param numberOfFactors A predefined number of factors to use for the calculating the varimax
 #'          rotation. By default, this value is \code{NULL} and the amount of factors is
 #'          calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.
@@ -248,14 +248,11 @@ sjp.pca <- function(data,
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.y))
-      axisLabels.y[n] <- gsub(pattern, '\\1\n', axisLabels.y[n])
+    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
   
   

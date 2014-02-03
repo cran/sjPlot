@@ -2,18 +2,21 @@
 \alias{sjt.lm}
 \title{Save linear regression as HTML-Table}
 \usage{
-sjt.lm(..., file, labelPredictors = NULL, labelDependentVariables = NULL,
-  stringPredictors = "Predictors",
+sjt.lm(..., file = NULL, labelPredictors = NULL,
+  labelDependentVariables = NULL, stringPredictors = "Predictors",
   stringDependentVariables = "Dependent Variables", stringModel = "Model",
-  stringIntercept = "(Intercept)", showConfInt = TRUE,
-  showStdBeta = FALSE, pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
-  separateConfColumn = FALSE, showAbbrHeadline = TRUE)
+  stringIntercept = "(Intercept)", stringObservations = "Observations",
+  showConfInt = TRUE, showStdBeta = FALSE, pvaluesAsNumbers = FALSE,
+  boldpvalues = TRUE, separateConfColumn = FALSE, showAbbrHeadline = TRUE,
+  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE)
 }
 \arguments{
   \item{...}{One or more fitted lm-objects.}
 
   \item{file}{The destination file, which will be in
-  html-format.}
+  html-format. If no filepath is specified, the file will
+  be saved as temporary file and openend either in the
+  RStudio View pane or in the default web browser.}
 
   \item{labelPredictors}{Labels of the predictor variables,
   provided as char vector.}
@@ -38,6 +41,10 @@ sjt.lm(..., file, labelPredictors = NULL, labelDependentVariables = NULL,
   \item{stringIntercept}{String constant used as headline
   for the Intercept row default is \code{"Intercept"}.}
 
+  \item{stringObservations}{String constant used in the
+  summary row for the count of observation (cases). Default
+  is \code{"Observations"}.}
+
   \item{showConfInt}{If \code{TRUE} (default), the
   confidence intervall is also printed to the table. Use
   \code{FALSE} to omit the CI in the table.}
@@ -61,12 +68,32 @@ sjt.lm(..., file, labelPredictors = NULL, labelDependentVariables = NULL,
   table data columns have a headline with abbreviations for
   beta- and std. beta-values, confidence interval and
   p-values.}
+
+  \item{showR2}{If \code{TRUE} (default), the R2 and
+  adjusted R2 values for each model are printed in the
+  model summary.}
+
+  \item{showFStat}{If \code{TRUE}, the F-statistics for
+  each model is printed in the model summary. Default is
+  \code{FALSE}.}
+
+  \item{showAIC}{If \code{TRUE}, the AIC value for each
+  model is printed in the model summary. Default is
+  \code{FALSE}.}
 }
 \description{
 Save (multiple) fitted linear models (beta coefficients,
 std. beta values etc.)  as HTML-Table. The fitted lm's
 should have the same predictor variables and differ only in
 their response (dependent variable).
+}
+\note{
+The HTML tables can either be saved as file and manually
+opened (specify parameter \code{file}) or they can be saved
+as temporary files and will be displayed in the RStudio
+Viewer pane (if working with RStudio) or opened with the
+default web browser. Displaying resp. opening a temporary
+file is the default behaviour (i.e. \code{file=NULL}).
 }
 \examples{
 # Now fit the models. Note that both models share the same predictors
@@ -78,20 +105,22 @@ fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
 # fit second model
 fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 
-# save HTML-tables to "lm_table1.html"
-sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-       labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table1.html")
+# create and open HTML-table in RStudio Viewer Pane or web browser
+## Note that example may open browser, thus it is outcommented
+# sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))
 
 # save HTML-tables to "lm_table2.html", indicating p-values as numbers
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
        file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)
 
-# save HTML-tables to "lm_table3.html", printing CI in a separate column
-sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-       labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table3.html", separateConfColumn=TRUE)
+# create and open HTML-table in RStudio Viewer Pane or web browser,
+# printing CI in a separate column
+## Note that example may open browser, thus it is outcommented
+# sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
+#        separateConfColumn=TRUE)
 
 # save HTML-tables to "lm_table4.html", indicating p-values as numbers
 # and printing CI in a separate column

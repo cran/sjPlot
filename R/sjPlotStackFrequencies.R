@@ -301,15 +301,11 @@ sjp.stackfrq <- function(items,
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
   # wrap legend text lines
-  pattern <- c(paste('(.{1,', breakLegendLabelsAt, '})(\\s|$)', sep=""))
-  for (n in 1:length(legendLabels)) {
-    legendLabels[n] <- gsub(pattern, '\\1\n', legendLabels[n])
-  }
+  legendLabels <- sju.wordwrap(legendLabels, breakLegendLabelsAt)    
   # check whether we have a title for the legend
   if (!is.null(legendTitle)) {
     # if yes, wrap legend title line
-    pattern <- c(paste('(.{1,', breakLegendTitleAt, '})(\\s|$)', sep=""))
-    legendTitle <- gsub(pattern, '\\1\n', legendTitle)
+    legendTitle <- sju.wordwrap(legendTitle, breakLegendTitleAt)    
   }
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
@@ -318,16 +314,12 @@ sjp.stackfrq <- function(items,
     if (!is.null(weightByTitleString)) {
       title <- paste(title, weightByTitleString, sep="")
     }
-    pattern <- c(paste('(.{1,', breakTitleAt, '})(\\s|$)', sep=""))
-    title <- gsub(pattern, '\\1\n', title)
+    title <- sju.wordwrap(title, breakTitleAt)    
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.y)) {
-    pattern <- c(paste('(.{1,', breakLabelsAt, '})(\\s|$)', sep=""))
-    for (n in 1:length(axisLabels.y)) {
-      axisLabels.y[n] <- gsub(pattern, '\\1\n', axisLabels.y[n])
-    }
+    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)    
   }
   # If axisLabels.y were not defined, simply set numbers from 1 to
   # amount of items
