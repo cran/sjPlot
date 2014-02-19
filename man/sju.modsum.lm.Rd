@@ -13,7 +13,7 @@ The model summary of the fitted linear model as
 }
 \description{
 Returns a model summary of a fitted linear model as
-expression.  The summary includes intercept, r2,
+\link{expression}.  The summary includes intercept, r2,
 F-statistics and AIC.  It is returned as \link{expression}
 string to be used in plots like ggplot.
 }

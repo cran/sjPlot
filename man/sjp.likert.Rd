@@ -17,10 +17,11 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
   axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
   theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
-  showItemLabels = TRUE, showSeparatorLine = FALSE,
-  separatorLineColor = "grey80", separatorLineSize = 0.3,
-  legendPos = "right", legendSize = 1, legendBorderColor = "white",
-  legendBackColor = "white", flipCoordinates = TRUE, returnPlot = FALSE)
+  jitterValueLabels = FALSE, showItemLabels = TRUE,
+  showSeparatorLine = FALSE, separatorLineColor = "grey80",
+  separatorLineSize = 0.3, legendPos = "right", legendSize = 1,
+  legendBorderColor = "white", legendBackColor = "white",
+  flipCoordinates = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -134,16 +135,16 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   specified (\code{NULL}), a default red-green color
   palette for four(!) categories will be used for the bar
   charts. You can use pre-defined color-sets that are
-  independent from the amount of categories: \cr If
-  barColor is \code{"brown"}, a brown-marine-palette will
-  be used. \cr If barColor is \code{"violet"}, a
-  violet-green palette will be used. \cr If barColor is
-  \code{"pink"}, a pink-green palette will be used. \cr If
-  barColor is \code{"brewer"}, use the \code{colorPalette}
-  parameter to specify a palette of the color brewer \cr
-  Else specify your own color values as vector (e.g.
-  \code{barColor=c("darkred", "red", "green",
-  "darkgreen")})}
+  independent from the amount of categories: \itemize{
+  \item If barColor is \code{"brown"}, a
+  brown-marine-palette will be used.  \item If barColor is
+  \code{"violet"}, a violet-green palette will be used.
+  \item If barColor is \code{"pink"}, a pink-green palette
+  will be used.  \item If barColor is \code{"brewer"}, use
+  the \code{colorPalette} parameter to specify a palette of
+  the color brewer.  } Else specify your own color values
+  as vector (e.g. \code{barColor=c("darkred", "red",
+  "green", "darkgreen")})}
 
   \item{colorPalette}{If \code{barColor} is
   \code{"brewer"}, specify a color palette from the color
@@ -198,6 +199,12 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar}
 
+  \item{jitterValueLabels}{If \code{TRUE}, the value labels
+  on the bars will be "jittered", i.e. they have
+  alternating vertical positions to avoid overlapping of
+  labels in case bars are very short. Default is
+  \code{FALSE}.}
+
   \item{showItemLabels}{Whether x axis text (category
   names) should be shown or not}
 
@@ -228,13 +235,14 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
 
   \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -296,9 +304,10 @@ sjp.likert(likert_2, legendLabels=levels_2, axisLabels.y=items, orderBy="neg")
 # plot 4-category-likert-scale, no order
 sjp.likert(likert_4, legendLabels=levels_4, axisLabels.y=items)
 
-# plot 4-category-likert-scale, ordered by positive values and in brown color scale
+# plot 4-category-likert-scale, ordered by positive values,
+# in brown color scale and with jittered value labels
 sjp.likert(likert_6, legendLabels=levels_6, barColor="brown",
-           axisLabels.y=items, orderBy="pos")
+           axisLabels.y=items, orderBy="pos", jitterValueLabels=TRUE)
 }
 \references{
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}

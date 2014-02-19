@@ -269,13 +269,15 @@ sjp.lm.int(fit)
 sjp.lm.int(fit, plevel=0.1, showInterceptLines=TRUE)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
-\cr \cr
+\item
 \url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/}
-\cr \cr
+\item
 \url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
+}
 }
 \seealso{
 \code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr

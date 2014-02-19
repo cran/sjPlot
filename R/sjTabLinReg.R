@@ -1,6 +1,9 @@
 #' @title Save linear regression as HTML-Table
 #' @name sjt.lm
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
+#'              }
 #' 
 #' @description Save (multiple) fitted linear models (beta coefficients, std. beta values etc.)
 #'                as HTML-Table. The fitted lm's should have the same predictor variables and
@@ -43,6 +46,10 @@
 #'          in the model summary. Default is \code{FALSE}.
 #' @param showAIC If \code{TRUE}, the AIC value for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
+#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @return Invisibly returns a \link{structure} with the web page style sheet (\code{page.style}) and the
+#'          web page content (\code{page.content}) for further use.
 #'
 #' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
@@ -60,27 +67,52 @@
 #' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser
-#' ## Note that example may open browser, thus it is outcommented
-#' # sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#' #        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))
+#' \dontrun{
+#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))}
 #' 
 #' # save HTML-tables to "lm_table2.html", indicating p-values as numbers
+#' \dontrun{
 #' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
 #'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)
+#'        file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)}
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser,
 #' # printing CI in a separate column
-#' ## Note that example may open browser, thus it is outcommented
-#' # sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#' #        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#' #        separateConfColumn=TRUE)
+#' \dontrun{
+#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
+#'        separateConfColumn=TRUE)}
 #' 
 #' # save HTML-tables to "lm_table4.html", indicating p-values as numbers
 #' # and printing CI in a separate column
+#' \dontrun{
 #' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
 #'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
+#'        file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+#' 
+#' # ---------------------------------------------------------------- 
+#' # connecting two html-tables
+#' # ---------------------------------------------------------------- 
+#' # fit two more models
+#' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
+#' fit4 <- lm(e42dep ~ c160age + c12hour + c161sex + c172code, data=efc)
+#' \dontrun{
+#' # create and save first HTML-table
+#' part1 <- sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+#'                 labelPredictors=c("Carer's Age", "Hours of Care",
+#'                                   "Carer's Sex", "Educational Status"))
+#' # create and save second HTML-table
+#' part2 <- sjt.lm(fit3, fit4, labelDependentVariables=c("Service Usage", "Elder's Dependency"),
+#'                 labelPredictors=c("Carer's Age", "Hours of Care",
+#'                                   "Carer's Sex", "Educational Status"))
+#' # browse temporary file
+#' htmlFile <- tempfile(fileext=".html")
+#' write(sprintf("<html><head>%s</head><body>%s<p></p>%s</body></html>",
+#'               part1$page.style, part1$page.content, part2$page.content),
+#'               file=htmlFile)
+#' viewer <- getOption("viewer")
+#' if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)}
 #' 
 #' @export
 sjt.lm <- function (..., 
@@ -100,14 +132,22 @@ sjt.lm <- function (...,
                      showAbbrHeadline=TRUE,
                      showR2=TRUE,
                      showFStat=FALSE,
-                     showAIC=FALSE) {
-  
-  toWrite = '<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">\n<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\ntd.summary { padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-bottom: double; }\n</style>\n</head>\n<body>\n'
-  toWrite = paste(toWrite, "<table>", "\n")
-  
+                     showAIC=FALSE,
+                     encoding="UTF-8") {
+  # ------------------------
+  # set page encoding
+  # ------------------------
+  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n", encoding)
+  # ------------------------
+  # set style sheet ans save it for return value
+  # ------------------------
+  page.style <-  "<style>table { border-collapse:collapse; border:none; }\nth { border-bottom: 1px solid; }\ntable td { padding:0.2cm; }\n.summary td { padding-top:0.1cm; padding-bottom:0.1cm }\n.colnames td { font-style:italic }\n.firstsumrow { border-top:1px solid }\n.lasttablerow { border-bottom: double; }\n.topborder { border-top:2px solid }\n.depvarhead { text-align:center; border-bottom:1px solid; border-top:1px solid }\n.topcontentborder { border-top:double }\n.annorow { border-top:2px solid }\n.annostyle { text-align:right }\n</style>"
+  toWrite <- paste(toWrite, page.style)
+  toWrite <- paste(toWrite, "\n</head>\n<body>", "\n")
+  # ------------------------
+  # retrieve fitted models
+  # ------------------------
   input_list <- list(...)
-
-  
   # -------------------------------------
   # if confidence interval should be omitted,
   # don't use separate column for CI!
@@ -119,7 +159,6 @@ sjt.lm <- function (...,
   else {
     showCIString <- c("B (CI)")
   }
-  
   # -------------------------------------
   # table headline
   # -------------------------------------
@@ -130,10 +169,10 @@ sjt.lm <- function (...,
   if (showStdBeta) headerColSpanFactor <- headerColSpanFactor+1
   
   headerColSpan <- headerColSpanFactor * headerColSpan
-  
-  toWrite = paste(toWrite, sprintf("  <tr style=\"border-top:2px solid\">\n    <td rowspan=\"2\"><em>%s</em></td>", stringPredictors), "\n")
-  toWrite = paste(toWrite, sprintf("    <td colspan=\"%i\" style=\"text-align:center;border-bottom:1px solid;border-top:1px solid\"><em>%s</em></td>", headerColSpan, stringDependentVariables), "\n")
-  toWrite = paste(toWrite, "  </tr>\n  <tr>", "\n")
+  page.content <- "<table>\n"
+  page.content <- paste(page.content, sprintf("  <tr class=\"topborder\">\n    <td rowspan=\"2\"><em>%s</em></td>", stringPredictors), "\n")
+  page.content <- paste(page.content, sprintf("    <td colspan=\"%i\" class=\"depvarhead\"><em>%s</em></td>", headerColSpan, stringDependentVariables), "\n")
+  page.content <- paste(page.content, "  </tr>\n  <tr>", "\n")
   
   # -------------------------------------
   # table headline: label for dependent variables (model outcomes)
@@ -141,24 +180,24 @@ sjt.lm <- function (...,
   if (!is.null(labelDependentVariables)) {
     for (i in 1:length(labelDependentVariables)) {
       if (headerColSpanFactor>1) {
-        toWrite = paste(toWrite, sprintf("    <td colspan=\"%i\">%s</td>", headerColSpanFactor, labelDependentVariables[i]), "\n")
+        page.content <- paste(page.content, sprintf("    <td colspan=\"%i\">%s</td>", headerColSpanFactor, labelDependentVariables[i]), "\n")
       }
       else {
-        toWrite = paste(toWrite, sprintf("    <td>%s</td>", labelDependentVariables[i]), "\n")
+        page.content <- paste(page.content, sprintf("    <td>%s</td>", labelDependentVariables[i]), "\n")
       }
     }
-    toWrite = paste(toWrite, "  </tr>", "\n")
+    page.content <- paste(page.content, "  </tr>", "\n")
   }
   else {
     for (i in 1:length(input_list)) {
       if (headerColSpanFactor>1) {
-        toWrite = paste(toWrite, sprintf("    <td colspan=\"%i\">%s %i</td>", headerColSpanFactor, stringModel, i), "\n")
+        page.content <- paste(page.content, sprintf("    <td colspan=\"%i\">%s %i</td>", headerColSpanFactor, stringModel, i), "\n")
       }
       else {
-        toWrite = paste(toWrite, sprintf("    <td>%s %i</td>", stringModel, i), "\n")
+        page.content <- paste(page.content, sprintf("    <td>%s %i</td>", stringModel, i), "\n")
       }
     }
-    toWrite = paste(toWrite, "  </tr>", "\n")
+    page.content <- paste(page.content, "  </tr>", "\n")
   }
   
   # -------------------------------------
@@ -211,111 +250,111 @@ sjt.lm <- function (...,
   # table header: or/ci and p-labels
   # -------------------------------------
   if (showAbbrHeadline) {
-    toWrite = paste(toWrite, "  <tr>\n    <td>&nbsp;</td>\n")
+    page.content <- paste(page.content, "  <tr class=\"colnames\">\n    <td>&nbsp;</td>\n")
     colnr <- ifelse(is.null(labelDependentVariables), length(input_list), length(labelDependentVariables))
     for (i in 1:colnr) {
       if (pvaluesAsNumbers) {
         if (separateConfColumn) {
           if (showStdBeta) {
-            toWrite = paste(toWrite, "    <td><em>B</em></td><td><em>CI</em></td><td><em>std. Beta</em></td><td><em>p</em></td>\n")            
+            page.content <- paste(page.content, "    <td>B</td><td>CI</td><td>std. Beta</td><td>p</td>\n")            
           }
           else {
-            toWrite = paste(toWrite, "    <td><em>B</em></td><td><em>CI</em></td><td><em>p</em></td>\n")            
+            page.content <- paste(page.content, "    <td>B</td><td>CI</td><td>p</td>\n")            
           }
         }
         else {
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("    <td><em>%s</em></td><td><em>std. Beta</em></td><td><em>p</em></td>\n", showCIString))
+            page.content <- paste(page.content, sprintf("    <td>%s</td><td>std. Beta</td><td>p</td>\n", showCIString))
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td><em>%s</em></td><td><em>p</em></td>\n", showCIString))
+            page.content <- paste(page.content, sprintf("    <td>%s</td><td>p</td>\n", showCIString))
           }
         }
       }
       else {
         if (separateConfColumn) {
           if (showStdBeta) {
-            toWrite = paste(toWrite, "    <td><em>B</em></td><td><em>CI</em></td><td><em>std. Beta</em></td>\n")
+            page.content <- paste(page.content, "    <td>B</td><td>CI</td><td>std. Beta</td>\n")
           }
           else {
-            toWrite = paste(toWrite, "    <td><em>B</em></td><td><em>CI</em></td>\n")
+            page.content <- paste(page.content, "    <td>B</td><td>CI</td>\n")
           }
         }
         else {
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("    <td><em>%s</em></td><td><em>std. Beta</em></td>\n", showCIString))
+            page.content <- paste(page.content, sprintf("    <td>%s</td><td>std. Beta</td>\n", showCIString))
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td><em>%s</em></td>\n", showCIString))
+            page.content <- paste(page.content, sprintf("    <td>%s</td>\n", showCIString))
           }
         }
       }
     }
-    toWrite = paste(toWrite, "  </tr>\n")
+    page.content <- paste(page.content, "  </tr>\n")
   }
   
   
   # -------------------------------------
   # close table headline
   # -------------------------------------
-  toWrite = paste(toWrite, "  <tr style=\"border-top:double\">", "\n")
+  page.content <- paste(page.content, "  <tr class=\"topcontentborder\">", "\n")
   
   
   # -------------------------------------
   # 1. row: intercept
   # -------------------------------------
-  toWrite = paste(toWrite, sprintf("    <td>%s</td>", stringIntercept), "\n")
+  page.content <- paste(page.content, sprintf("    <td>%s</td>", stringIntercept), "\n")
   for (i in 1:ncol(coeffs)) {
     if (pvaluesAsNumbers) {
       if (separateConfColumn) {
         if (showStdBeta) {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td></td><td>%s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td></td><td>%s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
         }
         else {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
         }
       }
       else {
         if (showConfInt) {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f (%.2f-%.2f)</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i]))
+          page.content <- paste(page.content, sprintf("    <td>%.2f (%.2f-%.2f)</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i]))
         }
         else {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f</td>", coeffs[1,i]))
+          page.content <- paste(page.content, sprintf("    <td>%.2f</td>", coeffs[1,i]))
         }
         if (showStdBeta) {
-          toWrite = paste(toWrite, sprintf("<td></td><td>%s</td>", pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("<td></td><td>%s</td>", pv[1,i]), "\n")
         }
         else {
-          toWrite = paste(toWrite, sprintf("<td>%s</td>", pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("<td>%s</td>", pv[1,i]), "\n")
         }
       }
     }
     else {
       if (separateConfColumn) {
         if (showStdBeta) {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td><td></td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td><td></td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
         }
         else {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td>", coeffs[1,i], confi_lower[1,i], confi_higher[1,i], pv[1,i]), "\n")
         }
       }
       else {
         if (showConfInt) {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f (%.2f-%.2f)", coeffs[1,i], confi_lower[1,i], confi_higher[1,i]))
+          page.content <- paste(page.content, sprintf("    <td>%.2f (%.2f-%.2f)", coeffs[1,i], confi_lower[1,i], confi_higher[1,i]))
         }
         else {
-          toWrite = paste(toWrite, sprintf("    <td>%.2f", coeffs[1,i]))
+          page.content <- paste(page.content, sprintf("    <td>%.2f", coeffs[1,i]))
         }
         if (showStdBeta) {
-          toWrite = paste(toWrite, sprintf("%s</td><td></td>", pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("%s</td><td></td>", pv[1,i]), "\n")
         }
         else {
-          toWrite = paste(toWrite, sprintf("%s</td>", pv[1,i]), "\n")
+          page.content <- paste(page.content, sprintf("%s</td>", pv[1,i]), "\n")
         }
       }
     }
   }
-  toWrite = paste(toWrite, "  </tr>", "\n")
+  page.content <- paste(page.content, "  </tr>", "\n")
   
   
   # -------------------------------------
@@ -323,58 +362,58 @@ sjt.lm <- function (...,
   # -------------------------------------
   predlen <- length(labelPredictors)
   for (i in 1:predlen) {
-    toWrite = paste(toWrite, "  <tr>\n", sprintf("    <td>%s</td>", labelPredictors[i]), "\n")
+    page.content <- paste(page.content, "  <tr>\n", sprintf("    <td>%s</td>", labelPredictors[i]), "\n")
     for (j in 1:ncol(coeffs)) {
       if (pvaluesAsNumbers) {
         if (separateConfColumn) {
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], stdbv[i,j], pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], stdbv[i,j], pv[i+1,j]), "\n")
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j]), "\n")
           }
         }
         else {
           if (showConfInt) {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f (%.2f-%.2f)</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j]))
+            page.content <- paste(page.content, sprintf("    <td>%.2f (%.2f-%.2f)</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j]))
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f</td>", coeffs[i+1,j]))
+            page.content <- paste(page.content, sprintf("    <td>%.2f</td>", coeffs[i+1,j]))
           }
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("<td>%s</td><td>%s</td>", stdbv[i,j], pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("<td>%s</td><td>%s</td>", stdbv[i,j], pv[i+1,j]), "\n")
           }
           else {
-            toWrite = paste(toWrite, sprintf("<td>%s</td>", pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("<td>%s</td>", pv[i+1,j]), "\n")
           }
         }
       }
       else {
         if (separateConfColumn) {
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j], stdbv[i,j]), "\n")
+            page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td><td>%s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j], stdbv[i,j]), "\n")
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("    <td>%.2f</td><td>%.2f-%.2f %s</td>", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j], pv[i+1,j]), "\n")
           }
         }
         else {
           if (showConfInt) {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f (%.2f-%.2f)", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j]))
+            page.content <- paste(page.content, sprintf("    <td>%.2f (%.2f-%.2f)", coeffs[i+1,j], confi_lower[i+1,j], confi_higher[i+1,j]))
           }
           else {
-            toWrite = paste(toWrite, sprintf("    <td>%.2f", coeffs[i+1,j]))
+            page.content <- paste(page.content, sprintf("    <td>%.2f", coeffs[i+1,j]))
           }
           if (showStdBeta) {
-            toWrite = paste(toWrite, sprintf("%s</td><td>%s</td>", pv[i+1,j], stdbv[i,j]), "\n")
+            page.content <- paste(page.content, sprintf("%s</td><td>%s</td>", pv[i+1,j], stdbv[i,j]), "\n")
           }
           else {
-            toWrite = paste(toWrite, sprintf("%s</td>", pv[i+1,j]), "\n")
+            page.content <- paste(page.content, sprintf("%s</td>", pv[i+1,j]), "\n")
           }
         }
       }
     }
-    toWrite = paste(toWrite, "  </tr>", "\n")
+    page.content <- paste(page.content, "  </tr>", "\n")
   }
   
 
@@ -382,33 +421,33 @@ sjt.lm <- function (...,
   # Model-Summary: N
   # -------------------------------------
   if (headerColSpanFactor>1) {
-    colspanstring <- sprintf("<td  class=\"summary\" colspan=\"%i\">", headerColSpanFactor)
+    colspanstring <- sprintf("<td colspan=\"%i\">", headerColSpanFactor)
   }
   else {
-    colspanstring <- c("<td class=\"summary\">")
+    colspanstring <- c("<td>")
   }
-  toWrite = paste(toWrite, sprintf("  <tr style=\"border-top:1px solid\">\n    <td class=\"summary\">%s</td>\n", stringObservations))
+  page.content <- paste(page.content, sprintf("  <tr class=\"summary firstsumrow\">\n    <td>%s</td>\n", stringObservations))
   for (i in 1:length(input_list)) {
-    toWrite = paste(toWrite, sprintf("    %s%i</td>\n", colspanstring, summary(input_list[[i]])$df[2]))
+    page.content <- paste(page.content, sprintf("    %s%i</td>\n", colspanstring, summary(input_list[[i]])$df[2]))
   }
-  toWrite = paste(toWrite, "  </tr>\n")
+  page.content <- paste(page.content, "  </tr>\n")
   # -------------------------------------
   # Model-Summary: r2 and sdj. r2
   # -------------------------------------
   if (showR2) {
-    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">R<sup>2</sup> / adj. R<sup>2</sup></td>\n")
+    page.content <- paste(page.content, "  <tr class=\"summary\">\n     <td>R<sup>2</sup> / adj. R<sup>2</sup></td>\n")
     for (i in 1:length(input_list)) {
       rsqu <- summary(input_list[[i]])$r.squared
       adjrsqu <- summary(input_list[[i]])$adj.r.squared
-      toWrite = paste(toWrite, sprintf("    %s%.3f / %.3f</td>\n", colspanstring, rsqu, adjrsqu))
+      page.content <- paste(page.content, sprintf("    %s%.3f / %.3f</td>\n", colspanstring, rsqu, adjrsqu))
     }
-    toWrite = paste(toWrite, "  </tr>\n")
+    page.content <- paste(page.content, "  </tr>\n")
   }
   # -------------------------------------
   # Model-Summary: F-statistics
   # -------------------------------------
   if (showFStat) {
-    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">F-statistics</td>\n")
+    page.content <- paste(page.content, "  <tr class=\"summary\">\n     <td>F-statistics</td>\n")
     for (i in 1:length(input_list)) {
       fstat <- summary(input_list[[i]])$fstatistic
       # Calculate p-value for F-test
@@ -424,32 +463,33 @@ sjt.lm <- function (...,
       else  if (pval<=0.05) {
         pan <- c("*")
       }
-      toWrite = paste(toWrite, sprintf("    %s%.2f%s</td>\n", colspanstring, fstat[1], pan))
+      page.content <- paste(page.content, sprintf("    %s%.2f%s</td>\n", colspanstring, fstat[1], pan))
     }
-    toWrite = paste(toWrite, "  </tr>\n")
+    page.content <- paste(page.content, "  </tr>\n")
   }
   # -------------------------------------
   # Model-Summary: AIC
   # -------------------------------------
   if (showAIC) {
-    toWrite = paste(toWrite, "  <tr>\n     <td class=\"summary\">AIC</td>\n")
+    page.content <- paste(page.content, "  <tr class=\"summary\">\n     <td>AIC</td>\n")
     for (i in 1:length(input_list)) {
-      toWrite = paste(toWrite, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
+      page.content <- paste(page.content, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
     }
-    toWrite = paste(toWrite, "  </tr>\n")
+    page.content <- paste(page.content, "  </tr>\n")
   }
   
   
   # -------------------------------------
   # table footnote
   # -------------------------------------
-  toWrite = paste(toWrite, sprintf("  <tr style=\"border-top:2px solid\">\n    <td>Notes</td><td style=\"text-align:right\" colspan=\"%i\"><em>* p<0.005&nbsp;&nbsp;&nbsp;** p<0.01&nbsp;&nbsp;&nbsp;*** p <0.001</em></td>\n  </tr>", headerColSpan), "\n")
+  page.content <- paste(page.content, sprintf("  <tr class=\"annorow\">\n    <td>Notes</td><td class=\"annostyle\" colspan=\"%i\"><em>* p&lt;0.005&nbsp;&nbsp;&nbsp;** p&lt;0.01&nbsp;&nbsp;&nbsp;*** p&lt;0.001</em></td>\n  </tr>\n</table>", headerColSpan), "\n")
   
   
   # -------------------------------------
   # finish table
   # -------------------------------------
-  toWrite = paste(toWrite, "</table>\n</body></html>", "\n")
+  toWrite <- paste(toWrite, page.content)
+  toWrite <- paste(toWrite, "</body></html>", "\n")
   # -------------------------------------
   # check if we have filename specified
   # -------------------------------------
@@ -472,4 +512,7 @@ sjt.lm <- function (...,
     # delete temp file
     # unlink(htmlFile)
   }
+  invisible (structure(class = "sjtlm",
+                       list(page.style = page.style,
+                            page.content = page.content)))
 }

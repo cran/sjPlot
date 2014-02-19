@@ -5,8 +5,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 
 #' @title Plot odds ratios (forest plots)
 #' @name sjp.glm
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+#'              \item \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+#'              }
 #' 
 #' @description Plot odds ratios with confidence intervalls as bar chart or dot plot
 #' @seealso \code{\link{sjp.glm.ma}}
@@ -59,9 +62,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param barColor A vector with colors for representing the odds values (i.e. points and error bars in case the
 #'          parameter \code{type} is \code{"dots"} or the bar charts in case of \code{"bars"}). The first color value indicates
 #'          odds ratio values larger than 1, the second color value indicates odds ratio values lower or equal to 1.
-#'          Default colors is a blue/red-scheme. You can also use \code{"bw"} or \code{"black"} for only one colouring
-#'          in almost black, \code{"gray"} / \code{"grey"} / \code{"gs"} for a grayscale or \code{"brewer"} for colours
-#'          from the color brewer palette.
+#'          Default colors is a blue/red-scheme. You can also use:
+#'          \itemize{
+#'            \item \code{"bw"} or \code{"black"} for only one colouring in almost black
+#'            \item \code{"gray"}, \code{"grey"} or \code{"gs"} for a grayscale
+#'            \item \code{"brewer"} for colours from the color brewer palette.
+#'            }
 #'          If barColors is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
 #'          Else specify your own color values as vector (e.g. \code{barColors=c("#f00000", "#00ff00")}).
 #' @param colorPalette If parameter \code{barColor} is \code{brewer}, specify a color palette from the color brewer here.
@@ -91,10 +97,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param theme specifies The diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
@@ -643,7 +653,7 @@ sjp.glm <- function(fit,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {
@@ -828,11 +838,10 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # introduced into the model.
   # -------------------------------------
   cat(paste("\n--------------------\nCheck significance of terms when they entered the model...\n"))
-  cat(paste("Anova original model:\n"))
+  cat(paste("\nAnova original model:\n"))
   print(anova(logreg,test="Chisq"))
   if (!showOriginalModelOnly) {
-    cat(paste("\n\n\n"))
-    cat(paste("Anova updated model:\n"))
+    cat(paste("\n\n\nAnova updated model:\n"))
     print(anova(model,test="Chisq"))
   }
   # -------------------------------------

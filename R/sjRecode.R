@@ -125,7 +125,9 @@ sju.groupVar <- function(var, groupsize=5, asNumeric=TRUE, rightInterval=FALSE, 
 #' @name sju.groupVarLabels
 #' @description Creates the related labels for the grouped variable created by
 #'                the \code{\link{sju.groupVar}} function.
+#'                
 #' @seealso \code{\link{sju.groupVar}}
+#' 
 #' @note Usually you should use the same values for \code{groupsize} and
 #'         \code{rightInterval} as used in the \code{\link{sju.groupVar}} function
 #'         if you want to create labels for the related recoded variable.
@@ -230,6 +232,7 @@ sju.groupVarLabels <- function(var, groupsize=5, rightInterval=FALSE, autoGroupC
 #' @title Retrieve std. beta coefficients of lm
 #' @name sju.betaCoef
 #' @description Returns the standardized beta coefficients of a fitted linear model.
+#' 
 #' @seealso \code{\link{sjp.lm}}
 #'         
 #' @param fit A fitted linear model.
@@ -253,10 +256,11 @@ sju.betaCoef <- function(fit) {
 
 #' @title Retrieve model summary of lm
 #' @name sju.modsum.lm
-#' @description Returns a model summary of a fitted linear model as expression.
+#' @description Returns a model summary of a fitted linear model as \link{expression}.
 #'                The summary includes intercept, r2, F-statistics and AIC.
 #'                It is returned as \link{expression} string to be used in plots
 #'                like ggplot.
+#'                
 #' @seealso \code{\link{sjp.lm}} \cr
 #'          \code{\link{sjp.lm1}} \cr
 #'          \code{\link{sjp.lm.ma}}
@@ -362,6 +366,10 @@ sju.adjustPlotRange.y <- function(gp, upperMargin=1.05) {
 #' 
 #' @export
 sju.wordwrap <- function(labels, wrap) {
+  # check for valid value
+  if (is.null(labels)) {
+    return(NULL)
+  }
   # create regex pattern for line break
   pattern <- c(paste('(.{1,', wrap, '})(\\s|$)', sep=""))
   # iterate all labels
@@ -388,7 +396,7 @@ sju.wordwrap <- function(labels, wrap) {
 
 #' @title Recode variable categories into new values.
 #' @name sju.recodeTo
-#' @description Recoded the categories of a variables \code{var} into new category values, beginning
+#' @description Recodes the categories of a variables \code{var} into new category values, beginning
 #'                with the lowest value specified by parameter \code{lowest}. Useful if you want
 #'                to recode dummy variables with 1/2 coding to 0/1 coding, or recoding scales from
 #'                1-4 to 0-3 etc.
@@ -396,8 +404,8 @@ sju.wordwrap <- function(labels, wrap) {
 #' @param var The variable (vector) that should be recoded.
 #' @param lowest Indicating the lowest category value after recoding. Default is 0, so the new
 #'          variable starts with the category value 0.
-#' @param highest If specified and larger that \code{lowest}, all category values larger than
-#'          \code{highest} will be set to \code{NA}. Default is -1, i.e. this parameter is ignored
+#' @param highest If specified and larger than \code{lowest}, all category values larger than
+#'          \code{highest} will be set to \code{NA}. Default is \code{-1}, i.e. this parameter is ignored
 #'          and no NA's will be produced.
 #' @return A new variable with recoded category values, where \code{lowest} indicates the lowest
 #'           value.
@@ -522,4 +530,33 @@ sjp.vif <- function(fit, printnumbers=TRUE) {
             # Beschriftung der X-Achse (Variablenlabel) in 45-Grad-Winkel setzen
             theme(axis.text.x=element_text(angle=45, vjust=0.5, size=rel(1.2))))
   }
+}
+
+
+#' @title Set NA for specific variable values
+#' @name sju.setNA
+#' @description This function sets specific values of a variable \code{var}
+#'                as missings (\code{NA}).
+#'
+#' @param var The variable where new missing values should be defined.
+#' @param values The values that should be replaced with \code{\link{NA}}'s.
+#' 
+#' @return The \code{var} with each values of \code{values} replaced by an \code{NA}.
+#' 
+#' @examples
+#' # create random variable
+#' dummy <- sample(1:8, 100, replace=TRUE)
+#' # show value distribution
+#' table(dummy)
+#' # set value 1 and 8 as missings
+#' dummy <- sju.setNA(dummy, c(1,8))
+#' # show value distribution, including missings
+#' table(dummy, exclude=NULL)
+#' 
+#' @export
+sju.setNA <- function(var, values) {
+  for (i in seq_along(values)) {
+    var[var==values[i]] <- NA
+  }
+  return(var)
 }

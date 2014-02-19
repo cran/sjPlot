@@ -25,7 +25,7 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, autoGroupAt = 50, theme = NULL,
+  axisTitleSize = 1.3, autoGroupAt = NULL, theme = NULL,
   legendPos = "right", legendSize = 1, legendBorderColor = "white",
   legendBackColor = "white", flipCoordinates = FALSE, omitNA = TRUE,
   returnPlot = FALSE)
@@ -68,14 +68,15 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   which results in overlaying bars. In the latter case,
   it's recommended to adjust the \code{barAlpha} value.}
 
-  \item{type}{The plot type. May be either \code{"b"},
-  \code{"bar"}, \code{"bars"} (default) for bar charts,
-  \code{"l"}, \code{"line"}, \code{"lines"} for line
-  diagram, \code{"d"}, \code{"dot"}, \code{"dots"} for dot
-  plots, \code{"h"}, \code{"hist"}, \code{"histogram"} for
-  grouped histograms, \code{"box"}, \code{"boxplot"},
-  \code{"boxplots"} for box plots or \code{"v"},
-  \code{"violin"} for violin box plots}
+  \item{type}{The plot type. May be one of the following:
+  \itemize{ \item \code{"b"}, \code{"bar"}, \code{"bars"}
+  (default) for bar charts \item \code{"l"}, \code{"line"},
+  \code{"lines"} for line diagram \item \code{"d"},
+  \code{"dot"}, \code{"dots"} for dot plots \item
+  \code{"h"}, \code{"hist"}, \code{"histogram"} for grouped
+  histograms \item \code{"box"}, \code{"boxplot"},
+  \code{"boxplots"} for box plots \item \code{"v"},
+  \code{"violin"} for violin box plots }}
 
   \item{dotSize}{Size of dots. Applies only when
   \code{type} is set to \code{"dots"}.}
@@ -96,7 +97,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
 
   \item{useFacetGrid}{\code{TRUE} when bar charts should be
   plotted as facet grids instead of integrated single bar
-  charts. Ideal for larger amount of groups.}
+  charts. Ideal for larger amount of groups. This parameter
+  wraps a single panel into \code{varGrpup} amount of
+  panels, i.e. each group is represented within a new
+  panel.}
 
   \item{title}{Title of the diagram, plotted above the
   whole diagram panel.}
@@ -176,14 +180,15 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   and have no space in between. Recommended values for this
   parameter are from 0 to 0.5}
 
-  \item{barColor}{User defined color for bars.  If not
-  specified (\code{NULL}), a default red-green-yellow color
-  palette will be used for the bar charts.  If barColor is
-  \code{"gs"}, a greyscale will be used.  If barColor is
-  \code{"bw"}, a monochrome white filling will be used.  If
-  barColor is \code{"brewer"}, use the \code{colorPalette}
-  parameter to specify a palette of the color brewer.  Else
-  specify your own color values as vector (e.g.
+  \item{barColor}{User defined color for bars.  \itemize{
+  \item If not specified (\code{NULL}), a default
+  red-green-yellow color palette will be used for the bar
+  charts.  \item If barColor is \code{"gs"}, a greyscale
+  will be used.  \item If barColor is \code{"bw"}, a
+  monochrome white filling will be used.  \item If barColor
+  is \code{"brewer"}, use the \code{colorPalette} parameter
+  to specify a palette of the color brewer.  } Else specify
+  your own color values as vector (e.g.
   \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).}
 
   \item{colorPalette}{If \code{barColor} is
@@ -234,10 +239,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   grid lines of the diagram background.}
 
   \item{hideGrid.x}{If \code{TRUE}, the x-axis-gridlines
-  are hidden. Default if \code{FALSE}.}
+  are hidden. Default is \code{FALSE}.}
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
-  are hidden. Default if \code{FALSE}.}
+  are hidden. Default is \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar. Default is
@@ -331,22 +336,25 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \link{sju.groupVar}). If \code{varCount} has large
   numbers of unique values, too many bars for the graph
   have to be plotted. Hence it's recommended to group such
-  variables. Default value is 50, i.e. if \code{varCount}
-  has 50 and more unique values it will be grouped using
-  \link{sju.groupVar} with \code{groupsize="auto"}
-  parameter. By default, the maximum group count is 30.
-  However, if \code{autoGroupAt} is less than 30,
-  \code{autoGroupAt} groups are built.}
+  variables. For example, if \code{autoGroupAt} is 50, i.e.
+  if \code{varCount} has 50 and more unique values it will
+  be grouped using \link{sju.groupVar} with
+  \code{groupsize="auto"} parameter. By default, the
+  maximum group count is 30. However, if \code{autoGroupAt}
+  is less than 30, \code{autoGroupAt} groups are built.
+  Default value for \code{autoGroupAt} is \code{NULL}, i.e.
+  auto-grouping is off.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{legendPos}{The position of the legend, if a legend
   is drawn. Use \code{"bottom"}, \code{"top"},
@@ -454,8 +462,10 @@ sjp.grpfrq(efc$e17age,
            type="box")
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\cr \cr \item
 \url{http://strengejacke.wordpress.com/2013/03/05/easily-plotting-grouped-bars-with-ggplot}
+}
 }
 

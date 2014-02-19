@@ -3,11 +3,12 @@
 \title{Save frequencies as HTML table}
 \usage{
 sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
-  valueLabels = NULL, autoGroupAt = 50, stringCount = "N",
-  stringPerc = "raw \%", stringValidPerc = "valid \%",
-  stringCumPerc = "cumulative \%", stringMissingValue = "missings",
-  highlightMedian = FALSE, highlightQuartiles = FALSE,
-  skipZeroRows = FALSE, showSummary = TRUE)
+  valueLabels = NULL, autoGroupAt = NULL, alternateRowColors = FALSE,
+  stringValue = "value", stringCount = "N", stringPerc = "raw \%",
+  stringValidPerc = "valid \%", stringCumPerc = "cumulative \%",
+  stringMissingValue = "missings", highlightMedian = FALSE,
+  highlightQuartiles = FALSE, skipZeroRows = FALSE, showSummary = TRUE,
+  encoding = "UTF-8")
 }
 \arguments{
   \item{data}{The variables which frequencies should be
@@ -26,7 +27,8 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
 
   \item{variableLabels}{A single character vector or a list
   of character vectors that indicate the variable names of
-  those variables from \code{data}. Note that if multiple
+  those variables from \code{data} and will be used as
+  variable labels in the output. Note that if multiple
   variables are supplied (as data frame), the variable
   labels must be supplied as \code{list} object (see
   examples).}
@@ -48,20 +50,28 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   grouped using \link{sju.groupVar} with
   \code{groupsize="auto"} parameter. By default, the
   maximum group count is 30. However, if \code{autoGroupAt}
-  is less than 30, \code{autoGroupAt} groups are built.}
+  is less than 30, \code{autoGroupAt} groups are built.
+  Default value is \code{NULL}, i.e. auto-grouping is
+  turned off.}
 
-  \item{stringCount}{String label for the first table
+  \item{alternateRowColors}{If \code{TRUE}, alternating
+  rows are highlighted with a light gray background color.}
+
+  \item{stringValue}{String label for the very first table
+  column containing the values (see \code{valueLabels}).}
+
+  \item{stringCount}{String label for the first table data
   column containing the counts. Default is \code{"N"}.}
 
-  \item{stringPerc}{String label for the second table
+  \item{stringPerc}{String label for the second table data
   column containing the percentages, where the count
   percentages include missing values.}
 
-  \item{stringValidPerc}{String label for the third table
-  column containing the valid percentages, i.e. the count
-  percentage value exluding possible missing values.}
+  \item{stringValidPerc}{String label for the third data
+  table column containing the valid percentages, i.e. the
+  count percentage value exluding possible missing values.}
 
-  \item{stringCumPerc}{String label for the last table
+  \item{stringCumPerc}{String label for the last table data
   column containing the cumulative percentages.}
 
   \item{stringMissingValue}{String label for the last table
@@ -80,6 +90,17 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   \item{showSummary}{If \code{TRUE} (default), a summary
   row with total and valid N as well as mean and standard
   deviation is shown.}
+
+  \item{encoding}{The charset encoding used for variable
+  and value labels. Default is \code{"UTF-8"}. Change
+  encoding if specific chars are not properly displayed
+  (e.g.) German umlauts).}
+}
+\value{
+Invisibly returns a \link{structure} with the web page
+style sheet (\code{page.style}) and each frequency table as
+web page content (\code{page.content.list}) for further
+use.
 }
 \description{
 Save (multiple) frequency tables as HTML file.
@@ -102,30 +123,32 @@ values <- sji.getValueLabels(efc)
 
 # show frequencies of "e42dep" in RStudio Viewer Pane
 # or default web browser
-## Note that example may open browser, thus it is outcommented
-# sjt.frq(efc$e42dep)
+\dontrun{
+sjt.frq(efc$e42dep)}
 
 # plot and save frequency table of "e42dep" with labels
+\dontrun{
 sjt.frq(efc$e42dep,
         file="dependency_labels.html",
         variableLabels=variables['e42dep'],
-        valueLabels=values[['e42dep']])
+        valueLabels=values[['e42dep']])}
 
 # plot frequencies of e42dep, e16sex and c172code in one HTML file
 # and show table in RStudio Viewer Pane or default web browser
-## Note that example may open browser, thus it is outcommented
-# sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
-#         variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
-#         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))
+\dontrun{
+sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
+        variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
+        valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))}
 
 # plot larger scale including zero-counts
 # and save to file, indicating median and quartiles
+\dontrun{
 sjt.frq(efc$neg_c_7,
         file="negativeimpact.html",
         variableLabels=variables['neg_c_7'],
         valueLabels=values[['neg_c_7']],
         highlightMedian=TRUE,
-        highlightQuartiles=TRUE)
+        highlightQuartiles=TRUE)}
 }
 \seealso{
 \link{sjp.frq}

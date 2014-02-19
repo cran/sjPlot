@@ -1,0 +1,272 @@
+\name{sjc.qclus}
+\alias{sjc.qclus}
+\title{Compute quick cluster analysis}
+\usage{
+sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
+  agglomeration = "ward", showAccuracy = FALSE, title = NULL,
+  titleSize = 1.3, titleColor = "black", axisLabels.x = NULL,
+  axisLabelAngle.x = 0, axisLabelSize = 1.1, axisLabelColor = "gray30",
+  axisTitle.x = "Cluster group characteristics",
+  axisTitle.y = "Mean of z-scores", axisTitleColor = "black",
+  axisTitleSize = 1.3, breakTitleAt = 40, breakLabelsAt = 12,
+  breakLegendTitleAt = 20, breakLegendLabelsAt = 20, facetCluster = FALSE,
+  barColor = NULL, barAlpha = 1, colorPalette = "GnBu", barWidth = 0.5,
+  barSpace = 0.1, barOutline = FALSE, outlineColor = "black",
+  theme = NULL, borderColor = NULL, axisColor = NULL,
+  hideLegend = FALSE, showTickMarks = TRUE, showAxisLabels.x = TRUE,
+  showAxisLabels.y = TRUE, showGroupCount = TRUE, legendTitle = NULL,
+  legendLabels = NULL, legendPos = "right", legendSize = 1,
+  legendBorderColor = "white", legendBackColor = "white",
+  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
+  hideGrid.y = FALSE, flipCoordinates = FALSE)
+}
+\arguments{
+  \item{data}{The data frame containing all variables that
+  should be used for the cluster analysis.}
+
+  \item{groupcount}{The amount of groups (clusters) that
+  should be retrieved. By default (\code{NULL}), the
+  optimal amount of clusters is calculated using the gap
+  statistics (see \code{\link{sjc.kgap}}. However, this
+  works only with kmeans as \code{method}. If \code{method}
+  is \code{"h"}, you have to specify a groupcount. Use the
+  \code{\link{sjc.elbow}}-function to determine the
+  group-count depending on the elbow-criterion. Use
+  \code{\link{sjc.grpdisc}}-function to inspect the
+  goodness of grouping.}
+
+  \item{method}{The method for computing the cluster
+  analysis. By default (\code{"k"}), a kmeans cluster
+  analysis will be computed. Use \code{"h"} to compute a
+  hierarchical cluster analysis.}
+
+  \item{distance}{The distance measure to be used when
+  \code{"method"} is \code{"h"} (for hierarchical
+  clustering). This must be one of \code{"euclidean"},
+  \code{"maximum"}, \code{"manhattan"}, \code{"canberra"},
+  \code{"binary"} or \code{"minkowski"}. See \link{dist}.
+  By default, method is \code{"k"} and this parameter will
+  be ignored.}
+
+  \item{agglomeration}{The agglomeration method to be used
+  when \code{"method"} is \code{"h"} (for hierarchical
+  clustering). This should be one of \code{"ward"},
+  \code{"single"}, \code{"complete"}, \code{"average"},
+  \code{"mcquitty"}, \code{"median"} or \code{"centroid"}.
+  Default is \code{"ward"}. See \link{hclust}.  By default,
+  method is \code{"k"} and this parameter will be ignored.}
+
+  \item{showAccuracy}{If \code{TRUE}, the
+  \link{sjc.grpdisc} function will be called, which
+  computes a linear discriminant analysis on the classified
+  cluster groups and plots a bar graph indicating the
+  goodness of classification for each group.}
+
+  \item{title}{Title of diagram as string.  Example:
+  \code{title=c("my title")}}
+
+  \item{titleSize}{The size of the plot title. Default is
+  1.3.}
+
+  \item{titleColor}{The color of the plot title. Default is
+  \code{"black"}.}
+
+  \item{axisLabels.x}{Labels for the x-axis breaks.
+  Example: \code{axisLabels.x=c("Label1", "Label2",
+  "Label3")}.  Note: If you use the \code{\link{sji.SPSS}}
+  function and the \code{\link{sji.getValueLabels}}
+  function, you receive a list object with label string.
+  The labels may also be passed as list object. They will
+  be unlisted and converted to character vector
+  automatically.}
+
+  \item{axisLabelAngle.x}{Angle for axis-labels.}
+
+  \item{axisLabelSize}{The size of axis labels of both x
+  and y axis. Default is 1.1, recommended values range
+  between 0.5 and 3.0.}
+
+  \item{axisLabelColor}{User defined color for axis labels.
+  If not specified, a default dark gray color palette will
+  be used for the labels.}
+
+  \item{axisTitle.x}{A label for the x axis. useful when
+  plotting histograms with metric scales where no category
+  labels are assigned to the x axis.}
+
+  \item{axisTitle.y}{A label for the y axis. useful when
+  plotting histograms with metric scales where no category
+  labels are assigned to the y axis.}
+
+  \item{axisTitleColor}{The color of the x and y axis
+  labels. Refers to \code{axisTitle.x} and
+  \code{axisTitle.y}, not to the tick mark or category
+  labels.}
+
+  \item{axisTitleSize}{the size of the x and y axis labels.
+  Refers to \code{axisTitle.x} and \code{axisTitle.y}, not
+  to the tick mark or category labels. Default is 1.3.}
+
+  \item{breakTitleAt}{Determines how many chars of the
+  title are displayed in one line and when a line break is
+  inserted into the title.}
+
+  \item{breakLabelsAt}{Determines how many chars of the
+  labels are displayed in one line and when a line break is
+  inserted into the axis labels.}
+
+  \item{breakLegendTitleAt}{Determines how many chars of
+  the legend title are displayed in one line and when a
+  line break is inserted into the legend title.}
+
+  \item{breakLegendLabelsAt}{Determines how many chars of
+  the legend labels are displayed in one line and when a
+  line break is inserted into the axis labels.}
+
+  \item{facetCluster}{If \code{TRUE}, each cluster group
+  will be represented by an own panel.  Default is
+  \code{FALSE}, thus all cluster groups are plotted in a
+  single graph.}
+
+  \item{barColor}{User defined color for bars.  \itemize{
+  \item If not specified (\code{NULL}), a default color
+  palette will be used for the bar charts.  \item If
+  barColor is \code{"gs"}, a greyscale will be used.  \item
+  If barColor is \code{"bw"}, a monochrome white filling
+  will be used.  \item If barColor is \code{"brewer"}, use
+  the \code{colorPalette} parameter to specify a palette of
+  the color brewer.  } Else specify your own color values
+  as vector (e.g. \code{barColor=c("#f00000", "#00ff00",
+  "#0080ff")}).}
+
+  \item{barAlpha}{Specify the transparancy (alpha value) of
+  bars.}
+
+  \item{colorPalette}{If \code{barColor} is
+  \code{"brewer"}, specify a color palette from the color
+  brewer here. All color brewer palettes supported by
+  ggplot are accepted here.}
+
+  \item{barWidth}{Width of bars. Recommended values for
+  this parameter are from 0.4 to 1.5}
+
+  \item{barSpace}{Spacing between bars. Default value is
+  0.1. If 0 is used, the grouped bars are sticked together
+  and have no space in between. Recommended values for this
+  parameter are from 0 to 0.5}
+
+  \item{barOutline}{If \code{TRUE}, each bar gets a colored
+  outline. Default is \code{FALSE}.}
+
+  \item{outlineColor}{The color of the bar outline. Only
+  applies, if \code{barOutline} is set to \code{TRUE}.}
+
+  \item{theme}{Specifies the diagram's background theme.
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
+
+  \item{borderColor}{User defined color of whole diagram
+  border (panel border).}
+
+  \item{axisColor}{User defined color of axis border (y-
+  and x-axis, in case the axes should have different colors
+  than the diagram border).}
+
+  \item{hideLegend}{Indicates whether legend (guide) should
+  be shown or not.}
+
+  \item{showTickMarks}{Whether tick marks of axes should be
+  shown or not.}
+
+  \item{showAxisLabels.x}{Whether x axis labels (cluster
+  variables) should be shown or not.}
+
+  \item{showAxisLabels.y}{Whether y axis labels (z scores)
+  should be shown or not.}
+
+  \item{showGroupCount}{if \code{TRUE} (default), the count
+  within each cluster group is added to the legend labels
+  (e.g. \code{"Group 1 (n=87)"}).}
+
+  \item{legendTitle}{Title of the diagram's legend.}
+
+  \item{legendLabels}{Labels for the guide/legend. Example:
+  See \code{axisLabels.x}. If \code{legendLabels} is
+  \code{NULL} (default), the standard string \code{"Group
+  <nr>"} will be used.}
+
+  \item{legendPos}{The position of the legend, if a legend
+  is drawn. Use \code{"bottom"}, \code{"top"},
+  \code{"left"} or \code{"right"} to position the legend
+  above, below, on the left or right side of the diagram.
+  Right positioning is default.}
+
+  \item{legendSize}{The text size of the legend. Default is
+  1. Relative size, so recommended values are from 0.3 to
+  2.5}
+
+  \item{legendBorderColor}{Color of the legend's border.
+  Default is \code{"white"}, so no visible border is
+  drawn.}
+
+  \item{legendBackColor}{Fill color of the legend's
+  background. Default is \code{"white"}, so no visible
+  background is drawn.}
+
+  \item{majorGridColor}{Specifies the color of the major
+  grid lines of the diagram background.}
+
+  \item{minorGridColor}{Specifies the color of the minor
+  grid lines of the diagram background.}
+
+  \item{hideGrid.x}{If \code{TRUE}, the x-axis-gridlines
+  are hidden. Default is \code{FALSE}.}
+
+  \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
+  are hidden. Default is \code{FALSE}.}
+
+  \item{flipCoordinates}{If \code{TRUE}, the x and y axis
+  are swapped.}
+}
+\value{
+An object of type \link{structure} containing the used data
+frame for plotting, the ggplot object, the number of found
+cluster (as calculated by \link{sjc.kgap}) and the group
+classification (as calculated by \link{sjc.cluster}).
+}
+\description{
+Compute a quick kmeans or hierarchical cluster analysis and
+displays "cluster characteristics" as graph.  \enumerate{
+\item If \code{method} is \code{kmeans}, this function
+first determines the optimal group count via gap statistics
+(unless parameter \code{groupcount} is specified), using
+the \link{sjc.kgap} function.  \item Than a cluster
+analysis is performed by running the \link{sjc.cluster}
+function to determine the cluster groups.  \item After
+that, all variables in \code{data} are scaled and centered.
+The mean value of these z-scores within each cluster group
+is calculated to see how certain characteristics
+(variables) in a cluster group differ in relation to other
+cluster groups.  \item These results are shown in a graph.
+}
+}
+\examples{
+# K-means clustering of mtcars-dataset
+sjc.qclus(mtcars)
+
+# K-means clustering of mtcars-dataset with 4 pre-defined
+# groups in a faceted panel
+sjc.qclus(mtcars, groupcount=4, facetCluster=TRUE)
+}
+\seealso{
+\code{\link{sjc.cluster}} \cr \code{\link{sjc.kgap}} \cr
+\code{\link{sjc.elbow}} \cr \code{\link{sjc.grpdisc}}
+}
+

@@ -1,9 +1,11 @@
 #' @title Plot interaction terms of linear models
 #' @name sjp.lm.int
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/} \cr \cr
-#'             \url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/} \cr \cr
-#'             \url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
+#'              \item \url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/}
+#'              \item \url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
+#'              }
 #'             
 #' @description Plot regression curves of significant interaction terms in linear models (lm). Note that beside interaction
 #'                terms, also the single predictors of each interaction must be included in the fitted model as well.
@@ -715,7 +717,7 @@ sjp.lm.int <- function(fit,
           theme(panel.border = element_rect(colour=borderColor))
       }
       else {
-        print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+        cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
       }
     }
     if (!is.null(axisColor)) {

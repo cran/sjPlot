@@ -11,18 +11,18 @@ sju.recodeTo(var, lowest = 0, highest = -1)
   recoding. Default is 0, so the new variable starts with
   the category value 0.}
 
-  \item{highest}{If specified and larger that
+  \item{highest}{If specified and larger than
   \code{lowest}, all category values larger than
-  \code{highest} will be set to \code{NA}. Default is -1,
-  i.e. this parameter is ignored and no NA's will be
-  produced.}
+  \code{highest} will be set to \code{NA}. Default is
+  \code{-1}, i.e. this parameter is ignored and no NA's
+  will be produced.}
 }
 \value{
 A new variable with recoded category values, where
 \code{lowest} indicates the lowest value.
 }
 \description{
-Recoded the categories of a variables \code{var} into new
+Recodes the categories of a variables \code{var} into new
 category values, beginning with the lowest value specified
 by parameter \code{lowest}. Useful if you want to recode
 dummy variables with 1/2 coding to 0/1 coding, or recoding

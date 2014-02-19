@@ -4,8 +4,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 
 #' @title Plot beta coefficients of lm
 #' @name sjp.lm
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+#'             }
 #' 
 #' @description Plot beta coefficients of linear regressions with confidence intervalls as dot plot
 #'                (forest plot). Additionally, the standardized beta values are plotted
@@ -79,10 +81,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
-#' @param theme specifies The diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
@@ -436,7 +442,7 @@ sjp.lm <- function(fit,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {
@@ -915,10 +921,14 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
-#' @param theme specifies The diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
@@ -1149,7 +1159,7 @@ sjp.lm1 <- function(fit,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

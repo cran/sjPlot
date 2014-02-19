@@ -13,7 +13,8 @@
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{data}.
 #'          default is \code{NULL}, so no weights are used.
 #' @param variableLabels A single character vector or a list of character vectors that indicate
-#'          the variable names of those variables from \code{data}. Note that if multiple variables
+#'          the variable names of those variables from \code{data} and will be used as variable labels
+#'          in the output. Note that if multiple variables
 #'          are supplied (as data frame), the variable labels must be supplied as \code{list} object
 #'          (see examples).
 #' @param valueLabels A list of character vectors that indicate the value labels of those variables 
@@ -25,13 +26,18 @@
 #'          not respond any longer. Hence it's recommended to group such variables. Default value is 50,
 #'          i.e. variables with 50 and more unique values will be grouped using \link{sju.groupVar} with
 #'          \code{groupsize="auto"} parameter. By default, the maximum group count is 30. However, if
-#'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built.
-#' @param stringCount String label for the first table column containing the counts. Default is \code{"N"}.
-#' @param stringPerc String label for the second table column containing the percentages, where the
+#'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built. Default value is \code{NULL},
+#'          i.e. auto-grouping is turned off.
+#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
+#'          background color.
+#' @param stringValue String label for the very first table column containing the values (see
+#'          \code{valueLabels}).
+#' @param stringCount String label for the first table data column containing the counts. Default is \code{"N"}.
+#' @param stringPerc String label for the second table data column containing the percentages, where the
 #'          count percentages include missing values.
-#' @param stringValidPerc String label for the third table column containing the valid percentages, i.e. the
+#' @param stringValidPerc String label for the third data table column containing the valid percentages, i.e. the
 #'          count percentage value exluding possible missing values.
-#' @param stringCumPerc String label for the last table column containing the cumulative percentages.
+#' @param stringCumPerc String label for the last table data column containing the cumulative percentages.
 #' @param stringMissingValue String label for the last table data row containing missing values.
 #' @param highlightMedian If \code{TRUE}, the table row indicating the median value will
 #'          be highlighted.
@@ -40,7 +46,11 @@
 #' @param skipZeroRows If \code{TRUE}, rows with only zero-values are not printed. Default is \code{FALSE}.
 #' @param showSummary If \code{TRUE} (default), a summary row with total and valid N as well as mean and
 #'          standard deviation is shown.
-#' 
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
+#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @return Invisibly returns a \link{structure} with the web page style sheet (\code{page.style}) and each
+#'          frequency table as web page content (\code{page.content.list}) for further use.
+#'          
 #' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
 #'         or opened with the default web browser. Displaying resp. opening a temporary file is the
@@ -56,30 +66,32 @@
 #' 
 #' # show frequencies of "e42dep" in RStudio Viewer Pane
 #' # or default web browser
-#' ## Note that example may open browser, thus it is outcommented
-#' # sjt.frq(efc$e42dep)
+#' \dontrun{
+#' sjt.frq(efc$e42dep)}
 #' 
 #' # plot and save frequency table of "e42dep" with labels
+#' \dontrun{
 #' sjt.frq(efc$e42dep,
 #'         file="dependency_labels.html",
 #'         variableLabels=variables['e42dep'],
-#'         valueLabels=values[['e42dep']])
+#'         valueLabels=values[['e42dep']])}
 #' 
 #' # plot frequencies of e42dep, e16sex and c172code in one HTML file
 #' # and show table in RStudio Viewer Pane or default web browser
-#' ## Note that example may open browser, thus it is outcommented
-#' # sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
-#' #         variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
-#' #         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))
+#' \dontrun{
+#' sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
+#'         variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
+#'         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))}
 #' 
 #' # plot larger scale including zero-counts
 #' # and save to file, indicating median and quartiles
+#' \dontrun{
 #' sjt.frq(efc$neg_c_7,
 #'         file="negativeimpact.html",
 #'         variableLabels=variables['neg_c_7'],
 #'         valueLabels=values[['neg_c_7']],
 #'         highlightMedian=TRUE,
-#'         highlightQuartiles=TRUE)
+#'         highlightQuartiles=TRUE)}
 #' 
 #' @export
 sjt.frq <- function (data,
@@ -87,7 +99,9 @@ sjt.frq <- function (data,
                      weightBy=NULL,
                      variableLabels=NULL,
                      valueLabels=NULL,
-                     autoGroupAt=50,
+                     autoGroupAt=NULL,
+                     alternateRowColors=FALSE,
+                     stringValue="value",
                      stringCount="N",
                      stringPerc="raw %",
                      stringValidPerc="valid %",
@@ -96,11 +110,15 @@ sjt.frq <- function (data,
                      highlightMedian=FALSE,
                      highlightQuartiles=FALSE,
                      skipZeroRows=FALSE,
-                     showSummary=TRUE) {
+                     showSummary=TRUE,
+                     encoding="UTF-8") {
   # -------------------------------------
   # table init
   # -------------------------------------
-  toWrite <- c("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\">\n<style>\n.qrow { border-bottom: 1px solid #cc3333 }\n.mdrow { font-weight:bolder; font-style:italic; color:#993333 }\n.abstand { margin-bottom: 2em }\ntable { border-collapse:collapse; border:none }\nth { border-top: double; text-align:center; font-style:italic; font-weight:normal }\ntable td { padding:0.2cm }\ntd.summary { text-align:right; font-style:italic; font-size:0.9em; padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-top:1px solid; border-bottom: double }\n.firsttablerow { border-bottom:1px solid }\n.leftalign { text-align:left }\n.centeralign { text-align:center }\ncaption { font-weight: bold; text-align:left  }\n</style>\n</head>\n<body>\n")
+  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n", encoding)
+  page.style <- "<style>\n.arc { background-color:#eaeaea }\n.qrow { border-bottom: 1px solid #cc3333 }\n.mdrow { font-weight:bolder; font-style:italic; color:#993333 }\n.abstand { margin-bottom: 2em }\ntable { border-collapse:collapse; border:none }\nth { border-top: double; text-align:center; font-style:italic; font-weight:normal }\ntable td { padding:0.2cm }\ntd.summary { text-align:right; font-style:italic; font-size:0.9em; padding-top:0.1cm; padding-bottom:0.1cm }\n.lasttablerow { border-top:1px solid; border-bottom: double }\n.firsttablerow { border-bottom:1px solid }\n.leftalign { text-align:left }\n.centeralign { text-align:center }\ncaption { font-weight: bold; text-align:left  }\n</style>"
+  toWrite <- paste(toWrite, page.style)
+  toWrite <- paste(toWrite, "\n</head>\n<body>\n")
   # -------------------------------------
   # make data frame of single variable, so we have
   # unique handling for the data
@@ -143,7 +161,8 @@ sjt.frq <- function (data,
   # -------------------------------------
   # header row of table
   # -------------------------------------
-  headerRow <- sprintf("   <tr class=\"firsttablerow\">\n     <th></th>\n     <th>%s</th>\n     <th>%s</th>\n     <th>%s</th>\n     <th>%s</th>\n   </tr>\n\n", stringCount, stringPerc, stringValidPerc, stringCumPerc)
+  page.content.list <- list()
+  headerRow <- sprintf("   <tr class=\"firsttablerow\">\n     <th>%s</th>\n     <th>%s</th>\n     <th>%s</th>\n     <th>%s</th>\n     <th>%s</th>\n   </tr>\n\n", stringValue, stringCount, stringPerc, stringValidPerc, stringCumPerc)
   # -------------------------------------
   # start iterating all variables
   # -------------------------------------
@@ -157,8 +176,8 @@ sjt.frq <- function (data,
     # -----------------------------------------------
     # check for length of unique values and skip if too long
     # -----------------------------------------------
-    if (length(unique(var))>=autoGroupAt) {
-      cat(sprintf("Variable %s with %i unique values was grouped...\n", colnames(data)[cnt], length(unique(var))))
+    if (!is.null(autoGroupAt) && length(unique(var))>=autoGroupAt) {
+      cat(sprintf("\nVariable %s with %i unique values was grouped...\n", colnames(data)[cnt], length(unique(var))))
       varsum <- var
       agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
       valueLabels[[cnt]] <- sju.groupVarLabels(var, groupsize="auto", autoGroupCount=agcnt)
@@ -218,7 +237,7 @@ sjt.frq <- function (data,
     # -------------------------------------
     # start table tag
     # -------------------------------------
-    toWrite <- paste(toWrite, "<table>", "\n")
+    page.content <- "<table>\n"
     # -------------------------------------
     # retrieve variable label
     # -------------------------------------
@@ -226,11 +245,11 @@ sjt.frq <- function (data,
     # -------------------------------------
     # table caption, variable label
     # -------------------------------------
-    toWrite <- paste(toWrite, sprintf("  <caption>%s</caption>\n", varlab))
+    page.content <- paste(page.content, sprintf("  <caption>%s</caption>\n", varlab))
     # -------------------------------------
     # header row with column labels
     # -------------------------------------
-    toWrite <- paste(toWrite, headerRow)
+    page.content <- paste(page.content, headerRow)
     # -------------------------------------
     # data rows with value labels
     # -------------------------------------
@@ -283,34 +302,39 @@ sjt.frq <- function (data,
         # -------------------------------------
         # write table data row
         # -------------------------------------
+        # init default values
+        rowstring <- ""
+        rowcss <- "<tr>"
+        # init default value for alternating colors
+        if (alternateRowColors) rowstring <- ifelse(j %% 2 ==0, " arc", "")
         # check whether we have median row and whether it should be highlighted
         if (highlightMedian && ((j+minval)==(var.median+1))) {
-          rowcss <- c("<tr class=\"mdrow\">")
+          rowcss <- sprintf("<tr class=\"mdrow%s\">", rowstring)
         }
         else {
           # check whether we have lower quartile and whether it should be highlighted
           if (highlightQuartiles) {
             if(((j+minval)==(var.lowerq+1)) || ((j+minval)==(var.upperq+1))) {
-              rowcss <- c("<tr class=\"qrow\">")
+              rowcss <- sprintf("<tr class=\"qrow%s\">", rowstring)
             }
             else {
-              rowcss <- c("<tr>")
+              if (alternateRowColors) rowcss <- ifelse(j %% 2 ==0, "<tr class=\"arc\">", "<tr>")
             }
           } 
           else {
-            rowcss <- c("<tr>")
+            if (alternateRowColors) rowcss <- ifelse(j %% 2 ==0, "<tr class=\"arc\">", "<tr>")
           }
         }
         # value label
-        toWrite <- paste(toWrite, sprintf("  %s\n     <td class=\"leftalign\">%s</td>\n", rowcss, vallab[j]))
+        page.content <- paste(page.content, sprintf("  %s\n     <td class=\"leftalign\">%s</td>\n", rowcss, vallab[j]))
         # cell values, first value is integer
-        toWrite <- paste(toWrite, sprintf("    <td class=\"centeralign\">%i</td>\n", as.integer(c(datarow[1])[[1]])))
+        page.content <- paste(page.content, sprintf("    <td class=\"centeralign\">%i</td>\n", as.integer(c(datarow[1])[[1]])))
         for (i in 2:4) {
           # following values are float
-          toWrite <- paste(toWrite, sprintf("    <td class=\"centeralign\">%.2f</td>\n", c(datarow[i])[[1]]))
+          page.content <- paste(page.content, sprintf("    <td class=\"centeralign\">%.2f</td>\n", c(datarow[i])[[1]]))
         }
         # close row-tag
-        toWrite <- paste(toWrite, "  </tr>\n", "\n")
+        page.content <- paste(page.content, "  </tr>\n", "\n")
       }
     }
     # -------------------------------------
@@ -322,11 +346,11 @@ sjt.frq <- function (data,
     # write table data row
     # -------------------------------------
     # value label
-    toWrite <- paste(toWrite, sprintf("  <tr class=\"lasttablerow\">\n     <td class=\"leftalign\">%s</td>\n", stringMissingValue))
+    page.content <- paste(page.content, sprintf("  <tr class=\"lasttablerow\">\n     <td class=\"leftalign\">%s</td>\n", stringMissingValue))
     # cell values, first value is integer
-    toWrite <- paste(toWrite, sprintf("    <td class=\"centeralign\">%i</td>\n", as.integer(c(datarow[1])[[1]])))
+    page.content <- paste(page.content, sprintf("    <td class=\"centeralign\">%i</td>\n", as.integer(c(datarow[1])[[1]])))
     # 2nd value is float. we don't need 3rd and 4th value as they are always 0 and 100
-    toWrite <- paste(toWrite, sprintf("    <td class=\"centeralign\">%.2f</td>\n     <td></td>\n     <td></td>\n", c(datarow[2])[[1]]))
+    page.content <- paste(page.content, sprintf("    <td class=\"centeralign\">%.2f</td>\n     <td></td>\n     <td></td>\n", c(datarow[2])[[1]]))
     # -------------------------------------
     # add info for mean, standard deviation
     # -------------------------------------
@@ -339,12 +363,18 @@ sjt.frq <- function (data,
       else {
         mw <- weighted.mean(orivar, weightBy, na.rm=TRUE)
       }
-      toWrite <- paste(toWrite, sprintf("  </tr>\n\n  <tr>\n    <td class=\"summary\" colspan=\"5\">total N=%i &middot; valid N=%i &middot; x&#772;=%.2f &middot; &sigma;=%.2f</td>\n", vartot, varvalid, mw, sd(orivar, na.rm=TRUE)))
+      page.content <- paste(page.content, sprintf("  </tr>\n\n  <tr>\n    <td class=\"summary\" colspan=\"5\">total N=%i &middot; valid N=%i &middot; x&#772;=%.2f &middot; &sigma;=%.2f</td>\n", vartot, varvalid, mw, sd(orivar, na.rm=TRUE)))
     }
     # -------------------------------------
     # finish table
     # -------------------------------------
-    toWrite = paste(toWrite, "  </tr>\n </table>", "\n")
+    page.content <- paste(page.content, "  </tr>\n </table>")
+    # -------------------------------------
+    # add table to return value list, so user can access each
+    # single frequency table
+    # -------------------------------------
+    page.content.list[[length(page.content.list)+1]] <- page.content
+    toWrite <- paste(toWrite, page.content, "\n")
     # -------------------------------------
     # add separator in case we have more than one table
     # -------------------------------------
@@ -378,4 +408,7 @@ sjt.frq <- function (data,
     # delete temp file
     # unlink(htmlFile)
   }
+  invisible (structure(class = "sjtfrq",
+                       list(page.style = page.style,
+                            page.content.list = page.content.list)))
 }

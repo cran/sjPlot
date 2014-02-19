@@ -1,8 +1,12 @@
 #' @title Plot stacked proportional bars
 #' @name sjp.stackfrq
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+#'              }
+#'             
 #' @seealso \code{\link{sjp.likert}}
+#' 
 #' @description Plot items (variables) of a scale as stacked proportional bars. This
 #'                function is useful when several items with identical scale/categoroies
 #'                should be plotted to compare the distribution of answers.
@@ -78,6 +82,9 @@
 #' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
+#' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
+#'          alternating vertical positions to avoid overlapping of labels in case bars are
+#'          very short. Default is \code{FALSE}.
 #' @param showItemLabels Whether x axis text (category names) should be shown or not.
 #' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showSeparatorLine If \code{TRUE}, a line is drawn to visually "separate" each bar in the diagram.
@@ -88,10 +95,14 @@
 #' @param legendSize The size of the legend.
 #' @param legendBorderColor The border color of the legend.
 #' @param legendBackColor The background color of the legend.
-#' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
@@ -142,7 +153,8 @@
 #' # create item labels
 #' items <- list(varlabs[c(start:end)])
 #' 
-#' sjp.stackfrq(efc[,c(start:end)], legendLabels=levels, axisLabels.y=items)
+#' sjp.stackfrq(efc[,c(start:end)], legendLabels=levels,
+#'              axisLabels.y=items, jitterValueLabels=TRUE)
 #' 
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -191,6 +203,7 @@ sjp.stackfrq <- function(items,
                         theme=NULL,
                         showTickMarks=FALSE,
                         showValueLabels=TRUE,
+                        jitterValueLabels=FALSE,
                         showItemLabels=TRUE,
                         showSeparatorLine=FALSE,
                         separatorLineColor="grey80",
@@ -295,7 +308,12 @@ sjp.stackfrq <- function(items,
   mydat$cat <- as.factor(mydat$cat)
   # add half of Percentage values as new y-position for stacked bars
   mydat = ddply(mydat, "grp", transform, ypos = cumsum(prc) - 0.5*prc)
-
+  # --------------------------------------------------------
+  # Caculate vertical adjustment to avoid overlapping labels
+  # --------------------------------------------------------
+  jvert <- rep(c(1.1,-0.1), length.out=length(unique(mydat$cat)))
+  jvert <- rep(jvert, length.out=nrow(mydat))
+  
   
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
@@ -465,13 +483,20 @@ sjp.stackfrq <- function(items,
   # Set value labels
   # --------------------------------------------------------
   if (showValueLabels) {
-    # if we have dodged bars or dots, we have to use a slightly dodged position for labels
-    # as well, sofor better reading
-    ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
-                                size=valueLabelSize,
-                                vjust=vert,
-                                # hjust=hort,
-                                colour=valueLabelColor)
+    if (jitterValueLabels) {
+      ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
+                                  size=valueLabelSize,
+                                  vjust=jvert,
+                                  # hjust=hort,
+                                  colour=valueLabelColor)
+    }
+    else {
+      ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
+                                  size=valueLabelSize,
+                                  vjust=vert,
+                                  # hjust=hort,
+                                  colour=valueLabelColor)
+    }
   }
   else {
     ggvaluelabels <-  geom_text(label="")
@@ -567,7 +592,7 @@ sjp.stackfrq <- function(items,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

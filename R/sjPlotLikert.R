@@ -7,6 +7,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @name sjp.likert
 #' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
 #'             \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+#'             
 #' @seealso \code{\link{sjp.stackfrq}}
 #' 
 #' @description Plot likert scales as centered stacked bars. "Neutral" categories
@@ -62,11 +63,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
 #' @param barColor User defined color for bars.
 #'          If not specified (\code{NULL}), a default red-green color palette for four(!) categories will be used 
-#'          for the bar charts. You can use pre-defined color-sets that are independent from the amount of categories: \cr
-#'          If barColor is \code{"brown"}, a brown-marine-palette will be used. \cr
-#'          If barColor is \code{"violet"}, a violet-green palette will be used. \cr
-#'          If barColor is \code{"pink"}, a pink-green palette will be used. \cr
-#'          If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer \cr
+#'          for the bar charts. You can use pre-defined color-sets that are independent from the amount of categories:
+#'          \itemize{
+#'          \item If barColor is \code{"brown"}, a brown-marine-palette will be used.
+#'          \item If barColor is \code{"violet"}, a violet-green palette will be used.
+#'          \item If barColor is \code{"pink"}, a pink-green palette will be used.
+#'          \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'          }
 #'          Else specify your own color values as vector (e.g. \code{barColor=c("darkred", "red", "green", "darkgreen")})
 #' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
 #'          palettes supported by ggplot are accepted here.
@@ -89,6 +92,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param axisTitleSize The size of the x and y axis labels. refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar
+#' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
+#'          alternating vertical positions to avoid overlapping of labels in case bars are
+#'          very short. Default is \code{FALSE}.
 #' @param showItemLabels Whether x axis text (category names) should be shown or not
 #' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param showSeparatorLine If \code{TRUE}, a line is drawn to visually "separate" each bar in the diagram.
@@ -100,9 +106,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param legendBorderColor The border color of the legend.
 #' @param legendBackColor The background color of the legend.
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
@@ -149,9 +159,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' # plot 4-category-likert-scale, no order
 #' sjp.likert(likert_4, legendLabels=levels_4, axisLabels.y=items)
 #' 
-#' # plot 4-category-likert-scale, ordered by positive values and in brown color scale
+#' # plot 4-category-likert-scale, ordered by positive values,
+#' # in brown color scale and with jittered value labels
 #' sjp.likert(likert_6, legendLabels=levels_6, barColor="brown",
-#'            axisLabels.y=items, orderBy="pos")
+#'            axisLabels.y=items, orderBy="pos", jitterValueLabels=TRUE)
 #' 
 #' @import ggplot2
 #' @importFrom scales brewer_pal
@@ -202,6 +213,7 @@ sjp.likert <- function(items,
                         theme=NULL,
                         showTickMarks=FALSE,
                         showValueLabels=TRUE,
+                        jitterValueLabels=FALSE,
                         showItemLabels=TRUE,
                         showSeparatorLine=FALSE,
                         separatorLineColor="grey80",
@@ -281,7 +293,11 @@ sjp.likert <- function(items,
     # therefor, order droplevels decreasing
     dropLevels <- dropLevels[order(dropLevels, decreasing=TRUE)]
     for (u in length(dropLevels):1) {
-      legendLabels <- legendLabels[legendLabels!=legendLabels[dropLevels[u]]]
+      # check whether droplevel is inside vector indices
+      if (dropLevels[u]<=length(legendLabels)) {
+        # remove label of droplevel
+        legendLabels <- legendLabels[legendLabels!=legendLabels[dropLevels[u]]]
+      }
     }
   }
 
@@ -468,8 +484,11 @@ sjp.likert <- function(items,
     # with this we can order the axis labels (item/question labels)
     axisLabels.y <- axisLabels.y[orderUniqueItems]
   }
-
-  
+  # --------------------------------------------------------
+  # Caculate vertical adjustment to avoid overlapping labels
+  # --------------------------------------------------------
+  jnvert <- rep(c(-0.1,1.1), length.out=nrow(neg))
+  jpvert <- rep(c(1.1,-0.1), length.out=nrow(pos))
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
@@ -602,16 +621,30 @@ sjp.likert <- function(items,
   # Set value labels
   # --------------------------------------------------------
   if (showValueLabels) {
-    ggvaluelabels_lo <-  geom_text(data=neg, aes(y=ypos, label=sprintf("%.01f%%", -100*Freq)),
-                                   size=valueLabelSize,
-                                   vjust=vert,
-                                   # hjust=hort,
-                                   colour=valueLabelColor)
-    ggvaluelabels_hi <-  geom_text(data=pos, aes(y=ypos, label=sprintf("%.01f%%", 100*Freq)),
-                                   size=valueLabelSize,
-                                   vjust=vert,
-                                   # hjust=hort,
-                                   colour=valueLabelColor)
+    if (jitterValueLabels) {
+      ggvaluelabels_lo <-  geom_text(data=neg, aes(y=ypos, label=sprintf("%.01f%%", -100*Freq)),
+                                     size=valueLabelSize,
+                                     vjust=jnvert,
+                                     # hjust=hort,
+                                     colour=valueLabelColor)
+      ggvaluelabels_hi <-  geom_text(data=pos, aes(y=ypos, label=sprintf("%.01f%%", 100*Freq)),
+                                     size=valueLabelSize,
+                                     vjust=jpvert,
+                                     # hjust=hort,
+                                     colour=valueLabelColor)
+    }
+    else {
+      ggvaluelabels_lo <-  geom_text(data=neg, aes(y=ypos, label=sprintf("%.01f%%", -100*Freq)),
+                                     size=valueLabelSize,
+                                     vjust=vert,
+                                     # hjust=hort,
+                                     colour=valueLabelColor)
+      ggvaluelabels_hi <-  geom_text(data=pos, aes(y=ypos, label=sprintf("%.01f%%", 100*Freq)),
+                                     size=valueLabelSize,
+                                     vjust=vert,
+                                     # hjust=hort,
+                                     colour=valueLabelColor)
+    }
   }
   else {
     ggvaluelabels_lo <-  geom_text(label="")
@@ -699,7 +732,7 @@ sjp.likert <- function(items,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

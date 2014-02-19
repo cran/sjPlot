@@ -5,8 +5,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 
 #' @title Plot proportional crosstables
 #' @name sjp.xtab
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+#'              }
 #' 
 #' @description Plot proportional crosstables of two variables as ggplot diagram.
 #' 
@@ -61,10 +63,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param barSpace Spacing between bars. If unchanges, the grouped bars are sticked together and have no space
 #'          in between. Recommended values for this parameter are from 0 to 0.5.
 #' @param barColor User defined color for bars.
-#'          If not specified (\code{NULL}), a default red-green-yellow color palette will be used for the bar charts.
-#'          If barColor is \code{"gs"}, a greyscale will be used.
-#'          If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'          If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer
+#'          \itemize{
+#'          \item If not specified (\code{NULL}), a default red-green-yellow color palette will be used for the bar charts.
+#'          \item If barColor is \code{"gs"}, a greyscale will be used.
+#'          \item If barColor is \code{"bw"}, a monochrome white filling will be used.
+#'          \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'          }
 #'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
 #' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
 #'          palettes supported by ggplot are accepted here.
@@ -91,6 +95,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar
+#' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
+#'          alternating vertical positions to avoid overlapping of labels in case bars are
+#'          very short. Default is \code{FALSE}.
 #' @param valueLabelPosOnTop Whether value labels should be displayed on top of dodged bars or inside the bars. Default
 #'          is \code{TRUE}, i.e. the value labels are displayed on top of the bars. Only applies if parameter \code{barPosition}
 #'          is \code{dodge} (default).
@@ -114,10 +121,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          not to the tick mark or category labels.
 #' @param axisTitleSize The size of the x and y axis labels. refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
-#' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
@@ -170,7 +181,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          legendLabels=efc.val[['e42dep']],
 #'          tableIndex="row",
 #'          barPosition="stack",
-#'          flipCoordinates=TRUE)
+#'          flipCoordinates=TRUE,
+#'          jitterValueLabels=TRUE)
 #'
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -224,6 +236,7 @@ sjp.xtab <- function(y,
                     hideGrid.x=FALSE,
                     hideGrid.y=FALSE,
                     showValueLabels=TRUE,
+                    jitterValueLabels=FALSE,
                     showCategoryLabels=TRUE,
                     showTickMarks=TRUE,
                     showTableSummary=TRUE,
@@ -444,8 +457,11 @@ sjp.xtab <- function(y,
   df$Group <- as.factor(df$Group)
   # add half of Percentage values as new y-position for stacked bars
   df = ddply(df, "Count", transform, ypos = cumsum(Perc) - 0.5*Perc)
-  
-  
+  # --------------------------------------------------------
+  # Caculate vertical adjustment to avoid overlapping labels
+  # --------------------------------------------------------
+  jvert <- rep(c(1.1,-0.1), length.out=length(unique(df$Group)))
+  jvert <- rep(jvert, length.out=nrow(df))
   # -----------------------------------------------------------
   # Retrieve Phi coefficient for table
   # -----------------------------------------------------------
@@ -594,6 +610,10 @@ sjp.xtab <- function(y,
     hort <- waiver()
     vpos <- ifelse(valueLabelPosOnTop==TRUE, -0.4, 1.2)
     vert <- ifelse (barPosition=="dodge", vpos, waiver())
+  }
+  # check for jitter value labels
+  if (jitterValueLabels) {
+    vert <- jvert
   }
   # align dodged position of labels to bar positions
   posdodge <- ifelse(type=="lines", 0, barWidth + barSpace)
@@ -844,7 +864,7 @@ sjp.xtab <- function(y,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

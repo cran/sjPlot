@@ -1,3 +1,24 @@
+Version 1.1
+------------------------------------------------------------------------------
+* New function "sjp.scatter" to plot (grouped) scatter plots including fitted lines.
+* New function "sjc.qclus" to automatically compute and inspect a quick cluster analysis of a data frame.
+* New function "sjc.kgap" to determine the optimal amount of clusters according to the "gap" statistic.
+* New function "sjt.xtab" to save/view cross tables of two (or three) variables as HTML table.
+* New function "sjt.df" to save/view the content of data frames as HTML table.
+* New function "sju.setNA" to quickly specify missing values.
+* The functions "sjt.frq", "sjt.lm" and "sjt.glm" now invisibly return the style sheet definition and the web page content for further use, for instance if several lm-tables should be saved to a single html file see example).
+* The functions "sjt.frq", "sjt.lm" and "sjt.glm" now have more style attributes inside the style sheet definition, so it's easier to change the HTML-table's appearance via CSS.
+* Added parameter "jitterValueLabels" to functions "sjp.likert", "sjp.xtab" and "sjp.stackfrq" to avoid overlapping of narrow displayed value labels.
+* Added paramter "encoding" to functions "sjt.frq", "sjt.lm" and "sjt.glm", so the charset encoding of the output HTML file can be changed.
+* Added parameters "distance" and "agglomeration" to functions "sjc.cluster" and "sjc.dend", so distance and agglomeration methods for hierarchical clustering can be specified.
+* Added parameters "alternateRowColors" and "stringValue" to function "sjt.frq".
+* Function "sjc.dend" can now plot the rectangles for several cluster solutions (see help for parameter "groupcount").
+* Default value of "autoGroupAt" parameter in functions "sjp.grpfrq" and "sjp.frq" was set to NULL (auto-grouping turned off) because auto grouping leads to unexpected behaviour with violin plots, box plots and histograms (wrong scale range).
+* Function "sjc.elbow" now automatically removes missing cases from data frame.
+* Fixed bug in function "sjc.grpdisc" (missing values in data frame have not been removed).
+* Fixed bug in function "sjp.likert" when a dropped level from the likert scale (parameter "dropLevels") was outside of the legendLabels index (i.e. "dropLevels" was greater than "length(legendLabes)".
+* Spell corrections in documentation.
+
 Version 1.0
 ------------------------------------------------------------------------------
 * New function "sjp.lmm" to plot multiple fitted lm's in one plot.
@@ -6,39 +27,31 @@ Version 1.0
 * New function "sjt.frq" to save (multiple) frequency tables as HTML file.
 * New function "sju.recodeTo" to recode variable's category values.
 * New function "sju.dicho" to dichotomize variables.
-* HTML tables generated with function "sjt.lm" can now also be displayed in RStudio Viewer Pane or opened via web browser, if parameter "file=NULL" (default).
-* HTML tables generated with function "sjt.glm" can now also be displayed in RStudio Viewer Pane or opened via web browser, if parameter "file=NULL" (default).
+* HTML tables generated with functions "sjt.lm" and "sjt.glm" can now also be displayed in RStudio Viewer Pane or opened via web browser, if parameter "file=NULL" (default).
 * Added VIF check (multicollinearity) for function "sjp.glm.ma".
 * Enhanced function "sju.groupVar". It's now possible to use "groupsize=auto" to automatically group variables into a maximum of 30 groups (ggplot-default binwidth-adjustment of histograms). The maximum amount of group can also be specified by the "autoGroupCount" parameter.
 * Enhanced function "sju.groupVarLabels". It's now possible to use "groupsize=auto" to automatically create variable labels for grouped variables with a maximum of 30 groups (ggplot-default binwidth-adjustment of histograms). The maximum amount of group can also be specified by the "autoGroupCount" parameter.
-* Added parameter "autoGroupAt" to function "sjp.frq" to automatically group variable with larger number of unique values into smaller units to prevent too many bars to be plotted.
-* Added parameter "autoGroupAt" to function "sjp.grpfrq" to automatically group variable with larger number of unique values into smaller units to prevent too many bars to be plotted.
+* Added parameter "autoGroupAt" to functions "sjp.frq" and "sjp.grpfrq" to automatically group variable with larger number of unique values into smaller units to prevent too many bars to be plotted.
 * Added parameter "dots" to function "sjp.frq" to plot dot-plots.
 * Added parameter "startAxisAt" to function "sjp.frq" for cases where variable values have a range starting with a higher lowest value (e.g. ranging from 5-15).
-* Added parameter "flipCoordinates" to function "sjp.lm".
-* Added parameter "axisLabelsAngle.x" to function "sjp.lm".
-* Added parameter "flipCoordinates" to function "sjp.glm".
-* Added parameter "axisLabelsAngle.x" to function "sjp.glm".
-* Added several parameters to function "sjt.lm" to show/hide the different model summary elements.
-* Added several parameters to function "sjt.glm" to show/hide the different model summary elements.
-* Added parameter "labelDigits" to function "sjp.lm" to change digits after decimal points for esitmators (value labels).
-* Added parameter "labelDigits" to function "sjp.glm" to change digits after decimal points for esitmators (value labels).
+* Added parameter "flipCoordinates" to functions "sjp.lm" and "sjp.glm".
+* Added parameter "axisLabelsAngle.x" to functions "sjp.lm" and "sjp.glm".
+* Added several parameters to functions "sjt.lm" and  "sjt.glm" to show/hide the different model summary elements.
+* Added parameter "labelDigits" to function "sjp.lm" and "sjp.glm" to change digits after decimal points for esitmators (value labels).
 * Added parameter "labelDigits" to function "sjp.aov1" to change digits after decimal points for means (value labels).
 * Added new parameters to function "sjp.lm.int" to plot intercept lines of predictors w/o interactions.
-* Added parameter "returnPlot" to function "sjp.lm.in". Multiple ggplot object will be returned as list.
-* Added parameter "returnPlot" to function "sjp.reglin". Multiple ggplot object will be returned as list.
+* Added parameter "returnPlot" to functions "sjp.reglin" and "sjp.lm.in". Multiple ggplot object will be returned as list.
 * Fixed bug that added unnessecary line break in axis-, title- and legend-labels, which let them appear a bit misaligned.
 * Fixed bug in VIF calculation (see "sjp.lm.ma").
 
 Version 0.9
 ------------------------------------------------------------------------------
-* Added function "sju.adjustPlotRange.y" to adjust y-range of ggplot-objects, for instance if labels are out of visible range.
-* Added parameter "showAxisLabels.y" to function "sjp.frq" and "sjp.grpfrq", so the tick mark values on the y-axis can be hidden.
-* Added parameter "showCountValues" to function "sjp.frq" and "sjp.grpfrq". Now either count or percentage values, or both can be printed or hidden. Use "showValueLabels" to generally hide value labels, and then use "showCountValues" and "showPercentageValues" to show/hide each.
+* New function "sju.adjustPlotRange.y" to adjust y-range of ggplot-objects, for instance if labels are out of visible range.
+* Added parameter "showAxisLabels.y" to functions "sjp.frq" and "sjp.grpfrq", so the tick mark values on the y-axis can be hidden.
+* Added parameter "showCountValues" to functions "sjp.frq" and "sjp.grpfrq". Now either count or percentage values, or both can be printed or hidden. Use "showValueLabels" to generally hide value labels, and then use "showCountValues" and "showPercentageValues" to show/hide each.
 * Added parameter "plevel" to function "sjp.lm.int", so also interactions that are above the 0.05 significance level may be plotted.
 * With "sjp.aov1", positive and negative means can now be plotted in different colors. Thus, parameters "pointColor" and "barColor" were renamed and do now require a vector with two color values (instead of just one).
-* Changed automatic calculation of grid breaks in function "sjp.aov1" to have more pretty grid breaks at x axis.
-* Changed automatic calculation of grid breaks in function "sjp.lm" to have more pretty grid breaks at x axis.
+* Changed automatic calculation of grid breaks in function "sjp.aov1" and "sjp.lm" to have more pretty grid breaks at x axis.
 * Added parameter "axisLabelAngle.x" to function "sjp.aov1", which is helpful if bars are plotted and category labels that appear on the x-axis need to be rotated.
 * Renamed parameter "pointColor" to "pointColors" in function "sjp.aov1".
 * Renamed parameter "barColor" to "barColors" in function "sjp.aov1".
@@ -50,8 +63,7 @@ Version 0.9
 
 Version 0.8
 ------------------------------------------------------------------------------
-* Added parameter "showConfInt" to function "sjt.lm", so CI may be omitted from table output.
-* Added parameter "showConfInt" to function "sjt.glm", so CI may be omitted from table output.
+* Added parameter "showConfInt" to functions "sjt.lm" and "sjt.glm", so CI may be omitted from table output.
 * Added parameter "orderBy" to function "sjp.stackfrq" so items can be ordered according their counts of first or last item category.
 * Added "utils::globalVariables" to source to avoid notes during R CMD check.
 * Updated imports and dependencies, so with selected importing of functions attaching requested libraries is no longer needed.
@@ -59,16 +71,16 @@ Version 0.8
 
 Version 0.7
 ------------------------------------------------------------------------------
-* Added function "sji.convertToValue" to convert factor variables to numeric variables.
+* New function "sji.convertToValue" to convert factor variables to numeric variables.
 * Added parameter "hideGrid.x" to various functions, so the x-axis-gridlines can be hidden.
 * Added parameter "hideGrid.y" to various functions, so the y-axis-gridlines can be hidden.
 * Added parameter "returnPlot" to most plotting function, so the complete ggplot-object is returned by the function and can be further manipulated.
 
 Version 0.6
 ------------------------------------------------------------------------------
-* Added function "sjt.lm" to print results of linear regressions to HTML-tables.
-* Added function "sjp.aov1" to plot results of One-Way-Anovas.
-* Added function "sju.aov1.levene" to show results of a Levene-test for One-Way-Anovas.
+* New function "sjt.lm" to print results of linear regressions to HTML-tables.
+* New function "sjp.aov1" to plot results of One-Way-Anovas.
+* New function "sju.aov1.levene" to show results of a Levene-test for One-Way-Anovas.
 * Added more variables to sample data set "efc".
 * "geomAlpha" now also changes the alpha value of tiled geoms in function "sjp.corr".
 * Fixed bug in "sjp.pca" function when calculating Cronbach's alpha from a dataframe with missing values.
@@ -80,15 +92,14 @@ Version 0.6
 
 Version 0.5
 ------------------------------------------------------------------------------
-* Added "sju.betaCoef" function to calculate std. beta coefficients of linear models.
-* Added more diagnostic plots to "sjp.glmma" function.
+* New function "sju.betaCoef" to calculate std. beta coefficients of linear models.
+* Added more diagnostic plots to "sjp.glm.ma" function.
 * Added loess-line to "sjp.reglin" function to compare linear with loess regression. See "?sjp.reglin" for more information.
 * Added parameters "interactionVar" and "interactionVarLabel" to function "sjp.frq".
 * Updated weblog reference URLs.
 * Renamed parameters "y" in function "sjp.frq" to "varCount".
 * Renamed parameters "y" and "x" in function "sjp.grpfrq" to "varCount" and "varGroup".
-* Added examples to function "sjp.grpfrq".
-* Added examples to function "sjp.frq".
+* Added examples to functions "sjp.grpfrq"and "sjp.frq".
 
 Version 0.4
 ------------------------------------------------------------------------------
@@ -103,7 +114,7 @@ Version 0.3
 * Added new function "sjp.reglin" to plot and analyse single predictors against response for fitted linear models.
 * Inlcuded sample dataset "efc".
 * Added some examples using the new sample dataset.
-* Fixed bug in function sjp.xtab with labelling the total-column.
+* Fixed bug in function "sjp.xtab"" with labelling the total-column.
 * Fixed bug with "maxYlim" parameter in "sjp.frq".
 * Fixed bug with "maxYlim" parameter in "sjp.grpfrq".
 * Minor spelling and formatting corrections of help files.
