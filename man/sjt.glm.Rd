@@ -8,7 +8,7 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   stringIntercept = "(Intercept)", stringObservations = "Observations",
   pvaluesAsNumbers = FALSE, boldpvalues = TRUE, showConfInt = TRUE,
   separateConfColumn = FALSE, showAbbrHeadline = TRUE, showPseudoR = TRUE,
-  showLogLik = FALSE, showAIC = FALSE)
+  showLogLik = FALSE, showAIC = FALSE, encoding = "UTF-8")
 }
 \arguments{
   \item{...}{One or more fitted glm-objects.}
@@ -76,6 +76,16 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   \item{showAIC}{If \code{TRUE}, the AIC value for each
   model is printed in the model summary. Default is
   \code{FALSE}.}
+
+  \item{encoding}{The charset encoding used for variable
+  and value labels. Default is \code{"UTF-8"}. Change
+  encoding if specific chars are not properly displayed
+  (e.g.) German umlauts).}
+}
+\value{
+Invisibly returns a \link{structure} with the web page
+style sheet (\code{page.style}) and the web page content
+(\code{page.content}) for further use.
 }
 \description{
 Save (multiple) generalized linear models (Odds Ratios) as
@@ -107,34 +117,38 @@ fitOR3 <- glm(y3 ~ swiss$Education+swiss$Examination+swiss$Catholic,
               family=binomial(link="logit"))
 
 # open HTML-table in RStudio Viewer Pane or web browser
-## Note that example may open browser, thus it is outcommented
-# sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
-#         labelPredictors=c("Education", "Examination", "Catholic"))
+\dontrun{
+sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
+        labelPredictors=c("Education", "Examination", "Catholic"))}
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # table indicating p-values as numbers
-## Note that example may open browser, thus it is outcommented
-# sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
-#         labelPredictors=c("Education", "Examination", "Catholic"),
-#         pvaluesAsNumbers=TRUE)
+\dontrun{
+sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
+        labelPredictors=c("Education", "Examination", "Catholic"),
+        pvaluesAsNumbers=TRUE)}
 
 # save HTML-tables to "or_table3.html", printing CI in a separate column
+\dontrun{
 sjt.glm(fitOR1, fitOR2, fitOR3,
         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
         labelPredictors=c("Education", "Examination", "Catholic"),
-        file="or_table3.html", separateConfColumn=TRUE)
+        file="or_table3.html", separateConfColumn=TRUE)}
 
 # save HTML-tables to "or_table4.html", indicating p-values as numbers
 # and printing CI in a separate column
+\dontrun{
 sjt.glm(fitOR1, fitOR2, fitOR3,
         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
         labelPredictors=c("Education", "Examination", "Catholic"),
-        file="or_table4.html", pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
+        file="or_table4.html", pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
+}
 }
 \seealso{
 \link{sjt.lm}

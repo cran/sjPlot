@@ -120,15 +120,15 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   in case of \code{"bars"}). The first color value
   indicates odds ratio values larger than 1, the second
   color value indicates odds ratio values lower or equal to
-  1.  Default colors is a blue/red-scheme. You can also use
-  \code{"bw"} or \code{"black"} for only one colouring in
-  almost black, \code{"gray"} / \code{"grey"} / \code{"gs"}
-  for a grayscale or \code{"brewer"} for colours from the
-  color brewer palette.  If barColors is \code{"brewer"},
-  use the \code{colorPalette} parameter to specify a
-  palette of the color brewer.  Else specify your own color
-  values as vector (e.g. \code{barColors=c("#f00000",
-  "#00ff00")}).}
+  1.  Default colors is a blue/red-scheme. You can also
+  use: \itemize{ \item \code{"bw"} or \code{"black"} for
+  only one colouring in almost black \item \code{"gray"},
+  \code{"grey"} or \code{"gs"} for a grayscale \item
+  \code{"brewer"} for colours from the color brewer
+  palette.  } If barColors is \code{"brewer"}, use the
+  \code{colorPalette} parameter to specify a palette of the
+  color brewer.  Else specify your own color values as
+  vector (e.g. \code{barColors=c("#f00000", "#00ff00")}).}
 
   \item{colorPalette}{If parameter \code{barColor} is
   \code{brewer}, specify a color palette from the color
@@ -199,15 +199,16 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
 
-  \item{theme}{specifies The diagram's background theme.
+  \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE} (default),
   predictors are plotted on the left y-axis and estimate
@@ -295,9 +296,13 @@ fit <- glm(y ~., data=df, family=binomial(link="logit"))
 sjp.glm(fit, title=labs[['neg_c_7']], axisLabels.y=predlab)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+\item
+\url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+}
 }
 \seealso{
 \code{\link{sjp.glm.ma}}

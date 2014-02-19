@@ -1,0 +1,32 @@
+\name{sju.setNA}
+\alias{sju.setNA}
+\title{Set NA for specific variable values}
+\usage{
+sju.setNA(var, values)
+}
+\arguments{
+  \item{var}{The variable where new missing values should
+  be defined.}
+
+  \item{values}{The values that should be replaced with
+  \code{\link{NA}}'s.}
+}
+\value{
+The \code{var} with each values of \code{values} replaced
+by an \code{NA}.
+}
+\description{
+This function sets specific values of a variable \code{var}
+as missings (\code{NA}).
+}
+\examples{
+# create random variable
+dummy <- sample(1:8, 100, replace=TRUE)
+# show value distribution
+table(dummy)
+# set value 1 and 8 as missings
+dummy <- sju.setNA(dummy, c(1,8))
+# show value distribution, including missings
+table(dummy, exclude=NULL)
+}
+

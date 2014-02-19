@@ -21,8 +21,9 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   normalCurveColor = "red", normalCurveSize = 0.7, normalCurveAlpha = 0.4,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, startAxisAt = 1, autoGroupAt = 50, theme = NULL,
-  flipCoordinates = FALSE, omitNA = TRUE, returnPlot = FALSE)
+  axisTitleSize = 1.3, startAxisAt = 1, autoGroupAt = NULL,
+  theme = NULL, flipCoordinates = FALSE, omitNA = TRUE,
+  returnPlot = FALSE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -75,16 +76,16 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   the frequencies.}
 
   \item{type}{Specifies the type of distribution plot that
-  will be plotted. \cr \code{"bar"}, \code{"bars"} or
-  \code{"b"} for simple bars (the default setting). \cr
-  \code{"dots"} or \code{"dot"} for a dot plot. \cr
-  \code{"h"}, \code{"hist"} or \code{"histogram"} for a
-  histogram. \cr \code{"line"}, \code{"lines"} or
-  \code{"l"} for a histogram with filled area with line.
-  \cr \code{"dens"}, \code{"d"} or \code{"density"} for a
-  density plot. \cr \code{"box"}, \code{"boxplot"} or
-  \code{"boxplots"} for box plots. \cr \code{"v"} or
-  \code{"violin"} for violin plots.}
+  will be plotted.  \itemize{ \item \code{"bar"},
+  \code{"bars"} or \code{"b"} for simple bars (the default
+  setting).  \item \code{"dots"} or \code{"dot"} for a dot
+  plot.  \item \code{"h"}, \code{"hist"} or
+  \code{"histogram"} for a histogram.  \item \code{"line"},
+  \code{"lines"} or \code{"l"} for a histogram with filled
+  area with line.  \item \code{"dens"}, \code{"d"} or
+  \code{"density"} for a density plot.  \item \code{"box"},
+  \code{"boxplot"} or \code{"boxplots"} for box plots.
+  \item \code{"v"} or \code{"violin"} for violin plots.  }}
 
   \item{axisLabels.x}{Labels for the x-axis breaks.
   Example: \code{axisLabels.x=c("Label1", "Label2",
@@ -117,8 +118,8 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   inserted into the title.}
 
   \item{breakLabelsAt}{Determines how many chars of the
-  title are displayed in one line and when a line break is
-  inserted into the title.}
+  labels are displayed in one line and when a line break is
+  inserted into the axis labels.}
 
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.}
@@ -270,22 +271,25 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   \link{sju.groupVar}). If \code{varCount} has large
   numbers of unique values, too many bars for the graph
   have to be plotted. Hence it's recommended to group such
-  variables. Default value is 50, i.e. if \code{varCount}
-  has 50 and more unique values it will be grouped using
-  \link{sju.groupVar} with \code{groupsize="auto"}
-  parameter. By default, the maximum group count is 30.
-  However, if \code{autoGroupAt} is less than 30,
-  \code{autoGroupAt} groups are built.}
+  variables. For example, if \code{autoGroupAt} is 50, i.e.
+  if \code{varCount} has 50 and more unique values it will
+  be grouped using \link{sju.groupVar} with
+  \code{groupsize="auto"} parameter. By default, the
+  maximum group count is 30. However, if \code{autoGroupAt}
+  is less than 30, \code{autoGroupAt} groups are built.
+  Default value for \code{autoGroupAt} is \code{NULL}, i.e.
+  auto-grouping is off.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped. Default is \code{FALSE}.}
@@ -369,9 +373,11 @@ sjp.frq(efc$neg_c_7)
 sjp.frq(efc$neg_c_7, startAxisAt=7)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
+}
 }
 \seealso{
 \link{sjt.frq}

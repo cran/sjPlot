@@ -152,14 +152,15 @@ sjp.corr(data, title = NULL, titleSize = 1.3, titleColor = "black",
   grid lines of the diagram background.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{returnPlot}{If \code{TRUE}, the ggplot-object with
   the complete plot will be returned (and not plotted).
@@ -211,8 +212,10 @@ colnames(df) <- varlabs[c(start:end)]
 sjp.corr(df, type="tile", theme="none", outlineColor="white", hideLegend=FALSE)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+}
 }
 

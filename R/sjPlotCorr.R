@@ -5,8 +5,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 
 #' @title Plot correlation matrix
 #' @name sjp.corr
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+#'             }
 #'             
 #' @description Plot correlations as ellipses or tiles. Required parameter is either 
 #'                a data frame or a computed \code{cor}-object. In case of ellipses, the
@@ -77,10 +79,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #'          color palette that is suitbale for the \code{scale_fill_gradientn} parameter of ggplot2.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
@@ -437,7 +443,7 @@ sjp.corr <- function(data,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

@@ -3,13 +3,14 @@
 #' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
 #'             \url{http://strengejacke.wordpress.com/2013/07/08/plotting-principal-component-analysis-with-ggplot-rstats/}
 #' 
-#' @description Plot correlations as ellipses or tiles. \cr \cr In case a data frame is used as 
+#' @description Performes a principle component analysis on a data frame or matrix and plots 
+#'                the factor solution as ellipses or tiles. \cr \cr In case a data frame is used as 
 #'                parameter, the cronbach's alpha value for each factor scale will be calculated,
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
-#'          to compute a PCA, or a prcomp object computed with the R-\code{prcomp}-function.
+#'          to compute a PCA, or a \link{prcomp} object.
 #' @param numberOfFactors A predefined number of factors to use for the calculating the varimax
 #'          rotation. By default, this value is \code{NULL} and the amount of factors is
 #'          calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.
@@ -71,14 +72,27 @@
 #'          color palette that is suitbale for the \code{scale_fill_gradientn} parameter of ggplot2.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
-#' @return An updated data frame containing all factors that have a clear loading on
-#'           a specific scale in case \code{data} was a data frame (See parameter
-#'           \code{factorLoadingTolerance} for more details). Or the varimax-rotated
-#'           factor loading matrix in case \code{data} was a \code{cor}-object.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
+#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
+#'          modify the plot's theme.
+#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned.
+#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
+#' @return A \link{structure} with
+#'          \itemize{
+#'            \item the varimax-rotated factor loading matrix
+#'            \item the column indices of removed variables (for more details see next list item)
+#'            \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See parameter \code{factorLoadingTolerance} for more details)
+#'            \item the ggplot-object in case \code{returnPlot} was \code{TRUE}.
+#'            }
+#' 
+#' @note This PCA uses the \link{prcomp} function and the \link{varimax} rotation.
 #' 
 #' @examples
 #' # randomly create data frame with 7 items, each consisting of 4 categories
@@ -96,7 +110,7 @@
 #' # plot results from PCA as square-tiled "heatmap"
 #' sjp.pca(likert_4)
 #' 
-#' # manually compute PCS
+#' # manually compute PCA
 #' pca <- prcomp(na.omit(likert_4), retx=TRUE, center=TRUE, scale.=TRUE)
 #' # plot results from PCA as circles, including Eigenvalue-diagnostic.
 #' # note that this plot does not compute the Cronbach's Alpha
@@ -159,7 +173,8 @@ sjp.pca <- function(data,
                     fillColor=NULL,
                     majorGridColor=NULL,
                     minorGridColor=NULL,
-                    theme=NULL) {
+                    theme=NULL,
+                    returnPlot=FALSE) {
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
@@ -218,11 +233,11 @@ sjp.pca <- function(data,
         labs(title=NULL, y="Eigenvalue", x="Number of factors")
     plot(eigenplot)
     # print statistics
-    print("--------------------------------------------")
+    cat("\n--------------------------------------------\n")
     print(summary(pcadata))
-    print("Eigenvalues:")
+    cat("\nEigenvalues:\n")
     print(pcadata.eigenval)
-    print("--------------------------------------------")
+    cat("--------------------------------------------\n")
   }
 
   
@@ -234,8 +249,10 @@ sjp.pca <- function(data,
     pcadata.kaiser <- numberOfFactors
   }
   pcadata.varim = varimaxrota(pcadata, pcadata.kaiser)
+  # pcadata.varim = varimax(loadings(pcadata))
   # create data frame with factor loadings
   df <- as.data.frame(pcadata.varim$loadings[,1:ncol(pcadata.varim$loadings)])
+  # df <- as.data.frame(pcadata.varim$rotmat[,1:pcadata.kaiser])
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -317,7 +334,7 @@ sjp.pca <- function(data,
     cbv <- c()
     CronbachAlpha <- function(X) { # X must be matrix or data.frame with more than 2 columns
       if (is.null(ncol(X)) || ncol(X)<2) {
-        print("Too less columns in this factor to calculate alpha value!")
+        cat("\nToo less columns in this factor to calculate alpha value!\n")
         return(0)
       }
       return (dim(X)[2]/(dim(X)[2]-1)*(1-sum(apply(X,2,var))/var(rowSums(X))))
@@ -345,7 +362,7 @@ sjp.pca <- function(data,
     alphaValues <- getCronbach(data, getItemLoadings(df))
   }
   else {
-    print("Cronbach's Alpha can only be calculated when having a data frame with each component / variable as column")
+    cat("\nCronbach's Alpha can only be calculated when having a data frame with each component / variable as column\n")
     showCronbachsAlpha <- FALSE
   }
   # retrieve those items that have unclear factor loadings, i.e.
@@ -491,7 +508,7 @@ sjp.pca <- function(data,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   # --------------------------------------------------------
@@ -526,22 +543,32 @@ sjp.pca <- function(data,
   # the user may calculate another PCA with the updated data frame
   # in order to get more clearly factor loadings
   # --------------------------------------------------------
+  remdf <- NULL
   if (class(data)=="data.frame") {
-    print("Following items have been removed:")
+    cat("\nFollowing items have been removed:\n")
     if (!is.null(removableItems)) {
       print(colnames(data)[removableItems])
-      return (data[,c(-removableItems)])
+      remdf <- data[,c(-removableItems)]
     }
     else {
-      print("none.")
+      cat("none.\n")
     }
   }
   # --------------------------------------------------------
-  # if we have a cor-object, the rotated varimax-matrix will
-  # be returned
+  # return structure with various results
   # --------------------------------------------------------
+  if (returnPlot) {
+    invisible (structure(class = "sjcpca",
+                         list(varim = pcadata.varim,
+                              removed.colindex = removableItems,
+                              removed.df = remdf,
+                              plot = heatmap)))
+  }
   else {
-    return(pcadata.varim)
+    invisible (structure(class = "sjcpca",
+                         list(varim = pcadata.varim,
+                              removed.colindex = removableItems,
+                              removed.df = remdf)))
   }
 }
 

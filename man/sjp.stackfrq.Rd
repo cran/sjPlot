@@ -16,10 +16,11 @@ sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
   axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
   theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
-  showItemLabels = TRUE, showSeparatorLine = FALSE,
-  separatorLineColor = "grey80", separatorLineSize = 0.3,
-  legendPos = "right", legendSize = 1, legendBorderColor = "white",
-  legendBackColor = "white", flipCoordinates = TRUE, returnPlot = FALSE)
+  jitterValueLabels = FALSE, showItemLabels = TRUE,
+  showSeparatorLine = FALSE, separatorLineColor = "grey80",
+  separatorLineSize = 0.3, legendPos = "right", legendSize = 1,
+  legendBorderColor = "white", legendBackColor = "white",
+  flipCoordinates = TRUE, returnPlot = FALSE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -183,6 +184,12 @@ sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar.}
 
+  \item{jitterValueLabels}{If \code{TRUE}, the value labels
+  on the bars will be "jittered", i.e. they have
+  alternating vertical positions to avoid overlapping of
+  labels in case bars are very short. Default is
+  \code{FALSE}.}
+
   \item{showItemLabels}{Whether x axis text (category
   names) should be shown or not.}
 
@@ -213,14 +220,15 @@ sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
   legend.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -288,12 +296,15 @@ levels <- vallabs['c82cop1']
 # create item labels
 items <- list(varlabs[c(start:end)])
 
-sjp.stackfrq(efc[,c(start:end)], legendLabels=levels, axisLabels.y=items)
+sjp.stackfrq(efc[,c(start:end)], legendLabels=levels,
+             axisLabels.y=items, jitterValueLabels=TRUE)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
+}
 }
 \seealso{
 \code{\link{sjp.likert}}

@@ -8,7 +8,7 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   stringIntercept = "(Intercept)", stringObservations = "Observations",
   showConfInt = TRUE, showStdBeta = FALSE, pvaluesAsNumbers = FALSE,
   boldpvalues = TRUE, separateConfColumn = FALSE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE)
+  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, encoding = "UTF-8")
 }
 \arguments{
   \item{...}{One or more fitted lm-objects.}
@@ -80,6 +80,16 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   \item{showAIC}{If \code{TRUE}, the AIC value for each
   model is printed in the model summary. Default is
   \code{FALSE}.}
+
+  \item{encoding}{The charset encoding used for variable
+  and value labels. Default is \code{"UTF-8"}. Change
+  encoding if specific chars are not properly displayed
+  (e.g.) German umlauts).}
+}
+\value{
+Invisibly returns a \link{structure} with the web page
+style sheet (\code{page.style}) and the web page content
+(\code{page.content}) for further use.
 }
 \description{
 Save (multiple) fitted linear models (beta coefficients,
@@ -106,30 +116,59 @@ fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
 fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser
-## Note that example may open browser, thus it is outcommented
-# sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))
+\dontrun{
+sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+       labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))}
 
 # save HTML-tables to "lm_table2.html", indicating p-values as numbers
+\dontrun{
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)
+       file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)}
 
 # create and open HTML-table in RStudio Viewer Pane or web browser,
 # printing CI in a separate column
-## Note that example may open browser, thus it is outcommented
-# sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#        separateConfColumn=TRUE)
+\dontrun{
+sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+       labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
+       separateConfColumn=TRUE)}
 
 # save HTML-tables to "lm_table4.html", indicating p-values as numbers
 # and printing CI in a separate column
+\dontrun{
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
+       file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+
+# ----------------------------------------------------------------
+# connecting two html-tables
+# ----------------------------------------------------------------
+# fit two more models
+fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
+fit4 <- lm(e42dep ~ c160age + c12hour + c161sex + c172code, data=efc)
+\dontrun{
+# create and save first HTML-table
+part1 <- sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+                labelPredictors=c("Carer's Age", "Hours of Care",
+                                  "Carer's Sex", "Educational Status"))
+# create and save second HTML-table
+part2 <- sjt.lm(fit3, fit4, labelDependentVariables=c("Service Usage", "Elder's Dependency"),
+                labelPredictors=c("Carer's Age", "Hours of Care",
+                                  "Carer's Sex", "Educational Status"))
+# browse temporary file
+htmlFile <- tempfile(fileext=".html")
+write(sprintf("<html><head>\%s</head><body>\%s<p></p>\%s</body></html>",
+              part1$page.style, part1$page.content, part2$page.content),
+              file=htmlFile)
+viewer <- getOption("viewer")
+if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)}
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
+}
 }
 \seealso{
 \link{sjt.glm}

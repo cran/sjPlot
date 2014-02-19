@@ -128,14 +128,15 @@ sjp.lmm(..., title = NULL, titleSize = 1.3, titleColor = "black",
   the beta values (i.e. points and error bars) of the
   different fitted models. Thus, the length of this vector
   must be equal to the length of supplied fitted models, so
-  each model is represented by its own color.  You can use
-  \code{"bw"} or \code{"black"} for only one colouring in
-  almost black, \code{"gray"} / \code{"grey"} / \code{"gs"}
-  for a grayscale or \code{"brewer"} for colours from the
-  color brewer palette.  If modelColors is \code{"brewer"},
-  use the \code{colorPalette} parameter to specify a
-  palette of the color brewer.  Else specify your own color
-  values as vector (e.g. \code{modelColors=c("#f00000",
+  each model is represented by its own color.  You can use:
+  \itemize{ \item \code{"bw"} or \code{"black"} for only
+  one colouring in almost black \item \code{"gray"},
+  \code{"grey"} or \code{"gs"} for a grayscale \item
+  \code{"brewer"} for colours from the color brewer
+  palette.  } If \code{modelColors} is \code{"brewer"}, use
+  the \code{colorPalette} parameter to specify a palette of
+  the color brewer.  Else specify your own color values as
+  vector (e.g. \code{modelColors=c("#f00000",
   "#00ff00")}).}
 
   \item{colorPalette}{If parameter \code{modelColors} is
@@ -200,15 +201,16 @@ sjp.lmm(..., title = NULL, titleSize = 1.3, titleColor = "black",
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
 
-  \item{theme}{specifies The diagram's background theme.
+  \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE} (default),
   predictors are plotted on the left y-axis and estimate

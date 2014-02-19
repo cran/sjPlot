@@ -12,13 +12,13 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   axisLabelAngle.y = 0, breakTitleAt = 50, breakLabelsAt = 20,
   hideLegend = TRUE, legendTitle = NULL, showValueLabels = TRUE,
   showTickMarks = FALSE, showCronbachsAlpha = TRUE, fillColor = NULL,
-  majorGridColor = NULL, minorGridColor = NULL, theme = NULL)
+  majorGridColor = NULL, minorGridColor = NULL, theme = NULL,
+  returnPlot = FALSE)
 }
 \arguments{
   \item{data}{A data frame with factors (each columns one
   variable) that should be used to compute a PCA, or a
-  prcomp object computed with the
-  R-\code{prcomp}-function.}
+  \link{prcomp} object.}
 
   \item{numberOfFactors}{A predefined number of factors to
   use for the calculating the varimax rotation. By default,
@@ -150,27 +150,43 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   grid lines of the diagram background.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
+
+  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
+  the complete plot will be returned.  Default is
+  \code{FALSE}, hence the ggplot object will be plotted,
+  not returned.}
 }
 \value{
-An updated data frame containing all factors that have a
-clear loading on a specific scale in case \code{data} was a
-data frame (See parameter \code{factorLoadingTolerance} for
-more details). Or the varimax-rotated factor loading matrix
-in case \code{data} was a \code{cor}-object.
+A \link{structure} with \itemize{ \item the varimax-rotated
+factor loading matrix \item the column indices of removed
+variables (for more details see next list item) \item an
+updated data frame containing all factors that have a clear
+loading on a specific scale in case \code{data} was a data
+frame (See parameter \code{factorLoadingTolerance} for more
+details) \item the ggplot-object in case \code{returnPlot}
+was \code{TRUE}.  }
 }
 \description{
-Plot correlations as ellipses or tiles. \cr \cr In case a
-data frame is used as parameter, the cronbach's alpha value
-for each factor scale will be calculated, i.e. all
-variables with the highest loading for a factor are taken
-for the reliability test. The result is an alpha value for
-each factor dimension.
+Performes a principle component analysis on a data frame or
+matrix and plots the factor solution as ellipses or tiles.
+\cr \cr In case a data frame is used as parameter, the
+cronbach's alpha value for each factor scale will be
+calculated, i.e. all variables with the highest loading for
+a factor are taken for the reliability test. The result is
+an alpha value for each factor dimension.
+}
+\note{
+This PCA uses the \link{prcomp} function and the
+\link{varimax} rotation.
 }
 \examples{
 # randomly create data frame with 7 items, each consisting of 4 categories
@@ -188,7 +204,7 @@ colnames(likert_4) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7")
 # plot results from PCA as square-tiled "heatmap"
 sjp.pca(likert_4)
 
-# manually compute PCS
+# manually compute PCA
 pca <- prcomp(na.omit(likert_4), retx=TRUE, center=TRUE, scale.=TRUE)
 # plot results from PCA as circles, including Eigenvalue-diagnostic.
 # note that this plot does not compute the Cronbach's Alpha

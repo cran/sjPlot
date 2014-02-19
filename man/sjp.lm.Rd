@@ -155,15 +155,16 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
   and x-axis, in case the axes should have different colors
   than the diagram border).}
 
-  \item{theme}{specifies The diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  \item{theme}{Specifies the diagram's background theme.
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE} (default),
   predictors are plotted on the left y-axis and estimate
@@ -238,9 +239,11 @@ sjp.lm(fit, gridBreaksAt=2)
 sjp.lm(fit, showStandardBeta=FALSE)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
+}
 }
 \seealso{
 \code{\link{sjp.lm.ma}} \cr \code{\link{sjp.reglin}} \cr

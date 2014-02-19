@@ -17,11 +17,11 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   borderColor = NULL, axisColor = NULL, barOutline = FALSE,
   outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, showValueLabels = TRUE,
-  showCategoryLabels = TRUE, showTickMarks = TRUE,
-  showTableSummary = TRUE, tableSummaryPos = "r", showTotalColumn = TRUE,
-  hideLegend = FALSE, axisTitle.x = NULL, axisTitle.y = NULL,
-  axisTitleColor = "black", axisTitleSize = 1.3, theme = NULL,
-  flipCoordinates = FALSE, returnPlot = FALSE)
+  jitterValueLabels = FALSE, showCategoryLabels = TRUE,
+  showTickMarks = TRUE, showTableSummary = TRUE, tableSummaryPos = "r",
+  showTotalColumn = TRUE, hideLegend = FALSE, axisTitle.x = NULL,
+  axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
+  theme = NULL, flipCoordinates = FALSE, returnPlot = FALSE)
 }
 \arguments{
   \item{y}{The variable which proportions (percentage
@@ -136,14 +136,15 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   between. Recommended values for this parameter are from 0
   to 0.5.}
 
-  \item{barColor}{User defined color for bars.  If not
-  specified (\code{NULL}), a default red-green-yellow color
-  palette will be used for the bar charts.  If barColor is
-  \code{"gs"}, a greyscale will be used.  If barColor is
-  \code{"bw"}, a monochrome white filling will be used.  If
-  barColor is \code{"brewer"}, use the \code{colorPalette}
-  parameter to specify a palette of the color brewer Else
-  specify your own color values as vector (e.g.
+  \item{barColor}{User defined color for bars.  \itemize{
+  \item If not specified (\code{NULL}), a default
+  red-green-yellow color palette will be used for the bar
+  charts.  \item If barColor is \code{"gs"}, a greyscale
+  will be used.  \item If barColor is \code{"bw"}, a
+  monochrome white filling will be used.  \item If barColor
+  is \code{"brewer"}, use the \code{colorPalette} parameter
+  to specify a palette of the color brewer.  } Else specify
+  your own color values as vector (e.g.
   \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).}
 
   \item{colorPalette}{If \code{barColor} is
@@ -205,6 +206,12 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar}
 
+  \item{jitterValueLabels}{If \code{TRUE}, the value labels
+  on the bars will be "jittered", i.e. they have
+  alternating vertical positions to avoid overlapping of
+  labels in case bars are very short. Default is
+  \code{FALSE}.}
+
   \item{valueLabelPosOnTop}{Whether value labels should be
   displayed on top of dodged bars or inside the bars.
   Default is \code{TRUE}, i.e. the value labels are
@@ -261,14 +268,15 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   to the tick mark or category labels.}
 
   \item{theme}{Specifies the diagram's background theme.
-  default (parameter \code{NULL}) is a gray background with
-  white grids. Use \code{"bw"} for a white background with
-  gray grids, \code{"classic"} for a classic theme (black
-  border, no grids), \code{"minimal"} for a minimalistic
-  theme (no border, gray grids) or \code{"none"} for no
-  borders, grids and ticks.  The ggplot-object can be
-  returned with \code{returnPlot} set to \code{TRUE} in
-  order to further modify the plot's theme.}
+  Default (parameter \code{NULL}) is a gray background with
+  white grids.  \itemize{ \item Use \code{"bw"} for a white
+  background with gray grids \item \code{"classic"} for a
+  classic theme (black border, no grids) \item
+  \code{"minimal"} for a minimalistic theme (no border,gray
+  grids) or \item \code{"none"} for no borders, grids and
+  ticks.  } The ggplot-object can be returned with
+  \code{returnPlot} set to \code{TRUE} in order to further
+  modify the plot's theme.}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
@@ -331,11 +339,14 @@ sjp.xtab(efc$e16sex,
          legendLabels=efc.val[['e42dep']],
          tableIndex="row",
          barPosition="stack",
-         flipCoordinates=TRUE)
+         flipCoordinates=TRUE,
+         jitterValueLabels=TRUE)
 }
 \references{
+\itemize{ \item
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr
+\item
 \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
+}
 }
 

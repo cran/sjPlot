@@ -5,8 +5,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 
 #' @title Plot frequencies of (count) variables
 #' @name sjp.frq
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
+#'              }
 #' 
 #' @seealso \link{sjt.frq}
 #' 
@@ -36,14 +38,16 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param order Determines whether categories on x-axis should be order according to the frequencies or not. 
 #'          Default is \code{"none"}, so categories are not ordered by frequency. Use \code{"asc"} or
 #'          \code{"desc"} for sorting categories ascending or descending in relation to the frequencies.
-#' @param type Specifies the type of distribution plot that will be plotted. \cr
-#'          \code{"bar"}, \code{"bars"} or \code{"b"} for simple bars (the default setting). \cr
-#'          \code{"dots"} or \code{"dot"} for a dot plot. \cr
-#'          \code{"h"}, \code{"hist"} or \code{"histogram"} for a histogram. \cr
-#'          \code{"line"}, \code{"lines"} or \code{"l"} for a histogram with filled area with line. \cr
-#'          \code{"dens"}, \code{"d"} or \code{"density"} for a density plot. \cr
-#'          \code{"box"}, \code{"boxplot"} or \code{"boxplots"} for box plots. \cr
-#'          \code{"v"} or \code{"violin"} for violin plots.
+#' @param type Specifies the type of distribution plot that will be plotted.
+#'          \itemize{
+#'            \item \code{"bar"}, \code{"bars"} or \code{"b"} for simple bars (the default setting).
+#'            \item \code{"dots"} or \code{"dot"} for a dot plot.
+#'            \item \code{"h"}, \code{"hist"} or \code{"histogram"} for a histogram.
+#'            \item \code{"line"}, \code{"lines"} or \code{"l"} for a histogram with filled area with line.
+#'            \item \code{"dens"}, \code{"d"} or \code{"density"} for a density plot.
+#'            \item \code{"box"}, \code{"boxplot"} or \code{"boxplots"} for box plots.
+#'            \item \code{"v"} or \code{"violin"} for violin plots.
+#'            }
 #' @param axisLabels.x Labels for the x-axis breaks.
 #'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
 #'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
@@ -60,8 +64,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          between 2 and 8.
 #' @param breakTitleAt Determines how many chars of the title are displayed in 
 #'          one line and when a line break is inserted into the title.
-#' @param breakLabelsAt Determines how many chars of the title are displayed in 
-#'          one line and when a line break is inserted into the title.
+#' @param breakLabelsAt Determines how many chars of the labels are displayed in 
+#'          one line and when a line break is inserted into the axis labels.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed.
 #' @param barWidth Width of bars. Default is 0.6, recommended values range from 0.2 to 2.0
@@ -130,14 +134,18 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
 #'          is automatically grouped into smaller units (see \link{sju.groupVar}). If \code{varCount} has large 
 #'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
-#'          to group such variables. Default value is 50, i.e. if \code{varCount} has 50 and more unique values 
+#'          to group such variables. For example, if \code{autoGroupAt} is 50, i.e. if \code{varCount} has 50 and more unique values 
 #'          it will be grouped using \link{sju.groupVar} with \code{groupsize="auto"} parameter. By default, 
 #'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
-#'          groups are built.
-#' @param theme Specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#'          groups are built. Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped. Default is \code{FALSE}.
@@ -266,7 +274,7 @@ sjp.frq <- function(varCount,
                     axisTitleColor="black",
                     axisTitleSize=1.3,
                     startAxisAt=1,
-                    autoGroupAt=50,
+                    autoGroupAt=NULL,
                     theme=NULL,
                     flipCoordinates=FALSE,
                     omitNA=TRUE,
@@ -340,8 +348,8 @@ sjp.frq <- function(varCount,
   #---------------------------------------------------
   # check whether variable should be auto-grouped
   #---------------------------------------------------
-  if (length(unique(varCount))>=autoGroupAt) {
-    cat(sprintf("Variable has %i unique values and was grouped...\n", length(unique(varCount))))
+  if (!is.null(autoGroupAt) && length(unique(varCount))>=autoGroupAt) {
+    cat(sprintf("\nVariable has %i unique values and was grouped...\n", length(unique(varCount))))
     agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
     axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
     varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
@@ -888,7 +896,7 @@ sjp.frq <- function(varCount,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {

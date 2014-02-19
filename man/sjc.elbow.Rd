@@ -2,7 +2,7 @@
 \alias{sjc.elbow}
 \title{Plot elbow values of a k-means cluster analysis}
 \usage{
-sjc.elbow(data, steps = 15)
+sjc.elbow(data, steps = 15, showDiff = FALSE)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -11,6 +11,12 @@ sjc.elbow(data, steps = 15)
   \item{steps}{The maximum group-count for the k-means
   cluster analysis for which the elbow-criterion should be
   displayed. Default is \code{15}.}
+
+  \item{showDiff}{If \code{TRUE}, an additional plot with
+  the differences between each fusion step of the Elbow
+  criterion calculation is shown. This plot may help
+  identifying the "elbow". Default for this parameter is
+  \code{FALSE}.}
 }
 \description{
 Plot elbow values of a k-means cluster analysis. This
@@ -26,7 +32,7 @@ the elbow criterion.
 sjc.elbow(mtcars)
 }
 \seealso{
-\code{\link{sjc.dend}} \cr \code{\link{sjc.cluster}} \cr
-\code{\link{sjc.grpdisc}}
+\code{\link{sjc.kgap}} \cr \code{\link{sjc.dend}} \cr
+\code{\link{sjc.cluster}} \cr \code{\link{sjc.grpdisc}}
 }
 

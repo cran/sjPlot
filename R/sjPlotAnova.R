@@ -90,10 +90,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
-#' @param theme specifies The diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
+#'          \item \code{"none"} for no borders, grids and ticks.
+#'          }
 #'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
 #'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
@@ -633,7 +637,7 @@ sjp.aov1 <- function(depVar,
         theme(panel.border = element_rect(colour=borderColor))
     }
     else {
-      print("Parameter 'borderColor' can only be applied to 'bw' theme.")
+      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
     }
   }
   if (!is.null(axisColor)) {
@@ -704,16 +708,16 @@ sjp.aov1 <- function(depVar,
 sju.aov1.levene <- function(depVar, grpVar) {
   means <- tapply(depVar, grpVar, mean)
   depVarNew <- abs(depVar - means[grpVar])
-  cat("Levene's Test for Homogeneity of Variances\n---------------------------------------\n")
+  cat("\nLevene's Test for Homogeneity of Variances\n---------------------------------------\n")
   fit <- aov(depVarNew ~ grpVar)
   print(summary(fit))
   pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
   # print "summary" of test
   cat("\nConclusion:\n")
   if (pval>0.05) {
-    cat("Groups are homogeneous. Everything's fine.")
+    cat("Groups are homogeneous. Everything's fine.\n")
   }
   else {
-    cat("Groups are not homogeneous! Consider logarithmic transformation.")
+    cat("Groups are not homogeneous! Consider logarithmic transformation.\n")
   }
 }
