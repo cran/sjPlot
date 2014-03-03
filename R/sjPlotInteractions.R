@@ -102,9 +102,10 @@
 #' @param minorGridColor specifies the color of the minor grid lines of the diagram background
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param returnPlot If \code{TRUE}, the ggplot-objects with all plots will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot objects will be plotted, not returned.
-#' @return The ggplot-objects as \code{list} with all plots in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list}) 
+#'           as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
 #' 
 #' @examples
 #' # Note that the data sets used in this example may not be perfectly suitable for
@@ -190,7 +191,7 @@ sjp.lm.int <- function(fit,
                       minorGridColor=NULL,
                       hideGrid.x=FALSE,
                       hideGrid.y=FALSE,
-                      returnPlot=FALSE) {
+                      printPlot=TRUE) {
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
@@ -358,6 +359,7 @@ sjp.lm.int <- function(fit,
   fitdat <- as.data.frame(fit$x)
   # init vector that saves ggplot objects
   plotlist <- list()
+  dflist <- list()
   # -----------------------------------------------------------
   # Now iterate all significant interaction terms
   # and manually calculate the linear regression by inserting
@@ -745,17 +747,15 @@ sjp.lm.int <- function(fit,
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
-    if (returnPlot) {
-      # concatenate plot object
-      plotlist[[length(plotlist)+1]] <- baseplot
-    }
-    else {
-      # print plot
-      print(baseplot)
-    }
+    if (printPlot) print(baseplot)
+    # concatenate plot object
+    plotlist[[length(plotlist)+1]] <- baseplot
+    dflist[[length(dflist)+1]] <- intdf
   }
-  # if user wanted plots, return them
-  if (returnPlot) {
-    return(plotlist)
-  }
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjplmint",
+                       list(plot.list = plotlist,
+                            df.list = dflist)))
 }

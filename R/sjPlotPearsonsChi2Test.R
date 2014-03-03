@@ -39,9 +39,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Row", "Column", "p.value
 #'          by gradient colour fill.
 #' @param legendTitle the legend title, provided as string, e.g. \code{legendTitle=c("Strength of correlation")}.
 #'          Default is \code{NULL}, hence no legend title is used.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # create data frame with 5 dichotomous (dummy) variables
@@ -78,7 +79,7 @@ sjp.chi2 <- function(df,
                      breakLabelsAt=12, 
                      hideLegend=TRUE,
                      legendTitle=NULL,
-                     returnPlot=FALSE) {
+                     printPlot=TRUE) {
   # ----------------------------------------------------------------
   # Calculation of Chi2-matrix taken from following blog-posting:
   # http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/
@@ -172,10 +173,11 @@ sjp.chi2 <- function(df,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(chiPlot)
-  }
-  else {
-    plot(chiPlot)
-  }
+  if (printPlot) plot(chiPlot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpchi2",
+                       list(plot = chiPlot,
+                            df = m)))
 }

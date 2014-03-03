@@ -34,7 +34,10 @@ labels.
 \url{http://strengejacke.wordpress.com/2013/02/24/simplify-your-r-workflow-with-functions-rstats/}
 }
 \seealso{
-\link{sji.getValueLabels} \cr \link{sji.getVariableLabels}
-\cr \link{sji.convertToLabel} \cr \link{sji.convertToValue}
+\code{\link{sji.getValueLabels}} \cr
+\code{\link{sji.getVariableLabels}} \cr
+\code{\link{sji.convertToLabel}} \cr
+\code{\link{sji.convertToValue}} \cr
+\code{\link{sji.viewSPSS}}
 }
 

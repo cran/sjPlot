@@ -1,10 +1,17 @@
-#' @title Save data frame as HTML table
+#' @title Show (description of) data frame as HTML table
 #' @name sjt.df
 #' 
-#' @description Save (or show) content of data frame (rows and columns) as HTML table.
-#'                Helpful if you want a quick overview of a data frame's content.
+#' @seealso \code{\link{sji.viewSPSS}}
+#' 
+#' @description Shows description or the content of data frame (rows and columns) as HTML table,
+#'                or saves it as file.
+#'                Helpful if you want a quick overview of a data frame's content. See parameter
+#'                \code{describe} for details.
 #'
 #' @param df A data frame that should be printed.
+#' @param describe If \code{TRUE} (default), a description of the data frame's variables is given.
+#'          The description is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          package. If this parameter is \code{FALSE}, the data frame's content (values) is shown.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
@@ -17,43 +24,116 @@
 #' @param orderAscending If \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
 #'          data frame is ordered according to the specified column in an ascending order.
 #'          Use \code{FALSE} to apply descending order. See examples for further details.
-#' @param stringObservation A string used for the first column name that indicates the observation or case number.
-#'          Default is \code{"Observation"}.
+#' @param title A table caption. By default, \code{title} is \code{NULL}, hence no title will be used.
+#' @param stringVariable A string used for the first column name. Default is \code{"Variable"}.
+#' @param showType If \code{TRUE}, the variable type is shown in a separate row below the column
+#'          names.
+#' @param showCommentRow If \code{TRUE}, an optional comment line can be added to the end / below
+#'          the table. Use \code{commentString} to specify the comment.
+#' @param commentString A string that will be added to the end / below the table. Only
+#'          applies, if \code{showCommentRow} is \code{TRUE}.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
+#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
+#'          \enumerate{
+#'            \item the class-names with \code{"css."}-prefix as parameter name and
+#'            \item each style-definition must end with a semicolon
+#'          } 
+#'          Examples:
+#'          \itemize{
+#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
+#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
+#'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
+#'          }
+#'          See further examples below.
+#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
+#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+#'          the viewer pane and not even saved to file. This option is useful when the html output
+#'          should be used in \code{knitr} documents. The html output can be accessed via the return
+#'          value.
+#' @return Invisibly returns a \code{\link{structure}} with
+#'          \itemize{
+#'            \item the web page style sheet (\code{page.style}),
+#'            \item the web page content (\code{page.content}),
+#'            \item the complete html-output (\code{output.complete}) and
+#'            \item the html-table with inline-css for use with knitr (\code{knitr})
+#'            }
+#'            for further use.
+#'
+#' @description By default, \code{describe} is \code{TRUE} and a description of the data frame is given,
+#'                using the \code{\link{describe}} function of the \code{\link{psych}} package.
+#' Shows description or the content of data frame (rows and columns) as HTML table,
+#'                or saves it as file. To view the data frame's content, use parameter
+#'                \code{describe=FALSE}.
 #'
 #' @examples
 #' # init dataset
 #' data(efc)
 #' 
-#' # plot first 50 rows of first 5 columns of example data set
+#' # plot efc-data frame summary
 #' \dontrun{
-#' sjt.df(efc[1:50,1:5])}
+#' sjt.df(efc, alternateRowColors=TRUE)}
+#' 
+#' # plot content, first 50 rows of first 5 columns of example data set
+#' \dontrun{
+#' sjt.df(efc[1:50,1:5], describe=FALSE, stringVariable="Observation")}
+#' 
+#' # plot efc-data frame summary, ordered descending by mean-column
+#' \dontrun{
+#' sjt.df(efc, orderColumn="mean", orderAscending=FALSE)}
 #' 
 #' # plot first 20 rows of first 5 columns of example data set,
 #' # ordered by column "e42dep" with alternating row colors
 #' \dontrun{
-#' sjt.df(efc[1:20,1:5], alternateRowColors=TRUE, orderColumn="e42dep")}
+#' sjt.df(efc[1:20,1:5], alternateRowColors=TRUE, 
+#'        orderColumn="e42dep", describe=FALSE)}
 #' 
 #' # plot first 20 rows of first 5 columns of example data set,
 #' # ordered by 4th column in descending order.
 #' \dontrun{
-#' sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE)}
+#' sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE, describe=FALSE)}
 #' 
+#' # ---------------------------------------------------------------- 
+#' # User defined style sheet
+#' # ---------------------------------------------------------------- 
+#' \dontrun{
+#' sjt.df(efc,
+#'        alternateRowColor=TRUE,
+#'        CSS=list(css.table="border: 2px solid #999999;",
+#'                 css.tdata="border-top: 1px solid;",
+#'                 css.arc="color:blue;"))}
+#'
 #' @export
 sjt.df <- function (df,
+                    describe=TRUE,
                     file=NULL,
                     alternateRowColors=FALSE,
                     orderColumn=NULL,
                     orderAscending=TRUE,
-                    stringObservation="Observation",
-                    encoding="UTF-8") {
+                    title=NULL,
+                    stringVariable="Variable",
+                    showType=FALSE,
+                    showCommentRow=FALSE,
+                    commentString="No comment...",
+                    encoding="UTF-8",
+                    CSS=NULL,
+                    useViewer=TRUE,
+                    no.output=FALSE) {
   # -------------------------------------
   # make data frame of single variable, so we have
   # unique handling for the data
   # -------------------------------------
   if (!is.data.frame(df)) {
     stop("Parameter needs to be a data frame!", call.=FALSE)
+  }
+  # -------------------------------------
+  # Description?
+  # -------------------------------------
+  if (describe) {
+    df <- round(describe(df),2)
   }
   # -------------------------------------
   # Order data set if requested
@@ -78,9 +158,58 @@ sjt.df <- function (df,
     }
   }
   # -------------------------------------
-  # table init
+  # init style sheet and tags used for css-definitions
+  # we can use these variables for string-replacement
+  # later for return value
   # -------------------------------------
-  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n<style>\ntable { border-collapse:collapse; border:none }\nth { border-top: double; text-align:center; font-style:italic; font-weight:normal }\ntd, th { padding:0.2cm; text-align:center }\n.lasttablerow { border-top:1px solid; border-bottom: double }\n.firsttablerow { border-bottom:1px solid }\n.leftalign { text-align:left }\n.arc { background-color:#eaeaea }\n</style>\n</head>\n<body>\n", encoding)
+  tag.table <- "table"
+  tag.caption <- "caption"
+  tag.thead <- "thead"
+  tag.tdata <- "tdata"
+  tag.arc <- "arc"
+  tag.comment <- "comment"
+  tag.lasttablerow <- "lasttablerow"
+  tag.firsttablerow <- "firsttablerow"
+  tag.firsttablecol <- "firsttablecol"
+  tag.leftalign <- "leftalign"
+  tag.centertalign <- "centertalign"
+  css.table <- "border-collapse:collapse; border:none;"
+  css.caption <- "font-weight: bold; text-align:left;"
+  css.thead <- "border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm;"
+  css.tdata <- "padding:0.2cm; text-align:left; vertical-align:top;"
+  css.arc <- "background-color:#eaeaea;"
+  css.lasttablerow <- "border-top:1px solid; border-bottom: double;"
+  css.firsttablerow <- "border-bottom:1px solid;"
+  css.firsttablecol <- ""
+  css.leftalign <- "text-align:left;"
+  css.centertalign <- "text-align:center;"
+  css.comment <- "font-style:italic; border-top:double black; text-align:right;"
+  # ------------------------
+  # check user defined style sheets
+  # ------------------------
+  if (!is.null(CSS)) {
+    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
+    if (!is.null(CSS[['css.caption']])) css.caption <- CSS[['css.caption']]
+    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
+    if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
+    if (!is.null(CSS[['css.comment']])) css.comment <- CSS[['css.comment']]
+    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
+    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- CSS[['css.firsttablerow']]
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
+    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- CSS[['css.leftalign']]
+    if (!is.null(CSS[['css.centertalign']])) css.centertalign <- CSS[['css.centertalign']]
+  }
+  # -------------------------------------
+  # set style sheet
+  # -------------------------------------
+  page.style <- sprintf("<style>\n%s { %s }\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>",
+                        tag.table, css.table, tag.caption, css.caption,
+                        tag.thead, css.thead, tag.tdata, css.tdata, tag.arc, css.arc,
+                        tag.lasttablerow, css.lasttablerow, tag.firsttablerow, css.firsttablerow,
+                        tag.leftalign, css.leftalign, tag.centertalign, css.centertalign,
+                        tag.firsttablecol, css.firsttablecol, tag.comment, css.comment)
+  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n%s\n</head>\n<body>\n", encoding, page.style)
   # -------------------------------------
   # get row and column count of data frame
   # -------------------------------------
@@ -94,11 +223,15 @@ sjt.df <- function (df,
   # -------------------------------------
   # start table tag
   # -------------------------------------
-  toWrite <- paste(toWrite, "<table>", "\n")
+  page.content <- "<table>\n"
+  # -------------------------------------
+  # table caption, variable label
+  # -------------------------------------
+  if (!is.null(title)) page.content <- paste0(page.content, sprintf("  <caption>%s</caption>\n", title))
   # -------------------------------------
   # header row
   # -------------------------------------
-  toWrite <- paste0(toWrite, sprintf("  <tr class=\"firsttablerow\">\n    <th>%s</th>", stringObservation))
+  page.content <- paste0(page.content, sprintf("  <tr>\n    <th class=\"thead firsttablerow firsttablecol\">%s</th>\n", stringVariable))
   for (i in 1:colcnt) {
     # check variable type
     vartype <- c("unknown type")
@@ -107,52 +240,109 @@ sjt.df <- function (df,
     else if (is.numeric(df[,i])) vartype <- c("numeric")
     else if (is.atomic(df[,i])) vartype <- c("atomic")
     # column names and variable as table headline
-    toWrite <- paste0(toWrite, sprintf("  <th>%s<br>(%s)</th>", cnames[i], vartype))
+    page.content <- paste0(page.content, sprintf("    <th class=\"thead firsttablerow\">%s", cnames[i]))
+    if (showType) page.content <- paste0(page.content, sprintf("<br>(%s)", vartype))
+    page.content <- paste0(page.content, "</th>\n")
   }
-  toWrite <- paste0(toWrite, "  </tr>\n")
+  page.content <- paste0(page.content, "  </tr>\n")
+  # -------------------------------------
+  # create progress bar
+  # -------------------------------------
+  pb <- txtProgressBar(min=0, max=rowcnt, style=3)
   # -------------------------------------
   # subsequent rows
   # -------------------------------------
   for (rcnt in 1:rowcnt) {
     # default row string
-    rowstring <- c("<tr>")
+    arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) rowstring <- ifelse(rcnt %% 2 ==0, "<tr class=\"arc\">", "<tr>")
-    toWrite <- paste0(toWrite, sprintf("  %s", rowstring))
+    if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 ==0, " arc", "")
+    page.content <- paste0(page.content, "  <tr>\n")
     # first table cell is rowname
-    toWrite <- paste0(toWrite, sprintf("  <td class=\"leftalign\">%s</td>", rnames[rcnt]))
+    page.content <- paste0(page.content, sprintf("    <td class=\"tdata leftalign firsttablecol%s\">%s</td>\n", arcstring, rnames[rcnt]))
     # all columns of a row
     for (ccnt in 1:colcnt) {
-      toWrite <- paste0(toWrite, sprintf("<td>%s</td>", df[rcnt,ccnt]))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centertalign%s\">%s</td>\n", arcstring, df[rcnt,ccnt]))
     }
+    # update progress bar
+    setTxtProgressBar(pb, rcnt)
     # close row tag
-    toWrite <- paste0(toWrite, "</tr>\n")
+    page.content <- paste0(page.content, "</tr>\n")
+  }
+  close(pb)
+  # -------------------------------------
+  # add optional "comment" row
+  # -------------------------------------
+  if (showCommentRow) {
+    page.content <- paste0(page.content, "  <tr>\n")
+    page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"comment\">%s</td>\n", colcnt+1, commentString))
+    # close row tag
+    page.content <- paste0(page.content, "</tr>\n")
   }
   # -------------------------------------
   # finish html page
   # -------------------------------------
-  toWrite = paste(toWrite, "</table>\n</body></html>", "\n")
+  page.content <- paste0(page.content, "</table>\n")
+  toWrite <- paste0(toWrite, sprintf("%s\n</body></html>", page.content))
   # -------------------------------------
-  # check if we have filename specified
+  # replace class attributes with inline style,
+  # useful for knitr
   # -------------------------------------
-  if (!is.null(file)) {
-    # write file
-    write(toWrite, file=file)
-  }
-  else {
-    # else create and browse temporary file
-    htmlFile <- tempfile(fileext=".html")
-    write(toWrite, file=htmlFile)
-    # check whether we have RStudio Viewer
-    viewer <- getOption("viewer")
-    if (!is.null(viewer)) {
-      viewer(htmlFile)
+  # copy page content
+  # -------------------------------------
+  knitr <- page.content
+  # -------------------------------------
+  # set style attributes for main table tags
+  # -------------------------------------
+  knitr <- gsub("class=", "style=", knitr)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  # -------------------------------------
+  # replace class-attributes with inline-style-definitions
+  # -------------------------------------
+  knitr <- gsub(tag.tdata, css.tdata, knitr)
+  knitr <- gsub(tag.thead, css.thead, knitr)
+  knitr <- gsub(tag.arc, css.arc, knitr)
+  knitr <- gsub(tag.comment, css.comment, knitr)
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr)
+  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr)
+  knitr <- gsub(tag.centertalign, css.centertalign, knitr)
+  # -------------------------------------
+  # check if html-content should be outputted
+  # -------------------------------------
+  if (!no.output) {
+    # -------------------------------------
+    # check if we have filename specified
+    # -------------------------------------
+    if (!is.null(file)) {
+      # write file
+      write(knitr, file=file)
     }
     else {
-      utils::browseURL(htmlFile)    
+      # else create and browse temporary file
+      htmlFile <- tempfile(fileext=".html")
+      write(toWrite, file=htmlFile)
+      # check whether we have RStudio Viewer
+      viewer <- getOption("viewer")
+      if (useViewer && !is.null(viewer)) {
+        viewer(htmlFile)
+      }
+      else {
+        utils::browseURL(htmlFile)    
+      }
+      # delete temp file
+      # unlink(htmlFile)
     }
-    # delete temp file
-    # unlink(htmlFile)
   }
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjtdf",
+                       list(page.style = page.style,
+                            page.content = page.content,
+                            output.complete = toWrite,
+                            knitr = knitr)))
 }
                      

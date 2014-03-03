@@ -25,10 +25,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, autoGroupAt = NULL, theme = NULL,
-  legendPos = "right", legendSize = 1, legendBorderColor = "white",
-  legendBackColor = "white", flipCoordinates = FALSE, omitNA = TRUE,
-  returnPlot = FALSE)
+  axisTitleSize = 1.3, autoGroupAt = NULL, startAxisAt = 1,
+  theme = NULL, legendPos = "right", legendSize = 1,
+  legendBorderColor = "white", legendBackColor = "white",
+  flipCoordinates = FALSE, omitNA = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -333,17 +333,26 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{autoGroupAt}{A value indicating at which length of
   unique values of \code{varCount} the variable is
   automatically grouped into smaller units (see
-  \link{sju.groupVar}). If \code{varCount} has large
+  \code{\link{sju.groupVar}}). If \code{varCount} has large
   numbers of unique values, too many bars for the graph
   have to be plotted. Hence it's recommended to group such
   variables. For example, if \code{autoGroupAt} is 50, i.e.
   if \code{varCount} has 50 and more unique values it will
-  be grouped using \link{sju.groupVar} with
+  be grouped using \code{\link{sju.groupVar}} with
   \code{groupsize="auto"} parameter. By default, the
   maximum group count is 30. However, if \code{autoGroupAt}
   is less than 30, \code{autoGroupAt} groups are built.
   Default value for \code{autoGroupAt} is \code{NULL}, i.e.
   auto-grouping is off.}
+
+  \item{startAxisAt}{Determines the first value on the
+  x-axis. By default, this value is 1, i.e. the value range
+  on the x axis starts with 1, independent from the lowest
+  value of \code{varCount} (which means, you may have zero
+  counts and hence no bars plotted for these values in such
+  cases). Change this parameter, if variables with a value
+  range starting from greater values than one (e.g. 5-10)
+  should be plotted to avoid empty bars in the plot.}
 
   \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
@@ -352,9 +361,7 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{legendPos}{The position of the legend, if a legend
   is drawn. Use \code{"bottom"}, \code{"top"},
@@ -380,14 +387,15 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{omitNA}{If \code{TRUE}, missings are not included
   in the frequency calculation and diagram plot.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot grouped or stacked frequencies of variables as bar/dor
@@ -460,6 +468,11 @@ sjp.grpfrq(efc$e17age,
            legendTitle=efc.var['e42dep'],
            legendLabels=efc.val[['e42dep']],
            type="box")
+
+# Grouped bar plot ranging from 1 to 28 (though scale starts with 7)
+sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
+# Same grouped bar plot ranging from 7 to 28
+sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=7)
 }
 \references{
 \itemize{ \item

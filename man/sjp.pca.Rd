@@ -13,12 +13,12 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   hideLegend = TRUE, legendTitle = NULL, showValueLabels = TRUE,
   showTickMarks = FALSE, showCronbachsAlpha = TRUE, fillColor = NULL,
   majorGridColor = NULL, minorGridColor = NULL, theme = NULL,
-  returnPlot = FALSE)
+  printPlot = TRUE)
 }
 \arguments{
   \item{data}{A data frame with factors (each columns one
   variable) that should be used to compute a PCA, or a
-  \link{prcomp} object.}
+  \code{\link{prcomp}} object.}
 
   \item{numberOfFactors}{A predefined number of factors to
   use for the calculating the varimax rotation. By default,
@@ -133,7 +133,7 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   for a factor are taken for the reliability test. The
   result is an alpha value for each factor dimension.  Only
   applies when \code{data} is a data frame and no
-  \code{pca}-object.}
+  \code{\link{prcomp}} object.}
 
   \item{fillColor}{A color palette for fillng the geoms. If
   not specified, the 5th diverging color palette from the
@@ -156,24 +156,25 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned.  Default is
-  \code{FALSE}, hence the ggplot object will be plotted,
-  not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-A \link{structure} with \itemize{ \item the varimax-rotated
-factor loading matrix \item the column indices of removed
-variables (for more details see next list item) \item an
-updated data frame containing all factors that have a clear
-loading on a specific scale in case \code{data} was a data
-frame (See parameter \code{factorLoadingTolerance} for more
-details) \item the ggplot-object in case \code{returnPlot}
-was \code{TRUE}.  }
+(Invisibly) returns a \code{\link{structure}} with
+\itemize{ \item the varimax-rotated factor loading matrix
+(\code{varim}) \item the column indices of removed
+variables (for more details see next list item)
+(\code{removed.colindex}) \item an updated data frame
+containing all factors that have a clear loading on a
+specific scale in case \code{data} was a data frame (See
+parameter \code{factorLoadingTolerance} for more details)
+(\code{removed.df}) \item the ggplot-object (\code{plot}),
+\item the data frame that was used for setting up the
+ggplot-object (\code{df}).  }
 }
 \description{
 Performes a principle component analysis on a data frame or
@@ -185,8 +186,8 @@ a factor are taken for the reliability test. The result is
 an alpha value for each factor dimension.
 }
 \note{
-This PCA uses the \link{prcomp} function and the
-\link{varimax} rotation.
+This PCA uses the \code{\link{prcomp}} function and the
+\code{\link{varimax}} rotation.
 }
 \examples{
 # randomly create data frame with 7 items, each consisting of 4 categories

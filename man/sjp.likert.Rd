@@ -21,7 +21,7 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   showSeparatorLine = FALSE, separatorLineColor = "grey80",
   separatorLineSize = 0.3, legendPos = "right", legendSize = 1,
   legendBorderColor = "white", legendBackColor = "white",
-  flipCoordinates = TRUE, returnPlot = FALSE)
+  flipCoordinates = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -240,21 +240,20 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot likert scales as centered stacked bars. "Neutral"

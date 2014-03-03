@@ -1,3 +1,34 @@
+Version 1.2.2
+------------------------------------------------------------------------------
+* New function "sjt.pca" to save/view results from PCA as html table.
+* New function "sjt.corr" to save/view results from correlations as html table.
+* New function "sjt.stackfrq" to save/view results from stacked frequencies or likert scales as html table.
+* New function "sji.viewSPSS" to inspect variable structure of importet SPSS datasets.
+* New function "sju.recode" (which is just a wrapper for the recode-function of the car package that is needed for sjPlot anyway).
+* New function "sju.weight" to weight a variable / vector with specific weight factors.
+* New function "sju.mwu", which is a small helper function to quickly perform Mann-Whitney-U-Tests.
+* New function "sju.cronbach", which is a small helper function to quickly calculate Cronbach's alpha.
+* New function "sju.reliability" to perform reliability tests on item scales.
+* Functions "sjt.lm" and "sjt.glm" no longer show annotation row when "pvaluesAsNumbers" is TRUE (since then no annotations are needed).
+* Function "sjt.df" was re-structured. It now shows a data frame's description by default (see parameter "describe").
+* All "sjt." functions as well as "sji.viewSPSS" now additionally return the object "knitr" which contains the html code with inline-css. Can be used to include the html-tables in knitr-markdown-documents and for importing html-files into office applications (such as MS Word or LibreOffice).
+* Added parameter "useViewer" to all "sjt." functions and to function "sji.viewSPSS", which can be set to FALSE to force table output to be opened in a web browser.
+* Added parameter "CSS" to all "sjt." functions and to function "sji.viewSPSS", which can be use to supply user-defined style-sheets to change the appearance of the html tables.
+* Added parameter "no.output" to all "sjt." functions and to function "sji.viewSPSS", so opening a browser window or showing the output in a viewer pane can be avoided. Useful when the html-output should be used for knitr-documents.
+* Added parameter "breakVariableLabelsAt" and "breakValueLabelsAt" to functions "sjt.xtab", which inserts line breaks at long labels.
+* Added parameter "showFamily" to function "sjt.glm" to compare fitted glm with different link functions.
+* Added parameter "showChi2" to function "sjt.glm" to optionally show chi-square-values of fitted models.
+* Added parameter "showStdError" to functions "sjt.lm" and "sjt.glm" to show standard error of fitted model in the table.
+* Added parameter "showLegend" to function "sjt.xtab" so the color legend can be shown or hidden.
+* Added parameters "showSkew" and "showKurtosis" to function "sjt.frq", so skewness and kurtosis of variables can be printed in the summary.
+* Added parameter "startAxisAt" to function "sjp.grpfrq" for cases where variable values have a range starting with a higher lowest value (e.g. ranging from 5-15).
+* All "sjp." functions now (invisibly) return the ggplot-object as well as the underlying data frame by default. The "returnPlot" parameter was removed. In case you don't want to plot the graph, use the new "printPlot" parameter.
+* Removed function "sju.modsum.lm" from official namespace (cleaning-up), since it was too specific and not generally useful.
+* Improved table layouts for "sjt." functions.
+* Fixed bug in function "sjp.corr" with p-value-labels, when p-values were printed as "*".
+* Fixed typo in functions "sjt.lm" and "sjt.glm" where in the annotation row "*" was labelled as "p<0.005" (and not "p<0.05").
+* Minor bug fixes.
+
 Version 1.1
 ------------------------------------------------------------------------------
 * New function "sjp.scatter" to plot (grouped) scatter plots including fitted lines.

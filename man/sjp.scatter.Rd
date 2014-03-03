@@ -16,7 +16,7 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
   showGroupFitLine = FALSE, showTotalFitLine = FALSE, showSE = FALSE,
   fitmethod = "lm", useJitter = FALSE, autojitter = TRUE,
   jitterRatio = 0.15, showRug = FALSE, hideLegend = FALSE, theme = NULL,
-  useFacetGrid = FALSE, returnPlot = FALSE)
+  useFacetGrid = FALSE, printPlot = TRUE)
 }
 \arguments{
   \item{x}{A vector (variable) indicating the x positions.}
@@ -185,9 +185,7 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{useFacetGrid}{\code{TRUE} when each scatter plot
   group should be plotted as single facet instead of an
@@ -195,14 +193,15 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
   not \code{NULL}. Each category of \code{grp} will be
   plotted in an own facet.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Display scatter plot of two variables. Adding a grouping
@@ -241,6 +240,13 @@ sjp.scatter(efc$c160age,efc$e17age, efc$e42dep, title="Scatter Plot",
             axisTitle.x=sji.getVariableLabels(efc)['c160age'],
             axisTitle.y=sji.getVariableLabels(efc)['e17age'],
             showGroupFitLine=TRUE, useFacetGrid=TRUE, showSE=TRUE)
+}
+\references{
+\itemize{ \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2014/02/28/simply-creating-various-scatter-plots-with-ggplot-rstats/}
+}
 }
 \seealso{
 \code{\link{sjp.lm1}} \cr \code{\link{sjp.reglin}}

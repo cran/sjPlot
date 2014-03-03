@@ -1,15 +1,17 @@
 \name{sjt.xtab}
 \alias{sjt.xtab}
-\title{Save cross tables as HTML table}
+\title{Show contigency tables as HTML table}
 \usage{
 sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   file = NULL, variableLabels = NULL, valueLabels = NULL,
-  stringTotal = "Total", showCellPerc = TRUE, showRowPerc = FALSE,
-  showColPerc = FALSE, showExpected = FALSE, showHorizontalLine = TRUE,
-  showSummary = TRUE, tdcol.n = "black", tdcol.expected = "#339999",
-  tdcol.cell = "#993333", tdcol.row = "#333399", tdcol.col = "#339933",
-  highlightTotal = FALSE, highlightColor = "#f8f8f8",
-  percSign = "&nbsp;\%", hundret = "100.0", encoding = "UTF-8")
+  breakVariableLabelsAt = 40, breakValueLabelsAt = 20,
+  stringTotal = "Total", showCellPerc = FALSE, showRowPerc = FALSE,
+  showColPerc = FALSE, showExpected = FALSE, showHorizontalLine = FALSE,
+  showSummary = TRUE, showLegend = TRUE, tdcol.n = "black",
+  tdcol.expected = "#339999", tdcol.cell = "#993333",
+  tdcol.row = "#333399", tdcol.col = "#339933", highlightTotal = FALSE,
+  highlightColor = "#f8f8f8", percSign = "&nbsp;\%", hundret = "100.0",
+  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{var.row}{Variable that should be displayed in the
@@ -26,8 +28,8 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   weight all cases.  Default is \code{NULL}, so no weights
   are used.}
 
-  \item{digits}{The amount of digits used for the percenage
-  values inside table cells.  Default is 1.}
+  \item{digits}{The amount of digits used for the
+  percentage values inside table cells.  Default is 1.}
 
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified, the file will
@@ -47,7 +49,18 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   \code{var.row}, value labels of \code{var.col}, and - if
   \code{var.grp} is not \code{NULL} - value labels of
   \code{var.grp}. \code{valueLabels} needs to be a
-  \link{list} object.  See examples for more details.}
+  \code{\link{list}} object.  See examples for more
+  details.}
+
+  \item{breakVariableLabelsAt}{Wordwrap for variable
+  labels. Determines how many chars of the variable labels
+  are displayed in one line and when a line break is
+  inserted. Default is 40.}
+
+  \item{breakValueLabelsAt}{Wordwrap for value labels.
+  Determines how many chars of the value labels are
+  displayed in one line and when a line break is inserted.
+  Default is 20.}
 
   \item{stringTotal}{String label for the total column /
   row header.}
@@ -70,6 +83,12 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   \item{showSummary}{If \code{TRUE} (default), a summary
   row with chi-square statistics, Cramer's V or Phi-value
   etc. is shown.}
+
+  \item{showLegend}{If \code{TRUE} (default), the color
+  legend for coloring observed and expected values as well
+  as cell, row and column percentages is shown. See
+  \code{tdcol.n}, \code{tdcol.expectec}, \code{tdcol.cell},
+  \code{tdcol.row} and \code{tdcol.col}.}
 
   \item{tdcol.n}{Color for highlighting count (observed)
   values in table cells. Default is black.}
@@ -108,14 +127,45 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
   (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
+  for a blue dotted border of the last table row.  } See
+  further examples below.}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
 }
 \value{
-Invisibly returns a \link{structure} with the web page
-style sheet (\code{page.style}) and the web page content
-(\code{page.content}) for further use.
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+the web page content (\code{page.content}), \item the
+complete html-output (\code{output.complete}) and \item the
+html-table with inline-css for use with knitr
+(\code{knitr}) } for further use.
 }
 \description{
-Save cross tables as HTML file.
+Shows contingency tables as HTML file in browser or viewer
+pane, or saves them as file.
 }
 \note{
 The HTML tables can either be saved as file and manually
@@ -168,8 +218,19 @@ sjt.xtab(efc$e16sex, efc$e42dep, efc$c161sex,
                           efc.labels[['e42dep']],
                           efc.labels[['c161sex']]),
          showRowPerc=TRUE, showColPerc=TRUE)}
+
+# ----------------------------------------------------------------
+# User defined style sheet
+# ----------------------------------------------------------------
+\dontrun{
+sjt.xtab(efc$e16sex, efc$e42dep,
+         variableLabels=c("Elder's gender", "Elder's dependency"),
+         valueLabels=list(efc.labels[['e16sex']], efc.labels[['e42dep']]),
+         CSS=list(css.table="border: 2px solid;",
+                 css.tdata="border: 1px solid;",
+                 css.horline="border-bottom: double blue;"))}
 }
 \seealso{
-\link{sjp.xtab}
+\code{\link{sjp.xtab}}
 }
 

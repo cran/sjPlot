@@ -9,10 +9,11 @@ sju.dicho(var, dichBy = "median", dichVal = -1)
 
   \item{dichBy}{Indicates the split criterion where the
   variable is dichotomized. By default, \code{var} is split
-  into two groups at the median (\code{dichBy="median"}).
-  Further values for \code{dichBy} are \code{"mean"} (split
-  into groups at the mean of \code{var})), and
-  \code{"value"}. In the latter case, you have to specifiy
+  into two groups at the median (\code{dichBy="median"} or
+  \code{dichBy="md"}). Further values for \code{dichBy} are
+  \code{"mean"} (or \code{"m"}), which splits into groups
+  at the mean of \code{var}; and \code{"value"} (or
+  \code{"v"}).  In the latter case, you have to specifiy
   \code{dichVal}.}
 
   \item{dichVal}{Indicates a value where \code{var} is

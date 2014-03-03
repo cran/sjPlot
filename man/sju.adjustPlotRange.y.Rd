@@ -6,8 +6,7 @@ sju.adjustPlotRange.y(gp, upperMargin = 1.05)
 }
 \arguments{
   \item{gp}{A ggplot-object. Usually, this will be returned
-  by most of this package's plotting functions via the
-  \code{returnPlot} parameter.}
+  by most of this package's plotting functions.}
 
   \item{upperMargin}{Defines the margin of the upper y
   bound of the plot. This value will be multiplied with the
@@ -36,11 +35,11 @@ Note that this function only works on
 data(efc)
 # show frequencies of relationship-variable and
 # retrieve plot object
-gp <- sjp.frq(efc$e15relat, returnPlot=TRUE)
+gp <- sjp.frq(efc$e15relat, printPlot=FALSE)
 # show current plot
-plot(gp)
+plot(gp$plot)
 # show adjusted plot
-sju.adjustPlotRange.y(gp)
+sju.adjustPlotRange.y(gp$plot)
 }
 \references{
 \url{http://www.r-bloggers.com/setting-axis-limits-on-ggplot-charts/}

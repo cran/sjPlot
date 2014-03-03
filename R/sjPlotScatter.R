@@ -5,6 +5,11 @@
 #'                the scatter plot is possible. Furthermore, fitted lines can be added
 #'                for each group as well as for the overall plot.
 #'
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2014/02/28/simply-creating-various-scatter-plots-with-ggplot-rstats/}
+#'              }
+#'              
 #' @seealso \code{\link{sjp.lm1}} \cr
 #'          \code{\link{sjp.reglin}}
 #' 
@@ -87,14 +92,13 @@
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param useFacetGrid \code{TRUE} when each scatter plot group should be plotted as single facet instead of 
 #'          an integrated single graph. Only applies if \code{grp} is not \code{NULL}. Each category of
 #'          \code{grp} will be plotted in an own facet.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #'
 #' @examples
 #' # load sample date
@@ -175,7 +179,7 @@ sjp.scatter <- function(x,
                         hideLegend=FALSE,
                         theme=NULL,
                         useFacetGrid=FALSE,
-                        returnPlot=FALSE) {
+                        printPlot=TRUE) {
   # ------------------------------------------
   # check for auto-jittering
   # ------------------------------------------
@@ -417,11 +421,12 @@ sjp.scatter <- function(x,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(scatter)
-  }
-  else {
-    plot(scatter)
-  }
+  if (printPlot) plot(scatter)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpscatter",
+                       list(plot = scatter,
+                            df = df)))
 }
                        

@@ -1,0 +1,195 @@
+\name{sjt.stackfrq}
+\alias{sjt.stackfrq}
+\title{Show stacked frequencies as HTML table}
+\usage{
+sjt.stackfrq(items, weightBy = NULL, title = NULL, varlabels = NULL,
+  breakLabelsAt = 40, valuelabels = NULL, breakValueLabelsAt = 20,
+  orderBy = NULL, reverseOrder = FALSE, alternateRowColors = FALSE,
+  showN = FALSE, showSkew = FALSE, showKurtosis = FALSE,
+  skewString = "Skew", kurtosisString = "Kurtosis", file = NULL,
+  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
+}
+\arguments{
+  \item{items}{A \code{\link{data.frame}} with each column
+  representing one (likert- or scale-)item.}
+
+  \item{weightBy}{A weight factor that will be applied to
+  weight all cases from \code{items}.}
+
+  \item{title}{A table caption.}
+
+  \item{varlabels}{A list or vector of strings with
+  variable names. If not specified, row names of
+  \code{items} will be used.}
+
+  \item{breakLabelsAt}{Wordwrap for variable labels.
+  Determines how many chars of the variable labels are
+  displayed in one line and when a line break is inserted.
+  Default is 40.}
+
+  \item{valuelabels}{A list or vector of strings that
+  category/value labels, which appear in the header row.}
+
+  \item{breakValueLabelsAt}{Wordwrap for value labels.
+  Determines how many chars of the value labels are
+  displayed in one line and when a line break is inserted.
+  Default is 20.}
+
+  \item{orderBy}{Indicates whether the \code{items} should
+  be ordered by highest count of first or last category of
+  \code{items}.  Use \code{"first"} to order ascending by
+  lowest count of first category, \code{"last"} to order
+  ascending by lowest count of last category or \code{NULL}
+  (default) for no sorting. You can specify just the
+  initial letter.  In case you want to revers order
+  (descending from highest count), use \code{reverseOrder}
+  parameter.}
+
+  \item{reverseOrder}{If \code{TRUE}, the item order is
+  reversed.}
+
+  \item{showN}{If \code{TRUE}, an additional column with
+  each item's N is printed.}
+
+  \item{showSkew}{If \code{TRUE}, an additional column with
+  each item's skewness is printed.  The skewness is
+  retrieved from the \code{\link{describe}} function of the
+  \code{\link{psych}} package.}
+
+  \item{showKurtosis}{If \code{TRUE}, an additional column
+  with each item's kurtosis is printed.  The kurtosis is
+  retrieved from the \code{\link{describe}} function of the
+  \code{\link{psych}} package.}
+
+  \item{skewString}{A character string, which is used as
+  header for the skew column (see \code{showSkew})).
+  Default is \code{"Skew"}.}
+
+  \item{kurtosisString}{A character string, which is used
+  as header for the kurtosis column (see
+  \code{showKurtosis})).  Default is \code{"Kurtosis"}.}
+
+  \item{alternateRowColors}{If \code{TRUE}, alternating
+  rows are highlighted with a light gray background color.}
+
+  \item{file}{The destination file, which will be in
+  html-format. If no filepath is specified, the file will
+  be saved as temporary file and openend either in the
+  RStudio View pane or in the default web browser.}
+
+  \item{encoding}{The charset encoding used for variable
+  and value labels. Default is \code{"UTF-8"}. Change
+  encoding if specific chars are not properly displayed
+  (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.caption='border-bottom: 1px dotted blue;'} for
+  a blue dotted border of the last table row.  }}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
+}
+\value{
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+the web page content (\code{page.content}), \item the
+complete html-output (\code{output.complete}) and \item the
+html-table with inline-css for use with knitr
+(\code{knitr}) } for further use.
+}
+\description{
+Shows the results of stacked frequencies (such as likert
+scales) as HTML table.  This function is useful when
+several items with identical scale/categories should be
+printed as table to compare their distributions (e.g.  when
+plotting scales like SF, Barthel-Index,
+Quality-of-Life-scales etc.).
+}
+\note{
+The HTML tables can either be saved as file and manually
+opened (specify parameter \code{file}) or they can be saved
+as temporary files and will be displayed in the RStudio
+Viewer pane (if working with RStudio) or opened with the
+default web browser. Displaying resp. opening a temporary
+file is the default behaviour (i.e. \code{file=NULL}).
+}
+\examples{
+# -------------------------------
+# random sample
+# -------------------------------
+# prepare data for 4-category likert scale, 5 items
+likert_4 <- data.frame(as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.2,0.3,0.1,0.4))),
+                       as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.5,0.25,0.15,0.1))),
+                       as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.25,0.1,0.4,0.25))),
+                       as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.1,0.4,0.4,0.1))),
+                       as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.35,0.25,0.15,0.25))))
+# create labels
+levels_4 <- c("Independent", "Slightly dependent", "Dependent", "Severely dependent")
+
+# create item labels
+items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
+
+# plot stacked frequencies of 5 (ordered) item-scales
+\dontrun{
+sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)}
+
+
+# -------------------------------
+# Data from the EUROFAMCARE sample dataset
+# -------------------------------
+data(efc)
+
+# recveive first item of COPE-index scale
+start <- which(colnames(efc)=="c82cop1")
+
+# recveive first item of COPE-index scale
+end <- which(colnames(efc)=="c90cop9")
+
+# retrieve variable and value labels
+varlabs <- sji.getVariableLabels(efc)
+vallabs <- sji.getValueLabels(efc)
+
+\dontrun{
+sjt.stackfrq(efc[,c(start:end)],
+             valuelabels=vallabs['c82cop1'],
+             varlabels=varlabs[c(start:end)],
+             alternateRowColors=TRUE)}
+
+\dontrun{
+sjt.stackfrq(efc[,c(start:end)],
+             valuelabels=vallabs['c82cop1'],
+             varlabels=varlabs[c(start:end)],
+             alternateRowColors=TRUE,
+             showN=TRUE,
+             showSkew=TRUE,
+             showKurtosis=TRUE,
+             CSS=list(css.ncol="border-left:1px dotted black;",
+                      css.summary="font-style:italic;"))}
+}
+\references{
+\itemize{ \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
+}
+\seealso{
+\code{\link{sjp.stackfrq}} \cr \code{\link{sjp.likert}}
+}
+

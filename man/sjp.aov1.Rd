@@ -19,7 +19,7 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   theme = NULL, majorGridColor = NULL, minorGridColor = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, showTickMarks = TRUE,
   showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
-  showModelSummary = TRUE, returnPlot = FALSE)
+  showModelSummary = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{depVar}{The dependent variable. Will be used with
@@ -187,8 +187,8 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
 
   \item{gridBreaksAt}{Sets the breaks on the y axis, i.e.
   at every n'th position a major grid is being printed.
-  Default is \code{NULL}, so \link{pretty} gridbeaks will
-  be used.}
+  Default is \code{NULL}, so \code{\link{pretty}} gridbeaks
+  will be used.}
 
   \item{borderColor}{User defined color of whole diagram
   border (panel border).}
@@ -204,9 +204,7 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
@@ -241,14 +239,15 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   the lower right corner of the diagram. Default is
   \code{TRUE}.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot One-Way-Anova table sum of squares (SS) of each factor
@@ -292,6 +291,6 @@ sjp.aov1(efc$c12hour,
          axisLabelAngle.x=90)
 }
 \seealso{
-\link{sju.aov1.levene}
+\code{\link{sju.aov1.levene}}
 }
 

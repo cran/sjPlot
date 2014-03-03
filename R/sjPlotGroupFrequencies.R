@@ -155,12 +155,18 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
 #' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
-#'          is automatically grouped into smaller units (see \link{sju.groupVar}). If \code{varCount} has large 
+#'          is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). If \code{varCount} has large 
 #'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
 #'          to group such variables. For example, if \code{autoGroupAt} is 50, i.e. if \code{varCount} has 50 and more unique values 
-#'          it will be grouped using \link{sju.groupVar} with \code{groupsize="auto"} parameter. By default, 
+#'          it will be grouped using \code{\link{sju.groupVar}} with \code{groupsize="auto"} parameter. By default, 
 #'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
 #'          groups are built. Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
+#' @param startAxisAt Determines the first value on the x-axis. By default, this value is 1,
+#'          i.e. the value range on the x axis starts with 1, independent from the lowest
+#'          value of \code{varCount} (which means, you may have zero counts and hence no bars plotted
+#'          for these values in such cases). Change this parameter, if variables with a value range
+#'          starting from greater values than one (e.g. 5-10) should be plotted to avoid empty
+#'          bars in the plot.
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
 #'          background with white grids.
 #'          \itemize{
@@ -169,8 +175,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
 #'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. Right
 #'          positioning is default.
@@ -180,9 +184,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param legendBackColor Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param omitNA If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # histogram plot
@@ -251,7 +256,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            legendTitle=efc.var['e42dep'],
 #'            legendLabels=efc.val[['e42dep']],
 #'            type="box")
-#'            
+#' 
+#' # Grouped bar plot ranging from 1 to 28 (though scale starts with 7)
+#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
+#' # Same grouped bar plot ranging from 7 to 28
+#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=7)
+#' 
 #' @import ggplot2
 #' @importFrom plyr ddply
 #' @importFrom MASS loglm
@@ -324,6 +334,7 @@ sjp.grpfrq <- function(varCount,
                        axisTitleColor="black",
                        axisTitleSize=1.3,
                        autoGroupAt=NULL,
+                       startAxisAt=1,
                        theme=NULL,
                        legendPos="right",
                        legendSize=1,
@@ -331,7 +342,7 @@ sjp.grpfrq <- function(varCount,
                        legendBackColor="white",
                        flipCoordinates=FALSE,
                        omitNA=TRUE,
-                       returnPlot=FALSE) {
+                       printPlot=TRUE) {
   # --------------------------------------------------------
   # count variable may not be a factor!
   # --------------------------------------------------------
@@ -778,7 +789,7 @@ sjp.grpfrq <- function(varCount,
   # If axisLabels.x were not defined, simply set numbers from 1 to
   # amount of categories (=number of rows) in dataframe instead
   else  {
-    axisLabels.x <- c(1:catcount)
+    axisLabels.x <- c(startAxisAt:catcount)
   }
   # check length of x-axis-labels of interaction variable and split 
   # longer strings into new lines
@@ -1165,7 +1176,12 @@ sjp.grpfrq <- function(varCount,
   }
   else {
     baseplot <- ggplot(mydat, aes(x=factor(count), y=frq, fill=group))
-    scalex <- scale_x_discrete(labels=axisLabels.x)
+    if (startAxisAt>1) {
+      scalex <- scale_x_discrete(labels=axisLabels.x, limits=as.factor(seq(from=startAxisAt,to=catcount,by=1)))
+    }
+    else {
+      scalex <- scale_x_discrete(labels=axisLabels.x)
+    }
   }
   # check whether we have dots plotted, and if so, use annotation
   # We have to use annotation first, because the diagram's layers are plotted
@@ -1343,12 +1359,13 @@ sjp.grpfrq <- function(varCount,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(baseplot)
-  }
-  else {
-    plot(baseplot)
-  }
+  if (printPlot) plot(baseplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpgrpfrq",
+                       list(plot = baseplot,
+                            df = mydat)))
 }
 
 

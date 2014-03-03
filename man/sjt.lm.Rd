@@ -1,14 +1,16 @@
 \name{sjt.lm}
 \alias{sjt.lm}
-\title{Save linear regression as HTML-Table}
+\title{Show linear regression as HTML table}
 \usage{
 sjt.lm(..., file = NULL, labelPredictors = NULL,
   labelDependentVariables = NULL, stringPredictors = "Predictors",
   stringDependentVariables = "Dependent Variables", stringModel = "Model",
-  stringIntercept = "(Intercept)", stringObservations = "Observations",
-  showConfInt = TRUE, showStdBeta = FALSE, pvaluesAsNumbers = FALSE,
+  showHeaderStrings = FALSE, stringIntercept = "(Intercept)",
+  stringObservations = "Observations", showConfInt = TRUE,
+  showStdBeta = FALSE, showStdError = FALSE, pvaluesAsNumbers = FALSE,
   boldpvalues = TRUE, separateConfColumn = FALSE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, encoding = "UTF-8")
+  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, encoding = "UTF-8",
+  CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{...}{One or more fitted lm-objects.}
@@ -33,6 +35,11 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   headline for the dependent variable columns. Default is
   \code{"Dependent Variables"}.}
 
+  \item{showHeaderStrings}{If \code{TRUE}, the header
+  strings \code{stringPredictors} and
+  \code{stringDependentVariables} are shown. By default,
+  they're hidden.}
+
   \item{stringModel}{String constant used as headline for
   the model names in case no labels for the dependent
   variables are provided (see labelDependentVariables).
@@ -52,6 +59,9 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   \item{showStdBeta}{If \code{TRUE}, the standardized
   beta-coefficients are also printed.  Default is
   \code{FALSE}.}
+
+  \item{showStdError}{If \code{TRUE}, the standard errors
+  are also printed.  Default is \code{FALSE}.}
 
   \item{pvaluesAsNumbers}{If \code{TRUE}, p-values are
   shown as numbers. If \code{FALSE} (default), p-values are
@@ -85,17 +95,48 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
   (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
+  for a blue dotted border of the last table row.  } See
+  further examples below.}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
 }
 \value{
-Invisibly returns a \link{structure} with the web page
-style sheet (\code{page.style}) and the web page content
-(\code{page.content}) for further use.
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+the web page content (\code{page.content}), \item the
+complete html-output (\code{output.complete}) and \item the
+html-table with inline-css for use with knitr
+(\code{knitr}) } for further use.
 }
 \description{
-Save (multiple) fitted linear models (beta coefficients,
-std. beta values etc.)  as HTML-Table. The fitted lm's
-should have the same predictor variables and differ only in
-their response (dependent variable).
+Shows (multiple) fitted linear models (beta coefficients,
+std. beta values etc.)  as HTML table, or saves them as
+file. The fitted lm's should have the same predictor
+variables and differ only in their response (dependent
+variable).
 }
 \note{
 The HTML tables can either be saved as file and manually
@@ -120,11 +161,11 @@ fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))}
 
-# save HTML-tables to "lm_table2.html", indicating p-values as numbers
+# show HTML-table, indicating p-values as numbers
 \dontrun{
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table2.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE)}
+       showStdBeta=TRUE, pvaluesAsNumbers=TRUE)}
 
 # create and open HTML-table in RStudio Viewer Pane or web browser,
 # printing CI in a separate column
@@ -133,12 +174,12 @@ sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact")
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
        separateConfColumn=TRUE)}
 
-# save HTML-tables to "lm_table4.html", indicating p-values as numbers
+# show HTML-table, indicating p-values as numbers
 # and printing CI in a separate column
 \dontrun{
 sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-       file="lm_table4.html", showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+       showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
 
 # ----------------------------------------------------------------
 # connecting two html-tables
@@ -162,6 +203,16 @@ write(sprintf("<html><head>\%s</head><body>\%s<p></p>\%s</body></html>",
               file=htmlFile)
 viewer <- getOption("viewer")
 if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)}
+
+# ----------------------------------------------------------------
+# User defined style sheet
+# ----------------------------------------------------------------
+\dontrun{
+sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
+       labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
+       CSS=list(css.table="border: 2px solid;",
+                css.tdata="border: 1px solid;",
+                css.depvarhead="color:#003399;"))}
 }
 \references{
 \itemize{ \item
@@ -171,6 +222,6 @@ if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)}
 }
 }
 \seealso{
-\link{sjt.glm}
+\code{\link{sjt.glm}} \cr \code{\link{sjp.lm}}
 }
 

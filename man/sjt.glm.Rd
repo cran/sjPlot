@@ -1,14 +1,17 @@
 \name{sjt.glm}
 \alias{sjt.glm}
-\title{Save odds Ratios as HTML-Table}
+\title{Show (and compare) generalized linear models as HTML table}
 \usage{
 sjt.glm(..., file = NULL, labelPredictors = NULL,
   labelDependentVariables = NULL, stringPredictors = "Predictors",
-  stringDependentVariables = "Dependent Variables", stringModel = "Model",
+  stringDependentVariables = "Dependent Variables",
+  showHeaderStrings = FALSE, stringModel = "Model",
   stringIntercept = "(Intercept)", stringObservations = "Observations",
   pvaluesAsNumbers = FALSE, boldpvalues = TRUE, showConfInt = TRUE,
-  separateConfColumn = FALSE, showAbbrHeadline = TRUE, showPseudoR = TRUE,
-  showLogLik = FALSE, showAIC = FALSE, encoding = "UTF-8")
+  showStdError = FALSE, separateConfColumn = FALSE,
+  showAbbrHeadline = TRUE, showPseudoR = TRUE, showLogLik = FALSE,
+  showAIC = FALSE, showChi2 = FALSE, showFamily = FALSE,
+  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{...}{One or more fitted glm-objects.}
@@ -33,6 +36,11 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   headline for the dependent variable columns. Default is
   \code{"Dependent Variables"}.}
 
+  \item{showHeaderStrings}{If \code{TRUE}, the header
+  strings \code{stringPredictors} and
+  \code{stringDependentVariables} are shown. By default,
+  they're hidden.}
+
   \item{stringModel}{String constant used as headline for
   the model names in case no labels for the dependent
   variables are provided (see labelDependentVariables).
@@ -56,6 +64,9 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   confidence intervall is also printed to the table. Use
   \code{FALSE} to omit the CI in the table.}
 
+  \item{showStdError}{If \code{TRUE}, the standard errors
+  are also printed.  Default is \code{FALSE}.}
+
   \item{separateConfColumn}{if \code{TRUE}, the CI values
   are shown in a separate table column.  Default is
   \code{FALSE}.}
@@ -73,25 +84,74 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   each model is printed in the model summary. Default is
   \code{FALSE}.}
 
-  \item{showAIC}{If \code{TRUE}, the AIC value for each
-  model is printed in the model summary. Default is
+  \item{showAIC}{If \code{TRUE}, the \code{\link{AIC}}
+  value for each model is printed in the model summary.
+  Default is \code{FALSE}.}
+
+  \item{showChi2}{If \code{TRUE}, the chi-square value for
+  each model is printed in the model summary. Default is
   \code{FALSE}.}
+
+  \item{showFamily}{If \code{TRUE}, the family object and
+  link function for each fitted model are printed. Can be
+  used in case you want to compare models with different
+  link functions and same predictors and response, to
+  decide which model fits best. See \code{\link{family}}
+  for more details. It is recommended to inspect the model
+  \code{\link{AIC}} (see \code{showAIC}) to get a decision
+  help for which model to choose.}
 
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
   (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
+  for a blue dotted border of the last table row.  } See
+  further examples below.}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
 }
 \value{
-Invisibly returns a \link{structure} with the web page
-style sheet (\code{page.style}) and the web page content
-(\code{page.content}) for further use.
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+the web page content (\code{page.content}), \item the
+complete html-output (\code{output.complete}) and \item the
+html-table with inline-css for use with knitr
+(\code{knitr}) } for further use.
 }
 \description{
-Save (multiple) generalized linear models (Odds Ratios) as
-HTML-Table. The fitted glm's should have the same predictor
-variables and differ only in their response (dependent
-variable).
+Shows (and compares multiple) generalized linear models
+(Odds Ratios) as HTML table, or saves them as file. The
+fitted glm's should have the same predictor variables and
+either \itemize{ \item differ only in their response
+(dependent variable), to see the effect of a specific set
+of predictors on different responses, or \item all have the
+same reponse variables, but differ in their
+\code{\link{family}} objects and link function in order to
+see which model fits best to the data.  } See parameter
+\code{showFamily} for details and section \code{examples}.
 }
 \note{
 The HTML tables can either be saved as file and manually
@@ -128,20 +188,48 @@ sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality
         labelPredictors=c("Education", "Examination", "Catholic"),
         pvaluesAsNumbers=TRUE)}
 
-# save HTML-tables to "or_table3.html", printing CI in a separate column
+# open HTML-table in RStudio Viewer Pane or web browser,
+# printing CI in a separate column
 \dontrun{
 sjt.glm(fitOR1, fitOR2, fitOR3,
         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
         labelPredictors=c("Education", "Examination", "Catholic"),
-        file="or_table3.html", separateConfColumn=TRUE)}
+        separateConfColumn=TRUE)}
 
-# save HTML-tables to "or_table4.html", indicating p-values as numbers
-# and printing CI in a separate column
+# open HTML-table in RStudio Viewer Pane or web browser,
+# indicating p-values as numbers and printing CI in a separate column
 \dontrun{
 sjt.glm(fitOR1, fitOR2, fitOR3,
         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
         labelPredictors=c("Education", "Examination", "Catholic"),
-        file="or_table4.html", pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+        pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+
+# ----------------------------------------------------------------
+# User defined style sheet
+# ----------------------------------------------------------------
+\dontrun{
+sjt.glm(fitOR1, fitOR2, fitOR3,
+        labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
+        labelPredictors=c("Education", "Examination", "Catholic"),
+        CSS=list(css.table="border: 2px solid;",
+                 css.tdata="border: 1px solid;",
+                 css.depvarhead="color:#003399;"))}
+
+# ----------------------------------------------------------------
+# Compare models with different link functions, but same
+# predictors and response
+# ----------------------------------------------------------------
+# load efc sample data
+data(efc)
+# dichtomozize service usage by "service usage yes/no"
+efc$services <- sju.dicho(efc$tot_sc_e, "v", 0)
+# fit 3 models with different link-functions
+fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="logit"))
+fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="probit"))
+fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=poisson(link="log"))
+# compare models
+\dontrun{
+sjt.glm(fit1, fit2, fit3, showAIC=TRUE, showFamily=TRUE, showPseudoR=FALSE)}
 }
 \references{
 \itemize{ \item
@@ -151,6 +239,6 @@ sjt.glm(fitOR1, fitOR2, fitOR3,
 }
 }
 \seealso{
-\link{sjt.lm}
+\code{\link{sjt.lm}} \cr \code{\link{sjp.glm}}
 }
 

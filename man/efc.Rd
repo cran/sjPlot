@@ -15,16 +15,26 @@ str(efc)
 # show first rows
 head(efc)
 
+# show variables
+\dontrun{
+sji.viewSPSS(efc)}
+
 # show variable labels
 sji.getVariableLabels(efc)
+
+# plot efc-data frame summary via "describe" of the "psysch package"
+\dontrun{
+require(psych)
+sjt.df(round(describe(efc),2), showType=F, alternateRowColors=T, stringObservation="Variable")}
 }
 \references{
 \url{http://www.uke.de/eurofamcare/}
 }
 \seealso{
-\link{sji.SPSS} \cr \link{sji.getValueLabels} \cr
-\link{sji.getVariableLabels} \cr \link{sji.convertToLabel}
-\cr \link{sjp.frq}
+\code{\link{sji.SPSS}} \cr \code{\link{sji.viewSPSS}} \cr
+\code{\link{sjt.df}} \cr \code{\link{sji.getValueLabels}}
+\cr \code{\link{sji.getVariableLabels}} \cr
+\code{\link{sji.convertToLabel}} \cr \code{\link{sjp.frq}}
 }
 \keyword{data}
 

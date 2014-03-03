@@ -1,0 +1,43 @@
+\name{sju.mwu}
+\alias{sju.mwu}
+\title{Performs a Mann-Whitney-U-Test}
+\usage{
+sju.mwu(var, grp, alternative = "two.sided")
+}
+\arguments{
+  \item{var}{A numeric vector / variable, where the
+  Mann-Whitney-U-Test should be applied to.}
+
+  \item{grp}{The grouping variable indicating the groups
+  that should be used for comparison.}
+
+  \item{alternative}{a character string specifying the
+  alternative hypothesis, must be one of \code{"two.sided"}
+  (default), \code{"greater"} or \code{"less"}. You can
+  specify just the initial letter.}
+}
+\value{
+(Invisibly) returns a data frame with p-values for each
+group-comparison.
+}
+\description{
+This function performs a Mann-Whitney-U-Test (or
+\code{Wilcoxon rank sum test}, see
+\code{\link{wilcox.test}}) for the variable \code{var},
+which is divided into groups indicated by \code{grp} (so
+the formula \code{var ~ grp} is used). If \code{grp} has
+more than two categories, a comparison between each two
+groups is performed.
+}
+\note{
+This function calls the \code{\link{wilcox.test}} with
+formula. If \code{grp} has more than two groups,
+additionally a Kruskal-Wallis-Test (see
+\code{\link{kruskal.test}}) is performed.
+}
+\examples{
+data(efc)
+# Mann-Whitney-U-Tests for elder's age by elder's dependency.
+sju.mwu(efc$e17age, efc$e42dep)
+}
+

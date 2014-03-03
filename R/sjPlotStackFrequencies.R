@@ -5,7 +5,8 @@
 #'              \item \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
 #'              }
 #'             
-#' @seealso \code{\link{sjp.likert}}
+#' @seealso \code{\link{sjp.likert}} \cr
+#'          \code{\link{sjt.stackfrq}}
 #' 
 #' @description Plot items (variables) of a scale as stacked proportional bars. This
 #'                function is useful when several items with identical scale/categoroies
@@ -103,12 +104,11 @@
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # -------------------------------
@@ -213,7 +213,7 @@ sjp.stackfrq <- function(items,
                         legendBorderColor="white",
                         legendBackColor="white",
                         flipCoordinates=TRUE,
-                        returnPlot=FALSE) {
+                        printPlot=TRUE) {
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -620,10 +620,11 @@ sjp.stackfrq <- function(items,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(baseplot)
-  }
-  else {
-    plot(baseplot)
-  }
+  if (printPlot) plot(baseplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpstackfrq",
+                       list(plot = baseplot,
+                            df = mydat)))
 }

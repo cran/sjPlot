@@ -16,6 +16,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @seealso \code{\link{sjp.lm.ma}} \cr
 #'          \code{\link{sjp.reglin}} \cr
 #'          \code{\link{sjp.lm.int}} \cr
+#'          \code{\link{sjp.scatter}} \cr
 #'          \code{\link{sju.betaCoef}}
 #' 
 #' @note Based on an an idea from surefoss:
@@ -77,7 +78,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is \code{NULL}, so \link{pretty} gridbeaks will be used.
+#'          grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
@@ -89,8 +90,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
@@ -111,9 +110,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #'          should be plotted to the diagram.
 #' @param showStandardBetaLine Whether or not the connecting line for the standardized beta values 
 #'          should be plotted to the diagram. Default is \code{FALSE}.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # fit linear model
@@ -172,9 +172,9 @@ sjp.lm <- function(fit,
                     labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
-                    showStandardBeta=TRUE,
+                    showStandardBeta=FALSE,
                     showStandardBetaLine=FALSE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -476,13 +476,13 @@ sjp.lm <- function(fit,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(betaplot)
-  }
-  else {
-    # print plot
-    print(betaplot)
-  }
+  if (printPlot) print(betaplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjplm",
+                       list(plot = betaplot,
+                            df = betas)))
 }
 
 
@@ -501,6 +501,7 @@ sjp.lm <- function(fit,
 #'                is plotted.
 #'                
 #' @seealso \code{\link{sjp.lm}} \cr
+#'          \code{\link{sjp.scatter}} \cr
 #'          \code{\link{sjp.lm.ma}} \cr
 #'          \code{\link{sjp.lm.int}}
 #'          
@@ -525,9 +526,10 @@ sjp.lm <- function(fit,
 #'          Only applies, if \code{showLoess} is \code{TRUE}.
 #' @param loessCiLevel The confidence level of the loess-line's confidence region.
 #'          Only applies, if \code{showLoessCI} is \code{TRUE}. Default is 0.95.
-#' @param returnPlot If \code{TRUE}, the ggplot-objects with all plots will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot objects will be plotted, not returned.
-#' @return The ggplot-objects as \code{list} with all plots in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list}) 
+#'           as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
 #' 
 #' @examples
 #' data(efc)
@@ -556,7 +558,7 @@ sjp.reglin <- function(fit,
                        loessLineColor="red",
                        showLoessCI=FALSE,
                        loessCiLevel=0.95,
-                       returnPlot=FALSE) {
+                       printPlot=TRUE) {
   # -----------------------------------------------------------
   # retrieve amount of predictor variables
   # -----------------------------------------------------------
@@ -581,6 +583,7 @@ sjp.reglin <- function(fit,
   cn <- colnames(data)
   # init return var
   plotlist <- list()
+  dflist <- list()
   # -----------------------------------------------------------
   # iterate all predictors
   # -----------------------------------------------------------
@@ -640,19 +643,18 @@ sjp.reglin <- function(fit,
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
-    if (returnPlot) {
-      # concatenate plot object
-      plotlist[[length(plotlist)+1]] <- reglinplot
-    }
-    else {
-      # print plot
-      print(reglinplot)
-    }
+    # concatenate plot object
+    plotlist[[length(plotlist)+1]] <- reglinplot
+    dflist[[length(dflist)+1]] <- mydat
+    # print plot
+    if (printPlot) print(reglinplot)
   }
-  # if user wanted plots, return them
-  if (returnPlot) {
-    return(plotlist)
-  }
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpreglin",
+                       list(plot.list = plotlist,
+                            df.list = dflist)))
 }
 
 
@@ -739,8 +741,8 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # ---------------------------------
   # show VIF-Values
   # ---------------------------------
-  sjp.vif(linreg, printnumbers=FALSE)
-  if (modelOptmized) sjp.vif(model, printnumbers=FALSE)
+  sjp.vif(linreg)
+  if (modelOptmized) sjp.vif(model)
   
   
   # ---------------------------------
@@ -863,7 +865,8 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #'                is plotted.
 #'                
 #' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjp.reglin}}
+#'          \code{\link{sjp.reglin}} \cr
+#'          \code{\link{sjp.scatter}}
 #'          
 #' @param fit The model of the linear regression (lm-Object).
 #' @param data The data/dataset/dataframe used to fit the model
@@ -929,16 +932,15 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param showTickMarks Whether tick marks of axes should be shown or not
-#' @param returnPlot If \code{TRUE}, the ggplot-object will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-objects as \code{list} with the plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # load sample data
@@ -990,7 +992,7 @@ sjp.lm1 <- function(fit,
                    hideGrid.x=FALSE,
                    hideGrid.y=FALSE,
                    showTickMarks=TRUE,
-                   returnPlot=FALSE) {
+                   printPlot=TRUE) {
   # -----------------------------------------------------------
   # retrieve amount of predictor variables
   # -----------------------------------------------------------
@@ -1195,12 +1197,11 @@ sjp.lm1 <- function(fit,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    # concatenate plot object
-    return(reglinplot)
-  }
-  else {
-    # print plot
-    print(reglinplot)
-  }
+  if (printPlot) print(reglinplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjplm1",
+                       list(plot = reglinplot,
+                            df = mydat)))
 }

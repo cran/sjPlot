@@ -108,8 +108,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
@@ -129,9 +127,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each coefficient should be appended
 #'          to values or not.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #'          
 #' @examples
 #' # prepare dummy variables for binary logistic regression
@@ -215,7 +214,7 @@ sjp.glmm <- function(...,
                     showValueLabels=TRUE, 
                     labelDigits=2,
                     showPValueLabels=TRUE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # --------------------------------------------------------
   # retrieve list of fitted models
   # --------------------------------------------------------
@@ -395,6 +394,10 @@ sjp.glmm <- function(...,
     # diagram range
     if (showValueLabels || showPValueLabels) {
       upper_lim <- upper_lim + 0.1
+    }
+    # give warnings when auto-limits are very low/high
+    if ((lower_lim < 0.1) || (upper_lim > 100)) {
+      warning("Exp. coefficients and/or exp. confidence intervals may be out of printable bounds. Consider using \"axisLimits\" parameter!")
     }
   }
   else {
@@ -611,11 +614,11 @@ sjp.glmm <- function(...,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(plotHeader)
-  }
-  else {
-    # print plot
-    print(plotHeader)
-  }
+  if (printPlot) print(plotHeader)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpglmm",
+                       list(plot = plotHeader,
+                            df = finalodds)))
 }

@@ -5,10 +5,11 @@
 #' 
 #' @description Import data from SPSS, including NA's, value and variable labels.
 #' 
-#' @seealso \link{sji.getValueLabels} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.convertToLabel} \cr
-#'          \link{sji.convertToValue}
+#' @seealso \code{\link{sji.getValueLabels}} \cr
+#'          \code{\link{sji.getVariableLabels}} \cr
+#'          \code{\link{sji.convertToLabel}} \cr
+#'          \code{\link{sji.convertToValue}} \cr
+#'          \code{\link{sji.viewSPSS}}
 #'          
 #' @param path The file path to the SPSS dataset.
 #' @param enc The file encoding of the SPSS dataset.

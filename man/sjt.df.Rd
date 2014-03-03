@@ -1,13 +1,22 @@
 \name{sjt.df}
 \alias{sjt.df}
-\title{Save data frame as HTML table}
+\title{Show (description of) data frame as HTML table}
 \usage{
-sjt.df(df, file = NULL, alternateRowColors = FALSE, orderColumn = NULL,
-  orderAscending = TRUE, stringObservation = "Observation",
-  encoding = "UTF-8")
+sjt.df(df, describe = TRUE, file = NULL, alternateRowColors = FALSE,
+  orderColumn = NULL, orderAscending = TRUE, title = NULL,
+  stringVariable = "Variable", showType = FALSE, showCommentRow = FALSE,
+  commentString = "No comment...", encoding = "UTF-8", CSS = NULL,
+  useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{df}{A data frame that should be printed.}
+
+  \item{describe}{If \code{TRUE} (default), a description
+  of the data frame's variables is given.  The description
+  is retrieved from the \code{\link{describe}} function of
+  the \code{\link{psych}} package. If this parameter is
+  \code{FALSE}, the data frame's content (values) is
+  shown.}
 
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified, the file will
@@ -30,36 +39,106 @@ sjt.df(df, file = NULL, alternateRowColors = FALSE, orderColumn = NULL,
   order.  Use \code{FALSE} to apply descending order. See
   examples for further details.}
 
-  \item{stringObservation}{A string used for the first
-  column name that indicates the observation or case
-  number.  Default is \code{"Observation"}.}
+  \item{title}{A table caption. By default, \code{title} is
+  \code{NULL}, hence no title will be used.}
+
+  \item{stringVariable}{A string used for the first column
+  name. Default is \code{"Variable"}.}
+
+  \item{showType}{If \code{TRUE}, the variable type is
+  shown in a separate row below the column names.}
+
+  \item{showCommentRow}{If \code{TRUE}, an optional comment
+  line can be added to the end / below the table. Use
+  \code{commentString} to specify the comment.}
+
+  \item{commentString}{A string that will be added to the
+  end / below the table. Only applies, if
+  \code{showCommentRow} is \code{TRUE}.}
 
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
   (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.arc='color:blue;'} for a blue text color each
+  2nd row.  } See further examples below.}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
+}
+\value{
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+the web page content (\code{page.content}), \item the
+complete html-output (\code{output.complete}) and \item the
+html-table with inline-css for use with knitr
+(\code{knitr}) } for further use.
 }
 \description{
-Save (or show) content of data frame (rows and columns) as
-HTML table.  Helpful if you want a quick overview of a data
-frame's content.
+Shows description or the content of data frame (rows and
+columns) as HTML table, or saves it as file.  Helpful if
+you want a quick overview of a data frame's content. See
+parameter \code{describe} for details.
 }
 \examples{
 # init dataset
 data(efc)
 
-# plot first 50 rows of first 5 columns of example data set
+# plot efc-data frame summary
 \dontrun{
-sjt.df(efc[1:50,1:5])}
+sjt.df(efc, alternateRowColors=TRUE)}
+
+# plot content, first 50 rows of first 5 columns of example data set
+\dontrun{
+sjt.df(efc[1:50,1:5], describe=FALSE, stringVariable="Observation")}
+
+# plot efc-data frame summary, ordered descending by mean-column
+\dontrun{
+sjt.df(efc, orderColumn="mean", orderAscending=FALSE)}
 
 # plot first 20 rows of first 5 columns of example data set,
 # ordered by column "e42dep" with alternating row colors
 \dontrun{
-sjt.df(efc[1:20,1:5], alternateRowColors=TRUE, orderColumn="e42dep")}
+sjt.df(efc[1:20,1:5], alternateRowColors=TRUE,
+       orderColumn="e42dep", describe=FALSE)}
 
 # plot first 20 rows of first 5 columns of example data set,
 # ordered by 4th column in descending order.
 \dontrun{
-sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE)}
+sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE, describe=FALSE)}
+
+# ----------------------------------------------------------------
+# User defined style sheet
+# ----------------------------------------------------------------
+\dontrun{
+sjt.df(efc,
+       alternateRowColor=TRUE,
+       CSS=list(css.table="border: 2px solid #999999;",
+                css.tdata="border-top: 1px solid;",
+                css.arc="color:blue;"))}
+}
+\seealso{
+\code{\link{sji.viewSPSS}}
 }
 

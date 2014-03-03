@@ -17,7 +17,7 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
   estLineColor = "#cc3300", lineLabelSize = 3.7, lineLabelColor = "black",
   lineLabelString = "(no interaction)", borderColor = NULL,
   axisColor = NULL, majorGridColor = NULL, minorGridColor = NULL,
-  hideGrid.x = FALSE, hideGrid.y = FALSE, returnPlot = FALSE)
+  hideGrid.x = FALSE, hideGrid.y = FALSE, printPlot = TRUE)
 }
 \arguments{
   \item{fit}{the fitted linear model (lm) object, including
@@ -209,14 +209,16 @@ sjp.lm.int(fit, smooth = "none", diff = FALSE, swapPredictors = FALSE,
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-objects with
-  all plots will be returned (and not plotted).  Default is
-  \code{FALSE}, hence the ggplot objects will be plotted,
-  not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-objects as \code{list} with all plots in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-objects with the complete
+plot-list (\code{plot.list}) as well as the data frame that
+were used for setting up the ggplot-objects
+(\code{df.list}).
 }
 \description{
 Plot regression curves of significant interaction terms in

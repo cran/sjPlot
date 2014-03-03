@@ -5,7 +5,7 @@
 sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE, ciLevel = 0.95,
   pointAlpha = 0.2, pointColor = "black", showScatterPlot = TRUE,
   showLoess = TRUE, loessLineColor = "red", showLoessCI = FALSE,
-  loessCiLevel = 0.95, returnPlot = FALSE)
+  loessCiLevel = 0.95, printPlot = TRUE)
 }
 \arguments{
   \item{fit}{The model of the linear regression
@@ -53,14 +53,16 @@ sjp.reglin(fit, data, lineColor = "blue", showCI = TRUE, ciLevel = 0.95,
   loess-line's confidence region.  Only applies, if
   \code{showLoessCI} is \code{TRUE}. Default is 0.95.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-objects with
-  all plots will be returned (and not plotted).  Default is
-  \code{FALSE}, hence the ggplot objects will be plotted,
-  not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-objects as \code{list} with all plots in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-objects with the complete
+plot-list (\code{plot.list}) as well as the data frame that
+were used for setting up the ggplot-objects
+(\code{df.list}).
 }
 \description{
 Plot regression lines with confidence intervals for each
@@ -89,7 +91,7 @@ sjp.reglin(fit, efc, showScatterPlot=FALSE)
 sjp.reglin(fit, efc, showCI=FALSE)
 }
 \seealso{
-\code{\link{sjp.lm}} \cr \code{\link{sjp.lm.ma}} \cr
-\code{\link{sjp.lm.int}}
+\code{\link{sjp.lm}} \cr \code{\link{sjp.scatter}} \cr
+\code{\link{sjp.lm.ma}} \cr \code{\link{sjp.lm.int}}
 }
 

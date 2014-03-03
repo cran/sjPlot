@@ -10,7 +10,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'              \item \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
 #'              }
 #' 
-#' @seealso \link{sjt.frq}
+#' @seealso \code{\link{sjt.frq}}
 #' 
 #' @description Plot frequencies of a (count) variable as bar graph, histogram,
 #'                box plot etc. using ggplot.
@@ -132,10 +132,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          starting from greater values than one (e.g. 5-10) should be plotted to avoid empty
 #'          bars in the plot.
 #' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
-#'          is automatically grouped into smaller units (see \link{sju.groupVar}). If \code{varCount} has large 
+#'          is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). If \code{varCount} has large 
 #'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
 #'          to group such variables. For example, if \code{autoGroupAt} is 50, i.e. if \code{varCount} has 50 and more unique values 
-#'          it will be grouped using \link{sju.groupVar} with \code{groupsize="auto"} parameter. By default, 
+#'          it will be grouped using \code{\link{sju.groupVar}} with \code{groupsize="auto"} parameter. By default, 
 #'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
 #'          groups are built. Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
@@ -146,13 +146,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped. Default is \code{FALSE}.
 #' @param omitNA If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # boxplot
@@ -278,7 +277,7 @@ sjp.frq <- function(varCount,
                     theme=NULL,
                     flipCoordinates=FALSE,
                     omitNA=TRUE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
 
   # --------------------------------------------------------
   # count variable may not be a factor!
@@ -318,32 +317,8 @@ sjp.frq <- function(varCount,
   #---------------------------------------------------
   # weight variable
   #---------------------------------------------------
-#   weightby <- function(var, weight) {
-#     items <- unique(var)
-#     newvar <- c()
-#     for (i in 1:length(items)) {
-#       newcount = round(sum(weight[which(var==items[i])]))
-#       newvar <- c(newvar, rep(items[i], newcount))
-#     }
-#     return (newvar)
-#   }
-  weightby <- function(var, weight) {
-    # init values
-    weightedvar <- c()
-    wtab <- round(xtabs(weight ~ var, data=data.frame(cbind(weight=weight,var=var))))
-    # iterate all table values
-    for (w in 1:length(wtab)) {
-      # retrieve count of each table cell
-      w_count <- wtab[[w]]
-      # retrieve "cell name" which is identical to the variable value
-      w_value <- as.numeric(names(wtab[w]))
-      # append variable value, repeating it "w_count" times.
-      weightedvar <- c(weightedvar, rep(w_value, w_count))
-    }
-    return(weightedvar)
-  }
   if (!is.null(weightBy)) {
-    varCount <- weightby(varCount, weightBy)
+    varCount <- sju.weight(varCount, weightBy)
   }
   #---------------------------------------------------
   # check whether variable should be auto-grouped
@@ -924,12 +899,13 @@ sjp.frq <- function(varCount,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(baseplot)
-  }
-  else {
-    plot(baseplot)
-  }
+  if (printPlot) plot(baseplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpfrq",
+                       list(plot = baseplot,
+                            df = mydat)))
 }
 
 

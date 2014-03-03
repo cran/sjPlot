@@ -18,7 +18,7 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   legendLabels = NULL, legendPos = "right", legendSize = 1,
   legendBorderColor = "white", legendBackColor = "white",
   majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
-  hideGrid.y = FALSE, flipCoordinates = FALSE)
+  hideGrid.y = FALSE, flipCoordinates = FALSE, printPlot = TRUE)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -44,20 +44,21 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   \code{"method"} is \code{"h"} (for hierarchical
   clustering). This must be one of \code{"euclidean"},
   \code{"maximum"}, \code{"manhattan"}, \code{"canberra"},
-  \code{"binary"} or \code{"minkowski"}. See \link{dist}.
-  By default, method is \code{"k"} and this parameter will
-  be ignored.}
+  \code{"binary"} or \code{"minkowski"}. See
+  \code{\link{dist}}.  By default, method is \code{"k"} and
+  this parameter will be ignored.}
 
   \item{agglomeration}{The agglomeration method to be used
   when \code{"method"} is \code{"h"} (for hierarchical
   clustering). This should be one of \code{"ward"},
   \code{"single"}, \code{"complete"}, \code{"average"},
   \code{"mcquitty"}, \code{"median"} or \code{"centroid"}.
-  Default is \code{"ward"}. See \link{hclust}.  By default,
-  method is \code{"k"} and this parameter will be ignored.}
+  Default is \code{"ward"}. See \code{\link{hclust}}.  By
+  default, method is \code{"k"} and this parameter will be
+  ignored.}
 
   \item{showAccuracy}{If \code{TRUE}, the
-  \link{sjc.grpdisc} function will be called, which
+  \code{\link{sjc.grpdisc}} function will be called, which
   computes a linear discriminant analysis on the classified
   cluster groups and plots a bar graph indicating the
   goodness of classification for each group.}
@@ -168,9 +169,7 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{borderColor}{User defined color of whole diagram
   border (panel border).}
@@ -234,12 +233,18 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
+
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-An object of type \link{structure} containing the used data
+(Invisibly) returns an object of containing the used data
 frame for plotting, the ggplot object, the number of found
-cluster (as calculated by \link{sjc.kgap}) and the group
-classification (as calculated by \link{sjc.cluster}).
+cluster (as calculated by \code{\link{sjc.kgap}}) and the
+group classification (as calculated by
+\code{\link{sjc.cluster}}).
 }
 \description{
 Compute a quick kmeans or hierarchical cluster analysis and
@@ -247,15 +252,15 @@ displays "cluster characteristics" as graph.  \enumerate{
 \item If \code{method} is \code{kmeans}, this function
 first determines the optimal group count via gap statistics
 (unless parameter \code{groupcount} is specified), using
-the \link{sjc.kgap} function.  \item Than a cluster
-analysis is performed by running the \link{sjc.cluster}
-function to determine the cluster groups.  \item After
-that, all variables in \code{data} are scaled and centered.
-The mean value of these z-scores within each cluster group
-is calculated to see how certain characteristics
-(variables) in a cluster group differ in relation to other
-cluster groups.  \item These results are shown in a graph.
-}
+the \code{\link{sjc.kgap}} function.  \item Than a cluster
+analysis is performed by running the
+\code{\link{sjc.cluster}} function to determine the cluster
+groups.  \item After that, all variables in \code{data} are
+scaled and centered. The mean value of these z-scores
+within each cluster group is calculated to see how certain
+characteristics (variables) in a cluster group differ in
+relation to other cluster groups.  \item These results are
+shown in a graph.  }
 }
 \examples{
 # K-means clustering of mtcars-dataset

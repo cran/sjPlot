@@ -8,7 +8,7 @@ sjp.chi2(df, title = "Pearson's Chi2-Test of Independence", titleSize = 1.3,
   outlineSize = 0.5, axisColor = NULL, axisLabelSize = 1.1,
   axisLabelColor = "gray30", axisLabelAngle.x = 0, axisLabelAngle.y = 0,
   breakTitleAt = 50, breakLabelsAt = 12, hideLegend = TRUE,
-  legendTitle = NULL, returnPlot = FALSE)
+  legendTitle = NULL, printPlot = TRUE)
 }
 \arguments{
   \item{df}{a data frame of (dichotomous) factor
@@ -74,14 +74,15 @@ sjp.chi2(df, title = "Pearson's Chi2-Test of Independence", titleSize = 1.3,
   e.g. \code{legendTitle=c("Strength of correlation")}.
   Default is \code{NULL}, hence no legend title is used.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot Pearson's Chi2-Test of multiple contingency tables as

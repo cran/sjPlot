@@ -14,12 +14,12 @@ sjp.corr(data, title = NULL, titleSize = 1.3, titleColor = "black",
   showCorrelationValueLabels = TRUE, showCorrelationPValues = TRUE,
   pvaluesAsNumbers = FALSE, showTickMarks = FALSE, fillColor = NULL,
   majorGridColor = NULL, minorGridColor = NULL, theme = NULL,
-  returnPlot = FALSE)
+  printPlot = TRUE)
 }
 \arguments{
   \item{data}{A correlation object, built with the
-  R-\code{cor}-function, or a data frame which correlations
-  should be calculated.}
+  R-\code{\link{cor}}-function, or a data frame which
+  correlations should be calculated.}
 
   \item{title}{Title of the diagram, plotted above the
   whole diagram panel.}
@@ -158,26 +158,27 @@ sjp.corr(data, title = NULL, titleSize = 1.3, titleColor = "black",
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}) and the
+original correlation matrix (\code{corr.matrix}).
 }
 \description{
 Plot correlations as ellipses or tiles. Required parameter
-is either a data frame or a computed \code{cor}-object. In
-case of ellipses, the ellipses size indicates the strength
-of the correlation. Furthermore, blue and red colors
-indicate positive or negative correlations, where stronger
-correlations are darkened.
+is either a data frame or a computed
+\code{\link{cor}}-object. In case of ellipses, the ellipses
+size indicates the strength of the correlation.
+Furthermore, blue and red colors indicate positive or
+negative correlations, where stronger correlations are
+darkened.
 }
 \examples{
 # create data frame with 5 random variables
