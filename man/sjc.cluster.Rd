@@ -33,14 +33,14 @@ sjc.cluster(data, groupcount, method = "h", distance = "euclidean",
   clustering). This must be one of \code{"euclidean"}
   (default), \code{"maximum"}, \code{"manhattan"},
   \code{"canberra"}, \code{"binary"} or \code{"minkowski"}.
-  See \link{dist}.}
+  See \code{\link{dist}}.}
 
   \item{agglomeration}{The agglomeration method to be used
   when \code{"method"} is \code{"h"} (for hierarchical
   clustering). This should be one of \code{"ward"},
   \code{"single"}, \code{"complete"}, \code{"average"},
   \code{"mcquitty"}, \code{"median"} or \code{"centroid"}.
-  Default is \code{"ward"}. See \link{hclust}.}
+  Default is \code{"ward"}. See \code{\link{hclust}}.}
 }
 \value{
 The group classification for each observation as vector.

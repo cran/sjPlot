@@ -7,8 +7,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @description Compute a quick kmeans or hierarchical cluster analysis and displays "cluster characteristics"
 #'                as graph.
 #'                \enumerate{
-#'                \item If \code{method} is \code{kmeans}, this function first determines the optimal group count via gap statistics (unless parameter \code{groupcount} is specified), using the \link{sjc.kgap} function.
-#'                \item Than a cluster analysis is performed by running the \link{sjc.cluster} function to determine the cluster groups.
+#'                \item If \code{method} is \code{kmeans}, this function first determines the optimal group count via gap statistics (unless parameter \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
+#'                \item Than a cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
 #'                \item After that, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
 #'                \item These results are shown in a graph.
 #'                }
@@ -31,13 +31,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          cluster analysis.
 #' @param distance The distance measure to be used when \code{"method"} is \code{"h"} (for hierarchical
 #'          clustering). This must be one of \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"}, 
-#'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \link{dist}.
+#'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \code{\link{dist}}.
 #'          By default, method is \code{"k"} and this parameter will be ignored.
 #' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"h"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
-#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \link{hclust}.
+#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
 #'          By default, method is \code{"k"} and this parameter will be ignored.
-#' @param showAccuracy If \code{TRUE}, the \link{sjc.grpdisc} function will be called,
+#' @param showAccuracy If \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
 #'          which computes a linear discriminant analysis on the classified cluster groups and plots a 
 #'          bar graph indicating the goodness of classification for each group.
 #' @param title Title of diagram as string.
@@ -96,8 +96,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'            \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'            \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
@@ -122,10 +120,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #'
-#' @return An object of type \link{structure} containing the used data frame for plotting, 
-#'           the ggplot object, the number of found cluster (as calculated by \link{sjc.kgap})
-#'           and the group classification (as calculated by \link{sjc.cluster}).
+#' @return (Invisibly) returns an object of containing the used data frame for plotting, 
+#'           the ggplot object, the number of found cluster (as calculated by \code{\link{sjc.kgap}})
+#'           and the group classification (as calculated by \code{\link{sjc.cluster}}).
 #' 
 #' @examples
 #' # K-means clustering of mtcars-dataset
@@ -184,7 +184,8 @@ sjc.qclus <- function(data,
                       minorGridColor=NULL,
                       hideGrid.x=FALSE,
                       hideGrid.y=FALSE,
-                      flipCoordinates=FALSE) {
+                      flipCoordinates=FALSE,
+                      printPlot=TRUE) {
   # remove missings
   data <- na.omit(data)
   # --------------------------------------------------------
@@ -473,7 +474,7 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
-  plot(gp)
+  if (printPlot) plot(gp)
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
@@ -508,10 +509,10 @@ sjc.qclus <- function(data,
 #'          a k-means clustering.
 #' @param distance The distance measure to be used when \code{"method"} is \code{"h"} (for hierarchical
 #'          clustering). This must be one of \code{"euclidean"} (default), \code{"maximum"}, \code{"manhattan"}, 
-#'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \link{dist}.
+#'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \code{\link{dist}}.
 #' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"h"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
-#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \link{hclust}.
+#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
 #' @return The group classification for each observation as vector. This group
 #'           classification is needed for \code{\link{sjc.grpdisc}}-function to
 #'           check the goodness of classification.
@@ -572,11 +573,11 @@ sjc.cluster <- function(data, groupcount, method="h", distance="euclidean", aggl
 #'          Solutions for multiple cluster groups can be plotted, for instance with \code{"groupcount=c(3:6)"}.
 #' @param distance The distance measure to be used. This must be one of \code{"euclidean"} (default), 
 #'          \code{"maximum"}, \code{"manhattan"}, \code{"canberra"}, \code{"binary"} or 
-#'          \code{"minkowski"}. See \link{dist}.
+#'          \code{"minkowski"}. See \code{\link{dist}}.
 #' @param agglomeration The agglomeration method to be used. This should be one of
 #'          \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
 #'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is 
-#'          \code{"ward"}. See \link{hclust}.
+#'          \code{"ward"}. See \code{\link{hclust}}.
 #' 
 #' @importFrom scales brewer_pal
 #' @examples
@@ -867,7 +868,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
 #' @param plotResults If \code{TRUE} (default), a graph visualiting the gap statistic will
 #'          be plotted. Use \code{FALSE} to omit the plot.
 #' 
-#' @return An object of type \link{structure} containing the used data frame for plotting, the ggplot object
+#' @return An object containing the used data frame for plotting, the ggplot object
 #'           and the number of found cluster.
 #' 
 #' @note Source code was taken from the \code{\link{clusGap}} function of the
@@ -927,137 +928,4 @@ sjc.kgap <- function(x, max=10, B=100, SE.factor=1, method="Tibs2001SEmax", plot
                       list(data = df,
                       plot = gp,
                       solution = nc)))
-}
-
-
-# -----------------------------------------------------------------------------
-# Source code of the following function was taken from the cluster-package
-#
-# Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). 
-# cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4.
-# 
-# http://cran.r-project.org/web/packages/cluster/index.html
-# -----------------------------------------------------------------------------
-
-#### Originally from orphaned package SLmisc
-#### (Version: 1.4.1, 2007-04-12, Maintainer: Matthias Kohl <kohl@sirs-lab.com>)
-#### License: GPL (version 2 or later)
-####
-#### which said
-####  "function corresponds to function gap in package SAGx"
-
-## MM: SAGx is now in Bioconductor --- 1.10.1{devel} or 1.11.1{release}
-##     had gap() *corrected* to re-cluster using FUNcluster --> see ./gap-SAGx.R.~orig~
-##
-## MM: Package 'lga' -- has gap() and lga and robust lga [-> UBC]
-##    - it uses  boot() nicely  [2012-01: ORPHANED because  Justin Harrington is amiss]
-## MM: renamed arguments, and changed almost everything
-
-clusGap <- function (x, FUNcluster, K.max, B = 100, verbose = interactive(), ...)
-{
-  stopifnot(is.function(FUNcluster), length(dim(x)) == 2, K.max >= 2,
-            (n <- nrow(x)) >= 1, (p <- ncol(x)) >= 1)
-  if(B != (B. <- as.integer(B)) || (B <- B.) <= 0)
-    stop("'B' has to be a positive integer")
-  
-  if(is.data.frame(x))
-    x <- as.matrix(x)
-  ii <- seq_len(n)
-  W.k <- function(X, kk) {
-    clus <- if(kk > 1) FUNcluster(X, kk, ...)$cluster else rep.int(1L, nrow(X))
-    ##                 ---------- =  =       -------- kmeans() has 'cluster'; pam() 'clustering'
-    0.5* sum(vapply(split(ii, clus),
-                    function(I) { xs <- X[I,, drop=FALSE]
-                                  sum(dist(xs)/nrow(xs)) }, 0.))
-  }
-  logW <- E.logW <- SE.sim <- numeric(K.max)
-  if(verbose) cat("Clustering k = 1,2,..., K.max (= ",K.max,"): .. ", sep='')
-  for(k in 1:K.max)
-    logW[k] <- log(W.k(x, k))
-  if(verbose) cat("done\n")
-  
-  ## Scale 'x' into "hypercube" -- we later fill with H0-generated data
-  xs <- scale(x, center=TRUE, scale=FALSE)
-  m.x <- rep(attr(xs,"scaled:center"), each = n)# for back transforming
-  V.sx <- svd(xs)$v
-  rng.x1 <- apply(xs %*% V.sx, # = transformed(x)
-                  2, range)
-  
-  logWks <- matrix(0., B, K.max)
-  if(verbose) cat("Bootstrapping, b = 1,2,..., B (= ", B,
-                  ")  [one \".\" per sample]:\n", sep="")
-  for (b in 1:B) {
-    ## Generate "H0"-data as "parametric bootstrap sample" :
-    z1 <- apply(rng.x1, 2,
-                function(M, nn) runif(nn, min=M[1], max=M[2]),
-                nn=n)
-    z <- tcrossprod(z1, V.sx) + m.x # back transformed
-    for(k in 1:K.max) {
-      logWks[b,k] <- log(W.k(z, k))
-    }
-    if(verbose) cat(".", if(b %% 50 == 0) paste(b,"\n"))
-  }
-  if(verbose && (B %% 50 != 0)) cat("",B,"\n")
-  E.logW <- colMeans(logWks)
-  SE.sim <- sqrt((1 + 1/B) * apply(logWks, 2, var))
-  structure(class = "clusGap",
-            list(Tab = cbind(logW, E.logW, gap = E.logW - logW, SE.sim),
-                 ## K.max == nrow(T)
-                 n = n, B = B, FUNcluster=FUNcluster))
-}
-
-## lga/R/gap.R   --- has for Tibshirani et al (2001):
-## ElogWks[k,] <- c(mean(BootOutput), sqrt(var(BootOutput)*(1+1/B)))
-## GAP[k] <- ElogWks[k,1] - logWks[k]
-## if (k > 1)
-##     if(GAP[k-1] >= GAP[k]-ElogWks[k,2] & !doall)
-##         finished <- TRUE
-##  so they effectively only look for the *first* (local) maximum which ..
-## MM: <==> diff(GAP) = GAP[k] - GAP[k-1] <= +SE.sim[k]
-
-
-## criteria.DandF() -- Dudoit and Fridlyand (2002)
-## ---------------- looks at the *global* maximum and then to the left..
-## y <- x$data
-## crit <- diff(y[which.max(y[,"Gap"]), c("Sks", "Gap")])
-## nclust <- min(which(y[,"Gap"] > crit))
-## return(ifelse(nclust == nrow(y), NA, nclust))
-
-maxSE <- function(f, SE.f,
-                  method = c("firstSEmax", "Tibs2001SEmax",
-                             "globalSEmax", "firstmax", "globalmax"),
-                  SE.factor = 1)
-{
-  method <- match.arg(method)
-  stopifnot((K <- length(f)) >= 1, K == length(SE.f), SE.f >= 0, SE.factor >= 0)
-  fSE <- SE.factor * SE.f
-  switch(method,
-         "firstmax" = { ## the first local maximum  (== firstSEmax with SE.factor == 0)
-           decr <- (dg <- diff(f)) <= 0 # length K-1
-           if(any(decr)) which.max(decr) else K # the first TRUE, or K
-         },
-         "globalmax" = {
-           which.max(f)
-         },
-         "Tibs2001SEmax" = { ## The one Tibshirani et al (2001) proposed:
-           ## "the smallest k such that f(k) >= f(k+1) - s_{k+1}"
-           g.s <- f - fSE
-           if(any(mp <- f[-K] >= g.s[-1])) which.max(mp) else K
-         },
-         "firstSEmax" = { ## M.Maechler(2012): rather ..
-           ## look at the first *local* maximum and then to the left ..:
-           decr <- (dg <- diff(f)) <= 0 # length K-1
-           nc <- if(any(decr)) which.max(decr) else K # the first TRUE, or K
-           if(any(mp <- f[seq_len(nc - 1)] >= f[nc] - fSE[nc]))
-             which(mp)[1]
-           else nc
-         },
-         "globalSEmax" = { ## Dudoit and Fridlyand (2002) *thought* Tibshirani proposed..
-           ## in 'lga', see criteria.DandF():
-           ## looks at the *global* maximum and then to the left..
-           nc <- which.max(f)
-           if(any(mp <- f[seq_len(nc - 1)] >= f[nc] - fSE[nc]))
-             which(mp)[1]
-           else nc
-         })
 }

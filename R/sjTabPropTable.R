@@ -1,9 +1,9 @@
-#' @title Save cross tables as HTML table
+#' @title Show contigency tables as HTML table
 #' @name sjt.xtab
 #' 
-#' @description Save cross tables as HTML file.
+#' @description Shows contingency tables as HTML file in browser or viewer pane, or saves them as file.
 #' 
-#' @seealso \link{sjp.xtab}
+#' @seealso \code{\link{sjp.xtab}}
 #' 
 #' @param var.row Variable that should be displayed in the table rows.
 #' @param var.col Variable that should be displayed in the table columns.
@@ -11,7 +11,7 @@
 #'          depending on the amount of categories. See examples for details.
 #' @param weightBy A weight factor that will be applied to weight all cases.
 #'          Default is \code{NULL}, so no weights are used.
-#' @param digits The amount of digits used for the percenage values inside table cells.
+#' @param digits The amount of digits used for the percentage values inside table cells.
 #'          Default is 1.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
@@ -23,8 +23,12 @@
 #' @param valueLabels A list of character vectors that indicate the value labels of the supplied
 #'          variables. Following order is needed: value labels of \code{var.row},
 #'          value labels  of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - 
-#'          value labels  of \code{var.grp}. \code{valueLabels} needs to be a \link{list} object.
+#'          value labels  of \code{var.grp}. \code{valueLabels} needs to be a \code{\link{list}} object.
 #'          See examples for more details.
+#' @param breakVariableLabelsAt Wordwrap for variable labels. Determines how many chars of the variable labels are displayed in 
+#'          one line and when a line break is inserted. Default is 40.
+#' @param breakValueLabelsAt Wordwrap for value labels. Determines how many chars of the value labels are displayed in 
+#'          one line and when a line break is inserted. Default is 20.
 #' @param stringTotal String label for the total column / row header.
 #' @param showCellPerc If \code{TRUE}, cell percentage values are shown.
 #' @param showRowPerc If \code{TRUE}, row percentage values are shown.
@@ -33,6 +37,9 @@
 #' @param showHorizontalLine If \code{TRUE}, data rows are separated with a horizontal line.
 #' @param showSummary If \code{TRUE} (default), a summary row with chi-square statistics,
 #'          Cramer's V or Phi-value etc. is shown.
+#' @param showLegend If \code{TRUE} (default), the color legend for coloring observed and expected
+#'          values as well as cell, row and column percentages is shown. See \code{tdcol.n},
+#'          \code{tdcol.expectec}, \code{tdcol.cell}, \code{tdcol.row} and \code{tdcol.col}.
 #' @param tdcol.n Color for highlighting count (observed) values in table cells. Default is black.
 #' @param tdcol.expected Color for highlighting expected values in table cells. Default is cyan.
 #' @param tdcol.cell Color for highlighting cell percentage values in table cells. Default is red.
@@ -49,8 +56,34 @@
 #'          may lead to non-exact results). Default is \code{"100.0"}.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @return Invisibly returns a \link{structure} with the web page style sheet (\code{page.style}) and the
-#'          web page content (\code{page.content}) for further use.
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
+#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
+#'          \enumerate{
+#'            \item the class-names with \code{"css."}-prefix as parameter name and
+#'            \item each style-definition must end with a semicolon
+#'          } 
+#'          Examples:
+#'          \itemize{
+#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
+#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
+#'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'          }
+#'          See further examples below.
+#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
+#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+#'          the viewer pane and not even saved to file. This option is useful when the html output
+#'          should be used in \code{knitr} documents. The html output can be accessed via the return
+#'          value.
+#' @return Invisibly returns a \code{\link{structure}} with
+#'          \itemize{
+#'            \item the web page style sheet (\code{page.style}),
+#'            \item the web page content (\code{page.content}),
+#'            \item the complete html-output (\code{output.complete}) and
+#'            \item the html-table with inline-css for use with knitr (\code{knitr})
+#'            }
+#'            for further use.
 #'          
 #' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
@@ -100,7 +133,18 @@
 #'                           efc.labels[['e42dep']],
 #'                           efc.labels[['c161sex']]),
 #'          showRowPerc=TRUE, showColPerc=TRUE)}
-#'          
+#'
+#' # ---------------------------------------------------------------- 
+#' # User defined style sheet
+#' # ---------------------------------------------------------------- 
+#' \dontrun{
+#' sjt.xtab(efc$e16sex, efc$e42dep, 
+#'          variableLabels=c("Elder's gender", "Elder's dependency"),
+#'          valueLabels=list(efc.labels[['e16sex']], efc.labels[['e42dep']]),
+#'          CSS=list(css.table="border: 2px solid;",
+#'                  css.tdata="border: 1px solid;",
+#'                  css.horline="border-bottom: double blue;"))}
+#'
 #' @export
 sjt.xtab <- function (var.row,
                       var.col,
@@ -110,13 +154,16 @@ sjt.xtab <- function (var.row,
                       file=NULL,
                       variableLabels=NULL,
                       valueLabels=NULL,
+                      breakVariableLabelsAt=40,
+                      breakValueLabelsAt=20,
                       stringTotal="Total",
-                      showCellPerc=TRUE,
+                      showCellPerc=FALSE,
                       showRowPerc=FALSE,
                       showColPerc=FALSE,
                       showExpected=FALSE,
-                      showHorizontalLine=TRUE,
+                      showHorizontalLine=FALSE,
                       showSummary=TRUE,
+                      showLegend=TRUE,
                       tdcol.n="black",
                       tdcol.expected="#339999",
                       tdcol.cell="#993333",
@@ -126,10 +173,14 @@ sjt.xtab <- function (var.row,
                       highlightColor="#f8f8f8",
                       percSign="&nbsp;%",
                       hundret="100.0",
-                      encoding="UTF-8") {
+                      encoding="UTF-8",
+                      CSS=NULL,
+                      useViewer=TRUE,
+                      no.output=FALSE) {
   # -------------------------------------
   # init variable labels
   # -------------------------------------
+  s.var.row <- s.var.col <- s.var.grp <- NULL
   if(!is.null(variableLabels)) {
     s.var.row <- ifelse(length(variableLabels)>0, variableLabels[1], "var.row")
     s.var.col <- ifelse(length(variableLabels)>1, variableLabels[2], "var.col")
@@ -140,6 +191,10 @@ sjt.xtab <- function (var.row,
     s.var.col <- "var.col"
     s.var.grp <- "var.grp"
   }
+  # check length of variable labels and split longer strings at into new lines
+  if (!is.null(s.var.row)) s.var.row <- sju.wordwrap(s.var.row, breakVariableLabelsAt, "<br>")
+  if (!is.null(s.var.col)) s.var.col <- sju.wordwrap(s.var.col, breakVariableLabelsAt, "<br>")
+  if (!is.null(s.var.grp)) s.var.grp <- sju.wordwrap(s.var.grp, breakVariableLabelsAt, "<br>")
   # -------------------------------------
   # compute xtab
   # -------------------------------------
@@ -232,16 +287,77 @@ sjt.xtab <- function (var.row,
       }
     }
   }
+  # check length of variable labels and split longer strings at into new lines
+  if (!is.null(labels.var.row)) labels.var.row <- sju.wordwrap(labels.var.row, breakValueLabelsAt, "<br>")
+  if (!is.null(labels.var.col)) labels.var.col <- sju.wordwrap(labels.var.col, breakValueLabelsAt, "<br>")
+  if (!is.null(labels.var.grp)) labels.var.grp <- sju.wordwrap(labels.var.grp, breakValueLabelsAt, "<br>")
   # -------------------------------------
   # table init
   # -------------------------------------
-  # set highlight color for style sheet
-  ht <- ifelse(highlightTotal==TRUE, sprintf("background-color:%s", highlightColor), "")
-  hl <- ifelse(showHorizontalLine==TRUE, "border-bottom:1px solid", "")
   # init web page header
   toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n", encoding)
-  # init style sheet
-  page.style <- sprintf("<style>\ntable { border-collapse:collapse; border:none }\nth { border-top: double; text-align:center; font-style:italic; font-weight:normal }\ntable td { padding:0.2cm }\n.secondtablerow { border-bottom:1px solid; text-align:center }\n.leftalign { text-align:left; vertical-align:top }\n.centeralign { text-align:center }\n.lasttablerow { %s }\n.totcol { %s }\n.tothi { font-weight:bolder; font-style:italic }\n.td_n { color:%s }\n.td_c { color:%s }\n.td_rw { color:%s }\n.td_cl { color:%s }\n.td_ex { color:%s }\n.summary { text-align:right; font-size:0.9em; font-style:italic; border-top:double }\n.horline { %s }\n</style>", ht, ht, tdcol.n, tdcol.cell, tdcol.row, tdcol.col, tdcol.expected, hl)
+  # -------------------------------------
+  # init style sheet and tags used for css-definitions
+  # we can use these variables for string-replacement
+  # later for return value
+  # -------------------------------------
+  tag.table <- "table"
+  tag.thead <- "thead"
+  tag.tdata <- "tdata"
+  tag.firstcolborder <- "firstcolborder"
+  tag.secondtablerow <- "secondtablerow"
+  tag.leftalign <- "leftalign"
+  tag.centeralign <- "centeralign"
+  tag.lasttablerow <- "lasttablerow"
+  tag.totcol <- "totcol"
+  tag.tothi <- "tothi"
+  tag.summary <- "summary"
+  tag.horline <- "horline"
+  tag.td_ex <- "td_ex"
+  tag.td_cl <- "td_cl"
+  tag.td_rw <- "td_rw"
+  tag.td_c <- "td_c"
+  tag.td_n <- "td_n"
+  css.table <- "border-collapse:collapse; border:none;"
+  css.thead <- "border-top:double; text-align:center; font-style:italic; font-weight:normal;"
+  css.tdata <- "padding:0.2cm;"
+  css.firstcolborder <- "border-bottom:1px solid;"
+  css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
+  css.leftalign <- "text-align:left; vertical-align:top;"
+  css.centeralign <- "text-align:center;"
+  css.lasttablerow <- ifelse(highlightTotal==TRUE, sprintf("background-color:%s;", highlightColor), "")
+  css.totcol <- css.lasttablerow
+  css.tothi <- "font-weight:bolder; font-style:italic;"
+  css.summary <- "text-align:right; font-size:0.9em; font-style:italic; border-top:double;"
+  css.horline <- ifelse(showHorizontalLine==TRUE, "border-bottom:1px solid;", "")
+  # ------------------------
+  # check user defined style sheets
+  # ------------------------
+  if (!is.null(CSS)) {
+    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
+    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
+    if (!is.null(CSS[['css.firstcolborder']])) css.firstcolborder <- CSS[['css.firstcolborder']]
+    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
+    if (!is.null(CSS[['css.secondtablerow']])) css.secondtablerow <- CSS[['css.secondtablerow']]
+    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- CSS[['css.leftalign']]
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
+    if (!is.null(CSS[['css.totcol']])) css.totcol <- CSS[['css.totcol']]
+    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
+    if (!is.null(CSS[['css.tothi']])) css.tothi <- CSS[['css.tothi']]
+    if (!is.null(CSS[['css.horline']])) css.horline <- CSS[['css.horline']]
+  }
+  # -------------------------------------
+  # set style sheet
+  # -------------------------------------
+  page.style <- sprintf("<style>\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>", 
+                        tag.table, css.table, tag.thead, css.thead, tag.tdata, css.tdata, tag.secondtablerow, css.secondtablerow, 
+                        tag.leftalign, css.leftalign, tag.centeralign, css.centeralign, tag.lasttablerow, css.lasttablerow, 
+                        tag.totcol, css.totcol, tag.tothi, css.tothi,
+                        tag.td_n, tdcol.n, tag.td_c, tdcol.cell, tag.td_rw, tdcol.row,
+                        tag.td_cl, tdcol.col, tag.td_ex, tdcol.expected, 
+                        tag.summary, css.summary, tag.horline, css.horline,
+                        tag.firstcolborder, css.firstcolborder)
   # start writing content
   toWrite <- paste(toWrite, page.style)
   toWrite <- paste(toWrite, "\n</head>\n<body>\n")
@@ -249,35 +365,35 @@ sjt.xtab <- function (var.row,
   # init first table row
   # -------------------------------------
   page.content <- "<table>\n"
-  page.content <- paste(page.content, "  <tr class=\"firsttablerow\">\n")
+  page.content <- paste(page.content, "  <tr>\n")
   # -------------------------------------
   # check whether we have additional grouping column
   # -------------------------------------
   if (!is.null(var.grp)) {
-    page.content <- paste(page.content, sprintf("    <th rowspan=\"2\">%s</th>\n", s.var.grp))
+    page.content <- paste(page.content, sprintf("    <th class=\"thead firstcolborder\" rowspan=\"2\">%s</th>\n", s.var.grp))
   }
   # -------------------------------------
   # column with row-variable-name
   # -------------------------------------
-  page.content <- paste(page.content, sprintf("    <th rowspan=\"2\">%s</th>\n", s.var.row))
+  page.content <- paste(page.content, sprintf("    <th class=\"thead firstcolborder\" rowspan=\"2\">%s</th>\n", s.var.row))
   # -------------------------------------
   # column with column-variable-name
   # -------------------------------------
-  page.content <- paste(page.content, sprintf("    <th colspan=\"%i\">%s</th>\n", length(labels.var.col), s.var.col))
+  page.content <- paste(page.content, sprintf("    <th class=\"thead\" colspan=\"%i\">%s</th>\n", length(labels.var.col), s.var.col))
   # -------------------------------------
   # total-column
   # -------------------------------------
-  page.content <- paste(page.content, sprintf("    <th class=\"tothi\" rowspan=\"2\">%s</th>\n", stringTotal))
+  page.content <- paste(page.content, sprintf("    <th class=\"thead tothi firstcolborder\" rowspan=\"2\">%s</th>\n", stringTotal))
   page.content <- paste(page.content, "  </tr>\n")
   # -------------------------------------
   # init second table row
   # -------------------------------------
-  page.content <- paste(page.content, "\n  <tr class=\"secondtablerow\">\n")
+  page.content <- paste(page.content, "\n  <tr>\n")
   # -------------------------------------
   # column variable labels
   # -------------------------------------
   for (i in seq_along(labels.var.col)) {
-    page.content <- paste(page.content, sprintf("    <td>%s</td>\n", labels.var.col[i]))
+    page.content <- paste(page.content, sprintf("    <td class=\"secondtablerow tdata\">%s</td>\n", labels.var.col[i]))
   }
   page.content <- paste(page.content, "  </tr>\n")
   # -------------------------------------
@@ -315,12 +431,12 @@ sjt.xtab <- function (var.row,
     # starts with current row
     # -------------------------------------
     if (any(group.var.rows==irow)) {
-      page.content <- paste(page.content, sprintf("\n    <td class=\"leftalign\" rowspan=\"%i\">%s</td>", length(labels.var.row), labels.var.grp[which(group.var.rows==irow)]))
+      page.content <- paste(page.content, sprintf("\n    <td class=\"tdata leftalign\" rowspan=\"%i\">%s</td>", length(labels.var.row), labels.var.grp[which(group.var.rows==irow)]))
     }
     # -------------------------------------
     # set row variable label
     # -------------------------------------
-    page.content <- paste(page.content, sprintf("\n    <td class=\"leftalign\">%s</td>", labels.var.row[rowlabelcnt[irow]]))
+    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata leftalign\">%s</td>", labels.var.row[rowlabelcnt[irow]]))
     # -------------------------------------
     # iterate all data columns
     # -------------------------------------
@@ -356,7 +472,7 @@ sjt.xtab <- function (var.row,
       # -------------------------------------
       # write table cell data
       # -------------------------------------
-      page.content <- paste(page.content, sprintf("\n    <td class=\"centeralign horline\">%s</td>", cellstring), sep="")
+      page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign horline\">%s</td>", cellstring), sep="")
     }
     # -------------------------------------
     # after all data columns have been printed,
@@ -382,7 +498,7 @@ sjt.xtab <- function (var.row,
       cellstring <- paste(cellstring, sprintf("<br><span class=\"td_c\">%s%s</span>", rowSums(tab.cell)[irow], percSign), sep="")
     }
     # write table cell data
-    page.content <- paste(page.content, sprintf("\n    <td class=\"centeralign totcol horline\">%s</td>", cellstring), sep="")
+    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign totcol horline\">%s</td>", cellstring), sep="")
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
   }
@@ -390,13 +506,13 @@ sjt.xtab <- function (var.row,
   # start new table row
   # this row contains the total row with sums for all columns
   # ------------------------------
-  page.content <- paste(page.content, "\n  <tr class=\"lasttablerow\">\n    ", sep="")
+  page.content <- paste(page.content, "\n  <tr>\n    ", sep="")
   # check whether we have group-var, and if not, apply colspan
   if (!is.null(var.grp)) {
-    page.content <- paste(page.content, sprintf("<td class=\"leftalign tothi\" colspan=\"2\">%s</td>", stringTotal), sep="")
+    page.content <- paste(page.content, sprintf("<td class=\"tdata lasttablerow leftalign tothi\" colspan=\"2\">%s</td>", stringTotal), sep="")
   }
   else {
-    page.content <- paste(page.content, sprintf("<td class=\"leftalign tothi\">%s</td>", stringTotal), sep="")
+    page.content <- paste(page.content, sprintf("<td class=\"tdata lasttablerow leftalign tothi\">%s</td>", stringTotal), sep="")
   }
   # --------------------------
   # iterate all data columns
@@ -424,7 +540,7 @@ sjt.xtab <- function (var.row,
     if (showCellPerc) {
       cellstring <- paste(cellstring, sprintf("<br><span class=\"td_c\">%s%s</span>", cellpercval, percSign), sep="")
     }
-    page.content <- paste(page.content, sprintf("\n    <td class=\"centeralign\">%s</td>", cellstring), sep="")
+    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata lasttablerow centeralign\">%s</td>", cellstring), sep="")
   }
   # --------------------------
   # the lower right table cell contains the complete
@@ -436,7 +552,7 @@ sjt.xtab <- function (var.row,
   if (showRowPerc) cellstring <- paste(cellstring, sprintf("<br>%s%s", hundret, percSign), sep="")
   if (showCellPerc) cellstring <- paste(cellstring, sprintf("<br>%s%s", hundret, percSign), sep="")
   # write table cell data
-  page.content <- paste(page.content, sprintf("\n    <td class=\"centeralign\">%s</td>", cellstring), sep="")
+  page.content <- paste(page.content, sprintf("\n    <td class=\"tdata lasttablerow centeralign\">%s</td>", cellstring), sep="")
   # close table row
   page.content <- paste(page.content, "\n  </tr>\n")
   # -------------------------------------
@@ -460,7 +576,7 @@ sjt.xtab <- function (var.row,
       return (cramer)
     }
     # start new table row
-    page.content <- paste(page.content, "\n  <tr class=\"summary\">\n    ", sep="")
+    page.content <- paste(page.content, "\n  <tr>\n    ", sep="")
     # calculate chi square value
     chsq <- chisq.test(tab)
     # check whether variables are dichotome or if they have more
@@ -473,7 +589,7 @@ sjt.xtab <- function (var.row,
       kook <- sprintf("&Phi;=%.3f", getPhiValue(tab))
     }
     # create summary row
-    page.content <- paste(page.content, sprintf("\n    <td colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; p=%.3f</td>", totalncol, chsq$statistic, chsq$parameter, kook, chsq$p.value), sep="")
+    page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; p=%.3f</td>", totalncol, chsq$statistic, chsq$parameter, kook, chsq$p.value), sep="")
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
   }  
@@ -482,41 +598,88 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   page.content <- paste(page.content, "\n</table>")
   # -------------------------------------
+  # print legend
+  # -------------------------------------
+  if (showLegend) page.content <- paste(page.content, sprintf("<p class=\"abstand\"><span class=\"td_n\">observed values</span> &middot; <span class=\"td_ex\">expected values</span> &middot; <span class=\"td_rw\">%% within %s</span> &middot; <span class=\"td_cl\">%% within %s</span> &middot; <span class=\"td_c\">%% of total</span></p>", gsub("<br>", " ", s.var.row), gsub("<br>", " ", s.var.col)), "\n")
+  # -------------------------------------
   # add table to return value list, so user can access each
   # single frequency table
   # -------------------------------------
   toWrite <- paste(toWrite, page.content, "\n")
   # -------------------------------------
-  # print legend
-  # -------------------------------------
-  toWrite <- paste(toWrite, sprintf("<p class=\"abstand\"><span class=\"td_n\">observed values</span> &middot; <span class=\"td_ex\">expected values</span> &middot; <span class=\"td_rw\">%% within %s</span> &middot; <span class=\"td_cl\">%% within %s</span> &middot; <span class=\"td_c\">%% of total</span></p>", s.var.row, s.var.col), "\n")
-  # -------------------------------------
   # finish html page
   # -------------------------------------
-  toWrite = paste(toWrite, "</body></html>", "\n")
+  toWrite <- paste0(toWrite, "</body></html>")
   # -------------------------------------
-  # check if we have filename specified
+  # replace class attributes with inline style,
+  # useful for knitr
   # -------------------------------------
-  if (!is.null(file)) {
-    # write file
-    write(toWrite, file=file)
-  }
-  else {
-    # else create and browse temporary file
-    htmlFile <- tempfile(fileext=".html")
-    write(toWrite, file=htmlFile)
-    # check whether we have RStudio Viewer
-    viewer <- getOption("viewer")
-    if (!is.null(viewer)) {
-      viewer(htmlFile)
+  # copy page content
+  # -------------------------------------
+  knitr <- page.content
+  # -------------------------------------
+  # set style attributes for main table tags
+  # -------------------------------------
+  knitr <- gsub("class=", "style=", knitr)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
+  # -------------------------------------
+  # replace class-attributes with inline-style-definitions
+  # -------------------------------------
+  knitr <- gsub(tag.tdata, css.tdata, knitr)
+  knitr <- gsub(tag.thead, css.thead, knitr)
+  knitr <- gsub(tag.secondtablerow, css.secondtablerow, knitr)
+  knitr <- gsub(tag.firstcolborder, css.firstcolborder, knitr)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr)  
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr)  
+  knitr <- gsub(tag.horline, css.horline, knitr)  
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr)  
+  knitr <- gsub(tag.totcol, css.totcol, knitr)  
+  knitr <- gsub(tag.summary, css.summary, knitr)  
+  knitr <- gsub(tag.tothi, css.tothi, knitr)  
+  # -------------------------------------
+  # replace color-attributes for legend
+  # -------------------------------------
+  knitr <- gsub(tag.td_ex, sprintf("color:%s;",tdcol.expected), knitr)  
+  knitr <- gsub(tag.td_cl, sprintf("color:%s;",tdcol.col), knitr)  
+  knitr <- gsub(tag.td_rw, sprintf("color:%s;",tdcol.row), knitr)  
+  knitr <- gsub(tag.td_c, sprintf("color:%s;",tdcol.cell), knitr)  
+  knitr <- gsub(tag.td_n, sprintf("color:%s;",tdcol.n), knitr)  
+  # -------------------------------------
+  # check if html-content should be outputted
+  # -------------------------------------
+  if (!no.output) {
+    # -------------------------------------
+    # check if we have filename specified
+    # -------------------------------------
+    if (!is.null(file)) {
+      # write file
+      write(knitr, file=file)
     }
+    # -------------------------------------
+    # else open in viewer pane
+    # -------------------------------------
     else {
-      utils::browseURL(htmlFile)    
+      # else create and browse temporary file
+      htmlFile <- tempfile(fileext=".html")
+      write(toWrite, file=htmlFile)
+      # check whether we have RStudio Viewer
+      viewer <- getOption("viewer")
+      if (useViewer && !is.null(viewer)) {
+        viewer(htmlFile)
+      }
+      else {
+        utils::browseURL(htmlFile)    
+      }
+      # delete temp file
+      # unlink(htmlFile)
     }
-    # delete temp file
-    # unlink(htmlFile)
   }
+  # -------------------------------------
+  # return results
+  # -------------------------------------
   invisible (structure(class = "sjtxtab",
                        list(page.style = page.style,
-                            page.content = page.content)))
+                            page.content = page.content,
+                            output.complete = toWrite,
+                            knitr = knitr)))
 }

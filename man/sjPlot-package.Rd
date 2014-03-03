@@ -7,31 +7,42 @@
 sjPlot - data visualization for statistics in social science
 }
 \description{
-  Collection of several plotting functions for data visualization using ggplot. Results of several statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models (forest plots), PCA, correlations, cluster analyses, scatter plots etc.
+  Collection of several plotting and table output functions for data visualization. Results of several 
+  statistical analyses (that are commonly used in social sciences) can be visualized using this package, 
+  including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models 
+  (forest plots), PCA, correlations, cluster analyses, scatter plots etc.
   
   Furthermore, this package contains some tools that are useful when carrying out data
-  analysis or interpreting data, for instance data set import, variable recoding,
-  determination of cluster groups, interpretation of interactions in linear models etc.
+  analysis or interpreting data (especially intended for people coming from SPSS and who
+  are new to R). This collection of tool functions contains, for instance, (SPSS) data set import, 
+  variable recoding and weighting, statistical tests, determination of cluster groups, 
+  interpretation of interaction terms in linear models etc.
   
   \emph{What does this package do?}
   
   In short, the functions in this package mostly do two things:
   \enumerate{
     \item compute basic or advanced statistical analyses
-    \item plot the results as ggplot-diagram
+    \item either plot the results as ggplot-diagram or print them as html-table
   }
   
-  However, meanwhile the amount of functions has increased, hence you’ll also find some utility functions beside the plotting functions.
+  However, meanwhile the amount of functions has increased, hence you’ll also find 
+  some utility functions beside the plotting functions (see below).
   
   \emph{How does this package help me?}
   
-  Basically, this package either helps those users...
+  Basically, this package either helps those users who...
   \itemize{
-    \item who have difficulties using and/or understanding all possibilities that ggplot offers to create plots, simply by providing intuitive function parameters, which allow for manipulating the appearance of plots; or
-    \item who don’t want to set up complex ggplot-object each time from the scratch.
+    \item have difficulties using and/or understanding all possibilities that ggplot offers to create plots, simply by providing intuitive function parameters, which allow for manipulating the appearance of plots;
+    \item don’t want to set up complex ggplot-object each time from the scratch;
+    \item like quick inspections of (basic) statistics via (html-)tables that are shown in the GUI viewer pane or default browser; or
+    \item want easily create beautiful table outputs that can be imported in office applications.
   }
   
-  Furthermore, for advanced ggplot-users, the functions can return the prepared ggplot-object, which than can be manipulated even further (for instance, if you wish to specify certain parameters that cannot be modified via the sjPlot package).
+  Furthermore, for advanced users, each functions returns either the prepared ggplot-object (in case of
+  \code{sjp}-plotting functions) or the HTML-tables (in case of \code{sjt}-table-output functions), which 
+  than can be manipulated even further (for instance, for ggplot-objects, you can specify certain parameters 
+  that cannot be modified via the sjPlot package or html-tables could be integrated into knitr-documents).
   
   The functions follow specific naming conventions:
   \itemize{
@@ -46,8 +57,8 @@ sjPlot - data visualization for statistics in social science
 \tabular{ll}{
 Package: \tab sjPlot\cr
 Type: \tab Package\cr
-Version: \tab 1.1\cr
-Date: \tab 2014-02-19\cr
+Version: \tab 1.2.2\cr
+Date: \tab 2014-03-03\cr
 License: \tab GPL-3\cr
 }
 }

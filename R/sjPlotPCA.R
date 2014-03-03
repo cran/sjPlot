@@ -10,7 +10,7 @@
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
-#'          to compute a PCA, or a \link{prcomp} object.
+#'          to compute a PCA, or a \code{\link{prcomp}} object.
 #' @param numberOfFactors A predefined number of factors to use for the calculating the varimax
 #'          rotation. By default, this value is \code{NULL} and the amount of factors is
 #'          calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.
@@ -65,7 +65,7 @@
 #' @param showCronbachsAlpha If \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 #'          i.e. all variables with the highest loading for a factor are taken for the
 #'          reliability test. The result is an alpha value for each factor dimension.
-#'          Only applies when \code{data} is a data frame and no \code{pca}-object.
+#'          Only applies when \code{data} is a data frame and no \code{\link{prcomp}} object.
 #' @param fillColor A color palette for fillng the geoms. If not specified, the 5th diverging color palette
 #'          from the color brewer palettes (RdBu) is used, resulting in red colors for negative and blue colors
 #'          for positive factor loadings, that become lighter the weaker the loadings are. Use any
@@ -80,19 +80,18 @@
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned.
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return A \link{structure} with
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Invisibly) returns a \code{\link{structure}} with
 #'          \itemize{
-#'            \item the varimax-rotated factor loading matrix
-#'            \item the column indices of removed variables (for more details see next list item)
-#'            \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See parameter \code{factorLoadingTolerance} for more details)
-#'            \item the ggplot-object in case \code{returnPlot} was \code{TRUE}.
+#'            \item the varimax-rotated factor loading matrix (\code{varim})
+#'            \item the column indices of removed variables (for more details see next list item) (\code{removed.colindex})
+#'            \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See parameter \code{factorLoadingTolerance} for more details) (\code{removed.df})
+#'            \item the ggplot-object (\code{plot}),
+#'            \item the data frame that was used for setting up the ggplot-object (\code{df}).
 #'            }
 #' 
-#' @note This PCA uses the \link{prcomp} function and the \link{varimax} rotation.
+#' @note This PCA uses the \code{\link{prcomp}} function and the \code{\link{varimax}} rotation.
 #' 
 #' @examples
 #' # randomly create data frame with 7 items, each consisting of 4 categories
@@ -174,7 +173,7 @@ sjp.pca <- function(data,
                     majorGridColor=NULL,
                     minorGridColor=NULL,
                     theme=NULL,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
@@ -239,8 +238,6 @@ sjp.pca <- function(data,
     print(pcadata.eigenval)
     cat("--------------------------------------------\n")
   }
-
-  
   # --------------------------------------------------------
   # varimax rotation, retrieve factor loadings
   # --------------------------------------------------------
@@ -270,29 +267,6 @@ sjp.pca <- function(data,
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
-  }
-  
-  
-  # --------------------------------------------------------
-  # this function retrieves a list with the column index ("factor" index)
-  # where each case of the data frame has its highedt factor loading.
-  # So we know to which "group" (factor dimension) each case of the 
-  # data frame belongs to according to the pca results
-  # --------------------------------------------------------
-  getItemLoadings <- function(dataframe) {
-    # clear vector
-    itemloading <- c()
-    # iterate each row of the data frame. each row represents
-    # one item with its factor loadings
-    for (i in 1:nrow(dataframe)) {
-      # get factor loadings for each item
-      rowval <- abs(df[i,])
-      # retrieve highest loading and remeber that column
-      itemloading <- c(itemloading, which(rowval==max(rowval)))
-    }
-    # return a vector with index numbers indicating which items
-    # loads the highest on which factor
-    return (itemloading)
   }
   # --------------------------------------------------------
   # this function checks which items have unclear factor loadings,
@@ -324,6 +298,27 @@ sjp.pca <- function(data,
     return (removers)
   }
   # --------------------------------------------------------
+  # this function retrieves a list with the column index ("factor" index)
+  # where each case of the data frame has its highedt factor loading.
+  # So we know to which "group" (factor dimension) each case of the 
+  # data frame belongs to according to the pca results
+  # --------------------------------------------------------
+  getItemLoadings <- function(dataframe) {
+    # clear vector
+    itemloading <- c()
+    # iterate each row of the data frame. each row represents
+    # one item with its factor loadings
+    for (i in 1:nrow(dataframe)) {
+      # get factor loadings for each item
+      rowval <- abs(df[i,])
+      # retrieve highest loading and remeber that column
+      itemloading <- c(itemloading, which(rowval==max(rowval)))
+    }
+    # return a vector with index numbers indicating which items
+    # loads the highest on which factor
+    return (itemloading)
+  }
+  # --------------------------------------------------------
   # this function calculates the cronbach's alpha value for
   # each factor scale, i.e. all variables with the highest loading
   # for a factor are taken for the reliability test. The result is
@@ -332,18 +327,11 @@ sjp.pca <- function(data,
   getCronbach <- function(dataframe, itemloadings) {
     # clear vector
     cbv <- c()
-    CronbachAlpha <- function(X) { # X must be matrix or data.frame with more than 2 columns
-      if (is.null(ncol(X)) || ncol(X)<2) {
-        cat("\nToo less columns in this factor to calculate alpha value!\n")
-        return(0)
-      }
-      return (dim(X)[2]/(dim(X)[2]-1)*(1-sum(apply(X,2,var))/var(rowSums(X))))
-    }    
     # iterate all highest factor loadings of items
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- as.data.frame(rbind(cbv, cbind(nr=n, CronbachAlpha(na.omit(dataframe[,which(itemloadings==n)])))))
+      cbv <- as.data.frame(rbind(cbv, cbind(nr=n, sju.cronbach(na.omit(dataframe[,which(itemloadings==n)])))))
     }
     # just for vertical position adjustment when we print the alpha values
     vpos <- rep(c(-0.25, -1), nrow(cbv))
@@ -533,7 +521,7 @@ sjp.pca <- function(data,
   # --------------------------------------------------------
   # print plot
   # --------------------------------------------------------
-  plot(heatmap)
+  if (printPlot) plot(heatmap)
   
 
   # --------------------------------------------------------
@@ -557,43 +545,10 @@ sjp.pca <- function(data,
   # --------------------------------------------------------
   # return structure with various results
   # --------------------------------------------------------
-  if (returnPlot) {
-    invisible (structure(class = "sjcpca",
-                         list(varim = pcadata.varim,
-                              removed.colindex = removableItems,
-                              removed.df = remdf,
-                              plot = heatmap)))
-  }
-  else {
-    invisible (structure(class = "sjcpca",
-                         list(varim = pcadata.varim,
-                              removed.colindex = removableItems,
-                              removed.df = remdf)))
-  }
-}
-
-
-# Erzeugt eine rotierte Faktorladungen einer Hauptkomponentenanalyse
-# (Paramter "data") mit einer bestimmten Anzahl an Faktoren (Parameter "factors")
-# auf Grundlage der Varimax-Rotation
-#
-# Parameter:
-# - data: the results (object) from a principal component analysis
-#         (prcomp(myData...))
-# - factors: the amount of factors. can be calculated from the
-#            below function "factorcount"
-varimaxrota <- function(data, factors) {
-  # Faktorladungen berechnen
-  # Die Faktorladungen erhält man durch Multiplikation der Eigenvektoren
-  # mit der Diagonalmatrix der ausgewiesenen Standardabweichungen
-  ladungen <- data$rotation%*%diag(data$sdev)
-  # Zur Durchführung der VARIMAX-Rotation erzeugen wir eine Matrix
-  # mit den Faktorladungen der ausgewählten Faktoren (Anzahl = Parameter "factors")
-  ladb <- c()
-  for (i in 1:factors) {
-    ladb <- cbind(ladb, ladungen[,i])
-  }
-  # Varimax Rotation durchführen
-  varib <- varimax(ladb)
-  return (varib)
+  invisible (structure(class = "sjcpca",
+                       list(varim = pcadata.varim,
+                            removed.colindex = removableItems,
+                            removed.df = remdf,
+                            plot = heatmap,
+                            df = df)))
 }

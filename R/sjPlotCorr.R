@@ -11,12 +11,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #'             }
 #'             
 #' @description Plot correlations as ellipses or tiles. Required parameter is either 
-#'                a data frame or a computed \code{cor}-object. In case of ellipses, the
+#'                a data frame or a computed \code{\link{cor}}-object. In case of ellipses, the
 #'                ellipses size indicates the strength of the correlation. Furthermore,
 #'                blue and red colors indicate positive or negative correlations, where
 #'                stronger correlations are darkened.
 #' 
-#' @param data A correlation object, built with the R-\code{cor}-function, or a data frame
+#' @param data A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
 #'          which correlations should be calculated.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #' @param titleSize The size of the plot title. Default is 1.3.
@@ -87,11 +87,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}) and the original correlation matrix
+#'           (\code{corr.matrix}).
 #'          
 #' @examples
 #' # create data frame with 5 random variables
@@ -166,15 +166,13 @@ sjp.corr <- function(data,
                      majorGridColor=NULL,
                      minorGridColor=NULL,
                      theme=NULL,
-                     returnPlot=FALSE) {
+                     printPlot=TRUE) {
   # ----------------------------
   # check for valid parameter
   # ----------------------------
   if (corMethod!="pearson" && corMethod!="spearman" && corMethod!= "kendall") {
     stop("Parameter 'corMethod' must be one of: pearson, spearman or kendall")
   }
-  
-  
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
@@ -269,8 +267,6 @@ sjp.corr <- function(data,
       cpvalues <- rev(cpvalues)
     }
   }  
-  
-  
   # --------------------------------------------------------
   # prepare a ordering-index-column needed for the data frame
   # that is passed to the ggplot
@@ -279,10 +275,11 @@ sjp.corr <- function(data,
   for (i in 1:nrow(corr)) {
     yo <- c(yo, c(rep(i,nrow(corr))))
   }
-  
   # --------------------------------------------------------
   # melt correlation matrix and create data frame
   # --------------------------------------------------------
+  # first, save original matrix for return value
+  oricor <- orderedCorr
   orderedCorr <- melt(orderedCorr)
   if (!is.null(cpvalues)) cpvalues <- melt(cpvalues)
   # bind additional information like order for x- and y-axis
@@ -303,10 +300,13 @@ sjp.corr <- function(data,
   cpv <- c()
   if (!is.null(cpvalues)) {
     if (!pvaluesAsNumbers) {
-      if (cpvalues$value>=0.05) cpv <- c("")
-      else if (cpvalues$value>=0.01 && cpvalues$value<0.05) cpv <- c("*")
-      else if (cpvalues$value>=0.001 && cpvalues$value<0.01) cpv <- c("**")
-      else if (cpvalues$value<0.001) cpv <- c("***")
+      for (cpi in 1:nrow(cpvalues)) {
+        cva <- cpvalues$value[cpi]
+        if (cva>=0.05) cpv <- c(cpv, "")
+        else if (cva>=0.01 && cva<0.05) cpv <- c(cpv, "*")
+        else if (cva>=0.001 && cva<0.01) cpv <- c(cpv, "**")
+        else if (cva<0.001) cpv <- c(cpv, "***")
+      }
     }
     else {
       cpv <- c(sprintf("\n(%.3f)", round(cpvalues$value,3)))
@@ -376,7 +376,7 @@ sjp.corr <- function(data,
   }
   
   
-  print(sprintf("Computing correlation using %s-method with %s-deletion...", corMethod, missingDeletion))
+  cat(sprintf("Computing correlation using %s-method with %s-deletion...\n", corMethod, missingDeletion))
   
   # --------------------------------------------------------
   # start with base plot object here
@@ -465,10 +465,12 @@ sjp.corr <- function(data,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(corrPlot)
-  }
-  else {
-    plot(corrPlot)
-  }
+  if (printPlot) plot(corrPlot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpcorr",
+                       list(plot = corrPlot,
+                            df = orderedCorr,
+                            corr.matrix = oricor)))
 }

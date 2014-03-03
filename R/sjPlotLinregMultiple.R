@@ -55,7 +55,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'          See parameter \code{labelDependentVariables}. Determines how many chars of each dependent variable name
 #'          is displayed in one line in the legend and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is \code{NULL}, so \link{pretty} gridbeaks will be used.
+#'          grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.
 #' @param pointSize The size of the points that indicate the beta-value. Default is 3.
 #' @param modelPlotSpace Defines the space between the dots and error bars of the plotted fitted models. Default
 #'          is 0.3.
@@ -103,8 +103,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
@@ -121,9 +119,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each coefficient should be appended
 #'          to values or not.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #'          
 #' @examples
 #' # prepare dummy variables for binary logistic regression
@@ -206,7 +205,7 @@ sjp.lmm <- function(...,
                      showValueLabels=TRUE, 
                      labelDigits=2,
                      showPValueLabels=TRUE,
-                     returnPlot=FALSE) {
+                     printPlot=TRUE) {
   # --------------------------------------------------------
   # retrieve list of fitted models
   # --------------------------------------------------------
@@ -597,11 +596,11 @@ sjp.lmm <- function(...,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(plotHeader)
-  }
-  else {
-    # print plot
-    print(plotHeader)
-  }
+  if (printPlot) plot(plotHeader)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjplmm",
+                       list(plot = plotHeader,
+                            df = finalbetas)))
 }

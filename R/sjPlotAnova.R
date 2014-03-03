@@ -9,7 +9,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'                against the dependent variable. The SS of the factor variable against the 
 #'                dependent variable (variance within and between groups) is printed to
 #'                the model summary.
-#' @seealso \link{sju.aov1.levene}
+#' @seealso \code{\link{sju.aov1.levene}}
 #'                
 #' @param depVar The dependent variable. Will be used with following formular:
 #'          \code{aov(depVar ~ grpVar)}
@@ -86,7 +86,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is \code{NULL}, so \link{pretty} gridbeaks will be used.
+#'          grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
@@ -98,8 +98,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -115,9 +113,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          Sum of Squares between groups (ssb), Sum of Squares within groups (ssw), multiple and adjusted 
 #'          R-square and F-Test is printed to the lower right corner
 #'          of the diagram. Default is \code{TRUE}.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' data(efc)
@@ -206,7 +205,7 @@ sjp.aov1 <- function(depVar,
                     labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -351,7 +350,7 @@ sjp.aov1 <- function(depVar,
     pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
     # indicate significance level by stars
     pan <- c("")
-    if (pval<=0.005) {
+    if (pval<=0.001) {
       pan <- c("***")
     }
     else  if (pval<=0.01) {
@@ -678,13 +677,13 @@ sjp.aov1 <- function(depVar,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(anovaplot)
-  }
-  else {
-    # print plot
-    print(anovaplot)
-  }
+  if (printPlot) print(anovaplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpaov1",
+                       list(plot = anovaplot,
+                            df = df)))
 }
 
 
@@ -706,10 +705,13 @@ sjp.aov1 <- function(depVar,
 #' 
 #' @export
 sju.aov1.levene <- function(depVar, grpVar) {
-  means <- tapply(depVar, grpVar, mean)
-  depVarNew <- abs(depVar - means[grpVar])
-  cat("\nLevene's Test for Homogeneity of Variances\n---------------------------------------\n")
-  fit <- aov(depVarNew ~ grpVar)
+  # remove missings
+  df <- na.omit(data.frame(depVar, grpVar))
+  # calculate means
+  means <- tapply(df$depVar, df$grpVar, mean)
+  depVarNew <- abs(df$depVar - means[df$grpVar])
+  cat("\nLevene's Test for Homogeneity of Variances\n------------------------------------------\n")
+  fit <- aov(depVarNew ~ df$grpVar)
   print(summary(fit))
   pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
   # print "summary" of test

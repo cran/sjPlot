@@ -1,6 +1,6 @@
 \name{sjt.frq}
 \alias{sjt.frq}
-\title{Save frequencies as HTML table}
+\title{Show frequencies as HTML table}
 \usage{
 sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   valueLabels = NULL, autoGroupAt = NULL, alternateRowColors = FALSE,
@@ -8,7 +8,9 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   stringValidPerc = "valid \%", stringCumPerc = "cumulative \%",
   stringMissingValue = "missings", highlightMedian = FALSE,
   highlightQuartiles = FALSE, skipZeroRows = FALSE, showSummary = TRUE,
-  encoding = "UTF-8")
+  showSkew = FALSE, showKurtosis = FALSE, skewString = "&gamma;",
+  kurtosisString = "&omega;", encoding = "UTF-8", CSS = NULL,
+  useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{data}{The variables which frequencies should be
@@ -42,13 +44,13 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   \item{autoGroupAt}{A value indicating at which length of
   unique values a variable from \code{data} is
   automatically grouped into smaller units (see
-  \link{sju.groupVar}). Variables with large numbers of
-  unique values may be too time consuming when a HTML table
-  is created and R would not respond any longer. Hence it's
-  recommended to group such variables. Default value is 50,
-  i.e. variables with 50 and more unique values will be
-  grouped using \link{sju.groupVar} with
-  \code{groupsize="auto"} parameter. By default, the
+  \code{\link{sju.groupVar}}). Variables with large numbers
+  of unique values may be too time consuming when a HTML
+  table is created and R would not respond any longer.
+  Hence it's recommended to group such variables. Default
+  value is 50, i.e. variables with 50 and more unique
+  values will be grouped using \code{\link{sju.groupVar}}
+  with \code{groupsize="auto"} parameter. By default, the
   maximum group count is 30. However, if \code{autoGroupAt}
   is less than 30, \code{autoGroupAt} groups are built.
   Default value is \code{NULL}, i.e. auto-grouping is
@@ -91,19 +93,69 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   row with total and valid N as well as mean and standard
   deviation is shown.}
 
+  \item{showSkew}{If \code{TRUE}, the variable's skewness
+  is added to the summary.  The skewness is retrieved from
+  the \code{\link{describe}} function of the
+  \code{\link{psych}} package.}
+
+  \item{showKurtosis}{If \code{TRUE}, the variable's
+  kurtosis is added to the summary.  The kurtosis is
+  retrieved from the \code{\link{describe}} function of the
+  \code{\link{psych}} package.}
+
+  \item{skewString}{A character string, which is used as
+  header for the skew column (see \code{showSkew})).
+  Default is lower case Greek gamma.}
+
+  \item{kurtosisString}{A character string, which is used
+  as header for the kurtosis column (see
+  \code{showKurtosis})).  Default is lower case Greek
+  omega.}
+
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
   (e.g.) German umlauts).}
+
+  \item{CSS}{A \code{\link{list}} with user-defined
+  style-sheet-definitions, according to the official CSS
+  syntax (see \url{http://www.w3.org/Style/CSS/}). See
+  return value \code{page.style} for details of all
+  style-sheet-classnames that are used in this function.
+  Parameters for this list need: \enumerate{ \item the
+  class-names with \code{"css."}-prefix as parameter name
+  and \item each style-definition must end with a semicolon
+  } Examples: \itemize{ \item \code{css.table='border:2px
+  solid red;'} for a solid 2-pixel table border in red.
+  \item \code{css.summary='font-weight:bold;'} for a bold
+  fontweight in the summary row.  \item
+  \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
+  for a blue dotted border of the last table row.  } See
+  further examples below.}
+
+  \item{useViewer}{If \code{TRUE}, the function tries to
+  show the HTML table in the IDE's viewer pane. If
+  \code{FALSE} or no viewer available, the HTML table is
+  opened in a web browser.}
+
+  \item{no.output}{If \code{TRUE}, the html-output is
+  neither opened in a browser nor shown in the viewer pane
+  and not even saved to file. This option is useful when
+  the html output should be used in \code{knitr} documents.
+  The html output can be accessed via the return value.}
 }
 \value{
-Invisibly returns a \link{structure} with the web page
-style sheet (\code{page.style}) and each frequency table as
-web page content (\code{page.content.list}) for further
+Invisibly returns a \code{\link{structure}} with \itemize{
+\item the web page style sheet (\code{page.style}), \item
+each frequency table as web page content
+(\code{page.content.list}), \item the complete html-output
+(\code{output.complete}) and \item the html-table with
+inline-css for use with knitr (\code{knitr}) } for further
 use.
 }
 \description{
-Save (multiple) frequency tables as HTML file.
+Shows (multiple) frequency tables as HTML file, or saves
+them as file.
 }
 \note{
 The HTML tables can either be saved as file and manually
@@ -126,10 +178,9 @@ values <- sji.getValueLabels(efc)
 \dontrun{
 sjt.frq(efc$e42dep)}
 
-# plot and save frequency table of "e42dep" with labels
+# plot and show frequency table of "e42dep" with labels
 \dontrun{
 sjt.frq(efc$e42dep,
-        file="dependency_labels.html",
         variableLabels=variables['e42dep'],
         valueLabels=values[['e42dep']])}
 
@@ -141,16 +192,33 @@ sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))}
 
 # plot larger scale including zero-counts
-# and save to file, indicating median and quartiles
+# indicating median and quartiles
 \dontrun{
 sjt.frq(efc$neg_c_7,
-        file="negativeimpact.html",
         variableLabels=variables['neg_c_7'],
         valueLabels=values[['neg_c_7']],
         highlightMedian=TRUE,
         highlightQuartiles=TRUE)}
+
+# ----------------------------------------------------------------
+# User defined style sheet
+# ----------------------------------------------------------------
+\dontrun{
+sjt.frq(efc$e42dep,
+        variableLabels=variables['e42dep'],
+        valueLabels=values[['e42dep']],
+        CSS=list(css.table="border: 2px solid;",
+                 css.tdata="border: 1px solid;",
+                 css.firsttablecol="color:#003399; font-weight:bold;"))}
+}
+\references{
+\itemize{ \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2014/02/20/no-need-for-spss-beautiful-output-in-r-rstats/}
+}
 }
 \seealso{
-\link{sjp.frq}
+\code{\link{sjp.frq}} \cr \code{\link{sjt.xtab}}
 }
 

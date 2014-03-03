@@ -2,15 +2,16 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: sjPlot - data visualization for statistics in social science
-Version: 1.1
-Date: 2014-02-19
+Version: 1.2.2
+Date: 2014-03-03
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Luedecke <d.luedecke@uke.de>
-Description: Collection of several plotting functions for visualizing data and
-    utility functions.
+Description: Collection of several plotting / table output functions for
+    visualizing data and utility functions.
 License: GPL-3
-Imports: ggplot2, MASS, car, foreign, lmtest, plyr, reshape2, scales
-Packaged: 2014-02-19 10:11:35 UTC; Luedeke
+Imports: ggplot2, MASS, car, foreign, lmtest, plyr, psych, reshape2,
+        scales
+Packaged: 2014-03-03 11:14:11 UTC; Luedeke
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-02-19 11:32:18
+Date/Publication: 2014-03-03 13:05:08

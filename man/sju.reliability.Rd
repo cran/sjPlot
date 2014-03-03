@@ -1,0 +1,78 @@
+\name{sju.reliability}
+\alias{sju.reliability}
+\title{Performs a reliability test on an item scale.}
+\usage{
+sju.reliability(df, scaleItems = FALSE, digits = 3)
+}
+\arguments{
+  \item{df}{A data frame with}
+
+  \item{scaleItems}{If \code{TRUE}, the data frame's
+  vectors will be scaled. Recommended, when the variables
+  have different measures / scales.}
+
+  \item{digits}{Amount of digits for Cronbach's Alpha and
+  correlation values in returned data frame.}
+}
+\value{
+A data frame with the corrected item-total correlations and
+Cronbach's alpha (if item deleted) for each item of the
+scale.
+}
+\description{
+This function calcates the corrected item-total
+correlations for each item of \code{df} with the remaining
+items; furthermore, the Cronbach's alpha for each item, if
+it was deleted from the scale, is calculated.
+}
+\note{
+This function is similar to a basic reliability test in
+SPSS. The correlations in the Item-Total-Statistic are a
+computed correlation of each item against the sum of the
+remaining items (which are thus treated as one item).
+}
+\examples{
+# -------------------------------
+# Data from the EUROFAMCARE sample dataset
+# -------------------------------
+data(efc)
+
+# retrieve variable and value labels
+varlabs <- sji.getVariableLabels(efc)
+
+# recveive first item of COPE-index scale
+start <- which(colnames(efc)=="c82cop1")
+# recveive last item of COPE-index scale
+end <- which(colnames(efc)=="c90cop9")
+
+# create data frame with COPE-index scale
+df <- as.data.frame(efc[,c(start:end)])
+colnames(df) <- varlabs[c(start:end)]
+
+\dontrun{
+sjt.df(sju.reliability(df),
+       describe=FALSE,
+       showCommentRow=TRUE,
+       commentString=sprintf("Cronbach's &alpha;=\%.2f", sju.cronbach(df)))}
+
+# ---------------------------------------
+# Compute PCA on Cope-Index, and perform a
+# reliability check on each extracted factor.
+# ---------------------------------------
+\dontrun{
+factors <- sjt.pca(df)$factor.index
+findex <- sort(unique(factors))
+for (i in 1:length(findex)) {
+ rel.df <- subset(df, select=which(factors==findex[i]))
+ if (ncol(rel.df)>=3) {
+   sjt.df(sju.reliability(rel.df),
+          describe=FALSE,
+          showCommentRow=TRUE,
+          useViewer=FALSE,
+          title="Item-Total-Statistic",
+          commentString=sprintf("Scale's overall Cronbach's &alpha;=\%.2f",
+                                sju.cronbach(rel.df)))
+   }
+ }}
+}
+

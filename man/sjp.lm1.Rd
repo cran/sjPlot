@@ -12,7 +12,7 @@ sjp.lm1(fit, data, title = NULL, titleSize = 1.3, titleColor = "black",
   showLoessCI = FALSE, loessCiLevel = 0.95, showModelSummary = TRUE,
   borderColor = NULL, axisColor = NULL, theme = NULL,
   majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
-  hideGrid.y = FALSE, showTickMarks = TRUE, returnPlot = FALSE)
+  hideGrid.y = FALSE, showTickMarks = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{fit}{The model of the linear regression
@@ -136,9 +136,7 @@ sjp.lm1(fit, data, title = NULL, titleSize = 1.3, titleColor = "black",
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
@@ -155,13 +153,15 @@ sjp.lm1(fit, data, title = NULL, titleSize = 1.3, titleColor = "black",
   \item{showTickMarks}{Whether tick marks of axes should be
   shown or not}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object will
-  be returned (and not plotted).  Default is \code{FALSE},
-  hence the ggplot object will be plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-objects as \code{list} with the plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot a regression line with confidence interval for a
@@ -191,6 +191,7 @@ sjp.lm1(fit,
         showLoess=TRUE)
 }
 \seealso{
-\code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}}
+\code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
+\code{\link{sjp.scatter}}
 }
 

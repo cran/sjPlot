@@ -1,15 +1,15 @@
 \name{sjp.vif}
 \alias{sjp.vif}
-\title{Plot multicollinearity of linear models}
+\title{Plot Variance Inflation Factors of linear models}
 \usage{
-sjp.vif(fit, printnumbers = TRUE)
+sjp.vif(fit)
 }
 \arguments{
   \item{fit}{The fitted (generalized) linear model which
   should be checked for multicollinearity.}
-
-  \item{printnumbers}{If \code{TRUE} (default), the VIF
-  value are also printed to console.}
+}
+\value{
+(invisibly) returns the VIF values.
 }
 \description{
 Plots the Variance Inflation Factors (check for

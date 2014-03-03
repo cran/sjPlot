@@ -19,7 +19,7 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   theme = NULL, flipCoordinates = TRUE, showIntercept = FALSE,
   showAxisLabels.y = TRUE, showTickMarks = TRUE, showValueLabels = TRUE,
   labelDigits = 2, showPValueLabels = TRUE, showModelSummary = TRUE,
-  returnPlot = FALSE)
+  printPlot = TRUE)
 }
 \arguments{
   \item{fit}{The fitted model of a logistic regression
@@ -206,9 +206,7 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{flipCoordinates}{If \code{TRUE} (default),
   predictors are plotted on the left y-axis and estimate
@@ -235,14 +233,15 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   F-Test and AIC-value is printed to the lower right corner
   of the diagram.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot odds ratios with confidence intervalls as bar chart or

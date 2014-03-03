@@ -105,8 +105,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param showIntercept If \code{TRUE}, the intercept of the fitted model is also plotted.
@@ -122,9 +120,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with 
 #'          Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
 #'          of the diagram.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #'          
 #' @examples
 #' # prepare dichotomous dependent variable
@@ -221,7 +220,7 @@ sjp.glm <- function(fit,
                     labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -387,6 +386,10 @@ sjp.glm <- function(fit,
     }
     upper_lim <- (ceiling(10*maxval)) / 10
     lower_lim <- (floor(10*minval)) / 10
+    # give warnings when auto-limits are very low/high
+    if ((minval < 0.1) || (maxval > 100)) {
+      warning("Exp. coefficients and/or exp. confidence intervals may be out of printable bounds. Consider using \"axisLimits\" parameter!")
+    }
   }
   else {
     # Here we have user defind axis range
@@ -413,13 +416,6 @@ sjp.glm <- function(fit,
   # for plotting in the diagram later
   # ----------------------------
   if (showModelSummary) {
-    PseudoR2 <- function(rr) { # rr must be the result of lm/glm
-      n <- nrow(rr$model)
-      COX <- (1-exp((rr$deviance-rr$null)/n))
-      NR <- COX/(1-exp(-rr$null/n))
-      RVAL <- c(N=n, CoxSnell=COX, Nagelkerke=NR)
-      return(RVAL)
-    }
     psr <- PseudoR2(fit)
     modsum <- as.character(as.expression(
       substitute("(Intercept)" == ic * "," ~~ italic(R)[CS]^2 == r2cs * "," ~~ italic(R)[N]^2 == r2n * "," ~~ -2 * lambda == la * "," ~~ chi^2 == c2 * "," ~~ "AIC" == aic,
@@ -427,18 +423,16 @@ sjp.glm <- function(fit,
                       r2cs=sprintf("%.3f", psr[2]),
                       r2n=sprintf("%.3f", psr[3]),
                       la=sprintf("%.2f", -2*logLik(fit)),
-                      c2=sprintf("%.2f", with(fit, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE)), digits=3),
+                      c2=sprintf("%.2f", Chisquare.glm(fit)),
                       aic=sprintf("%.2f", fit$aic)))))
     cat(sprintf("Intercept = %.2f\nR2[cs] = %.3f\nR2[n] = %.3f\nLambda = %.2f\nChi2 = %.2f\nAIC = %.2f",
             exp(coef(fit)[1]),
             psr[2],
             psr[3],
             -2*logLik(fit),
-            with(fit, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE), digits=3),
+            Chisquare.glm(fit),
             fit$aic))
   }
-  
-
   # --------------------------------------
   # Formatierungen: Generell bei ggplot gilt: "fill"-Wert in
   # "aes"-Parameter der ggplot-Funktion bezieht sich darauf,
@@ -681,13 +675,14 @@ sjp.glm <- function(fit,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(plotHeader)
-  }
-  else {
-    # print plot
-    print(plotHeader)
-  }}
+  if (printPlot) print(plotHeader)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpglm",
+                       list(plot = plotHeader,
+                            df = odds)))
+}
 
 
 #' @title Plot model assumptions of glm's
@@ -774,8 +769,8 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # ---------------------------------
   # show VIF-Values
   # ---------------------------------
-  sjp.vif(logreg, printnumbers=FALSE)
-  if (modelOptmized) sjp.vif(model, printnumbers=FALSE)
+  sjp.vif(logreg)
+  if (modelOptmized) sjp.vif(model)
   
   
   # ------------------------------------------------------

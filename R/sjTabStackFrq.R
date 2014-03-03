@@ -1,0 +1,470 @@
+#' @title Show stacked frequencies as HTML table
+#' @name sjt.stackfrq
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              }
+#' 
+#' @description Shows the results of stacked frequencies (such as likert scales) as HTML table.
+#'                This function is useful when several items with identical scale/categories
+#'                should be printed as table to compare their distributions (e.g.
+#'                when plotting scales like SF, Barthel-Index, Quality-of-Life-scales etc.).
+#'                
+#' @seealso \code{\link{sjp.stackfrq}} \cr
+#'          \code{\link{sjp.likert}}
+#' 
+#' @param items A \code{\link{data.frame}} with each column representing one (likert- or scale-)item.
+#' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
+#' @param title A table caption.
+#' @param varlabels A list or vector of strings with variable names. If not specified, row names of \code{items}
+#'          will be used.
+#' @param breakLabelsAt Wordwrap for variable labels. Determines how many chars of the variable labels are displayed in 
+#'          one line and when a line break is inserted. Default is 40.
+#' @param valuelabels A list or vector of strings that category/value labels, which
+#'          appear in the header row.
+#' @param breakValueLabelsAt Wordwrap for value labels. Determines how many chars of the value labels are displayed in 
+#'          one line and when a line break is inserted. Default is 20.
+#' @param orderBy Indicates whether the \code{items} should be ordered by highest count of first or last category of \code{items}.
+#'          Use \code{"first"} to order ascending by lowest count of first category, 
+#'          \code{"last"} to order ascending by lowest count of last category
+#'          or \code{NULL} (default) for no sorting. You can specify just the initial letter.
+#'          In case you want to revers order (descending from highest count), use
+#'          \code{reverseOrder} parameter.
+#' @param reverseOrder If \code{TRUE}, the item order is reversed.
+#' @param showN If \code{TRUE}, an additional column with each item's N is printed.
+#' @param showSkew If \code{TRUE}, an additional column with each item's skewness is printed.
+#'          The skewness is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          package.
+#' @param showKurtosis If \code{TRUE}, an additional column with each item's kurtosis is printed.
+#'          The kurtosis is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          package.
+#' @param skewString A character string, which is used as header for the skew column (see \code{showSkew})).
+#'          Default is \code{"Skew"}.
+#' @param kurtosisString A character string, which is used as header for the kurtosis column (see \code{showKurtosis})).
+#'          Default is \code{"Kurtosis"}.
+#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
+#'          background color.
+#' @param file The destination file, which will be in html-format. If no filepath is specified,
+#'          the file will be saved as temporary file and openend either in the RStudio View pane or
+#'          in the default web browser.
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
+#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
+#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
+#'          \enumerate{
+#'            \item the class-names with \code{"css."}-prefix as parameter name and
+#'            \item each style-definition must end with a semicolon
+#'          } 
+#'          Examples:
+#'          \itemize{
+#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
+#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
+#'            \item \code{css.caption='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'          }
+#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
+#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+#'          the viewer pane and not even saved to file. This option is useful when the html output
+#'          should be used in \code{knitr} documents. The html output can be accessed via the return
+#'          value.
+#' @return Invisibly returns a \code{\link{structure}} with
+#'          \itemize{
+#'            \item the web page style sheet (\code{page.style}),
+#'            \item the web page content (\code{page.content}),
+#'            \item the complete html-output (\code{output.complete}) and
+#'            \item the html-table with inline-css for use with knitr (\code{knitr})
+#'            }
+#'            for further use.
+#'
+#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
+#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
+#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
+#'         default behaviour (i.e. \code{file=NULL}).
+#' 
+#' @examples
+#' # -------------------------------
+#' # random sample
+#' # -------------------------------
+#' # prepare data for 4-category likert scale, 5 items
+#' likert_4 <- data.frame(as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.2,0.3,0.1,0.4))),
+#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.5,0.25,0.15,0.1))),
+#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.25,0.1,0.4,0.25))),
+#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.1,0.4,0.4,0.1))),
+#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.35,0.25,0.15,0.25))))
+#' # create labels
+#' levels_4 <- c("Independent", "Slightly dependent", "Dependent", "Severely dependent")
+#' 
+#' # create item labels
+#' items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
+#' 
+#' # plot stacked frequencies of 5 (ordered) item-scales
+#' \dontrun{
+#' sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)}
+#' 
+#' 
+#' # -------------------------------
+#' # Data from the EUROFAMCARE sample dataset
+#' # -------------------------------
+#' data(efc)
+#' 
+#' # recveive first item of COPE-index scale
+#' start <- which(colnames(efc)=="c82cop1")
+#' 
+#' # recveive first item of COPE-index scale
+#' end <- which(colnames(efc)=="c90cop9")
+#' 
+#' # retrieve variable and value labels
+#' varlabs <- sji.getVariableLabels(efc)
+#' vallabs <- sji.getValueLabels(efc)
+#' 
+#' \dontrun{
+#' sjt.stackfrq(efc[,c(start:end)],
+#'              valuelabels=vallabs['c82cop1'],
+#'              varlabels=varlabs[c(start:end)],
+#'              alternateRowColors=TRUE)}
+#' 
+#' \dontrun{
+#' sjt.stackfrq(efc[,c(start:end)],
+#'              valuelabels=vallabs['c82cop1'],
+#'              varlabels=varlabs[c(start:end)],
+#'              alternateRowColors=TRUE,
+#'              showN=TRUE,
+#'              showSkew=TRUE,
+#'              showKurtosis=TRUE,
+#'              CSS=list(css.ncol="border-left:1px dotted black;",
+#'                       css.summary="font-style:italic;"))}
+#'              
+#' @importFrom psych describe
+#' @export
+sjt.stackfrq <- function (items,
+                          weightBy=NULL,
+                          title=NULL,
+                          varlabels=NULL,
+                          breakLabelsAt=40,
+                          valuelabels=NULL,
+                          breakValueLabelsAt=20,
+                          orderBy=NULL,
+                          reverseOrder=FALSE,
+                          alternateRowColors=FALSE,
+                          showN=FALSE,
+                          showSkew=FALSE,
+                          showKurtosis=FALSE,
+                          skewString="Skew",
+                          kurtosisString="Kurtosis",
+                          file=NULL, 
+                          encoding="UTF-8",
+                          CSS=NULL,
+                          useViewer=TRUE,
+                          no.output=FALSE) {
+  # --------------------------------------------------------
+  # check abbreviations
+  # --------------------------------------------------------
+  if (!is.null(orderBy)) {
+    if (orderBy=="f") orderBy <- "first"
+    if (orderBy=="l") orderBy <- "last"
+  }
+  # --------------------------------------------------------
+  # unlist labels
+  # --------------------------------------------------------
+  # Help function that unlists a list into a vector
+  unlistlabels <- function(lab) {
+    dummy <- unlist(lab)
+    labels <- c()
+    for (i in 1:length(dummy)) {
+      labels <- c(labels, as.character(dummy[i]))
+    }
+    return (labels)
+  }
+  if (!is.null(varlabels) && is.list(varlabels)) {
+    varlabels <- unlistlabels(varlabels)
+  }
+  if (!is.null(valuelabels) && is.list(valuelabels)) {
+    valuelabels <- unlistlabels(valuelabels)
+  }
+  # ----------------------------
+  # retrieve min and max values
+  # ----------------------------
+  minval <- as.numeric(min(apply(items, 2, function(x) min(na.omit(x)))))
+  maxval <- as.numeric(max(apply(items, 2, function(x) max(na.omit(x)))))
+  # ----------------------------
+  # if we have no value labels, set default labels and find amount
+  # of unique categories
+  # ----------------------------
+  if (is.null(valuelabels)) {
+    valuelabels <- as.character(minval:maxval)
+  }
+  # save amolunt of values
+  catcount <- length(valuelabels)
+  # check length of x-axis-labels and split longer strings at into new lines
+  valuelabels <- sju.wordwrap(valuelabels, breakValueLabelsAt, "<br>")
+  # ----------------------------
+  # if we have no variable labels, use row names
+  # ----------------------------
+  if (is.null(varlabels)) {
+    varlabels <- row.names(items)
+  }
+  # check length of x-axis-labels and split longer strings at into new lines
+  varlabels <- sju.wordwrap(varlabels, breakLabelsAt, "<br>")
+  # ----------------------------
+  # additional statistics required from psych-package?
+  # ----------------------------
+  if (showSkew || showKurtosis) {
+    pstat <- describe(items)
+  }
+  # ----------------------------
+  # create data frame with each item in a row
+  # therefore, iterate each item
+  # ----------------------------
+  # save counts for each items
+  itemcount <- c()
+  mat <- data.frame()
+  for (i in 1:ncol(items)) {
+    # ----------------------------
+    # if we don't have weights, create simple frequency table
+    # of each item
+    # ----------------------------
+    if (is.null(weightBy)) {
+      dummy <- table(items[,i])
+    }
+    else {
+      # else weight with xtabs
+      dummy <- round(xtabs(weightBy ~ items[,i]),0)
+    }
+    # ----------------------------
+    # save n
+    # ----------------------------
+    itemcount <- c(itemcount, sum(dummy))
+    # ----------------------------
+    # create frequency var, filled with zeros
+    # need this to fill categories with zero counts
+    # ----------------------------
+    fr <- rep(0, catcount)
+    # ----------------------------
+    # determine difference from minimum value to 1
+    # we just want copy the category values (e.g. 3 to 5)
+    # to a vector, but vector indexing starts with 1, not 3.
+    # ----------------------------
+    diff <- minval-1
+    # ----------------------------
+    # table name equals cateogory value,
+    # table itself contains counts of each category
+    # ----------------------------
+    fr[as.numeric(names(dummy))-diff] <- dummy
+    # ----------------------------
+    # add proportional percentages to data frame row
+    # ----------------------------
+    mat <- rbind(mat, round(prop.table(fr),4))
+  }
+  # ----------------------------
+  # Check if ordering was requested
+  # ----------------------------
+  # default order
+  facord <- c(1:nrow(mat))
+  if (!is.null(orderBy)) {
+    # ----------------------------
+    # order by first cat
+    # ----------------------------
+    if (orderBy=="first") {
+      facord <- order(mat[,1])
+    }
+    # ----------------------------
+    # order by last cat
+    # ----------------------------
+    else {
+      facord <- order(mat[,ncol(mat)])
+    }
+  }
+  # ----------------------------
+  # reverse order
+  # ----------------------------
+  if (reverseOrder) facord <- rev(facord)
+  # -------------------------------------
+  # init header
+  # -------------------------------------
+  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n", encoding)
+  # -------------------------------------
+  # init style sheet and tags used for css-definitions
+  # we can use these variables for string-replacement
+  # later for return value
+  # -------------------------------------
+  tag.table <- "table"
+  tag.caption <- "caption"
+  tag.thead <- "thead"
+  tag.tdata <- "tdata"
+  tag.arc <- "arc"
+  tag.centeralign <- "centeralign"
+  tag.firsttablecol <- "firsttablecol"
+  tag.ncol <- "ncol"
+  tag.skewcol <- "skewcol"
+  tag.kurtcol <- "kurtcol"
+  tag.summary <- "summary"
+  css.table <- "border-collapse:collapse; border:none; border-bottom:double black;"
+  css.caption <- "font-weight: bold; text-align:left;"
+  css.thead <- "border-top:double black; border-bottom:1px solid black; padding:0.2cm;"
+  css.tdata <- "padding:0.2cm;"
+  css.arc <- "background-color:#eaeaea;"
+  css.centeralign <- "text-align:center;"
+  css.firsttablecol <- "font-style:italic;"
+  css.ncol <- ""
+  css.summary <- ""
+  css.skewcol <- ""
+  css.kurtcol <- ""
+  # ------------------------
+  # check user defined style sheets
+  # ------------------------
+  if (!is.null(CSS)) {
+    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
+    if (!is.null(CSS[['css.caption']])) css.caption <- CSS[['css.caption']]
+    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
+    if (!is.null(CSS[['css.ncol']])) css.ncol <- CSS[['css.ncol']]
+    if (!is.null(CSS[['css.skewcol']])) css.skewcol <- CSS[['css.skewcol']]
+    if (!is.null(CSS[['css.kurtcol']])) css.kurtcol <- CSS[['css.kurtcol']]
+    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
+    if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
+  }
+  # ------------------------
+  # set page style
+  # ------------------------
+  page.style <-  sprintf("<style>%s { %s }\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>",
+                         tag.table, css.table, tag.caption, css.caption,
+                         tag.thead, css.thead, tag.tdata, css.tdata,
+                         tag.firsttablecol, css.firsttablecol, tag.arc, css.arc,
+                         tag.centeralign, css.centeralign, tag.ncol, css.ncol,
+                         tag.summary, css.summary, tag.kurtcol, css.kurtcol,
+                         tag.skewcol, css.skewcol)
+  # ------------------------
+  # start content
+  # ------------------------
+  toWrite <- paste0(toWrite, page.style)
+  toWrite = paste(toWrite, "\n</head>\n<body>", "\n")
+  # -------------------------------------
+  # start table tag
+  # -------------------------------------
+  page.content <- "<table>\n"
+  # -------------------------------------
+  # table caption
+  # -------------------------------------
+  if (!is.null(title)) page.content <- paste(page.content, sprintf("  <caption>%s</caption>\n", title))
+  # -------------------------------------
+  # header row
+  # -------------------------------------
+  # write tr-tag
+  page.content <- paste0(page.content, "  <tr>\n")
+  # first column
+  page.content <- paste0(page.content, "    <th class=\"thead\">&nbsp;</th>\n")
+  # iterate columns
+  for (i in 1:catcount) {
+    page.content <- paste0(page.content, sprintf("    <th class=\"thead\">%s</th>\n", valuelabels[i]))
+  }
+  # add N column
+  if (showN) page.content <- paste0(page.content, "    <th class=\"thead ncol summary\">N</th>\n")
+  # add skew column
+  if (showSkew) page.content <- paste0(page.content, sprintf("    <th class=\"thead skewcol summary\">%s</th>\n", skewString))
+  # add kurtosis column
+  if (showKurtosis) page.content <- paste0(page.content, sprintf("    <th class=\"thead kurtcol summary\">%s</th>\n", kurtosisString))
+  # close table row
+  page.content <- paste0(page.content, "  </tr>\n")
+  # -------------------------------------
+  # data rows
+  # -------------------------------------
+  # iterate all rows of df
+  for (i in 1:nrow(mat)) {
+    # default row string for alternative row colors
+    arcstring <- ""
+    # if we have alternating row colors, set css
+    if (alternateRowColors) arcstring <- ifelse(i %% 2 ==0, " arc", "")
+    # write tr-tag
+    page.content <- paste0(page.content, "  <tr>\n")
+    # print first table cell
+    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol%s\">%s</td>\n", arcstring, varlabels[facord[i]]))
+    # --------------------------------------------------------
+    # iterate all columns
+    # --------------------------------------------------------
+    for (j in 1:ncol(mat)) {
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%.2f&nbsp;%%</td>\n", arcstring, 100*mat[facord[i],j]))
+    }
+    # add column with N's
+    if (showN) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign ncol summary%s\">%i</td>\n", arcstring, itemcount[facord[i]]))
+    # add column with Skew's
+    if (showSkew) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign skewcol summary%s\">%.2f</td>\n", arcstring, pstat$skew[facord[i]]))
+    # add column with Kurtosis's
+    if (showKurtosis) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kurtcol summary%s\">%.2f</td>\n", arcstring, pstat$kurtosis[facord[i]]))
+    # close row
+    page.content <- paste0(page.content, "  </tr>\n")
+  }
+  # -------------------------------------
+  # finish table
+  # -------------------------------------
+  page.content <- paste(page.content, "\n</table>")
+  # -------------------------------------
+  # finish html page
+  # -------------------------------------
+  toWrite <- paste(toWrite, page.content, "\n")
+  toWrite <- paste0(toWrite, "</body></html>")
+  # -------------------------------------
+  # replace class attributes with inline style,
+  # useful for knitr
+  # -------------------------------------
+  # copy page content
+  # -------------------------------------
+  knitr <- page.content
+  # -------------------------------------
+  # set style attributes for main table tags
+  # -------------------------------------
+  knitr <- gsub("class=", "style=", knitr)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  # -------------------------------------
+  # replace class-attributes with inline-style-definitions
+  # -------------------------------------
+  knitr <- gsub(tag.tdata, css.tdata, knitr)
+  knitr <- gsub(tag.thead, css.thead, knitr)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)  
+  knitr <- gsub(tag.ncol, css.ncol, knitr)  
+  knitr <- gsub(tag.skewcol, css.skewcol, knitr)  
+  knitr <- gsub(tag.kurtcol, css.kurtcol, knitr)  
+  knitr <- gsub(tag.summary, css.summary, knitr)  
+  knitr <- gsub(tag.arc, css.arc, knitr)  
+  # -------------------------------------
+  # check if html-content should be outputted
+  # -------------------------------------
+  if (!no.output) {
+    # -------------------------------------
+    # check if we have filename specified
+    # -------------------------------------
+    if (!is.null(file)) {
+      # write file
+      write(knitr, file=file)
+    }
+    # -------------------------------------
+    # else open in viewer pane
+    # -------------------------------------
+    else {
+      # else create and browse temporary file
+      htmlFile <- tempfile(fileext=".html")
+      write(toWrite, file=htmlFile)
+      # check whether we have RStudio Viewer
+      viewer <- getOption("viewer")
+      if (useViewer && !is.null(viewer)) {
+        viewer(htmlFile)
+      }
+      else {
+        utils::browseURL(htmlFile)    
+      }
+      # delete temp file
+      # unlink(htmlFile)
+    }
+  }
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjtstackfrq",
+                       list(page.style = page.style,
+                            page.content = page.content,
+                            output.complete = toWrite,
+                            knitr = knitr)))
+}

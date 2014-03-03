@@ -2,7 +2,7 @@
 \alias{sju.wordwrap}
 \title{Insert line breaks in long labels}
 \usage{
-sju.wordwrap(labels, wrap)
+sju.wordwrap(labels, wrap, linesep = NULL)
 }
 \arguments{
   \item{labels}{The label(s) (i.e. character string). You
@@ -12,6 +12,10 @@ sju.wordwrap(labels, wrap)
 
   \item{wrap}{The amount of chars per line (i.e. line
   length)}
+
+  \item{linesep}{By default, this parameter is \code{NULL}
+  and a regular new line string is used. For HTML-needs,
+  for instance, \code{linesep} could be \code{"<br>"}.}
 }
 \value{
 New label(s) with line breaks inserted at every

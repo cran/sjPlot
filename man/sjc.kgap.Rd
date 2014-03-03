@@ -51,9 +51,8 @@ sjc.kgap(x, max = 10, B = 100, SE.factor = 1, method = "Tibs2001SEmax",
   \code{FALSE} to omit the plot.}
 }
 \value{
-An object of type \link{structure} containing the used data
-frame for plotting, the ggplot object and the number of
-found cluster.
+An object containing the used data frame for plotting, the
+ggplot object and the number of found cluster.
 }
 \description{
 An implementation of the gap statistic algorithm from

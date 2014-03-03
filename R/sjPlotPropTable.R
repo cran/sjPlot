@@ -1,16 +1,16 @@
 # bind global variables
 if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "Group"))
 
-
-
-#' @title Plot proportional crosstables
+#' @title Plot contigency tables
 #' @name sjp.xtab
 #' @references \itemize{
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 #'              \item \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 #'              }
 #' 
-#' @description Plot proportional crosstables of two variables as ggplot diagram.
+#' @seealso \code{\link{sjt.xtab}}
+#' 
+#' @description Plot proportional crosstables (contingency tables) of two variables as ggplot diagram.
 #' 
 #' @param y The variable which proportions (percentage values) should be plotted. The percentage proportion
 #'          (within table row, table column or complete table, see parameter \code{tableIndex} of this variable 
@@ -129,12 +129,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
-#'          The ggplot-object can be returned with \code{returnPlot} set to \code{TRUE} in order to further
-#'          modify the plot's theme.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
-#' @param returnPlot If \code{TRUE}, the ggplot-object with the complete plot will be returned (and not plotted).
-#'          Default is \code{FALSE}, hence the ggplot object will be plotted, not returned.
-#' @return The ggplot-object with the complete plot in case \code{returnPlot} is \code{TRUE}.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
+#'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
 #' # create 4-category-items
@@ -249,7 +248,7 @@ sjp.xtab <- function(y,
                     axisTitleSize=1.3,
                     theme=NULL,
                     flipCoordinates=FALSE,
-                    returnPlot=FALSE) {
+                    printPlot=TRUE) {
   # determine table index, i.e. if row-percentages, column-percentages
   # or cell-percentages should be displayed
   tindex <- ifelse (tableIndex=="row", 1, 2)
@@ -892,10 +891,11 @@ sjp.xtab <- function(y,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (returnPlot) {
-    return(baseplot)
-  }
-  else {
-    plot(baseplot)
-  }
+  if (printPlot) plot(baseplot)
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjpxtab",
+                       list(plot = baseplot,
+                            df = df)))
 }

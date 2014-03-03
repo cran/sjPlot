@@ -1,6 +1,6 @@
 \name{sjp.xtab}
 \alias{sjp.xtab}
-\title{Plot proportional crosstables}
+\title{Plot contigency tables}
 \usage{
 sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   legendTitle = NULL, weightBy = NULL, weightByTitleString = NULL,
@@ -21,7 +21,7 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   showTickMarks = TRUE, showTableSummary = TRUE, tableSummaryPos = "r",
   showTotalColumn = TRUE, hideLegend = FALSE, axisTitle.x = NULL,
   axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
-  theme = NULL, flipCoordinates = FALSE, returnPlot = FALSE)
+  theme = NULL, flipCoordinates = FALSE, printPlot = TRUE)
 }
 \arguments{
   \item{y}{The variable which proportions (percentage
@@ -274,25 +274,24 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   classic theme (black border, no grids) \item
   \code{"minimal"} for a minimalistic theme (no border,gray
   grids) or \item \code{"none"} for no borders, grids and
-  ticks.  } The ggplot-object can be returned with
-  \code{returnPlot} set to \code{TRUE} in order to further
-  modify the plot's theme.}
+  ticks.  }}
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
 
-  \item{returnPlot}{If \code{TRUE}, the ggplot-object with
-  the complete plot will be returned (and not plotted).
-  Default is \code{FALSE}, hence the ggplot object will be
-  plotted, not returned.}
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
 }
 \value{
-The ggplot-object with the complete plot in case
-\code{returnPlot} is \code{TRUE}.
+(Insisibily) returns the ggplot-object with the complete
+plot (\code{plot}) as well as the data frame that was used
+for setting up the ggplot-object (\code{df}).
 }
 \description{
-Plot proportional crosstables of two variables as ggplot
-diagram.
+Plot proportional crosstables (contingency tables) of two
+variables as ggplot diagram.
 }
 \examples{
 # create 4-category-items
@@ -348,5 +347,8 @@ sjp.xtab(efc$e16sex,
 \item
 \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 }
+}
+\seealso{
+\code{\link{sjt.xtab}}
 }
 

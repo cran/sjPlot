@@ -23,13 +23,14 @@ sjc.dend(data, groupcount, distance = "euclidean", agglomeration = "ward")
   \item{distance}{The distance measure to be used. This
   must be one of \code{"euclidean"} (default),
   \code{"maximum"}, \code{"manhattan"}, \code{"canberra"},
-  \code{"binary"} or \code{"minkowski"}. See \link{dist}.}
+  \code{"binary"} or \code{"minkowski"}. See
+  \code{\link{dist}}.}
 
   \item{agglomeration}{The agglomeration method to be used.
   This should be one of \code{"ward"}, \code{"single"},
   \code{"complete"}, \code{"average"}, \code{"mcquitty"},
   \code{"median"} or \code{"centroid"}. Default is
-  \code{"ward"}. See \link{hclust}.}
+  \code{"ward"}. See \code{\link{hclust}}.}
 }
 \description{
 Computes a hierarchical cluster analysis and plots a
