@@ -23,7 +23,10 @@ sjp.chi2(df, title = "Pearson's Chi2-Test of Independence", titleSize = 1.3,
   \item{titleColor}{The color of the plot title. Default is
   \code{"black"}.}
 
-  \item{axisLabels}{Labels for the x- andy y-axis}
+  \item{axisLabels}{Labels for the x- andy y-axis
+  axisLabels are detected automatically if each variable
+  has a \code{"variable.label"} attribute (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{valueLabelColor}{the color of the value labels
   (numbers) inside the diagram}

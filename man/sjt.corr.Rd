@@ -40,7 +40,11 @@ sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
   the first column/row. If no item labels are provided
   (default), the data frame's column names are used. Item
   labels must be a string vector, e.g.:
-  \code{varlabels=c("Var 1", "Var 2", "Var 3")}.}
+  \code{varlabels=c("Var 1", "Var 2", "Var 3")}.  varlabels
+  are detected automatically if \code{data} is a data frame
+  where each variable has a \code{"variable.label"}
+  attribute (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{breakLabelsAt}{Wordwrap for diagram labels.
   Determines how many chars of the variable labels are
@@ -132,10 +136,20 @@ colnames(df) <- varlabs[c(start:end)]
 # belong to one factor. See example from "sjp.pca".
 \dontrun{
 sjt.corr(df, pvaluesAsNumbers=TRUE)}
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+\dontrun{
+sjt.corr(efc[,c(start:end)])}
 }
 \references{
 \itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
+}
 }
 \seealso{
 \code{\link{sjp.corr}}

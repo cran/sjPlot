@@ -22,10 +22,9 @@ sji.viewSPSS(efc)}
 # show variable labels
 sji.getVariableLabels(efc)
 
-# plot efc-data frame summary via "describe" of the "psysch package"
+# plot efc-data frame summary
 \dontrun{
-require(psych)
-sjt.df(round(describe(efc),2), showType=F, alternateRowColors=T, stringObservation="Variable")}
+sjt.df(efc, alternateRowColor=TRUE)}
 }
 \references{
 \url{http://www.uke.de/eurofamcare/}

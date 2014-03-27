@@ -2,6 +2,7 @@
 #' @name sjt.corr
 #' @references \itemize{
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
 #'              }
 #' 
 #' @description Shows the results of a computed correlation as HTML table. Requires either 
@@ -27,6 +28,8 @@
 #' @param varlabels The item labels that are printed along the first column/row. If no item labels are
 #'          provided (default), the data frame's column names are used. Item labels must
 #'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
+#'          varlabels are detected automatically if \code{data} is a data frame where each variable has
+#'          a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param digits The amount of digits used the values inside table cells.
@@ -97,6 +100,13 @@
 #' \dontrun{
 #' sjt.corr(df, pvaluesAsNumbers=TRUE)}
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' \dontrun{
+#' sjt.corr(efc[,c(start:end)])}
+#' 
 #' @export
 sjt.corr <- function (data,
                       missingDeletion="pairwise",
@@ -112,6 +122,26 @@ sjt.corr <- function (data,
                       CSS=NULL,
                       useViewer=TRUE,
                       no.output=FALSE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(varlabels) && is.data.frame(data)) {
+    varlabels <- c()
+    # if yes, iterate each variable
+    for (i in 1:ncol(data)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(data[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        varlabels <- c(varlabels, vn)
+      }
+      else {
+        # else break out of loop
+        varlabels <- NULL
+        break
+      }
+    }
+  }
   # ----------------------------
   # check for valid parameter
   # ----------------------------
@@ -302,7 +332,7 @@ sjt.corr <- function (data,
             # --------------------------------------------------------
             # if we have p-values as number, print them in new row
             # --------------------------------------------------------
-            cellval <- sprintf("%s<br><span class=\"pval\">(%.3f)</span>", cellval, cpvalues[i,j])
+            cellval <- sprintf("%s<br><span class=\"pval\">(%.*f)</span>", cellval, digits, cpvalues[i,j])
           }
           else {
             # --------------------------------------------------------

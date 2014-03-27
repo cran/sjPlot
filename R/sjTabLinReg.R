@@ -32,17 +32,31 @@
 #'          default is \code{"Intercept"}.
 #' @param stringObservations String constant used in the summary row for the count of observation
 #'          (cases). Default is \code{"Observations"}.
+#' @param stringB String used for the column heading of beta coefficients. Default is \code{"B"}.
+#' @param stringSB String used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.
+#' @param stringCI String used for the column heading of confidence interval values. Default is \code{"CI"}.
+#' @param stringSE String used for the column heading of standard error values. Default is \code{"std. Error"}.
+#' @param stringP String used for the column heading of p values. Default is \code{"p"}.
 #' @param showConfInt If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 #'          \code{FALSE} to omit the CI in the table.
 #' @param showStdBeta If \code{TRUE}, the standardized beta-coefficients are also printed.
 #'          Default is \code{FALSE}.
 #' @param showStdError If \code{TRUE}, the standard errors are also printed.
 #'          Default is \code{FALSE}.
+#' @param digits.est Amount of decimals for estimators.
+#' @param digits.p Amount of decimals for p-values.
+#' @param digits.ci Amount of decimals for confidence intervals.
+#' @param digits.se Amount of decimals for standard error.
+#' @param digits.sb Amount of decimals for standardized beta.
+#' @param digits.summary Amount of decimals for values in model summary.
 #' @param pvaluesAsNumbers If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
 #'          p-values are indicated by asterisks.
 #' @param boldpvalues If \code{TRUE} (default), significant p-values are shown bold faced.
 #' @param separateConfColumn if \code{TRUE}, the CI values are shown in a separate table column.
 #'          Default is \code{FALSE}.
+#' @param newLineConf If \code{TRUE} and \code{separateConfColumn} is \code{FALSE}, inserts a line break
+#'          between B and CI values. If \code{FALSE}, CI values are printed in the same
+#'          line with B values.
 #' @param showAbbrHeadline If \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for beta- and std. beta-values, confidence interval and p-values.
 #' @param showR2 If \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
@@ -51,6 +65,10 @@
 #'          in the model summary. Default is \code{FALSE}.
 #' @param showAIC If \code{TRUE}, the AIC value for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
+#' @param cellSpacing The inner padding of table cells. By default, this value is 0.2 (measure is cm), which is
+#'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
+#'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
+#'          cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
@@ -157,29 +175,42 @@
 #'        
 #' @export
 sjt.lm <- function (..., 
-                     file=NULL, 
-                     labelPredictors=NULL, 
-                     labelDependentVariables=NULL, 
-                     stringPredictors="Predictors", 
-                     stringDependentVariables="Dependent Variables", 
-                     stringModel="Model",
-                     showHeaderStrings=FALSE,
-                     stringIntercept="(Intercept)",
-                     stringObservations="Observations",
-                     showConfInt=TRUE,
-                     showStdBeta=FALSE,
-                     showStdError=FALSE,
-                     pvaluesAsNumbers=FALSE,
-                     boldpvalues=TRUE,
-                     separateConfColumn=FALSE,
-                     showAbbrHeadline=TRUE,
-                     showR2=TRUE,
-                     showFStat=FALSE,
-                     showAIC=FALSE,
-                     encoding="UTF-8",
-                     CSS=NULL,
+                    file=NULL, 
+                    labelPredictors=NULL, 
+                    labelDependentVariables=NULL, 
+                    stringPredictors="Predictors", 
+                    stringDependentVariables="Dependent Variables", 
+                    stringModel="Model",
+                    showHeaderStrings=FALSE,
+                    stringIntercept="(Intercept)",
+                    stringObservations="Observations",
+                    stringB="B",
+                    stringSB="std. Beta",
+                    stringCI="CI",
+                    stringSE="std. Error",
+                    stringP="p",
+                    showConfInt=TRUE,
+                    showStdBeta=FALSE,
+                    showStdError=FALSE,
+                    digits.est=2,
+                    digits.p=3,
+                    digits.ci=2,
+                    digits.se=2,
+                    digits.sb=2,
+                    digits.summary=3,
+                    pvaluesAsNumbers=FALSE,
+                    boldpvalues=TRUE,
+                    separateConfColumn=FALSE,
+                    newLineConf=TRUE,
+                    showAbbrHeadline=TRUE,
+                    showR2=TRUE,
+                    showFStat=FALSE,
+                    showAIC=FALSE,
+                    cellSpacing=0.2,
+                    encoding="UTF-8",
+                    CSS=NULL,
                     useViewer=TRUE,
-                     no.output=FALSE) {
+                    no.output=FALSE) {
   # ------------------------
   # set page encoding
   # ------------------------
@@ -206,8 +237,8 @@ sjt.lm <- function (...,
   tag.leftalign <- "leftalign"
   tag.centeralign <- "centeralign"
   css.table <- "border-collapse:collapse; border:none;"
-  css.thead <- "border-bottom: 1px solid; padding:0.2cm;"
-  css.tdata <- "padding:0.2cm;"
+  css.thead <- sprintf("border-bottom: 1px solid; padding:%.1fcm;", cellSpacing)
+  css.tdata <- sprintf("padding:%.1fcm;", cellSpacing)
   css.summary <- "padding-top:0.1cm; padding-bottom:0.1cm;"
   css.colnames <- "font-style:italic;"
   css.firstsumrow <- "border-top:1px solid;"
@@ -272,10 +303,10 @@ sjt.lm <- function (...,
   # -------------------------------------
   if (!showConfInt) {
     separateConfColumn <- FALSE
-    showCIString <- c("B")
+    showCIString <- stringB
   }
   else {
-    showCIString <- c("B (CI)")
+    showCIString <- sprintf("%s (%s)", stringB, stringCI)
   }
   # -------------------------------------
   # table headline
@@ -288,6 +319,8 @@ sjt.lm <- function (...,
   if (showStdError) headerColSpanFactor <- headerColSpanFactor+1
   
   headerColSpan <- headerColSpanFactor * headerColSpan
+  linebreakstring <- " "
+  if (newLineConf) linebreakstring <- "<br>"
   # -------------------------------------
   # start table tag
   # -------------------------------------
@@ -356,11 +389,11 @@ sjt.lm <- function (...,
     coeffs <- rbind(coeffs, coef(fit))
     confi_lower <- cbind(confi_lower, confint(fit)[,1])
     confi_higher <- cbind(confi_higher, confint(fit)[,2])
-    pv <- cbind(pv, round(summary(fit)$coefficients[,4],3))
+    pv <- cbind(pv, round(summary(fit)$coefficients[,4], digits.p))
     # standard error
-    se <- cbind(se, round(summary(fit)$coefficients[,2],2))
+    se <- cbind(se, round(summary(fit)$coefficients[,2], digits.se))
     # retrieve standardized betas
-    stdbv <- cbind(stdbv, sprintf("%.2f", round(sju.betaCoef(fit),2)))
+    stdbv <- cbind(stdbv, sprintf("%.*f", digits.sb, sju.betaCoef(fit)))
   }
   # -------------------------------------
   # rotate coefficients
@@ -386,9 +419,9 @@ sjt.lm <- function (...,
   else {
     pv <- apply(pv, c(1,2), function(x) {
       if (x <0.05 && boldpvalues) {
-        x <- sprintf("<b>%.3f</b>", x)      }
+        x <- sprintf("<b>%.*f</b>", digits.p, x)      }
       else {
-        x <- sprintf("%.3f", x) 
+        x <- sprintf("%.*f", digits.p, x) 
       }
     })
   }
@@ -401,19 +434,19 @@ sjt.lm <- function (...,
     for (i in 1:colnr) {
       # confidence interval in separate column
       if (separateConfColumn) {
-        page.content <- paste0(page.content, "\n    <td class=\"tdata centeralign colnames\">B</td>")
-        if (showConfInt) page.content <- paste0(page.content, "<td class=\"tdata centeralign colnames\">CI</td>")
+        page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign colnames\">%s</td>", stringB))
+        if (showConfInt) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringCI))
       }
       else {
         # confidence interval in Beta-column
         page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign colnames\">%s</td>", showCIString))
       }
       # show std. error
-      if (showStdError) page.content <- paste0(page.content, "<td class=\"tdata centeralign colnames\">std. Error</td>")
+      if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringSE))
       # show std. beta
-      if (showStdBeta) page.content <- paste0(page.content, "<td class=\"tdata centeralign colnames\">std. Beta</td>")
+      if (showStdBeta) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringSB))
       # show p-values as numbers in separate column
-      if (pvaluesAsNumbers) page.content <- paste0(page.content, "<td class=\"tdata centeralign colnames\">p</td>")
+      if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringP))
     }
     page.content <- paste(page.content, "\n  </tr>\n")
   }
@@ -430,12 +463,12 @@ sjt.lm <- function (...,
     # confidence interval in separate column
     if (separateConfColumn) {
       # open table cell for Beta-coefficient
-      page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign topcontentborder\">%.2f", coeffs[1,i]))
+      page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign topcontentborder\">%.*f", digits.est, coeffs[1,i]))
       # if p-values are not shown as numbers, insert them after beta-value
       if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf(" %s", pv[1,i]))
       # if we have CI, start new table cell (CI in separate column)
       if (showConfInt) {
-        page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign topcontentborder\">%.2f-%.2f</td>", confi_lower[1,i], confi_higher[1,i]))
+        page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign topcontentborder\">%.*f-%.*f</td>", digits.ci, confi_lower[1,i], digits.ci, confi_higher[1,i]))
       }
       else {
         page.content <- paste0(page.content, "</td>")
@@ -443,15 +476,15 @@ sjt.lm <- function (...,
     }
     else {
       # open table cell for Beta-coefficient
-      page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign topcontentborder\">%.2f", coeffs[1,i]))
+      page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign topcontentborder\">%.*f", digits.est, coeffs[1,i]))
       # confidence interval in Beta-column
-      if (showConfInt) page.content <- paste0(page.content, sprintf(" (%.2f-%.2f)", confi_lower[1,i], confi_higher[1,i]))
+      if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%.*f-%.*f)", linebreakstring, digits.ci, confi_lower[1,i], digits.ci, confi_higher[1,i]))
       # if p-values are not shown as numbers, insert them after beta-value
       if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf(" %s", pv[1,i]))
       page.content <- paste0(page.content, "</td>")
     }
     # show std. error
-    if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign topcontentborder\">%s</td>", se[1,i]))
+    if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign topcontentborder\">%.*f</td>", digits.se, se[1,i]))
     # show std. beta
     if (showStdBeta) page.content <- paste0(page.content, "<td class=\"tdata centeralign topcontentborder\"></td>")
     # show p-values as numbers in separate column
@@ -468,12 +501,12 @@ sjt.lm <- function (...,
       # confidence interval in separate column
       if (separateConfColumn) {
         # open table cell for Beta-coefficient
-        page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign\">%.2f", coeffs[i+1,j]))
+        page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign\">%.*f", digits.est, coeffs[i+1,j]))
         # if p-values are not shown as numbers, insert them after beta-value
         if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf(" %s", pv[i+1,j]))
         # if we have CI, start new table cell (CI in separate column)
         if (showConfInt) {
-          page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign\">%.2f-%.2f</td>", confi_lower[i+1,j], confi_higher[i+1,j]))
+          page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign\">%.*f-%.*f</td>", digits.ci, confi_lower[i+1,j], digits.ci, confi_higher[i+1,j]))
         }
         else {
           page.content <- paste0(page.content, "</td>")
@@ -481,19 +514,19 @@ sjt.lm <- function (...,
       }
       else {
         # open table cell for Beta-coefficient
-        page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign\">%.2f", coeffs[i+1,j]))
+        page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign\">%.*f", digits.est, coeffs[i+1,j]))
         # confidence interval in Beta-column
-        if (showConfInt) page.content <- paste0(page.content, sprintf(" (%.2f-%.2f)", confi_lower[i+1,j], confi_higher[i+1,j]))
+        if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%.*f-%.*f)", linebreakstring, digits.ci, confi_lower[i+1,j], digits.ci, confi_higher[i+1,j]))
         # if p-values are not shown as numbers, insert them after beta-value
         if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf(" %s", pv[i+1,j]))
         page.content <- paste0(page.content, "</td>")
       }
       # show std. error
-      if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", se[i+1,j]))
+      if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%.*f</td>", digits.se, se[i+1,j]))
       # show std. beta
       if (showStdBeta) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", stdbv[i,j]))
       # show p-values as numbers in separate column
-      if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata\">%s</td>", pv[i+1,j]))
+      if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", pv[i+1,j]))
     }
     page.content <- paste0(page.content, "\n  </tr>")
   }
@@ -521,7 +554,7 @@ sjt.lm <- function (...,
     for (i in 1:length(input_list)) {
       rsqu <- summary(input_list[[i]])$r.squared
       adjrsqu <- summary(input_list[[i]])$adj.r.squared
-      page.content <- paste0(page.content, sprintf("    %s%.3f / %.3f</td>\n", colspanstring, rsqu, adjrsqu))
+      page.content <- paste0(page.content, sprintf("    %s%.*f / %.*f</td>\n", colspanstring, digits.summary, rsqu, digits.summary, adjrsqu))
     }
     page.content <- paste(page.content, "  </tr>\n")
   }
@@ -545,7 +578,7 @@ sjt.lm <- function (...,
       else  if (pval<=0.05) {
         pan <- c("*")
       }
-      page.content <- paste(page.content, sprintf("    %s%.2f%s</td>\n", colspanstring, fstat[1], pan))
+      page.content <- paste(page.content, sprintf("    %s%.*f%s</td>\n", colspanstring, digits.summary, fstat[1], pan))
     }
     page.content <- paste(page.content, "  </tr>\n")
   }
@@ -555,7 +588,7 @@ sjt.lm <- function (...,
   if (showAIC) {
     page.content <- paste(page.content, "  <tr>\n     <td class=\"tdata leftalign summary\">AIC</td>\n")
     for (i in 1:length(input_list)) {
-      page.content <- paste(page.content, sprintf("    %s%.2f</td>\n", colspanstring, AIC(input_list[[i]])))
+      page.content <- paste(page.content, sprintf("    %s%.*f</td>\n", colspanstring, digits.summary, AIC(input_list[[i]])))
     }
     page.content <- paste0(page.content, "  </tr>\n")
   }

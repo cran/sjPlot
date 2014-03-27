@@ -2,7 +2,8 @@
 \alias{sjc.grpdisc}
 \title{Compute a linear discriminant analysis on classified cluster groups}
 \usage{
-sjc.grpdisc(data, groups, groupcount, showTotalCorrect = TRUE)
+sjc.grpdisc(data, groups, groupcount, showTotalCorrect = TRUE,
+  printPlot = TRUE)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
@@ -23,6 +24,19 @@ sjc.grpdisc(data, groups, groupcount, showTotalCorrect = TRUE)
   classification is added to the plot, so one can see
   whether a certain group is below or above the average
   classification goodness.}
+
+  \item{printPlot}{If \code{TRUE} (default), plots the
+  results as graph. Use \code{FALSE} if you don't want to
+  plot any graphs. In either case, the ggplot-object will
+  be returned as value.}
+}
+\value{
+(Invisibly) returns an object with \itemize{ \item
+\code{data}: the used data frame for plotting, \item
+\code{plot}: the ggplot object, \item \code{accuracy}: a
+vector with the accuracy of classification for each group,
+\item \code{total.accuracy}: the total accuracy of group
+classification.  }
 }
 \description{
 Computes linear discriminant analysis on classified cluster

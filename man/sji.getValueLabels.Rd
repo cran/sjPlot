@@ -26,6 +26,7 @@ SPSS data set and returns the result as list.
 }
 \seealso{
 \link{sji.SPSS} \cr \link{sji.getVariableLabels} \cr
-\link{sji.convertToLabel} \cr \link{sji.convertToValue}
+\link{sji.convertToLabel} \cr \link{sji.convertToValue} \cr
+\link{sji.setValueLabels}
 }
 

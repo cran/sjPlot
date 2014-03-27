@@ -28,7 +28,9 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
   is \code{NULL}, i.e. not grouping is done.}
 
   \item{title}{Title of the diagram, plotted above the
-  whole diagram panel.}
+  whole diagram panel.  Use \code{"auto"} to automatically
+  detect variable names that will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{titleSize}{The size of the plot title. Default is
   1.3.}
@@ -40,9 +42,15 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
 
   \item{legendLabels}{Labels for the guide/legend.}
 
-  \item{axisTitle.x}{A label (title) for the x axis.}
+  \item{axisTitle.x}{A label (title) for the x axis.  Use
+  \code{"auto"} to automatically detect variable names that
+  will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
-  \item{axisTitle.y}{A label (title) for the y axis.}
+  \item{axisTitle.y}{A label (title) for the y axis.  Use
+  \code{"auto"} to automatically detect variable names that
+  will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{axisTitleColor}{The color of the x and y axis
   labels. Refers to \code{axisTitle.x} and
@@ -240,6 +248,13 @@ sjp.scatter(efc$c160age,efc$e17age, efc$e42dep, title="Scatter Plot",
             axisTitle.x=sji.getVariableLabels(efc)['c160age'],
             axisTitle.y=sji.getVariableLabels(efc)['e17age'],
             showGroupFitLine=TRUE, useFacetGrid=TRUE, showSE=TRUE)
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
+sjp.scatter(efc$c160age,efc$e17age, efc$e42dep,
+            title="auto", axisTitle.x="auto", axisTitle.y="auto")
 }
 \references{
 \itemize{ \item

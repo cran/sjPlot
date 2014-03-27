@@ -13,7 +13,7 @@ sji.viewSPSS(df, file = NULL, alternateRowColors = TRUE, showType = FALSE,
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified, the file will
   be saved as temporary file and openend either in the
-  RStudio View pane or in the default web browser.}
+  IDE's viewer pane or in the default web browser.}
 
   \item{alternateRowColors}{If \code{TRUE}, alternating
   rows are highlighted with a light gray background color.}

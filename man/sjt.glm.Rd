@@ -7,11 +7,15 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   stringDependentVariables = "Dependent Variables",
   showHeaderStrings = FALSE, stringModel = "Model",
   stringIntercept = "(Intercept)", stringObservations = "Observations",
+  stringOR = "OR", stringCI = "CI", stringSE = "std. Error",
+  stringP = "p", digits.est = 2, digits.p = 3, digits.ci = 2,
+  digits.se = 2, digits.summary = 3, exp.coef = TRUE,
   pvaluesAsNumbers = FALSE, boldpvalues = TRUE, showConfInt = TRUE,
-  showStdError = FALSE, separateConfColumn = FALSE,
+  showStdError = FALSE, separateConfColumn = FALSE, newLineConf = TRUE,
   showAbbrHeadline = TRUE, showPseudoR = TRUE, showLogLik = FALSE,
   showAIC = FALSE, showChi2 = FALSE, showFamily = FALSE,
-  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
+  cellSpacing = 0.2, encoding = "UTF-8", CSS = NULL, useViewer = TRUE,
+  no.output = FALSE)
 }
 \arguments{
   \item{...}{One or more fitted glm-objects.}
@@ -53,6 +57,36 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   summary row for the count of observation (cases). Default
   is \code{"Observations"}.}
 
+  \item{stringOR}{String used for the column heading of
+  odds ratio values. Default is \code{"OR"}.}
+
+  \item{stringCI}{String used for the column heading of
+  confidence interval values. Default is \code{"CI"}.}
+
+  \item{stringSE}{String used for the column heading of
+  standard error values. Default is \code{"std. Error"}.}
+
+  \item{stringP}{String used for the column heading of p
+  values. Default is \code{"p"}.}
+
+  \item{digits.est}{Amount of decimals for estimators.}
+
+  \item{digits.p}{Amount of decimals for p-values.}
+
+  \item{digits.ci}{Amount of decimals for confidence
+  intervals.}
+
+  \item{digits.se}{Amount of decimals for standard error.}
+
+  \item{digits.summary}{Amount of decimals for values in
+  model summary.}
+
+  \item{exp.coef}{If \code{TRUE} (default), regression
+  coefficients and confidence intervals are exponentiated
+  (\code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if
+  you want the non-exponentiated coefficients as they are
+  provided by the \code{\link{summary}} function.}
+
   \item{pvaluesAsNumbers}{If \code{TRUE}, p-values are
   shown as numbers. If \code{FALSE} (default), p-values are
   indicated by asterisks.}
@@ -70,6 +104,11 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   \item{separateConfColumn}{if \code{TRUE}, the CI values
   are shown in a separate table column.  Default is
   \code{FALSE}.}
+
+  \item{newLineConf}{If \code{TRUE} and
+  \code{separateConfColumn} is \code{FALSE}, inserts a line
+  break between OR and CI values. If \code{FALSE}, CI
+  values are printed in the same line with OR values.}
 
   \item{showAbbrHeadline}{If \code{TRUE} (default), the
   table data columns have a headline with abbreviations for
@@ -100,6 +139,15 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   for more details. It is recommended to inspect the model
   \code{\link{AIC}} (see \code{showAIC}) to get a decision
   help for which model to choose.}
+
+  \item{cellSpacing}{The inner padding of table cells. By
+  default, this value is 0.2 (measure is cm), which is
+  suitable for viewing the table. Decrease this value (0.05
+  to 0.1) if you want to import the table into Office
+  documents. This is a convenient parameter for the
+  \code{CSS} parameter for changing cell spacing, which
+  would be: \code{CSS=list(css.thead="padding:0.2cm;",
+  css.tzdata="padding:0.2cm;")}.}
 
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change

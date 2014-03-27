@@ -6,11 +6,15 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   labelDependentVariables = NULL, stringPredictors = "Predictors",
   stringDependentVariables = "Dependent Variables", stringModel = "Model",
   showHeaderStrings = FALSE, stringIntercept = "(Intercept)",
-  stringObservations = "Observations", showConfInt = TRUE,
-  showStdBeta = FALSE, showStdError = FALSE, pvaluesAsNumbers = FALSE,
-  boldpvalues = TRUE, separateConfColumn = FALSE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, encoding = "UTF-8",
-  CSS = NULL, useViewer = TRUE, no.output = FALSE)
+  stringObservations = "Observations", stringB = "B",
+  stringSB = "std. Beta", stringCI = "CI", stringSE = "std. Error",
+  stringP = "p", showConfInt = TRUE, showStdBeta = FALSE,
+  showStdError = FALSE, digits.est = 2, digits.p = 3, digits.ci = 2,
+  digits.se = 2, digits.sb = 2, digits.summary = 3,
+  pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
+  separateConfColumn = FALSE, newLineConf = TRUE, showAbbrHeadline = TRUE,
+  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, cellSpacing = 0.2,
+  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{...}{One or more fitted lm-objects.}
@@ -52,6 +56,22 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   summary row for the count of observation (cases). Default
   is \code{"Observations"}.}
 
+  \item{stringB}{String used for the column heading of beta
+  coefficients. Default is \code{"B"}.}
+
+  \item{stringSB}{String used for the column heading of
+  standardized beta coefficients. Default is \code{"std.
+  Beta"}.}
+
+  \item{stringCI}{String used for the column heading of
+  confidence interval values. Default is \code{"CI"}.}
+
+  \item{stringSE}{String used for the column heading of
+  standard error values. Default is \code{"std. Error"}.}
+
+  \item{stringP}{String used for the column heading of p
+  values. Default is \code{"p"}.}
+
   \item{showConfInt}{If \code{TRUE} (default), the
   confidence intervall is also printed to the table. Use
   \code{FALSE} to omit the CI in the table.}
@@ -63,6 +83,21 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   \item{showStdError}{If \code{TRUE}, the standard errors
   are also printed.  Default is \code{FALSE}.}
 
+  \item{digits.est}{Amount of decimals for estimators.}
+
+  \item{digits.p}{Amount of decimals for p-values.}
+
+  \item{digits.ci}{Amount of decimals for confidence
+  intervals.}
+
+  \item{digits.se}{Amount of decimals for standard error.}
+
+  \item{digits.sb}{Amount of decimals for standardized
+  beta.}
+
+  \item{digits.summary}{Amount of decimals for values in
+  model summary.}
+
   \item{pvaluesAsNumbers}{If \code{TRUE}, p-values are
   shown as numbers. If \code{FALSE} (default), p-values are
   indicated by asterisks.}
@@ -73,6 +108,11 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   \item{separateConfColumn}{if \code{TRUE}, the CI values
   are shown in a separate table column.  Default is
   \code{FALSE}.}
+
+  \item{newLineConf}{If \code{TRUE} and
+  \code{separateConfColumn} is \code{FALSE}, inserts a line
+  break between B and CI values. If \code{FALSE}, CI values
+  are printed in the same line with B values.}
 
   \item{showAbbrHeadline}{If \code{TRUE} (default), the
   table data columns have a headline with abbreviations for
@@ -90,6 +130,15 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   \item{showAIC}{If \code{TRUE}, the AIC value for each
   model is printed in the model summary. Default is
   \code{FALSE}.}
+
+  \item{cellSpacing}{The inner padding of table cells. By
+  default, this value is 0.2 (measure is cm), which is
+  suitable for viewing the table. Decrease this value (0.05
+  to 0.1) if you want to import the table into Office
+  documents. This is a convenient parameter for the
+  \code{CSS} parameter for changing cell spacing, which
+  would be: \code{CSS=list(css.thead="padding:0.2cm;",
+  css.tzdata="padding:0.2cm;")}.}
 
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change

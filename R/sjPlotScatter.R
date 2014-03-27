@@ -18,12 +18,18 @@
 #' @param grp A grouping variable. If not \code{NULL}, the scatter plot will be grouped. See
 #'          examples below. Default is \code{NULL}, i.e. not grouping is done.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
 #' @param legendLabels Labels for the guide/legend.
 #' @param axisTitle.x A label (title) for the x axis.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label (title) for the y axis.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitleColor The color of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
 #' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
@@ -132,6 +138,14 @@
 #'             axisTitle.y=sji.getVariableLabels(efc)['e17age'],
 #'             showGroupFitLine=TRUE, useFacetGrid=TRUE, showSE=TRUE)
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
+#' sjp.scatter(efc$c160age,efc$e17age, efc$e42dep,
+#'             title="auto", axisTitle.x="auto", axisTitle.y="auto")
+#' 
+#'   
 #' @importFrom scales brewer_pal
 #' @import ggplot2
 #' @export
@@ -180,6 +194,23 @@ sjp.scatter <- function(x,
                         theme=NULL,
                         useFacetGrid=FALSE,
                         printPlot=TRUE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(legendLabels) && !is.null(grp)) legendLabels <- autoSetValueLabels(grp)
+  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(x)
+  if (!is.null(axisTitle.y) && axisTitle.y=="auto") axisTitle.y <- autoSetVariableLabels(y)
+  if (!is.null(title) && title=="auto") {
+    t1 <- autoSetVariableLabels(x)
+    t2 <- autoSetVariableLabels(y)
+    if (!is.null(t1) && !is.null(t2)) {
+      title <- paste0(t1, " by ", t2)
+      if (!is.null(grp)) {
+        t3 <- autoSetVariableLabels(grp)
+        if (!is.null(t3)) title <- paste0(title, " (grouped by ", t3, ")")
+      }
+    }
+  }
   # ------------------------------------------
   # check for auto-jittering
   # ------------------------------------------
@@ -203,15 +234,6 @@ sjp.scatter <- function(x,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(legendLabels) && is.list(legendLabels)) {
     legendLabels <- unlistlabels(legendLabels)
   }

@@ -18,19 +18,23 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   showAxisLabels.y = TRUE, showTickMarks = TRUE,
   showMeanIntercept = FALSE, showMeanValue = TRUE,
   showStandardDeviation = TRUE, showNormalCurve = FALSE,
+  showStandardNormalCurve = FALSE, adjustNormalCurve.x = FALSE,
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
-  normalCurveColor = "red", normalCurveSize = 0.7, normalCurveAlpha = 0.4,
+  normalCurveColor = "red", normalCurveSize = 0.8, normalCurveAlpha = 0.4,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, startAxisAt = 1, autoGroupAt = NULL,
-  theme = NULL, flipCoordinates = FALSE, omitNA = TRUE,
-  printPlot = TRUE)
+  axisTitleSize = 1.3, startAxisAt = "auto", hist.skipZeros = FALSE,
+  autoGroupAt = NULL, theme = NULL, flipCoordinates = FALSE,
+  na.rm = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
   plotted.}
 
-  \item{title}{Title of diagram as string.  Example:
-  \code{title=c("my title")}}
+  \item{title}{Title of diagram as string. Example:
+  \code{title=c("my title")}.  Use \code{"auto"} to
+  automatically detect variable names that will be used as
+  title (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{titleSize}{The size of the plot title. Default is
   1.3.}
@@ -220,9 +224,25 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   intercept line. Only applies to histogram-charts and when
   \code{showMeanIntercept} is \code{TRUE}.}
 
-  \item{showNormalCurve}{If \code{TRUE}, a normal curve is
-  plotted over the histogram. Default is \code{FALSE}. Only
-  applies when histograms are plotted.}
+  \item{showNormalCurve}{If \code{TRUE}, a normal curve,
+  which is adjusted to the data, is plotted over the
+  histogram or density plot. Default is \code{FALSE}. Only
+  applies when histograms or density plots are plotted (see
+  \code{type}).}
+
+  \item{showStandardNormalCurve}{If \code{TRUE}, a normal
+  curve, which is not adjusted to the data (thus
+  representing a "true" standard normal curve, which is,
+  however, still just an approximation), is plotted over
+  the histogram or density plot. Default is \code{FALSE}.
+  Only applies when histograms or density plots are plotted
+  (see \code{type}).}
+
+  \item{adjustNormalCurve.x}{If \code{TRUE} and
+  \code{showStandardNormalCurve} is also \code{TRUE}, the
+  x-axis-start of the standard normal curve starts with the
+  x-axis limits of the graph. This is only necessary, if
+  minimum value of \code{varCount} is larger than 0 or 1.}
 
   \item{normalCurveColor}{Specify the color of the normal
   curve line. Only applies if \code{showNormalCurve} is
@@ -241,7 +261,10 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{axisTitle.x}{A label for the x axis. useful when
   plotting histograms with metric scales where no category
-  labels are assigned to the x axis.}
+  labels are assigned to the x axis.  Use \code{"auto"} to
+  automatically detect variable names that will be used as
+  title (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{axisTitle.y}{A label for the y axis. useful when
   plotting histograms with metric scales where no category
@@ -256,14 +279,24 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   Refers to \code{axisTitle.x} and \code{axisTitle.y}, not
   to the tick mark or category labels. Default is 1.3.}
 
+  \item{hist.skipZeros}{If \code{TRUE}, zero counts
+  (categories with no answer) in \code{varCout} are omitted
+  when drawing histrograms, and the mapping is changed to
+  \code{\link{stat_bin}}. Only applies to histograms (see
+  \code{tye}). Use this parameter to get identical results
+  to the default \code{\link{qplot}} or
+  \code{\link{geom_histogram}} histogram plots of ggplot.
+  You may need to adjust the \code{barWidth} parameter for
+  better visual results (which, by ggplot-default, is 1/30
+  of the x-axis-range).}
+
   \item{startAxisAt}{Determines the first value on the
-  x-axis. By default, this value is 1, i.e. the value range
-  on the x axis starts with 1, independent from the lowest
-  value of \code{varCount} (which means, you may have zero
-  counts and hence no bars plotted for these values in such
-  cases). Change this parameter, if variables with a value
-  range starting from greater values than one (e.g. 5-10)
-  should be plotted to avoid empty bars in the plot.}
+  x-axis. By default, this value is set to \code{"auto"},
+  i.e. the value range on the x axis starts with the lowest
+  value of \code{varCount}.  If you set \code{startAxisAt}
+  to 1, you may have zero counts if the lowest value of
+  \code{varCount} is larger than 1 and hence no bars
+  plotted for these values in such cases.}
 
   \item{autoGroupAt}{A value indicating at which length of
   unique values of \code{varCount} the variable is
@@ -292,8 +325,8 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped. Default is \code{FALSE}.}
 
-  \item{omitNA}{If \code{TRUE}, missings are not included
-  in the frequency calculation and diagram plot.}
+  \item{na.rm}{If \code{TRUE}, missings are not included in
+  the frequency calculation and diagram plot.}
 
   \item{printPlot}{If \code{TRUE} (default), plots the
   results as graph. Use \code{FALSE} if you don't want to
@@ -310,26 +343,37 @@ Plot frequencies of a (count) variable as bar graph,
 histogram, box plot etc. using ggplot.
 }
 \examples{
+# ---------------
 # boxplot
+# ---------------
 sjp.frq(ChickWeight$weight, type="box")
 
+# ---------------
 # histogram
+# ---------------
 sjp.frq(discoveries, type="hist", showMeanIntercept=TRUE)
-# histogram with minimal theme
+# histogram with minimal theme and w/0 labels
 sjp.frq(discoveries, type="hist", showMeanIntercept=TRUE,
         theme="minimal", minorGridColor="white",
-        showTickMarks=FALSE, hideGrid.x=TRUE)
+        showTickMarks=FALSE, hideGrid.x=TRUE,
+        showValueLabels=FALSE)
 
+# ---------------
 # violin plot
+# ---------------
 sjp.frq(ChickWeight$weight, type="v")
 
+# ---------------
 # bar plot
+# ---------------
 sjp.frq(ChickWeight$Diet)
 sjp.frq(ChickWeight$Diet, maxYlim=TRUE)
 
+# ---------------
 # bar plot with EUROFAMCARE sample dataset
 # dataset was importet from an SPSS-file, using:
 # efc <- sji.SPSS("efc.sav", enc="UTF-8")
+# ---------------
 data(efc)
 efc.val <- sji.getValueLabels(efc)
 efc.var <- sji.getVariableLabels(efc)
@@ -354,22 +398,35 @@ sjp.frq(ageGrp,
         showTickMarks=FALSE,
         hideGrid.x=TRUE)
 
+# ---------------
 # box plots with interaction variable
 # the following example is equal to the function call
 # sjp.grpfrq(efc$e17age, efc$e16sex, type="box")
+# ---------------
 sjp.frq(efc$e17age,
         title=paste(efc.var[['e17age']], "by", efc.var[['e16sex']]),
         interactionVar=efc$e16sex,
         interactionVarLabels=efc.val['e16sex'],
         type="box")
 
-# negative impact scale, ranging from 7-28, assuming that
-# variable scale (lowest value) starts with 1 (default assumption)
-sjp.frq(efc$neg_c_7)
+# -------------------------------------------------
+# auto-detection of value labels and variable names
+# -------------------------------------------------
+efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
 
-# negative impact scale, ranging from 7-28, setting
-# start index of x-axis to lowest value (7)
-sjp.frq(efc$neg_c_7, startAxisAt=7)
+# negative impact scale, ranging from 7-28, assuming that
+# variable scale (lowest value) starts with 1
+sjp.frq(efc$neg_c_7, startAxisAt=1, title="auto")
+
+# negative impact scale, ranging from 7-28, using
+# automatic detection of start index of x-axis
+sjp.frq(efc$neg_c_7, axisTitle.x="auto")
+
+# -------------------------------------------------
+# Simulate ggplot-default histogram, using "hist.skipZeros"
+# and adjusted "barWidth".
+# -------------------------------------------------
+sjp.frq(efc$c160age, type="h", hist.skipZeros=TRUE, barWidth=1)
 }
 \references{
 \itemize{ \item

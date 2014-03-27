@@ -22,6 +22,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels Labels for the x- andy y-axis.
+#'          axisLabels are detected automatically if \code{data} is a data frame where each variable has
+#'          a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param type Indicates whether the geoms of correlation values should be plotted
 #'          as \code{"circle"} (default) or as \code{"tile"}.
 #' @param sortCorrelations If \code{TRUE} (default), the axis labels are sorted
@@ -125,6 +127,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #' # belong to one factor. See example from "sjp.pca". 
 #' sjp.corr(df, type="tile", theme="none", outlineColor="white", hideLegend=FALSE)
 #'  
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' sjp.corr(efc[,c(start:end)])
+#'  
 #'
 #' @import ggplot2
 #' @importFrom reshape2 melt
@@ -167,6 +175,26 @@ sjp.corr <- function(data,
                      minorGridColor=NULL,
                      theme=NULL,
                      printPlot=TRUE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(axisLabels) && is.data.frame(data)) {
+    axisLabels <- c()
+    # if yes, iterate each variable
+    for (i in 1:ncol(data)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(data[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        axisLabels <- c(axisLabels, vn)
+      }
+      else {
+        # else break out of loop
+        axisLabels <- NULL
+        break
+      }
+    }
+  }
   # ----------------------------
   # check for valid parameter
   # ----------------------------
@@ -211,8 +239,6 @@ sjp.corr <- function(data,
     }
     cpvalues <- computePValues(data)
   }
-  
-  
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -223,15 +249,6 @@ sjp.corr <- function(data,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels) && is.list(axisLabels)) {
     axisLabels <- unlistlabels(axisLabels)
   }
@@ -246,8 +263,6 @@ sjp.corr <- function(data,
   if (!is.null(axisLabels)) {
     axisLabels <- sju.wordwrap(axisLabels, breakLabelsAt)
   }
-
-  
   # --------------------------------------------------------
   # order correlations from highest to lowest correlation coefficient
   # --------------------------------------------------------
@@ -289,11 +304,8 @@ sjp.corr <- function(data,
   if (hideDiagCircle) {
     orderedCorr$psize[which(orderedCorr$value>=0.999)] <- 0
   }
-
   orderedCorr$ordx <- as.factor(orderedCorr$ordx)
   orderedCorr$ordy <- as.factor(orderedCorr$ordy)
-  
-
   # --------------------------------------------------------
   # add column with significance value
   # --------------------------------------------------------
@@ -309,15 +321,13 @@ sjp.corr <- function(data,
       }
     }
     else {
-      cpv <- c(sprintf("\n(%.3f)", round(cpvalues$value,3)))
+      cpv <- sprintf("\n(%.*f)", decimals, cpvalues$value)
     }
   }
   else {
     cpv <- c("")
   }
   orderedCorr$ps <- cpv
-
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -340,8 +350,6 @@ sjp.corr <- function(data,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -353,8 +361,6 @@ sjp.corr <- function(data,
   if (!is.null(minorGridColor)) {
     minorgrid <- element_line(colour=minorGridColor)
   }
-  
-  
   # --------------------------------------------------------
   # Set up visibility oftick marks
   # --------------------------------------------------------
@@ -366,7 +372,7 @@ sjp.corr <- function(data,
     correlationPValues <- c("")
   }
   else {
-    correlationValueLabels <- c(round(orderedCorr$value,decimals))
+    correlationValueLabels <- sprintf("%.*f", decimals, orderedCorr$value)
     if (showCorrelationPValues) {
       correlationPValues <- orderedCorr$ps
     }
@@ -374,10 +380,7 @@ sjp.corr <- function(data,
       correlationPValues <- c("")
     }
   }
-  
-  
   cat(sprintf("Computing correlation using %s-method with %s-deletion...\n", corMethod, missingDeletion))
-  
   # --------------------------------------------------------
   # start with base plot object here
   # --------------------------------------------------------

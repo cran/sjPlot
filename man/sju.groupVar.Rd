@@ -1,17 +1,17 @@
 \name{sju.groupVar}
 \alias{sju.groupVar}
-\title{Recode scales into grouped factors}
+\title{Recode count variables into grouped factors}
 \usage{
 sju.groupVar(var, groupsize = 5, asNumeric = TRUE, rightInterval = FALSE,
   autoGroupCount = 30)
 }
 \arguments{
-  \item{var}{The scale variable, which should recoded into
+  \item{var}{The count variable, which should recoded into
   groups.}
 
   \item{groupsize}{The group-size, i.e. the range for
-  grouping. By default, for each 5 categories new group is
-  built, i.e. \code{groupsize=5}. Use
+  grouping. By default, for each 5 categories a new group
+  is defined, i.e. \code{groupsize=5}. Use
   \code{groupsize="auto"} to automatically resize a
   variable into a maximum of 30 groups (which is the
   ggplot-default grouping when plotting histograms). Use
@@ -29,7 +29,7 @@ sju.groupVar(var, groupsize = 5, asNumeric = TRUE, rightInterval = FALSE,
   ranges from 51-55, 56-60, 61-65 etc.}
 
   \item{autoGroupCount}{Sets the maximum number of groups
-  that are built when auto-grouping is on
+  that are defined when auto-grouping is on
   (\code{groupsize="auto"}). Default is 30. If
   \code{groupsize} is not set to \code{"auto"}, this
   parameter will be ignored.}
@@ -39,7 +39,7 @@ A grouped variable, either as numeric or as factor (see
 paramter \code{asNumeric}).
 }
 \description{
-Recode scales into grouped factors.
+Recode count variables into grouped factors.
 }
 \examples{
 age <- abs(round(rnorm(100, 65, 20)))

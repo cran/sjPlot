@@ -52,11 +52,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          bar charts. Ideal for larger amount of groups. This parameter wraps a single panel into 
 #'          \code{varGrpup} amount of panels, i.e. each group is represented within a new panel.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
-#' @param axisLabels.x Labels for the x-axis breaks. Passed as vector of strings.
-#'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
+#' @param axisLabels.x Labels for the x-axis breaks. Passed as vector of strings. \emph{Note:} This parameter
+#'          is not necessary when data was either imported with \code{\link{sji.SPSS}} or has named factor levels 
+#'          (see examples below). Else, specifiy parameter like this:
+#'          \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
 #'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be unlisted and
 #'          converted to character vector automatically.
@@ -134,9 +138,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param showStandardDeviation If \code{TRUE}, the standard deviation is annotated as shaded rectangle around the mean intercept
 #'          line. Only applies to histogram-charts. The shaded rectangles have borders in the group colors, so it's easier to see
 #'          which shaded area belongs to which mean value resp. group
-#' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, chi-square, df and p-value is printed
-#'          to the upper right corner of the diagram. Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is
-#'          either \code{"bars"} or \code{"dots"}.
+#' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, Chi-square (see \code{\link{chisq.test}}),
+#'          df, Cramer's V or Phi-value and p-value is printed to the upper right corner of the diagram. If a cell contains expected 
+#'          values lower than five (or lower than 10 if df is 1),
+#'          the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
+#'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
+#'          Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is either \code{"bars"} or \code{"dots"}.
 #' @param showGroupCount if \code{TRUE}, the count within each group is added to the category labels (e.g. \code{"Cat 1 (n=87)"}).
 #'          Default value is \code{FALSE}.
 #' @param tableSummaryPos Position of the model summary which is printed when \code{showTableSummary} is \code{TRUE}. Default is
@@ -148,6 +155,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param valueLabelColor The color of the value labels (numbers) inside the diagram.
 #' @param axisTitle.x A label for the x axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
 #' @param axisTitleColor The color of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
@@ -161,12 +170,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          it will be grouped using \code{\link{sju.groupVar}} with \code{groupsize="auto"} parameter. By default, 
 #'          the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt} 
 #'          groups are built. Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
-#' @param startAxisAt Determines the first value on the x-axis. By default, this value is 1,
-#'          i.e. the value range on the x axis starts with 1, independent from the lowest
-#'          value of \code{varCount} (which means, you may have zero counts and hence no bars plotted
-#'          for these values in such cases). Change this parameter, if variables with a value range
-#'          starting from greater values than one (e.g. 5-10) should be plotted to avoid empty
-#'          bars in the plot.
+#' @param startAxisAt Determines the first value on the x-axis. By default, this value is set
+#'          to \code{"auto"}, i.e. the value range on the x axis starts with the lowest value of \code{varCount}.
+#'          If you set \code{startAxisAt} to 1, you may have zero counts if the lowest value of \code{varCount}
+#'          is larger than 1 and hence no bars plotted for these values in such cases.
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
 #'          background with white grids.
 #'          \itemize{
@@ -183,7 +190,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param legendBorderColor Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
 #' @param legendBackColor Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
-#' @param omitNA If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
+#' @param na.rm If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
@@ -202,7 +209,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            efc$e16sex,
 #'            title=efc.var['e17age'],
 #'            legendTitle=efc.var['e16sex'],
-#'            legendLabels=efc.val[['e16sex']],
 #'            type="hist",
 #'            showValueLabels=FALSE)
 #' 
@@ -210,41 +216,33 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="box")
 #' 
 #' # violin plot
-#' sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="v")
+#' sjp.grpfrq(sample(1:4, length(PlantGrowth$group), replace=TRUE), 
+#'            PlantGrowth$group, type="v")
 #' 
 #' # grouped bars
-#' sjp.grpfrq(sample(1:3, length(ChickWeight$Diet), replace=TRUE), 
-#'            as.numeric(ChickWeight$Diet), barSpace=0.2)
+#' sjp.grpfrq(sample(1:2, length(PlantGrowth$group), replace=TRUE), 
+#'            PlantGrowth$group, barSpace=0.2)
 #' 
 #' # grouped bars with EUROFAMCARE sample dataset
 #' # dataset was importet from an SPSS-file, using:
 #' # efc <- sji.SPSS("efc.sav", enc="UTF-8")
 #' data(efc)
-#' efc.val <- sji.getValueLabels(efc)
+#' # -------------------------------------------------
+#' # auto-detection of value labels and variable names
+#' # -------------------------------------------------
 #' efc.var <- sji.getVariableLabels(efc)
-#' sjp.grpfrq(efc$e42dep,
-#'            efc$e16sex,
-#'            title=efc.var['e42dep'],
-#'            axisLabels.x=efc.val[['e42dep']],
-#'            legendTitle=efc.var['e16sex'],
-#'            legendLabels=efc.val[['e16sex']])
+#' efc <- sji.setVariableLabels(efc, efc.var)
+#' # grouped bars using necessary y-limit            
+#' sjp.grpfrq(efc$e42dep, efc$e16sex, title="auto")
 #'
 #' # grouped bars using the maximum y-limit            
 #' sjp.grpfrq(efc$e42dep,
 #'            efc$e16sex,
 #'            title=efc.var['e42dep'],
-#'            axisLabels.x=efc.val[['e42dep']],
+#'            axisLabels.x=efc.val[['e42dep']], # not needed for SPSS-data sets
 #'            legendTitle=efc.var['e16sex'],
-#'            legendLabels=efc.val[['e16sex']],
+#'            legendLabels=efc.val[['e16sex']], # not needed for SPSS-data sets
 #'            maxYlim=TRUE)
-#'            
-#' # grouped bars using necessary y-limit            
-#' sjp.grpfrq(efc$e16sex,
-#'            efc$e42dep,
-#'            title=efc.var['e16sex'],
-#'            axisLabels.x=efc.val[['e16sex']],
-#'            legendTitle=efc.var['e42dep'],
-#'            legendLabels=efc.val[['e42dep']])
 #'            
 #' # box plots with interaction variable            
 #' sjp.grpfrq(efc$e17age,
@@ -258,9 +256,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            type="box")
 #' 
 #' # Grouped bar plot ranging from 1 to 28 (though scale starts with 7)
-#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
+#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=1)
 #' # Same grouped bar plot ranging from 7 to 28
-#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=7)
+#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
 #' 
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -334,20 +332,37 @@ sjp.grpfrq <- function(varCount,
                        axisTitleColor="black",
                        axisTitleSize=1.3,
                        autoGroupAt=NULL,
-                       startAxisAt=1,
+                       startAxisAt="auto",
                        theme=NULL,
                        legendPos="right",
                        legendSize=1,
                        legendBorderColor="white",
                        legendBackColor="white",
                        flipCoordinates=FALSE,
-                       omitNA=TRUE,
+                       na.rm=TRUE,
                        printPlot=TRUE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(axisLabels.x)) axisLabels.x <- autoSetValueLabels(varCount)
+  if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(varGroup)
+  if (is.null(interactionVarLabels) && !is.null(interactionVar)) interactionVarLabels <- autoSetValueLabels(interactionVar)
+  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(varCount)
+  if (!is.null(title) && title=="auto") {
+    t1 <- autoSetVariableLabels(varCount)
+    t2 <- autoSetVariableLabels(varGroup)
+    if (!is.null(t1) && !is.null(t2)) {
+      title <- paste0(t1, " by ", t2)
+    }
+  }
   # --------------------------------------------------------
   # count variable may not be a factor!
   # --------------------------------------------------------
   if (is.factor(varCount)) {
-    varCount <- as.numeric(as.character(varCount))
+    varCount <- as.numeric(varCount)
+  }
+  if (is.factor(varGroup)) {
+    varGroup <- as.numeric(varGroup)
   }
   #---------------------------------------------------
   # check whether variable should be auto-grouped
@@ -358,8 +373,6 @@ sjp.grpfrq <- function(varCount,
     axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
     varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
   }
-  
-  
   # --------------------------------------------------------
   # We have several options to name the diagram type
   # Here we will reduce it to a unique value
@@ -386,20 +399,9 @@ sjp.grpfrq <- function(varCount,
   if (type=="v") {
     type <- c("violin")
   }
-  
-  
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(legendLabels) && is.list(legendLabels)) {
     legendLabels <- unlistlabels(legendLabels)
   }
@@ -409,25 +411,6 @@ sjp.grpfrq <- function(varCount,
   if (!is.null(interactionVarLabels) && is.list(interactionVarLabels)) {
     interactionVarLabels <- unlistlabels(interactionVarLabels)
   }
-
-    
-  #---------------------------------------------------
-  # weight variable
-  #---------------------------------------------------
-  weightby <- function(var, weight) {
-    items <- unique(var)
-    newvar <- c()
-    for (i in 1:length(items)) {
-      newcount = round(sum(weight[which(var==items[i])]))
-      newvar <- c(newvar, rep(items[i], newcount))
-    }
-    return (newvar)
-  }
-#   if (!is.null(weightBy)) {
-#     varCount <- weightby(varCount, weightBy)
-#   }
-  
-  
   # --------------------------------------------------------
   # Define amount of categories, include zero counts
   # --------------------------------------------------------
@@ -449,9 +432,9 @@ sjp.grpfrq <- function(varCount,
   # first, check the total amount of different factor levels
   catcount_1 <- length(unique(na.omit(varCount)))
   # second, check the maximum factor level
-  catcount_2 <- max(na.omit(varCount))
+  catcount_2 <- max(varCount, na.rm=TRUE)
   # if categories start with zero, fix this here
-  if (min(na.omit(varCount))==0) {
+  if (min(varCount, na.rm=TRUE)==0) {
     catcount_2 <- catcount_2+1
   }
   # catcount should contain the higher values, i.e. the maximum count of
@@ -459,7 +442,14 @@ sjp.grpfrq <- function(varCount,
   # value or to the amount of different factor levels, depending on which one
   # is larger
   catcount <- ifelse (catcount_1 > catcount_2, catcount_1, catcount_2)
-  catmin <- min(na.omit(varCount))
+  catmin <- min(varCount, na.rm=TRUE)
+  # ----------------------------------------------
+  # check for axis start, depending on lowest value
+  # ----------------------------------------------
+  if (startAxisAt=="auto") {
+    startAxisAt <- as.numeric(catmin)
+    if (startAxisAt==0) startAxisAt <- 1
+  }
   lower_lim <- 0
   # get the highest answer category of "variable", so we know where the
   # range of the x-axis ends
@@ -474,8 +464,6 @@ sjp.grpfrq <- function(varCount,
   else {
     grpcount <- length(legendLabels)
   }
-  
-  
   # -----------------------------------------------
   # create cross table for stats, summary etc.
   # and weight variable
@@ -526,7 +514,7 @@ sjp.grpfrq <- function(varCount,
     # --------------------------------------------------------
     # Handle missings
     # --------------------------------------------------------
-    if (!omitNA) {
+    if (!na.rm) {
       # get amount of missings
       frq <- length(which(is.na(varCount[which(varGroup==i)])))
       # create data frame
@@ -545,8 +533,6 @@ sjp.grpfrq <- function(varCount,
   mydat$frq <- as.numeric(as.character(mydat$frq))
   # convert layer to numeric
   mydat$layer <- as.numeric(as.character(mydat$layer))
-  
-
   # -----------------------------------------------
   # Handle zero-counts in group-variable
   # only possible if we know the exact number of groups,
@@ -575,8 +561,6 @@ sjp.grpfrq <- function(varCount,
   }
   # set group-variable as factor
   mydat$group <- as.factor(mydat$group)
-
-  
   # --------------------------------------------------------
   # calculate percentages
   # --------------------------------------------------------
@@ -606,9 +590,6 @@ sjp.grpfrq <- function(varCount,
   # add half of Percentage values as new y-position for stacked bars
   mydat = ddply(mydat, "count", transform, ypos = cumsum(frq) - 0.5*frq)
   # --------------------------------------------------------
-
-  
-  # --------------------------------------------------------
   # If we have boxplots, use different data frame structure
   # --------------------------------------------------------
   if (type=="boxplots" || type=="violin") {
@@ -627,14 +608,12 @@ sjp.grpfrq <- function(varCount,
     }
     mydat$group <- as.factor(mydat$group)
   }
-
-  
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
   # ----------------------------
   mannwhitneyu <-function(count, grp) {
-    if (min(na.omit(grp))==0) {
+    if (min(grp, na.rm=TRUE)==0) {
       grp <- grp+1
     }
     completeString <- c("")
@@ -662,22 +641,6 @@ sjp.grpfrq <- function(varCount,
     # return (substring(completeString, 12))
   }
   # -----------------------------------------------------------
-  # Retrieve Phi coefficient for table
-  # -----------------------------------------------------------
-  getPhiValue <- function(x) {
-    tab <- summary(loglm(~1+2, x))$tests
-    phi <- sqrt(tab[2,1]/sum(x))
-    return (phi)
-  }
-  # -----------------------------------------------------------
-  # Retrieve Cramer's V coefficient for table
-  # -----------------------------------------------------------
-  getCramerValue <- function(x) {
-    phi <- getPhiValue(x)
-    cramer <- sqrt(phi^2/min(dim(x)-1))
-    return (cramer)
-  }
-  # -----------------------------------------------------------
   # Check whether table summary should be printed
   # -----------------------------------------------------------
   if (showTableSummary) {
@@ -685,35 +648,9 @@ sjp.grpfrq <- function(varCount,
       modsum <- mannwhitneyu(varCount, varGroup)
     }
     else {
-      # calculate chi square value
-      chsq <- chisq.test(ftab)
-      # check whether variables are dichotome or if they have more
-      # than two categories. if they have more, use Cramer's V to calculate
-      # the contingency coefficient
-      if (nrow(ftab)>2 || ncol(ftab)>2) {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" == pva,
-                     list(tn=summary(ftab)$n.cases,
-                          c2=sprintf("%.2f", chsq$statistic),
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", getCramerValue(ftab)),
-                          pva=sprintf("%.3f", chsq$p.value)))))
-      }
-      # if variables have two categories (2x2 table), use phi to calculate
-      # the degree of association
-      else {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "p" == pva,
-                     list(tn=summary(ftab)$n.cases,
-                          c2=sprintf("%.2f", chsq$statistic),
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", getPhiValue(ftab)),
-                          pva=sprintf("%.3f", chsq$p.value)))))
-      }
+      modsum <- crosstabsum(ftab)
     }
   }  
-  
-  
   # --------------------------------------------------------
   # If we have a histogram, caluclate means of groups
   # --------------------------------------------------------
@@ -745,8 +682,6 @@ sjp.grpfrq <- function(varCount,
     # convert group to factor
     vldat$group <- as.factor(vldat$group)
   }
-  
-
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
@@ -806,14 +741,14 @@ sjp.grpfrq <- function(varCount,
   }
   # If missings are not removed, add an
   # "NA" to labels and a new row to data frame which contains the missings
-  if (!omitNA) {
+  if (!na.rm) {
     axisLabels.x = c(axisLabels.x, "NA")
   }
   # --------------------------------------------------------
   # add group counts to category labels
   # --------------------------------------------------------
   if (showGroupCount) {
-    nas <- ifelse(omitNA==TRUE, "ifany", "no")
+    nas <- ifelse(na.rm==TRUE, "ifany", "no")
     # check whether we have interaction variables or not
     if (!is.null(interactionVarLabels)) {
       # retrieve group counts by converting data column
@@ -822,7 +757,7 @@ sjp.grpfrq <- function(varCount,
         gc <- table(varGroup, interactionVar, useNA=nas)
       }
       else {
-        gc <- table(weightby(varGroup, weightBy), interactionVar, useNA=nas)
+        gc <- table(sju.weight2(varGroup, weightBy), interactionVar, useNA=nas)
       }
       # determinte loop-steps
       lst <- length(interactionVarLabels)
@@ -844,8 +779,6 @@ sjp.grpfrq <- function(varCount,
       }
     }
   }
-  
-  
   # --------------------------------------------------------
   # Prepare bar charts
   # --------------------------------------------------------
@@ -860,8 +793,8 @@ sjp.grpfrq <- function(varCount,
     # the y axis
     if (type=="boxplots" || type=="violin") {
       # use an extra standard-deviation as limits for the y-axis when we have boxplots
-      lower_lim <- min(na.omit(varCount)) - floor(sd(na.omit(varCount)))
-      upper_lim <- max(na.omit(varCount)) + ceiling(sd(na.omit(varCount)))
+      lower_lim <- min(varCount, na.rm=TRUE) - floor(sd(varCount, na.rm=TRUE))
+      upper_lim <- max(varCount, na.rm=TRUE) + ceiling(sd(varCount, na.rm=TRUE))
       # make sure that the y-axis is not below zero
       if (lower_lim < 0) {
         lower_lim <- 0
@@ -878,8 +811,6 @@ sjp.grpfrq <- function(varCount,
       upper_lim <- grpFreqYlim(mydat$frq)
     }
   }
-
-  
   # --------------------------------------------------------
   # define bar colors
   # --------------------------------------------------------
@@ -974,8 +905,6 @@ sjp.grpfrq <- function(varCount,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Hide or show Tick Marks and Category Labels (x axis text) 
   # --------------------------------------------------------
@@ -996,8 +925,6 @@ sjp.grpfrq <- function(varCount,
     # show guide with group fill colors
     gguide <- guides(fill=mydat$grp)  
   }
-
-  
   # --------------------------------------------------------
   # Prepare fill colors
   # --------------------------------------------------------
@@ -1356,9 +1283,6 @@ sjp.grpfrq <- function(varCount,
   # ----------------------------------
   # Plot integrated bar chart here
   # ----------------------------------
-  # ---------------------------------------------------------
-  # Check whether ggplot object should be returned or plotted
-  # ---------------------------------------------------------
   if (printPlot) plot(baseplot)
   # -------------------------------------
   # return results
@@ -1409,21 +1333,5 @@ grpFreqYlim <- function(var) {
   while (len>=(10*anzahl)) {
     anzahl <- anzahl +5
   }
-  return (10*anzahl)    
-#   len <- max(var)
-#   
-#   if (len<100) {
-#     anzahl <- 10
-#   }
-#   else {
-#     anzahl <- 100
-#   }
-#   
-#   li <- ceiling(len/anzahl)
-#   if ((li %% 2) == 1) {
-#     li <- li+1
-#   }
-#   
-#   retval <- li*anzahl
-#   return (retval)
+  return (10*anzahl)
 }

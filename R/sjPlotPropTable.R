@@ -1,7 +1,7 @@
 # bind global variables
 if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "Group"))
 
-#' @title Plot contigency tables
+#' @title Plot contingency tables
 #' @name sjp.xtab
 #' @references \itemize{
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
@@ -39,6 +39,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          depending on the variable.
 #' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
@@ -105,9 +107,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          if \code{showTotalColumn} is \code{TRUE}. Default is \code{"Total"}.
 #' @param showCategoryLabels Whether x axis text (category names) should be shown or not.
 #' @param showTickMarks Whether tick marks of axes should be shown or not.
-#' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, chi-square, df and p-value is printed
-#'          to the upper right corner of the diagram. Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is
-#'          either \code{"bars"} or \code{"dots"}.
+#' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, Chi-square (see \code{\link{chisq.test}}),
+#'          df, Cramer's V or Phi-value and p-value is printed to the upper right corner of the diagram. If a cell contains expected 
+#'          values lower than five (or lower than 10 if df is 1),
+#'          the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
+#'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
+#'          Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is either \code{"bars"} or \code{"dots"}.
 #' @param tableSummaryPos Position of the model summary which is printed when \code{showTableSummary} is \code{TRUE}. Default is
 #'          \code{"r"}, i.e. it's printed to the upper right corner. Use \code{"l"} for upper left corner.
 #' @param showTotalColumn if \code{tableIndex} is \code{"col"}, an additional bar chart with the sum within each category and
@@ -115,6 +120,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param valueLabelColor The color of the value labels (numbers) inside the diagram.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
 #' @param axisTitleColor The color of the x and y axis labels. refers to \code{axisTitle.x} and \code{axisTitle.y},
@@ -134,6 +141,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df}).
+#' 
+#' @note Since package version 1.3, the parameters \code{axisLabels.x} and \code{legendLabels}, which represent the 
+#'         value labels, are retrieved automatically if a) the variables \code{x} and \code{y} come from a data frame
+#'         that was imported with the \code{\link{sji.SPSS}} function (because then value labels are
+#'         attached as attributes to the data) or b) when the variables are factors with named factor levels
+#'         (e.g., see column \code{group} in dataset \code{\link{PlantGrowth}}). However, you still
+#'         can use own parameters as axis- and legendlabels.
 #' 
 #' @examples
 #' # create 4-category-items
@@ -182,6 +196,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          barPosition="stack",
 #'          flipCoordinates=TRUE,
 #'          jitterValueLabels=TRUE)
+#'
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, efc.var)
+#' sjp.xtab(efc$e16sex, efc$e42dep, title="auto", axisTitle.x="auto")
 #'
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -249,10 +269,31 @@ sjp.xtab <- function(y,
                     theme=NULL,
                     flipCoordinates=FALSE,
                     printPlot=TRUE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(axisLabels.x)) axisLabels.x <- autoSetValueLabels(y)
+  if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(x)
+  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(y)
+  if (!is.null(title) && title=="auto") {
+    t1 <- autoSetVariableLabels(y)
+    t2 <- autoSetVariableLabels(x)
+    if (!is.null(t1) && !is.null(t2)) {
+      title <- paste0(t1, " by ", t2)
+    }
+  }
   # determine table index, i.e. if row-percentages, column-percentages
   # or cell-percentages should be displayed
   tindex <- ifelse (tableIndex=="row", 1, 2)
-  
+  # --------------------------------------------------------
+  # convert factor to numeric
+  # --------------------------------------------------------
+  if (is.factor(x)) {
+    x <- as.numeric(x)
+  }
+  if (is.factor(y)) {
+    y <- as.numeric(y)
+  }
   # --------------------------------------------------------
   # We have several options to name the diagram type
   # Here we will reduce it to a unique value
@@ -263,28 +304,15 @@ sjp.xtab <- function(y,
   if (type=="l" || type=="line") {
     type <- c("lines")
   }
-
-
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.x) && is.list(axisLabels.x)) {
     axisLabels.x <- unlistlabels(axisLabels.x)
   }
   if (!is.null(legendLabels) && is.list(legendLabels)) {
     legendLabels <- unlistlabels(legendLabels)
   }
-  
-  
   # -----------------------------------------------
   # handle zero-counts
   # -----------------------------------------------
@@ -307,8 +335,6 @@ sjp.xtab <- function(y,
   else {
     catcount <- length(axisLabels.x)
   }
-  
-  
   # -----------------------------------------------
   # create cross table for stats, summary etc.
   # and weight variable
@@ -319,8 +345,6 @@ sjp.xtab <- function(y,
   else {
     ftab <- round(xtabs(weightBy ~ y + x),0)
   }
-
-  
   # -----------------------------------------------
   # create proportional table so we have the percentage
   # values that should be used as y-value for the bar charts
@@ -339,8 +363,6 @@ sjp.xtab <- function(y,
   # -----------------------------------------------
   df <- cbind(df, as.data.frame(ftab)[,3])
   names(df) <- c("Count", "Group", "Perc", "Sum")
-
-  
   # -----------------------------------------------
   # don't show bar with category sum score when we 
   # have column or cell percentages
@@ -348,8 +370,6 @@ sjp.xtab <- function(y,
   if (tableIndex=="row" || tableIndex=="cell") {
     showTotalColumn <- FALSE
   }
-
-  
   # -----------------------------------------------
   # Sum scores / total percentages for each category
   # -----------------------------------------------
@@ -362,12 +382,10 @@ sjp.xtab <- function(y,
     dummy <- cbind(dummy, c(apply(ftab, MARGIN=1, function(x) sum(x))))
     names(dummy) <- c("Count", "Group", "Perc", "Sum")
     # "modify" resp. correct the Group-column
-    dummy$Group <- as.factor(rep(max(na.omit(x))+1))
+    dummy$Group <- as.factor(rep(max(x, na.rm=TRUE)+1))
     # bind data to data frame
     df <- rbind(df, dummy)
   }
-
-
   # --------------------------------------------------------
   # Define amount of categories, include zero counts
   # --------------------------------------------------------
@@ -461,55 +479,13 @@ sjp.xtab <- function(y,
   # --------------------------------------------------------
   jvert <- rep(c(1.1,-0.1), length.out=length(unique(df$Group)))
   jvert <- rep(jvert, length.out=nrow(df))
-  # -----------------------------------------------------------
-  # Retrieve Phi coefficient for table
-  # -----------------------------------------------------------
-  getPhiValue <- function(x) {
-    tab <- summary(loglm(~1+2, x))$tests
-    phi <- sqrt(tab[2,1]/sum(x))
-    return (phi)
-  }
-  # -----------------------------------------------------------
-  # Retrieve Cramer's V coefficient for table
-  # -----------------------------------------------------------
-  getCramerValue <- function(x) {
-    phi <- getPhiValue(x)
-    cramer <- sqrt(phi^2/min(dim(x)-1))
-    return (cramer)
-  }
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
   # ----------------------------
   if (showTableSummary) {
-    # calculate chi square value
-    chsq <- chisq.test(ftab)
-    # check whether variables are dichotome or if they have more
-    # than two categories. if they have more, use Cramer's V to calculate
-    # the contingency coefficient
-    if (nrow(ftab)>2 || ncol(ftab)>2) {
-      modsum <- as.character(as.expression(
-        substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" == pva,
-                   list(tn=summary(ftab)$n.cases,
-                        c2=sprintf("%.2f", chsq$statistic),
-                        dft=c(chsq$parameter),
-                        kook=sprintf("%.2f", getCramerValue(ftab)),
-                        pva=sprintf("%.3f", chsq$p.value)))))
-    }
-    # if variables have two categories (2x2 table), use phi to calculate
-    # the degree of association
-    else {
-      modsum <- as.character(as.expression(
-        substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "p" == pva,
-                   list(tn=summary(ftab)$n.cases,
-                        c2=sprintf("%.2f", chsq$statistic),
-                        dft=c(chsq$parameter),
-                        kook=sprintf("%.2f", getPhiValue(ftab)),
-                        pva=sprintf("%.3f", chsq$p.value)))))
-    }
+    modsum <- crosstabsum(ftab)
   }  
-  
-  
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
@@ -536,8 +512,6 @@ sjp.xtab <- function(y,
     # if yes, wrap legend title line
     legendTitle <- sju.wordwrap(legendTitle, breakLegendTitleAt)
   }
-  
-  
   # --------------------------------------------------------
   # Trim labels and title to appropriate size
   # --------------------------------------------------------
@@ -561,17 +535,12 @@ sjp.xtab <- function(y,
     axisLabels.x <- c(1:catcount)
   }
   # --------------------------------------------------------
-  
-  
-  # --------------------------------------------------------
   # check if category-oder on x-axis should be reversed
   # change category label order then
   # --------------------------------------------------------
   if (reverseOrder) {
     axisLabels.x <- rev(axisLabels.x)
   }
-
-  
   # --------------------------------------------------------
   # Prepare bar charts
   # --------------------------------------------------------
@@ -594,8 +563,6 @@ sjp.xtab <- function(y,
       }
     }
   }
-
-  
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
@@ -622,8 +589,6 @@ sjp.xtab <- function(y,
   if (!barOutline) {
     outlineColor <- waiver()
   }
-
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later

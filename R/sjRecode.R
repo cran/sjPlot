@@ -50,14 +50,14 @@ sju.dicho <- function(var, dichBy="median", dichVal=-1) {
 }
 
 
-#' @title Recode scales into grouped factors
+#' @title Recode count variables into grouped factors
 #' @name sju.groupVar
-#' @description Recode scales into grouped factors.
+#' @description Recode count variables into grouped factors.
 #' @seealso \code{\link{sju.groupVarLabels}}
 #'
-#' @param var The scale variable, which should recoded into groups.
+#' @param var The count variable, which should recoded into groups.
 #' @param groupsize The group-size, i.e. the range for grouping. By default, for each 5 categories 
-#'          new group is built, i.e. \code{groupsize=5}. Use \code{groupsize="auto"} to automatically
+#'          a new group is defined, i.e. \code{groupsize=5}. Use \code{groupsize="auto"} to automatically
 #'          resize a variable into a maximum of 30 groups (which is the ggplot-default grouping when
 #'          plotting histograms). Use \code{autoGroupCount} to determin the amount of groups.
 #' @param asNumeric If \code{TRUE} (default), the recoded variable will be returned as numeric vector.
@@ -66,7 +66,7 @@ sju.dicho <- function(var, dichBy="median", dichVal=-1) {
 #'          case, groups cover the ranges from 50-54, 55-59, 60-64 etc. \cr
 #'          If \code{FALSE} (default), grouping starts with the upper bound of \code{groupsize}. In this
 #'          case, groups cover the ranges from 51-55, 56-60, 61-65 etc.
-#' @param autoGroupCount Sets the maximum number of groups that are built when auto-grouping is on
+#' @param autoGroupCount Sets the maximum number of groups that are defined when auto-grouping is on
 #'          (\code{groupsize="auto"}). Default is 30. If \code{groupsize} is not set to \code{"auto"},
 #'          this parameter will be ignored.
 
@@ -108,15 +108,15 @@ sju.groupVar <- function(var, groupsize=5, asNumeric=TRUE, rightInterval=FALSE, 
   # check for auto-grouping
   if (groupsize=="auto") {
     # determine groupsize, which is 1/30 of range
-    size <- ceiling((max(na.omit(var)-min(na.omit(var))))/autoGroupCount)
+    size <- ceiling((max(var, na.rm=TRUE)-min(var, na.rm=TRUE))/autoGroupCount)
     # reset groupsize var
     groupsize <- as.numeric(size)
     # change minvalue
-    minval <- min(na.omit(var))
+    minval <- min(var, na.rm=TRUE)
     multip <- 1
   }
   # Einteilung der Variablen in Gruppen. Dabei werden unbenutzte Faktoren gleich entfernt
-  var <- droplevels(cut(var, breaks=c(seq(minval, max(na.omit(var))+multip*groupsize, by=groupsize)), right=rightInterval))
+  var <- droplevels(cut(var, breaks=c(seq(minval, max(var, na.rm=TRUE)+multip*groupsize, by=groupsize)), right=rightInterval))
   # Die Level der Gruppierung wird neu erstellt
   levels(var) <- c(1:length(levels(var)))
   # in numerisch umwandeln
@@ -194,15 +194,15 @@ sju.groupVarLabels <- function(var, groupsize=5, rightInterval=FALSE, autoGroupC
   # check for auto-grouping
   if (groupsize=="auto") {
     # determine groupsize, which is 1/30 of range
-    size <- ceiling((max(na.omit(var)-min(na.omit(var))))/autoGroupCount)
+    size <- ceiling((max(var, na.rm=TRUE)-min(var, na.rm=TRUE))/autoGroupCount)
     # reset groupsize var
     groupsize <- as.numeric(size)
     # change minvalue
-    minval <- min(na.omit(var))
+    minval <- min(var, na.rm=TRUE)
     multip <- 1
   }
   # Einteilung der Variablen in Gruppen. Dabei werden unbenutzte Faktoren gleich entfernt
-  var <- droplevels(cut(var,breaks=c(seq(minval, max(na.omit(var))+multip*groupsize, by=groupsize)), right=rightInterval))
+  var <- droplevels(cut(var,breaks=c(seq(minval, max(var, na.rm=TRUE)+multip*groupsize, by=groupsize)), right=rightInterval))
   # Gruppen holen
   lvl <- levels(var) 
   # rückgabewert init
@@ -335,16 +335,20 @@ sju.adjustPlotRange.y <- function(gp, upperMargin=1.05) {
 #' @export
 sju.wordwrap <- function(labels, wrap, linesep=NULL) {
   # check for valid value
-  if (is.null(labels)) {
+  if (is.null(labels) || length(labels)==0) {
     return(NULL)
   }
   # default line separator is \n
   if (is.null(linesep)) {
     linesep <- '\\1\n'
+    lsub <- 0
+    ori.linesep <- '\n'
   }
   else {
     # however, for html-function we can use "<br>"
     # as parameter
+    lsub <- nchar(linesep)-1
+    ori.linesep <- linesep
     linesep <- sprintf("\\1%s", linesep)
   }
   # create regex pattern for line break
@@ -360,11 +364,11 @@ sju.wordwrap <- function(labels, wrap, linesep=NULL) {
     # get length of label
     l <- nchar(labels[n])
     # get last char
-    lc <- substr(labels[n], l, l)
+    lc <- substr(labels[n], l-lsub, l)
     # check if line breaj
-    if (lc=='\n') {
+    if (lc==ori.linesep) {
       # if yes, remove it
-      labels[n] <- substr(labels[n], 0, l-1)
+      labels[n] <- substr(labels[n], 0, l-(lsub+1))
     }
   }
   return(labels)
@@ -414,7 +418,7 @@ sju.recodeTo <- function(var, lowest=0, highest=-1) {
     var <- as.numeric(as.character(var))
   }
   # retrieve lowest category
-  minval <- min(na.omit(var))
+  minval <- min(var, na.rm=TRUE)
   # check substraction difference between current lowest value
   # and requested lowest value
   downsize <- minval-lowest
@@ -669,6 +673,9 @@ sju.weight <- function(var, weights) {
 #'         has more than two groups, additionally a Kruskal-Wallis-Test (see \code{\link{kruskal.test}})
 #'         is performed.
 #' 
+#' @seealso \code{\link{sju.chi2.gof}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
+#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}
+#' 
 #' @examples
 #' data(efc)
 #' # Mann-Whitney-U-Tests for elder's age by elder's dependency.
@@ -676,7 +683,7 @@ sju.weight <- function(var, weights) {
 #' 
 #' @export
 sju.mwu <- function(var, grp, alternative="two.sided") {
-  if (min(na.omit(grp))==0) {
+  if (min(grp, na.rm=TRUE)==0) {
     grp <- grp+1
   }
   cnt <- length(unique(na.omit(grp)))
@@ -711,10 +718,48 @@ sju.mwu <- function(var, grp, alternative="two.sided") {
 }
 
 
+#' @title Performs a Chi-square goodness-of-fit-test
+#' @name sju.chi2.gof
+#'
+#' @param var a numeric vector / variable.
+#' @param prob a vector of probabilities (indicating the population probabilities) of the same length 
+#'          as \code{var}'s amount of categories / factor levels. Use \code{nrow(table(var))} to
+#'          determine the amount of necessary values for \code{prob}.
+#' @param weights a vector with weights, used to weight \code{var}.
+#' @value (insisibly) returns the object of the computed \code{\link{chisq.test}}.
+#' 
+#' @note This function is a convenient function for \code{\link{chisq.test}}, performing goodness-of-fit test.
+#' 
+#' @seealso \code{\link{sju.mwu}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
+#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}
+#' 
+#' @examples
+#' data(efc)
+#' # differing from population
+#' sju.chi2.gof(efc$e42dep, c(0.3,0.2,0.22,0.28))
+#' # equal to population
+#' sju.chi2.gof(efc$e42dep, prop.table(table(efc$e42dep)))
+#' 
+#' @export
+sju.chi2.gof <- function(var, prob, weights=NULL) {
+  # performs a Chi-square goodnes-of-fit-test
+  if (!is.null(weights)) var <- sju.weight(var, weights)
+  dummy <- as.vector(table(var))
+  chi2gof <- chisq.test(dummy, p=prob)
+  print(chi2gof)
+  invisible (chi2gof)
+}
+
+
 #' @title Calculates Cronbach's Alpha for a matrix
 #' @name sju.cronbach
-#' @description This function calcates the Cronbach's alpha value for each column
+#' @description This function calculates the Cronbach's alpha value for each column
 #'                of a data frame or matrix.
+#'
+#' @seealso \code{\link{sju.reliability}} \cr
+#'          \code{\link{sjt.itemanalysis}} \cr
+#'          \code{\link{sjp.pca}} \cr
+#'          \code{\link{sjt.pca}}
 #'
 #' @param df A data frame or matrix with more than 2 columns.
 #' @return The Cronbach's alpha value for \code{df}.
@@ -734,17 +779,25 @@ sju.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 
 #' @title Performs a reliability test on an item scale.
 #' @name sju.reliability
-#' @description This function calcates the corrected item-total correlations for each item of \code{df}
-#'                with the remaining items; furthermore, the Cronbach's alpha for each item, if it was
-#'                deleted from the scale, is calculated.
+#' @description This function calculates the item discriminations (corrected item-total 
+#'                correlations for each item of \code{df} with the remaining items) and
+#'                the Cronbach's alpha for each item, if it was deleted from the 
+#'                scale.
 #'
-#' @param df A data frame with 
+#' @seealso \code{\link{sju.cronbach}} \cr
+#'          \code{\link{sjt.itemanalysis}} \cr
+#'          \code{\link{sjp.pca}} \cr
+#'          \code{\link{sjt.pca}} \cr
+#'          \code{\link{sjt.df}}
+#'          
+#' @param df A data frame with items (from a scale)
 #' @param scaleItems If \code{TRUE}, the data frame's vectors will be scaled. Recommended,
 #'          when the variables have different measures / scales.
 #' @param digits Amount of digits for Cronbach's Alpha and correlation values in
 #'          returned data frame.
-#' @return A data frame with the corrected item-total correlations and Cronbach's alpha (if item deleted)
-#'           for each item of the scale.
+#' @return A data frame with the corrected item-total correlations (item discrimination)
+#'           and Cronbach's alpha (if item deleted) for each item of the scale, or
+#'           \code{NULL} if data frame had too less columns.
 #' 
 #' @note This function is similar to a basic reliability test in SPSS. The correlations in
 #'         the Item-Total-Statistic are a computed correlation of each item against the sum
@@ -797,16 +850,6 @@ sju.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' @export
 sju.reliability <- function(df, scaleItems=FALSE, digits=3) {
   # -----------------------------------
-  # check for minimum amount of columns
-  # can't be less than 3, because the reliability
-  # test checks for Cronbach's alpha if a specific
-  # item is deleted. If data frame has only two columns
-  # and one is deleted, Cronbach's alpha cannot be calculated.
-  # -----------------------------------
-  if (ncol(df)<3) {
-    stop("Data frame needs at least three columns!", call.=FALSE)
-  }
-  # -----------------------------------
   # remove missings, so correlation works
   # -----------------------------------
   df <- na.omit(df)
@@ -816,44 +859,150 @@ sju.reliability <- function(df, scaleItems=FALSE, digits=3) {
   # -----------------------------------
   df.names <- colnames(df)
   # -----------------------------------
-  # Check whether items should be scaled. Needed,
-  # when items have different measures / scales
+  # check for minimum amount of columns
+  # can't be less than 3, because the reliability
+  # test checks for Cronbach's alpha if a specific
+  # item is deleted. If data frame has only two columns
+  # and one is deleted, Cronbach's alpha cannot be calculated.
   # -----------------------------------
-  if (scaleItems) {
-    df <- data.frame(scale(df, center=TRUE, scale=TRUE))
+  if (ncol(df)>2) {
+    # -----------------------------------
+    # Check whether items should be scaled. Needed,
+    # when items have different measures / scales
+    # -----------------------------------
+    if (scaleItems) {
+      df <- data.frame(scale(df, center=TRUE, scale=TRUE))
+    }
+    # -----------------------------------
+    # init vars
+    # -----------------------------------
+    totalCorr <- c()
+    cronbachDeleted <- c()
+    # -----------------------------------
+    # iterate all items
+    # -----------------------------------
+    for (i in 1:ncol(df)) {
+      # -----------------------------------
+      # create subset with all items except current one
+      # (current item "deleted")
+      # -----------------------------------
+      sub.df <- subset(df, select=c(-i))
+      # -----------------------------------
+      # calculate cronbach-if-deleted
+      # -----------------------------------
+      cronbachDeleted <- c(cronbachDeleted, sju.cronbach(sub.df))
+      # -----------------------------------
+      # calculate corrected total-item correlation
+      # -----------------------------------
+      totalCorr <- c(totalCorr, cor(df[,i], apply(sub.df, 1, sum), use="pairwise.complete.obs"))
+    }
+    # -----------------------------------
+    # create return value
+    # -----------------------------------
+    ret.df <- data.frame(cbind(round(cronbachDeleted,digits), round(totalCorr,digits)))
+    # -----------------------------------
+    # set names of data frame
+    # -----------------------------------
+    colnames(ret.df) <- c("Cronbach's &alpha; if item deleted", "Item discrimination")
+    rownames(ret.df) <- df.names
   }
-  # -----------------------------------
-  # init vars
-  # -----------------------------------
-  totalCorr <- c()
-  cronbachDeleted <- c()
-  # -----------------------------------
-  # iterate all items
-  # -----------------------------------
-  for (i in 1:ncol(df)) {
-    # -----------------------------------
-    # create subset with all items except current one
-    # (current item "deleted")
-    # -----------------------------------
-    sub.df <- subset(df, select=c(-i))
-    # -----------------------------------
-    # calculate cronbach-if-deleted
-    # -----------------------------------
-    cronbachDeleted <- c(cronbachDeleted, sju.cronbach(sub.df))
-    # -----------------------------------
-    # calculate corrected total-item correlation
-    # -----------------------------------
-    totalCorr <- c(totalCorr, cor(df[,i], apply(sub.df, 1, sum), use="pairwise.complete.obs"))
+  else {
+    warning("Data frame needs at least three columns for reliability-test!")
+    ret.df <- NULL
   }
-  # -----------------------------------
-  # create return value
-  # -----------------------------------
-  ret.df <- data.frame(cbind(round(cronbachDeleted,digits), round(totalCorr,digits)))
-  # -----------------------------------
-  # set names of data frame
-  # -----------------------------------
-  colnames(ret.df) <- c("Cronbach's &alpha; if item deleted", "Corrected item-total correlation")
-  rownames(ret.df) <- df.names
   # -----------------------------------
   return(ret.df)
+}
+
+
+#' @title Compute table's values
+#' @name sju.table.values
+#' @description This function calculates a table's cell, row and column percentages as
+#'                well as expected values and returns all results as lists of tables.
+#'
+#' @seealso \code{\link{sju.phi}} \cr
+#'          \code{\link{sju.cramer}}
+#'
+#' @param tab A simple \code{\link{table}} or \code{\link{ftable}} of which cell, row and column percentages 
+#'          as well as expected values are calculated. Tables of class \code{\link{xtabs}} and other will
+#'          be coerced to \code{\link{ftable}} objects.
+#' @param digits The amount of digits for the table percentage values.
+#' @return (invisibly) returns a list with four tables:
+#'         \enumerate{
+#'          \item \code{cell} a table with cell percentages of \code{tab}
+#'          \item \code{row} a table with row percentages of \code{tab}
+#'          \item \code{col} a table with column percentages of \code{tab}
+#'          \item \code{expected} a table with expected values of \code{tab}
+#'         }
+#' 
+#' @examples
+#' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
+#' # show expected values
+#' sju.table.values(tab)$expected
+#' # show cell percentages
+#' sju.table.values(tab)$cell
+#' 
+#' @export
+sju.table.values <- function(tab, digits=2) {
+  if (class(tab)!="ftable") tab <- ftable(tab)
+  tab.cell <- round(100*prop.table(tab),digits)
+  tab.row <- round(100*prop.table(tab,1),digits)
+  tab.col <- round(100*prop.table(tab,2),digits)
+  tab.expected <- as.table(round(as.array(margin.table(tab,1)) %*% t(as.array(margin.table(tab,2))) / margin.table(tab)))
+  # -------------------------------------
+  # return results
+  # -------------------------------------
+  invisible (structure(class = "sjutablevalues",
+                       list(cell = tab.cell,
+                            row = tab.row,
+                            col = tab.col,
+                            expected = tab.expected)))
+}
+
+
+#' @title Phi value for a contingency table
+#' @name sju.phi
+#' @description Compute Phi value for a contingency table.
+#'
+#' @seealso \code{\link{sju.table.values}} \cr
+#'          \code{\link{sju.cramer}}
+#'
+#' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
+#'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
+#' @return The table's Phi value.
+#' 
+#' @examples
+#' tab <- table(sample(1:2, 30, TRUE), sample(1:2, 30, TRUE))
+#' sju.phi(tab)
+#' 
+#' @export
+sju.phi <- function(tab) {
+  if (class(tab)!="ftable") tab <- ftable(tab)
+  tb <- summary(loglm(~1+2, tab))$tests
+  phi <- sqrt(tb[2,1]/sum(tab))
+  return (phi)
+}
+
+
+#' @title Cramer's V for a contingency table
+#' @name sju.cramer
+#' @description Compute Cramer's V for a table with more than 2x2 fields.
+#'
+#' @seealso \code{\link{sju.table.values}} \cr
+#'          \code{\link{sju.phi}}
+#'
+#' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
+#'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
+#' @return The table's Cramer's V.
+#' 
+#' @examples
+#' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
+#' sju.cramer(tab)
+#' 
+#' @export
+sju.cramer <- function(tab) {
+  if (class(tab)!="ftable") tab <- ftable(tab)
+  phi <- sju.phi(tab)
+  cramer <- sqrt(phi^2/min(dim(tab)-1))
+  return (cramer)
 }

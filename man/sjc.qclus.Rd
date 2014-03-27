@@ -2,8 +2,9 @@
 \alias{sjc.qclus}
 \title{Compute quick cluster analysis}
 \usage{
-sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
-  agglomeration = "ward", showAccuracy = FALSE, title = NULL,
+sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
+  distance = "euclidean", agglomeration = "ward", iter.max = 20,
+  algorithm = "Hartigan-Wong", showAccuracy = FALSE, title = NULL,
   titleSize = 1.3, titleColor = "black", axisLabels.x = NULL,
   axisLabelAngle.x = 0, axisLabelSize = 1.1, axisLabelColor = "gray30",
   axisTitle.x = "Cluster group characteristics",
@@ -14,48 +15,73 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   barSpace = 0.1, barOutline = FALSE, outlineColor = "black",
   theme = NULL, borderColor = NULL, axisColor = NULL,
   hideLegend = FALSE, showTickMarks = TRUE, showAxisLabels.x = TRUE,
-  showAxisLabels.y = TRUE, showGroupCount = TRUE, legendTitle = NULL,
-  legendLabels = NULL, legendPos = "right", legendSize = 1,
-  legendBorderColor = "white", legendBackColor = "white",
-  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
-  hideGrid.y = FALSE, flipCoordinates = FALSE, printPlot = TRUE)
+  showAxisLabels.y = TRUE, showGroupCount = TRUE,
+  showAccuracyLabels = FALSE, legendTitle = NULL, legendLabels = NULL,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", majorGridColor = NULL, minorGridColor = NULL,
+  hideGrid.x = FALSE, hideGrid.y = FALSE, flipCoordinates = FALSE,
+  printPlot = TRUE)
 }
 \arguments{
   \item{data}{The data frame containing all variables that
   should be used for the cluster analysis.}
 
   \item{groupcount}{The amount of groups (clusters) that
-  should be retrieved. By default (\code{NULL}), the
+  should be retrieved. May also be a set of initial
+  (distinct) cluster centres, in case \code{method} is
+  \code{"kmeans"} (see \code{\link{kmeans}} for details on
+  \code{centers} parameter). By default (\code{NULL}), the
   optimal amount of clusters is calculated using the gap
   statistics (see \code{\link{sjc.kgap}}. However, this
   works only with kmeans as \code{method}. If \code{method}
-  is \code{"h"}, you have to specify a groupcount. Use the
-  \code{\link{sjc.elbow}}-function to determine the
+  is \code{"hclust"}, you have to specify a groupcount. Use
+  the \code{\link{sjc.elbow}}-function to determine the
   group-count depending on the elbow-criterion. Use
   \code{\link{sjc.grpdisc}}-function to inspect the
   goodness of grouping.}
 
+  \item{groups}{By default, this parameter is \code{NULL}
+  and will be ignored. However, if you just want to plot an
+  already existing cluster solution without computing a new
+  cluster analysis, specifiy \code{groupcount} and
+  \code{group}. \code{group} is a vector of same length as
+  \code{nrow(data)} and indicates the group classification
+  of the cluster analysis. The group classification can be
+  computed with the \code{\link{sjc.cluster}} function.}
+
   \item{method}{The method for computing the cluster
-  analysis. By default (\code{"k"}), a kmeans cluster
-  analysis will be computed. Use \code{"h"} to compute a
-  hierarchical cluster analysis.}
+  analysis. By default (\code{"kmeans"}), a kmeans cluster
+  analysis will be computed. Use \code{"hclust"} to compute
+  a hierarchical cluster analysis. You can specify the
+  initial letters only.}
 
   \item{distance}{The distance measure to be used when
-  \code{"method"} is \code{"h"} (for hierarchical
+  \code{"method"} is \code{"hclust"} (for hierarchical
   clustering). This must be one of \code{"euclidean"},
   \code{"maximum"}, \code{"manhattan"}, \code{"canberra"},
   \code{"binary"} or \code{"minkowski"}. See
-  \code{\link{dist}}.  By default, method is \code{"k"} and
-  this parameter will be ignored.}
+  \code{\link{dist}}.  By default, method is
+  \code{"kmeans"} and this parameter will be ignored.}
 
   \item{agglomeration}{The agglomeration method to be used
-  when \code{"method"} is \code{"h"} (for hierarchical
+  when \code{"method"} is \code{"hclust"} (for hierarchical
   clustering). This should be one of \code{"ward"},
   \code{"single"}, \code{"complete"}, \code{"average"},
   \code{"mcquitty"}, \code{"median"} or \code{"centroid"}.
   Default is \code{"ward"}. See \code{\link{hclust}}.  By
-  default, method is \code{"k"} and this parameter will be
-  ignored.}
+  default, method is \code{"kmeans"} and this parameter
+  will be ignored.}
+
+  \item{iter.max}{the maximum number of iterations allowed.
+  Only applies, if \code{method} is \code{"kmeans"}. See
+  \code{\link{kmeans}} for details on this parameter.}
+
+  \item{algorithm}{algorithm used for calculating kmeans
+  cluster. Only applies, if \code{method} is
+  \code{"kmeans"}. May be one of \code{"Hartigan-Wong"}
+  (default), \code{"Lloyd"} (used by SPSS), or
+  \code{"MacQueen"}. See \code{\link{kmeans}} for details
+  on this parameter.}
 
   \item{showAccuracy}{If \code{TRUE}, the
   \code{\link{sjc.grpdisc}} function will be called, which
@@ -194,6 +220,12 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   within each cluster group is added to the legend labels
   (e.g. \code{"Group 1 (n=87)"}).}
 
+  \item{showAccuracyLabels}{if \code{TRUE}, the
+  accuracy-values for each cluster group is added to the
+  legend labels (e.g. \code{"Group 1 (n=87,
+  accuracy=95.3)"}). Accuracy is calculated by
+  \code{\link{sjc.grpdisc}}.}
+
   \item{legendTitle}{Title of the diagram's legend.}
 
   \item{legendLabels}{Labels for the guide/legend. Example:
@@ -240,11 +272,16 @@ sjc.qclus(data, groupcount = NULL, method = "k", distance = "euclidean",
   be returned as value.}
 }
 \value{
-(Invisibly) returns an object of containing the used data
-frame for plotting, the ggplot object, the number of found
-cluster (as calculated by \code{\link{sjc.kgap}}) and the
+(Invisibly) returns an object with \itemize{ \item
+\code{data}: the used data frame for plotting, \item
+\code{plot}: the ggplot object, \item \code{groupcount}:
+the number of found cluster (as calculated by
+\code{\link{sjc.kgap}}) \item \code{classification}: the
 group classification (as calculated by
-\code{\link{sjc.cluster}}).
+\code{\link{sjc.cluster}}), including missing values, so
+this vector can be appended to the original data frame.
+\item \code{accuracy}: the accuracy of group classification
+(as calculated by \code{\link{sjc.grpdisc}}).  }
 }
 \description{
 Compute a quick kmeans or hierarchical cluster analysis and
@@ -262,13 +299,28 @@ characteristics (variables) in a cluster group differ in
 relation to other cluster groups.  \item These results are
 shown in a graph.  }
 }
+\note{
+To get similar results as in SPSS Quick Cluster function,
+following points have to be considered: \enumerate{ \item
+Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster
+to get a table with initial cluster centers.  \item Create
+a \code{\link{matrix}} of this table, by consecutively
+copying the values, one row after another, from the SPSS
+output into a matrix and specifying \code{nrow} and
+\code{ncol} parameters.  \item Use
+\code{algorithm="Lloyd"}.  \item Use the same amount of
+\code{iter.max} both in SPSS and this \code{sjc.qclus}.  }
+This ensures a fixed initial set of cluster centers (as in
+SPSS), while \code{\link{kmeans}} in R always selects
+initial cluster sets randomly.
+}
 \examples{
 # K-means clustering of mtcars-dataset
 sjc.qclus(mtcars)
 
 # K-means clustering of mtcars-dataset with 4 pre-defined
 # groups in a faceted panel
-sjc.qclus(mtcars, groupcount=4, facetCluster=TRUE)
+sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)
 }
 \seealso{
 \code{\link{sjc.cluster}} \cr \code{\link{sjc.kgap}} \cr

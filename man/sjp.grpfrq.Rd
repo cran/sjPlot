@@ -25,10 +25,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
-  axisTitleSize = 1.3, autoGroupAt = NULL, startAxisAt = 1,
+  axisTitleSize = 1.3, autoGroupAt = NULL, startAxisAt = "auto",
   theme = NULL, legendPos = "right", legendSize = 1,
   legendBorderColor = "white", legendBackColor = "white",
-  flipCoordinates = FALSE, omitNA = TRUE, printPlot = TRUE)
+  flipCoordinates = FALSE, na.rm = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -103,7 +103,9 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   panel.}
 
   \item{title}{Title of the diagram, plotted above the
-  whole diagram panel.}
+  whole diagram panel.  Use \code{"auto"} to automatically
+  detect variable names that will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{titleSize}{The size of the plot title. Default is
   1.3.}
@@ -114,7 +116,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{legendTitle}{Title of the diagram's legend.}
 
   \item{axisLabels.x}{Labels for the x-axis breaks. Passed
-  as vector of strings.  Example:
+  as vector of strings. \emph{Note:} This parameter is not
+  necessary when data was either imported with
+  \code{\link{sji.SPSS}} or has named factor levels (see
+  examples below). Else, specifiy parameter like this:
   \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
   Note: If you use the \code{\link{sji.SPSS}} function and
   the \code{\link{sji.getValueLabels}} function, you
@@ -286,9 +291,15 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   mean value resp. group}
 
   \item{showTableSummary}{If \code{TRUE} (default), a
-  summary of the cross tabulation with N, chi-square, df
+  summary of the cross tabulation with N, Chi-square (see
+  \code{\link{chisq.test}}), df, Cramer's V or Phi-value
   and p-value is printed to the upper right corner of the
-  diagram. Only applies to bar-charts or dot-plots, i.e.
+  diagram. If a cell contains expected values lower than
+  five (or lower than 10 if df is 1), the Fisher's excact
+  test (see \code{\link{fisher.test}}) is computed instead
+  of Chi-square test.  If the table's matrix is larger than
+  2x2, Fisher's excact test with Monte Carlo simulation is
+  computed.  Only applies to bar-charts or dot-plots, i.e.
   when parameter \code{type} is either \code{"bars"} or
   \code{"dots"}.}
 
@@ -315,7 +326,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
 
   \item{axisTitle.x}{A label for the x axis. Useful when
   plotting histograms with metric scales where no category
-  labels are assigned to the x axis.}
+  labels are assigned to the x axis.  Use \code{"auto"} to
+  automatically detect variable names that will be used as
+  title (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{axisTitle.y}{A label for the y axis. Useful when
   plotting histograms with metric scales where no category
@@ -346,13 +360,12 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   auto-grouping is off.}
 
   \item{startAxisAt}{Determines the first value on the
-  x-axis. By default, this value is 1, i.e. the value range
-  on the x axis starts with 1, independent from the lowest
-  value of \code{varCount} (which means, you may have zero
-  counts and hence no bars plotted for these values in such
-  cases). Change this parameter, if variables with a value
-  range starting from greater values than one (e.g. 5-10)
-  should be plotted to avoid empty bars in the plot.}
+  x-axis. By default, this value is set to \code{"auto"},
+  i.e. the value range on the x axis starts with the lowest
+  value of \code{varCount}.  If you set \code{startAxisAt}
+  to 1, you may have zero counts if the lowest value of
+  \code{varCount} is larger than 1 and hence no bars
+  plotted for these values in such cases.}
 
   \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
@@ -384,8 +397,8 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
 
-  \item{omitNA}{If \code{TRUE}, missings are not included
-  in the frequency calculation and diagram plot.}
+  \item{na.rm}{If \code{TRUE}, missings are not included in
+  the frequency calculation and diagram plot.}
 
   \item{printPlot}{If \code{TRUE} (default), plots the
   results as graph. Use \code{FALSE} if you don't want to
@@ -414,7 +427,6 @@ sjp.grpfrq(efc$e17age,
            efc$e16sex,
            title=efc.var['e17age'],
            legendTitle=efc.var['e16sex'],
-           legendLabels=efc.val[['e16sex']],
            type="hist",
            showValueLabels=FALSE)
 
@@ -422,41 +434,33 @@ sjp.grpfrq(efc$e17age,
 sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="box")
 
 # violin plot
-sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="v")
+sjp.grpfrq(sample(1:4, length(PlantGrowth$group), replace=TRUE),
+           PlantGrowth$group, type="v")
 
 # grouped bars
-sjp.grpfrq(sample(1:3, length(ChickWeight$Diet), replace=TRUE),
-           as.numeric(ChickWeight$Diet), barSpace=0.2)
+sjp.grpfrq(sample(1:2, length(PlantGrowth$group), replace=TRUE),
+           PlantGrowth$group, barSpace=0.2)
 
 # grouped bars with EUROFAMCARE sample dataset
 # dataset was importet from an SPSS-file, using:
 # efc <- sji.SPSS("efc.sav", enc="UTF-8")
 data(efc)
-efc.val <- sji.getValueLabels(efc)
+# -------------------------------------------------
+# auto-detection of value labels and variable names
+# -------------------------------------------------
 efc.var <- sji.getVariableLabels(efc)
-sjp.grpfrq(efc$e42dep,
-           efc$e16sex,
-           title=efc.var['e42dep'],
-           axisLabels.x=efc.val[['e42dep']],
-           legendTitle=efc.var['e16sex'],
-           legendLabels=efc.val[['e16sex']])
+efc <- sji.setVariableLabels(efc, efc.var)
+# grouped bars using necessary y-limit
+sjp.grpfrq(efc$e42dep, efc$e16sex, title="auto")
 
 # grouped bars using the maximum y-limit
 sjp.grpfrq(efc$e42dep,
            efc$e16sex,
            title=efc.var['e42dep'],
-           axisLabels.x=efc.val[['e42dep']],
+           axisLabels.x=efc.val[['e42dep']], # not needed for SPSS-data sets
            legendTitle=efc.var['e16sex'],
-           legendLabels=efc.val[['e16sex']],
+           legendLabels=efc.val[['e16sex']], # not needed for SPSS-data sets
            maxYlim=TRUE)
-
-# grouped bars using necessary y-limit
-sjp.grpfrq(efc$e16sex,
-           efc$e42dep,
-           title=efc.var['e16sex'],
-           axisLabels.x=efc.val[['e16sex']],
-           legendTitle=efc.var['e42dep'],
-           legendLabels=efc.val[['e42dep']])
 
 # box plots with interaction variable
 sjp.grpfrq(efc$e17age,
@@ -470,9 +474,9 @@ sjp.grpfrq(efc$e17age,
            type="box")
 
 # Grouped bar plot ranging from 1 to 28 (though scale starts with 7)
-sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
+sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=1)
 # Same grouped bar plot ranging from 7 to 28
-sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=7)
+sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
 }
 \references{
 \itemize{ \item

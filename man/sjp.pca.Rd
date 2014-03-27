@@ -3,7 +3,7 @@
 \title{Plot PCA results}
 \usage{
 sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
-  plotEigenvalues = FALSE, title = NULL, titleSize = 1.3,
+  plotEigenvalues = FALSE, digits = 2, title = NULL, titleSize = 1.3,
   titleColor = "black", axisLabels.y = NULL, type = "tile",
   geomAlpha = 0.8, valueLabelColor = "black", valueLabelSize = 4.5,
   valueLabelAlpha = 1, circleSize = 10, outlineColor = "black",
@@ -40,6 +40,8 @@ sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
   \item{plotEigenvalues}{If \code{TRUE}, a plot showing the
   Eigenvalues according to the Kaiser criteria is plotted
   to determine the number of factors.}
+
+  \item{digits}{The amount of decimals used. Default is 2.}
 
   \item{title}{Title of the diagram, plotted above the
   whole diagram panel.}
@@ -230,10 +232,21 @@ df <- as.data.frame(efc[,c(start:end)])
 colnames(df) <- varlabs[c(start:end)]
 
 sjp.pca(df)
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+sjp.pca(efc[,c(start:end)])
 }
 \references{
 \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 \cr \cr
 \url{http://strengejacke.wordpress.com/2013/07/08/plotting-principal-component-analysis-with-ggplot-rstats/}
+}
+\seealso{
+\code{\link{sjt.pca}} \cr \code{\link{sju.reliability}} \cr
+\code{\link{sjt.itemanalysis}} \cr
+\code{\link{sju.cronbach}}
 }
 

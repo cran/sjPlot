@@ -24,6 +24,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          shown. Only applies if parameter \code{type} is \code{"bars"}. Default value is \code{FALSE}.
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels.y Value labels of the grouping variable \code{grpVar} that are used for labelling the
@@ -44,6 +46,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          between 2 and 8.
 #' @param axisLabelColor The color of the category labels (predictor labels). Default is a dark grey (grey30).
 #' @param axisTitle.x A label for the x axis. Default is \code{NULL}, which means no x-axis title.
+#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitleColor The color of the x axis label.
 #' @param axisTitleSize The size of the x axis label. Default is 1.2.
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
@@ -120,7 +124,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' 
 #' @examples
 #' data(efc)
-#' sjp.aov1(efc$c12hour, as.factor(efc$e42dep))
+#' # note: "grpVar" does not need to be a factor.
+#' # coercion to factor is done by the function
+#' sjp.aov1(efc$c12hour, efc$e42dep)
 #' 
 #' 
 #' data(efc)
@@ -131,18 +137,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          axisLabels.y=efc.val['e42dep'],
 #'          axisTitle.x=efc.var[['c12hour']])
 #'          
+#' # -------------------------------------------------
+#' # auto-detection of value labels and variable names
+#' # -------------------------------------------------
+#' efc <- sji.setVariableLabels(efc, efc.var)
 #' sjp.aov1(efc$c12hour,
-#'          as.factor(efc$e42dep),
-#'          axisLabels.y=efc.val['e42dep'],
-#'          title=efc.var[['c12hour']],
-#'          type="bars",
-#'          meansums=TRUE,
-#'          hideErrorBars=TRUE,
-#'          theme="minimal",
-#'          minorGridColor="white",
-#'          showTickMarks=FALSE,
-#'          showModelSummary=FALSE,
-#'          hideGrid.x=TRUE)
+#'          efc$e42dep,
+#'          title="auto",
+#'          axisTitle.x="auto")
 #' 
 #' sjp.aov1(efc$c12hour,
 #'          as.factor(efc$c172code),
@@ -207,17 +209,20 @@ sjp.aov1 <- function(depVar,
                     showModelSummary=TRUE,
                     printPlot=TRUE) {
   # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) axisLabels.y <- autoSetValueLabels(grpVar)
+  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(depVar)
+  if (!is.null(title) && title=="auto") {
+    t1 <- autoSetVariableLabels(depVar)
+    t2 <- autoSetVariableLabels(grpVar)
+    if (!is.null(t1) && !is.null(t2)) {
+      title <- paste0(t1, " by ", t2)
+    }
+  }
+  # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y)) {
     # if labels are lists, unlist
     if (is.list(axisLabels.y)) {
@@ -226,12 +231,6 @@ sjp.aov1 <- function(depVar,
     # append "intercept" string, to mark the reference category
     axisLabels.y[1] <- paste(axisLabels.y[1], stringIntercept)
   }
-  
-
-  # --------------------------------------------------------
-  # Parameter check
-  # --------------------------------------------------------
-  
   # --------------------------------------------------------
   # Check if grpVar is factor. If not, convert to factor
   # --------------------------------------------------------
@@ -284,8 +283,6 @@ sjp.aov1 <- function(depVar,
   if (!barOutline) {
     outlineColor <- waiver()
   }  
-  
-  
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
@@ -301,8 +298,6 @@ sjp.aov1 <- function(depVar,
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
-  
-  
   # ----------------------------
   # Calculate one-way-anova. Since we have
   # only one group variable, Type of SS does
@@ -317,8 +312,6 @@ sjp.aov1 <- function(depVar,
   means.lci <- confint(fit)[,1]
   # upper confidence intervals of coefficients (group mean)
   means.uci <- confint(fit)[,2]
-  
-  
   # ----------------------------
   # Check whether true group means should be reported
   # or the differences of group means in relation to the
@@ -331,8 +324,6 @@ sjp.aov1 <- function(depVar,
       means.uci[i] <- means.uci[i]+means[1]
     }
   }
-
-  
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
@@ -369,8 +360,6 @@ sjp.aov1 <- function(depVar,
                       f=sprintf("%.2f", fstat),
                       panval=pan))))
   }
-  
-  
   # ----------------------------
   # print coefficients and p-values in plot
   # ----------------------------
@@ -381,8 +370,6 @@ sjp.aov1 <- function(depVar,
   if (!showValueLabels) {
     ps <- rep(c(""), length(ps))
   }
-
-  
   # --------------------------------------------------------
   # copy p-values into data column
   # --------------------------------------------------------
@@ -401,8 +388,6 @@ sjp.aov1 <- function(depVar,
       }
     }  
   }
-  
-  
   # --------------------------------------------------------
   # check whether order of category items should be reversed
   # or not
@@ -427,8 +412,6 @@ sjp.aov1 <- function(depVar,
     means.p,
     ps,
     catorder))
-  
-                    
   # --------------------------------------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -438,8 +421,6 @@ sjp.aov1 <- function(depVar,
   }
   # order labels
   axisLabels.y <- axisLabels.y[catorder]
-
-  
   # give columns names
   names(df) <- c("means", "lower", "upper", "p", "pv", "xv")
   df$means <- as.numeric(as.character(df$means))
@@ -453,8 +434,6 @@ sjp.aov1 <- function(depVar,
               geocol=ifelse(df$means>=0, geomcols[1], geomcols[2]), 
               labcol=ifelse(df$p<0.05, valueLabelColor, valueLabelColorNS),
               errcol=ifelse(df$means>=0, errorBarColors[1], errorBarColors[2]))
-  
-  
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user-defined range (if "axisLimits"
@@ -500,17 +479,11 @@ sjp.aov1 <- function(depVar,
   }
   # determine gridbreaks
   if (is.null(gridBreaksAt)) {
-#     gridBreaksAt <- 1
-#     while ((upper_lim-lower_lim) > (10*gridBreaksAt)) {
-#       gridBreaksAt <- gridBreaksAt*10
-#     }
     ticks <- pretty(c(lower_lim, upper_lim))
   }
   else {
     ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
   }
-  
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -535,8 +508,6 @@ sjp.aov1 <- function(depVar,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -549,8 +520,6 @@ sjp.aov1 <- function(depVar,
     minorgrid <- element_line(colour=minorGridColor)
   }
   hidegrid <- element_line(colour=hideGridColor)
-  
-  
   # --------------------------------------------------------
   # Set up visibility of tick marks
   # --------------------------------------------------------
@@ -560,8 +529,6 @@ sjp.aov1 <- function(depVar,
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
   }
-  
-  
   # --------------------------------------------------------
   # Set up plot padding (margins inside diagram). In case of
   # bars, we don't want margins.
@@ -572,8 +539,6 @@ sjp.aov1 <- function(depVar,
   else {
     scaley <- scale_y_continuous(limits=c(lower_lim,upper_lim), breaks=ticks, labels=ticks)    
   }
-  
-  
   # --------------------------------------------------------
   # Start plot here!
   # --------------------------------------------------------
@@ -692,8 +657,10 @@ sjp.aov1 <- function(depVar,
 #' @name sju.aov1.levene
 #' 
 #' @description Plot results of Levene's Test for Equality of Variances for One-Way-Anova.
-#' @seealso \link{sjp.aov1}
-#'                
+#' @seealso \code{\link{sjp.aov1}}, \code{\link{sju.chi2.gof}}, \code{\link{sju.mwu}} and \code{\link{wilcox.test}}, 
+#'          \code{\link{ks.test}}, \code{\link{kruskal.test}}, \code{\link{t.test}}, \code{\link{chisq.test}}, 
+#'          \code{\link{fisher.test}}
+#'           
 #' @param depVar The dependent variable. Will be used with following formular:
 #'          \code{aov(depVar ~ grpVar)}
 #' @param grpVar The grouping variable, as unordered factor. Will be used with following formular:
@@ -701,10 +668,12 @@ sjp.aov1 <- function(depVar,
 #' 
 #' @examples
 #' data(efc)
-#' sju.aov1.levene(efc$c12hour, as.factor(efc$e42dep))
+#' sju.aov1.levene(efc$c12hour, efc$e42dep)
 #' 
 #' @export
 sju.aov1.levene <- function(depVar, grpVar) {
+  # check if grpVar is factor
+  if (!is.factor(grpVar)) grpVar <- factor(grpVar)
   # remove missings
   df <- na.omit(data.frame(depVar, grpVar))
   # calculate means
@@ -720,6 +689,6 @@ sju.aov1.levene <- function(depVar, grpVar) {
     cat("Groups are homogeneous. Everything's fine.\n")
   }
   else {
-    cat("Groups are not homogeneous! Consider logarithmic transformation.\n")
+    cat("Groups are not homogeneous!\n")
   }
 }

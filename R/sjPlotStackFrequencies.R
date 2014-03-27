@@ -36,6 +36,8 @@
 #' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
 #' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
 #'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
+#'          Axis labels will automatically be detected, when they have
+#'          a \code{"variable.lable"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisLabelSize The size of category labels at the axes. Default is 1.1, recommended values range
 #'          between 0.5 and 3.0
 #' @param axisLabelAngle.x Angle for axis-labels.
@@ -156,12 +158,19 @@
 #' sjp.stackfrq(efc[,c(start:end)], legendLabels=levels,
 #'              axisLabels.y=items, jitterValueLabels=TRUE)
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' sjp.stackfrq(efc[,c(start:end)])
+#' 
+#' 
 #' @import ggplot2
 #' @importFrom plyr ddply
 #' @importFrom scales percent
 #' @export
 sjp.stackfrq <- function(items,
-                        legendLabels,
+                        legendLabels=NULL,
                         orderBy=NULL,
                         weightBy=NULL,
                         weightByTitleString=NULL,
@@ -215,25 +224,44 @@ sjp.stackfrq <- function(items,
                         flipCoordinates=TRUE,
                         printPlot=TRUE) {
   # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(items[,1])
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- c()
+    # if yes, iterate each variable
+    for (i in 1:ncol(items)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(items[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        axisLabels.y <- c(axisLabels.y, vn)
+      }
+      else {
+        # else break out of loop
+        axisLabels.y <- NULL
+        break
+      }
+    }
+  }
+  # --------------------------------------------------------
+  # If axisLabels.y were not defined, simply use column names
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- colnames(items)
+  }
+  # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
   if (!is.null(legendLabels) && is.list(legendLabels)) {
     legendLabels <- unlistlabels(legendLabels)
   }
-
-  
+  if (is.null(legendLabels)) {
+    legendLabels <- c(as.character(sort(unique(items[,1]))))
+  }
   # --------------------------------------------------------
   # Check whether N of each item should be included into
   # axis labels
@@ -243,15 +271,11 @@ sjp.stackfrq <- function(items,
       axisLabels.y[i] <- paste(axisLabels.y[i], sprintf(" (n=%i)", length(na.omit(items[,i]))), sep="")
     }
   }
-
-  
   # -----------------------------------------------
   # if we have legend labels, we know the exact
   # amount of groups
   # -----------------------------------------------
   countlen <- length(legendLabels)
-  
-  
   # -----------------------------------------------
   # create cross table for stats, summary etc.
   # and weight variable. do this for each item that was
@@ -313,8 +337,6 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   jvert <- rep(c(1.1,-0.1), length.out=length(unique(mydat$cat)))
   jvert <- rep(jvert, length.out=nrow(mydat))
-  
-  
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
@@ -339,13 +361,6 @@ sjp.stackfrq <- function(items,
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)    
   }
-  # If axisLabels.y were not defined, simply set numbers from 1 to
-  # amount of items
-  else {
-    axisLabels.y <- c(1:length(items))
-  }
-  
-  
   # ----------------------------
   # Check if ordering was requested
   # ----------------------------
@@ -385,8 +400,6 @@ sjp.stackfrq <- function(items,
     # reorder axis labels as well
     axisLabels.y <- axisLabels.y[order(dummy2)]
   }
-  
-  
   # --------------------------------------------------------
   # check if category-oder on x-axis should be reversed
   # change category label order then
@@ -394,8 +407,6 @@ sjp.stackfrq <- function(items,
   if (reverseOrder && is.null(orderBy)) {
     axisLabels.y <- rev(axisLabels.y)
   }
-
-  
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
@@ -413,8 +424,6 @@ sjp.stackfrq <- function(items,
   if (!barOutline) {
     outlineColor <- waiver()
   }
-
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -457,8 +466,6 @@ sjp.stackfrq <- function(items,
   if (!showItemLabels) {
     axisLabels.y <- c("")
   }
-
-
   # --------------------------------------------------------
   # Prepare fill colors
   # --------------------------------------------------------

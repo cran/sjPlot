@@ -1,9 +1,15 @@
-#' @title Show contigency tables as HTML table
+#' @title Show contingency tables as HTML table
 #' @name sjt.xtab
 #' 
 #' @description Shows contingency tables as HTML file in browser or viewer pane, or saves them as file.
 #' 
-#' @seealso \code{\link{sjp.xtab}}
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2014/02/20/no-need-for-spss-beautiful-output-in-r-rstats/}
+#'              }
+#'              
+#' @seealso \code{\link{sjp.xtab}} \cr
+#'          \code{\link{sju.table.values}}
 #' 
 #' @param var.row Variable that should be displayed in the table rows.
 #' @param var.col Variable that should be displayed in the table columns.
@@ -20,6 +26,8 @@
 #'          the associated variable names. Following order is needed: name of \code{var.row},
 #'          name of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - name of \code{var.grp}.
 #'          See examples for more details.
+#'          variableLabels are detected automatically, if \code{var.row} or \code{var.col}
+#'          have a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param valueLabels A list of character vectors that indicate the value labels of the supplied
 #'          variables. Following order is needed: value labels of \code{var.row},
 #'          value labels  of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - 
@@ -35,11 +43,15 @@
 #' @param showColPerc If \code{TRUE}, column percentage values are shown.
 #' @param showExpected If \code{TRUE}, expected values are also shown.
 #' @param showHorizontalLine If \code{TRUE}, data rows are separated with a horizontal line.
-#' @param showSummary If \code{TRUE} (default), a summary row with chi-square statistics,
-#'          Cramer's V or Phi-value etc. is shown.
+#' @param showSummary If \code{TRUE} (default), a summary row with Chi-square statistics (see \code{\link{chisq.test}}),
+#'          Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
+#'          if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
+#'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
 #' @param showLegend If \code{TRUE} (default), the color legend for coloring observed and expected
 #'          values as well as cell, row and column percentages is shown. See \code{tdcol.n},
-#'          \code{tdcol.expectec}, \code{tdcol.cell}, \code{tdcol.row} and \code{tdcol.col}.
+#'          \code{tdcol.expected}, \code{tdcol.cell}, \code{tdcol.row} and \code{tdcol.col}.
+#' @param showNA If \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
+#' @param labelNA The label for the missing column/row.
 #' @param tdcol.n Color for highlighting count (observed) values in table cells. Default is black.
 #' @param tdcol.expected Color for highlighting expected values in table cells. Default is cyan.
 #' @param tdcol.cell Color for highlighting cell percentage values in table cells. Default is red.
@@ -88,7 +100,13 @@
 #' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
 #'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file=NULL}).
+#'         default behaviour (i.e. \code{file=NULL}). \cr \cr
+#'         Since package version 1.3, the parameter \code{valueLabels}, which represent the 
+#'         value labels, is retrieved automatically if a) the variables \code{var.col} and \code{var.row} come from a data frame
+#'         that was imported with the \code{\link{sji.SPSS}} function (because then value labels are
+#'         attached as attributes to the data) or b) when the variables are factors with named factor levels
+#'         (e.g., see column \code{group} in dataset \code{\link{PlantGrowth}}). However, you still
+#'         can use own parameters variable labels.
 #'         
 #' @examples 
 #' # prepare sample data set
@@ -115,11 +133,13 @@
 #'          showCellPerc=FALSE,
 #'          highlightTotal=TRUE)}
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
 #' # print cross table with labels and all percentages
 #' \dontrun{
-#' sjt.xtab(efc$e16sex, efc$e42dep, 
-#'          variableLabels=c("Elder's gender", "Elder's dependency"),
-#'          valueLabels=list(efc.labels[['e16sex']], efc.labels[['e42dep']]),
+#' sjt.xtab(efc$e16sex, efc$e42dep,
 #'          showRowPerc=TRUE, showColPerc=TRUE)}
 #' 
 #' # print cross table with labels and all percentages, including
@@ -164,6 +184,8 @@ sjt.xtab <- function (var.row,
                       showHorizontalLine=FALSE,
                       showSummary=TRUE,
                       showLegend=TRUE,
+                      showNA=FALSE,
+                      labelNA="NA",
                       tdcol.n="black",
                       tdcol.expected="#339999",
                       tdcol.cell="#993333",
@@ -177,6 +199,62 @@ sjt.xtab <- function (var.row,
                       CSS=NULL,
                       useViewer=TRUE,
                       no.output=FALSE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(valueLabels)) {
+    valueLabels <- list()
+    # --------------------------------------------------------
+    # row value labels
+    # --------------------------------------------------------
+    vl <- autoSetValueLabels(var.row)
+    if (is.null(vl)) {
+      vl <- sort(unique(na.omit(var.row)))
+    }
+    valueLabels[[1]] <- vl
+    # --------------------------------------------------------
+    # column value labels
+    # --------------------------------------------------------
+    vl <- autoSetValueLabels(var.col)
+    if (is.null(vl)) {
+      vl <- sort(unique(na.omit(var.col)))
+    }
+    valueLabels[[2]] <- vl
+    # --------------------------------------------------------
+    # group value labels
+    # --------------------------------------------------------
+    if (!is.null(var.grp)) {
+      vl <- autoSetValueLabels(var.grp)
+      if (is.null(vl)) {
+        vl <- sort(unique(na.omit(var.grp)))
+      }
+      valueLabels[[3]] <- vl
+    }
+  }
+  # -------------------------------------
+  # list conversion needed here. in case value labels
+  # of only one variable were detected, "valueLabels" is now
+  # of type "character", thus length would differ from "valueLabels"'s
+  # length if it were a list. needed below.
+  # -------------------------------------
+  if (!is.null(valueLabels) && !is.list(valueLabels)) valueLabels <- list(valueLabels)
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(variableLabels)) {
+    variableLabels <- c()
+    vn1 <- autoSetVariableLabels(var.row)
+    vn2 <- autoSetVariableLabels(var.col)
+    if (!is.null(vn1) && !is.null(vn2)) {
+      variableLabels <- c(vn1, vn2)
+    }
+    if (!is.null(var.grp)) {
+      vn3 <- autoSetVariableLabels(var.grp)
+      if (!is.null(vn3)) {
+        variableLabels <- c(variableLabels, vn3)
+      }
+    }
+  }
   # -------------------------------------
   # init variable labels
   # -------------------------------------
@@ -198,36 +276,69 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   # compute xtab
   # -------------------------------------
-  # check if we have weights or not
-  if (is.null(weightBy)) {
-    # check if we have groupings or not
-    if (is.null(var.grp)) {
-      tab <- ftable(xtabs(~ var.row + var.col))
-      coladd <- 2
+  # check if we have missings or not
+  # -------------------------------------
+  if (showNA) {
+    # check if we have weights or not
+    if (is.null(weightBy)) {
+      # check if we have groupings or not
+      if (is.null(var.grp)) {
+        tab <- ftable(xtabs(~ addNA(var.row) + addNA(var.col)))
+        coladd <- 3
+      }
+      else {
+        tab <- ftable(xtabs(~ addNA(var.grp) + addNA(var.row) + addNA(var.col)))
+        coladd <- 4
+      }
     }
     else {
-      tab <- ftable(xtabs(~ var.grp + var.row + var.col))
-      coladd <- 3
+      # check if we have groupings or not
+      if (is.null(var.grp)) {
+        tab <- ftable(xtabs(weightBy ~ addNA(var.row) + addNA(var.col)))
+        coladd <- 3
+      }
+      else {
+        tab <- ftable(xtabs(weightBy ~ addNA(var.grp) + addNA(var.row) + addNA(var.col)))
+        coladd <- 4
+      }
     }
   }
+  # -------------------------------------
+  # no missings to show here
+  # -------------------------------------
   else {
-    # check if we have groupings or not
-    if (is.null(var.grp)) {
-      tab <- ftable(xtabs(weightBy ~ var.row + var.col))
-      coladd <- 2
+    # check if we have weights or not
+    if (is.null(weightBy)) {
+      # check if we have groupings or not
+      if (is.null(var.grp)) {
+        tab <- ftable(xtabs(~ var.row + var.col))
+        coladd <- 2
+      }
+      else {
+        tab <- ftable(xtabs(~ var.grp + var.row + var.col))
+        coladd <- 3
+      }
     }
     else {
-      tab <- ftable(xtabs(weightBy ~ var.grp + var.row + var.col))
-      coladd <- 3
+      # check if we have groupings or not
+      if (is.null(var.grp)) {
+        tab <- ftable(xtabs(weightBy ~ var.row + var.col))
+        coladd <- 2
+      }
+      else {
+        tab <- ftable(xtabs(weightBy ~ var.grp + var.row + var.col))
+        coladd <- 3
+      }
     }
   }
   # -------------------------------------
   # compute table percentages
   # -------------------------------------
-  tab.cell <- round(100*prop.table(tab),digits)
-  tab.row <- round(100*prop.table(tab,1),digits)
-  tab.col <- round(100*prop.table(tab,2),digits)
-  tab.expected <- as.table(round(as.array(margin.table(tab,1)) %*% t(as.array(margin.table(tab,2))) / margin.table(tab)))
+  tab.values <- sju.table.values(tab, digits)
+  tab.cell <- tab.values$cell
+  tab.row <- tab.values$row
+  tab.col <- tab.values$col
+  tab.expected <- tab.values$expected
   # -------------------------------------
   # determine total number of columns
   # we have an optional column for the grouping variable,
@@ -239,53 +350,40 @@ sjt.xtab <- function (var.row,
   # init value labels
   # -------------------------------------
   labels.var.row <- labels.var.grp <- labels.var.col <- NULL
-  if (is.null(valueLabels)) {
-    # -------------------------------------
-    # if we don't have value labels, retrieve labels
-    # from the table attribute
-    # -------------------------------------
-    # retrieve row variable and label attributes
-    vn <- attr(tab, "row.vars")
-    # set default names for row value labels
-    labels.var.row <- vn[[1]]
-    # check whether we have group value labels as well
-    if (length(vn)>1) {
-      # set default names for group value labels
-      labels.var.grp <- vn[[2]]
-    }
-    # retrieve row variable and label attributes
-    vn <- attr(tab, "col.vars")
-    # set default names for col value labels
-    labels.var.col <- vn[[1]]
+  # -------------------------------------
+  # check how many value labels have been supplied
+  # and set value labels
+  # -------------------------------------
+  if (length(valueLabels)>0) {
+    labels.var.row <- valueLabels[[1]]
   }
   else {
-    # -------------------------------------
-    # check how many value labels have been supplied
-    # and set value labels
-    # -------------------------------------
-    if (length(valueLabels)>0) {
-      labels.var.row <- valueLabels[[1]]
+    labels.var.row <- seq_along(unique(na.omit(var.row)))
+  }
+  if (length(valueLabels)>1) {
+    labels.var.col <- valueLabels[[2]]
+  }
+  else {
+    labels.var.col <- seq_along(unique(na.omit(var.col)))
+  }
+  if (length(valueLabels)>2) {
+    labels.var.grp <- valueLabels[[3]]
+  }
+  else {
+    if (is.null(var.grp)) {
+      labels.var.grp <- NULL
     }
     else {
-      labels.var.row <- seq_along(unique(na.omit(var.row)))
+      labels.var.grp <- seq_along(unique(na.omit(var.grp)))
     }
-    if (length(valueLabels)>1) {
-      labels.var.col <- valueLabels[[2]]
-    }
-    else {
-      labels.var.col <- seq_along(unique(na.omit(var.col)))
-    }
-    if (length(valueLabels)>2) {
-      labels.var.grp <- valueLabels[[3]]
-    }
-    else {
-      if (is.null(var.grp)) {
-        labels.var.grp <- NULL
-      }
-      else {
-        labels.var.grp <- seq_along(unique(na.omit(var.grp)))
-      }
-    }
+  }
+  # ------------------------------------------
+  # add label for missing colum
+  # ------------------------------------------
+  if (showNA) {
+    labels.var.col <- c(labels.var.col, labelNA)
+    labels.var.row <- c(labels.var.row, labelNA)
+    if (!is.null(labels.var.grp)) labels.var.grp <- c(labels.var.grp, labelNA)
   }
   # check length of variable labels and split longer strings at into new lines
   if (!is.null(labels.var.row)) labels.var.row <- sju.wordwrap(labels.var.row, breakValueLabelsAt, "<br>")
@@ -407,7 +505,7 @@ sjt.xtab <- function (var.row,
     group.var.rows <- NULL
   }
   else {
-    group.var.rows <- seq(1,nrow(tab), by=length(labels.var.grp))
+    group.var.rows <- seq(1,nrow(tab), by=length(labels.var.row))
   }
   # -------------------------------------
   # if we have group vars, we need a repeating counter vor row value labels
@@ -559,37 +657,31 @@ sjt.xtab <- function (var.row,
   # table summary
   # -------------------------------------
   if (showSummary) {
-    # -----------------------------------------------------------
-    # Retrieve Phi coefficient for table
-    # -----------------------------------------------------------
-    getPhiValue <- function(x) {
-      tab <- summary(loglm(~1+2, x))$tests
-      phi <- sqrt(tab[2,1]/sum(x))
-      return (phi)
-    }
-    # -----------------------------------------------------------
-    # Retrieve Cramer's V coefficient for table
-    # -----------------------------------------------------------
-    getCramerValue <- function(x) {
-      phi <- getPhiValue(x)
-      cramer <- sqrt(phi^2/min(dim(x)-1))
-      return (cramer)
-    }
     # start new table row
     page.content <- paste(page.content, "\n  <tr>\n    ", sep="")
     # calculate chi square value
     chsq <- chisq.test(tab)
+    fish <- NULL
     # check whether variables are dichotome or if they have more
     # than two categories. if they have more, use Cramer's V to calculate
     # the contingency coefficient
     if (nrow(tab)>2 || ncol(tab)>2) {
-      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", getCramerValue(tab))
+      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sju.cramer(tab))
+      # if minimum expected values below 5, compute fisher's exact test
+      if(min(tab.expected)<5 || (min(tab.expected)<10 && chsq$parameter==1)) fish <- fisher.test(tab, simulate.p.value=TRUE)
     }
     else {
-      kook <- sprintf("&Phi;=%.3f", getPhiValue(tab))
+      kook <- sprintf("&Phi;=%.3f", sju.phi(tab))
+      # if minimum expected values below 5, compute fisher's exact test
+      if(min(tab.expected)<5 || (min(tab.expected)<10 && chsq$parameter==1)) fish <- fisher.test(tab)
     }
     # create summary row
-    page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; p=%.3f</td>", totalncol, chsq$statistic, chsq$parameter, kook, chsq$p.value), sep="")
+    if (is.null(fish)) {
+      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; p=%.3f</td>", totalncol, chsq$statistic, chsq$parameter, kook, chsq$p.value), sep="")
+    }
+    else {
+      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's p=%.3f &middot; df=%i &middot; %s</td>", totalncol, fish$p.value, chsq$parameter, kook), sep="")
+    }
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
   }  

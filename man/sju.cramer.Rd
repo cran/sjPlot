@@ -1,0 +1,26 @@
+\name{sju.cramer}
+\alias{sju.cramer}
+\title{Cramer's V for a contingency table}
+\usage{
+sju.cramer(tab)
+}
+\arguments{
+  \item{tab}{A simple \code{\link{table}} or
+  \code{\link{ftable}}. Tables of class \code{\link{xtabs}}
+  and other will be coerced to \code{\link{ftable}}
+  objects.}
+}
+\value{
+The table's Cramer's V.
+}
+\description{
+Compute Cramer's V for a table with more than 2x2 fields.
+}
+\examples{
+tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
+sju.cramer(tab)
+}
+\seealso{
+\code{\link{sju.table.values}} \cr \code{\link{sju.phi}}
+}
+

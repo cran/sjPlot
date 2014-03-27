@@ -12,8 +12,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' 
 #' @description Plot likert scales as centered stacked bars. "Neutral" categories
 #'                (odd-numbered categories) will be removed from the plot.
-#' @note Transformation of data and ggplot-code taken from
-#' \url{http://statisfactions.com/2012/improved-net-stacked-distribution-graphs-via-ggplot2-trickery/}
+#' 
+#' @note Since package version 1.3, the parameter \code{legendLabels}, which represent the 
+#'         value labels, are retrieved automatically if a) the variables in \code{items} come from a data frame
+#'         that was imported with the \code{\link{sji.SPSS}} function (because then value labels are
+#'         attached as attributes to the data) or b) when the variables are factors with named factor levels
+#'         (e.g., see column \code{group} in dataset \code{\link{PlantGrowth}}). However, you still
+#'         can use own parameters as axis- and legendlabels. \cr \cr
+#'         Transformation of data and ggplot-code taken from
+#'         \url{http://statisfactions.com/2012/improved-net-stacked-distribution-graphs-via-ggplot2-trickery/}
 #' 
 #' @param items A data frame with each column representing one likert-item.
 #' @param legendLabels A list or vector of strings that indicate the likert-scale-categories and which
@@ -37,6 +44,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
 #' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
 #'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
+#'          Axis labels will automatically be detected, when they have
+#'          a \code{"variable.lable"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisLabelSize The size of category labels at the axes. Default is 1.1, recommended values range
 #'          between 0.5 and 3.0
 #' @param axisLabelAngle.x Angle for axis-labels.
@@ -168,7 +177,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @importFrom plyr ddply
 #' @export
 sjp.likert <- function(items,
-                        legendLabels,
+                        legendLabels=NULL,
                         orderBy=NULL,
                         reverseOrder=FALSE,
                         dropLevels=NULL,
@@ -224,25 +233,44 @@ sjp.likert <- function(items,
                         flipCoordinates=TRUE,
                         printPlot=TRUE) {
   # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(items[,1])
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- c()
+    # if yes, iterate each variable
+    for (i in 1:ncol(items)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(items[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        axisLabels.y <- c(axisLabels.y, vn)
+      }
+      else {
+        # else break out of loop
+        axisLabels.y <- NULL
+        break
+      }
+    }
+  }  # --------------------------------------------------------
+  # If axisLabels.y were not defined, simply use column names
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) {
+    # axisLabels.y <- c(1:length(items))
+    axisLabels.y <- colnames(items)
+  }
+  # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
   if (!is.null(legendLabels) && is.list(legendLabels)) {
     legendLabels <- unlistlabels(legendLabels)
   }
-
-  
+  if (is.null(legendLabels)) {
+    legendLabels <- c(as.character(sort(unique(items[,1]))))
+  }
   # --------------------------------------------------------
   # transform data frame content into factor
   # --------------------------------------------------------
@@ -264,16 +292,12 @@ sjp.likert <- function(items,
       levels(items[,w]) <- c(paste(seq(1:length(legendLabels))))
     }
   }
-
-  
   # --------------------------------------------------------
   # reverse legend labels, if factor levels should be reversed
   # --------------------------------------------------------
   if (!is.null(legendLabels) && reverseOrder) {
     legendLabels <- rev(legendLabels)
   }
-  
-  
   # --------------------------------------------------------
   # Drop factor levels, if requested
   # --------------------------------------------------------
@@ -299,8 +323,6 @@ sjp.likert <- function(items,
       }
     }
   }
-
-    
   # --------------------------------------------------------
   # Check whether N of each item should be included into
   # axis labels
@@ -310,8 +332,6 @@ sjp.likert <- function(items,
       axisLabels.y[i] <- paste(axisLabels.y[i], sprintf(" (n=%i)", length(na.omit(items[,i]))), sep="")
     }
   }
-  
-  
   # ---------------------------------------------------------------------------------------------
   # The following part which does the transformation of factor levels into negative and positive
   # answers was taken from
@@ -342,8 +362,6 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   negatives <- all_levels[1:floor(n/2)]
   positives <- setdiff(all_levels, c(negatives, neutral))
-
-  
   # --------------------------------------------------------
   # remove neutral, summarize as proportion
   # --------------------------------------------------------
@@ -364,23 +382,17 @@ sjp.likert <- function(items,
     out
   })
   dfall <- do.call(rbind, listall)
-
-  
   # --------------------------------------------------------
   # split by positive/negative, and check whether factor
   # levels should be reversed
   # --------------------------------------------------------
   pos <- dfall[dfall$Response %in% positives,]
   neg <- dfall[dfall$Response %in% negatives,]
-
-  
   # --------------------------------------------------------
   # add half of Percentage values as new y-position for stacked bars
   # --------------------------------------------------------
   pos = ddply(pos, "Question", transform, ypos = cumsum(Freq) - 0.5*Freq)
   neg = ddply(neg, "Question", transform, ypos = rev(cumsum(rev(Freq)) - 0.5*rev(Freq)))
-
-  
   # --------------------------------------------------------
   # Negate the frequencies of negative responses, reverse order
   # --------------------------------------------------------
@@ -445,19 +457,16 @@ sjp.likert <- function(items,
     neg$Freq <- neg$Freq[orderGroupedItems]
     pos$ypos <- pos$ypos[orderGroupedItems]
     neg$ypos <- neg$ypos[orderGroupedItems]
-    
     # since "orderGroupedItems" has numbers from 1 to (items * legendLabels/2) - i.e. 1 to 15
     # in this example -, we need to know, which "group" belongs to which item. we do
     # this by dividing these numbers by "amount of positive / negative legendLabels",
     # i.e. "orderGroupedItems" will be divided by (length of legendLabels / 2).
     orderRelatedItems <- c(ceiling(orderGroupedItems/(length(legendLabels)/2)))
-    
     # now we have the in "orderUniqueItems" the items assigned to each row of the data frame
     # pos resp. neg:
     # [1] 4 4 4 1 1 1 3 3 3 2 2 2 5 5 5
     # Next, we just need each item number once, so extract the unique values
     orderUniqueItems <- c(unique(orderRelatedItems))
-    
     # now we have in "oderUniqueNumbers" the items with the lowest frequencies
     # to highest frequencies, with each number pointing the question position, beginng
     # from the end.
@@ -473,11 +482,6 @@ sjp.likert <- function(items,
     # So we now have to switch index from (end to beginning) to (beginning to end)
     # and reverse the order to start with highest frequencies.
     orderUniqueItems <- rev(1+questionCount-orderUniqueItems)
-    # If axisLabels.y were not defined, simply set numbers from 1 to
-    # amount of items
-    if (is.null(axisLabels.y)) {
-      axisLabels.y <- c(1:length(items))
-    }
     # The result in "orderUniqueItems" now is
     # [1] 1 4 3 5 2
     # with this we can order the axis labels (item/question labels)
@@ -512,8 +516,6 @@ sjp.likert <- function(items,
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
-  
-  
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
@@ -531,8 +533,6 @@ sjp.likert <- function(items,
   if (!barOutline) {
     outlineColor <- waiver()
   }
-
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later

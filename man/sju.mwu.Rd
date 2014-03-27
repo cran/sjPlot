@@ -40,4 +40,10 @@ data(efc)
 # Mann-Whitney-U-Tests for elder's age by elder's dependency.
 sju.mwu(efc$e17age, efc$e42dep)
 }
+\seealso{
+\code{\link{sju.chi2.gof}}, \code{\link{sju.aov1.levene}}
+and \code{\link{wilcox.test}}, \code{\link{ks.test}},
+\code{\link{kruskal.test}}, \code{\link{t.test}},
+\code{\link{chisq.test}}, \code{\link{fisher.test}}
+}
 

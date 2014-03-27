@@ -133,9 +133,16 @@
 #'         highlightMedian=TRUE,
 #'         highlightQuartiles=TRUE)}
 #' 
-#' # ---------------------------------------------------------------- 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, variables)
+#' \dontrun{
+#' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))}
+#' 
+#' # -------------------------------- 
 #' # User defined style sheet
-#' # ---------------------------------------------------------------- 
+#' # -------------------------------- 
 #' \dontrun{
 #' sjt.frq(efc$e42dep,
 #'         variableLabels=variables['e42dep'],
@@ -241,10 +248,50 @@ sjt.frq <- function (data,
   toWrite <- paste(toWrite, page.style)
   toWrite <- paste(toWrite, "\n</head>\n<body>\n")
   # -------------------------------------
+  # auto-retrieve variable labels
+  # -------------------------------------
+  if (is.null(variableLabels)) {
+    # init variable Labels as list
+    variableLabels <- list()
+    # check if we have data frame with several variables
+    if (is.data.frame(data)) {
+      # if yes, iterate each variable
+      for (i in 1:ncol(data)) {
+        # retrieve variable name attribute
+        vn <- autoSetVariableLabels(data[,i])
+        # if variable has attribute, add to variableLabel list
+        if (!is.null(vn)) {
+          variableLabels <- c(variableLabels, vn)
+        }
+        else {
+          # else break out of loop
+          variableLabels <- NULL
+          break
+        }
+      }
+    }
+    # we have a single variable only
+    else {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(data)
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        variableLabels <- c(variableLabels, vn)
+      }
+      else {
+        # else reset variableLabels
+        variableLabels <- NULL
+      }
+    }
+  }
+  # -------------------------------------
   # make data frame of single variable, so we have
   # unique handling for the data
   # -------------------------------------
   if (!is.data.frame(data)) {
+    # check for auto-detection of labels
+    if (is.null(valueLabels)) valueLabels <- autoSetValueLabels(data)
+    # copy variable to data frame for unuqie handling
     data <- as.data.frame(data)
   }
   # -------------------------------------
@@ -275,8 +322,10 @@ sjt.frq <- function (data,
     for (i in 1:nvar) {
       # retrieve variable
       dummy <- data[,i]
+      # check for auto-detection of labels
+      valueLabels <- c(valueLabels, list(autoSetValueLabels(dummy)))
       # and add label range to value labels list
-      valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
+      if (is.null(valueLabels)) valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
     }
   }
   # -------------------------------------
@@ -293,7 +342,7 @@ sjt.frq <- function (data,
     # if requested. put data into a data frame
     #---------------------------------------------------
     # get variable
-    orivar <- var <- data[,cnt]
+    orivar <- var <- as.numeric(data[,cnt])
     # -----------------------------------------------
     # check for length of unique values and skip if too long
     # -----------------------------------------------
@@ -513,7 +562,15 @@ sjt.frq <- function (data,
   # -------------------------------------
   # copy page content
   # -------------------------------------
-  knitr <- page.content
+  if (nvar>1) {
+    knitr <- c()
+    for (i in 1:length(page.content.list)) {
+      knitr <- paste0(knitr, page.content.list[[i]], sprintf("\n<p style=\"%s\">&nbsp;</p>\n", css.abstand))
+    }
+  }
+  else {
+    knitr <- page.content
+  }
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------

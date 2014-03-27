@@ -45,7 +45,10 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   \code{"bars"}. Default value is \code{FALSE}.}
 
   \item{title}{Diagram's title as string.  Example:
-  \code{title=c("my title")}}
+  \code{title=c("my title")} Use \code{"auto"} to
+  automatically detect variable names that will be used as
+  title (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{titleSize}{The size of the plot title. Default is
   1.3.}
@@ -86,7 +89,10 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   (predictor labels). Default is a dark grey (grey30).}
 
   \item{axisTitle.x}{A label for the x axis. Default is
-  \code{NULL}, which means no x-axis title.}
+  \code{NULL}, which means no x-axis title.  Use
+  \code{"auto"} to automatically detect variable names that
+  will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{axisTitleColor}{The color of the x axis label.}
 
@@ -257,7 +263,9 @@ within and between groups) is printed to the model summary.
 }
 \examples{
 data(efc)
-sjp.aov1(efc$c12hour, as.factor(efc$e42dep))
+# note: "grpVar" does not need to be a factor.
+# coercion to factor is done by the function
+sjp.aov1(efc$c12hour, efc$e42dep)
 
 
 data(efc)
@@ -268,18 +276,14 @@ sjp.aov1(efc$c12hour,
          axisLabels.y=efc.val['e42dep'],
          axisTitle.x=efc.var[['c12hour']])
 
+# -------------------------------------------------
+# auto-detection of value labels and variable names
+# -------------------------------------------------
+efc <- sji.setVariableLabels(efc, efc.var)
 sjp.aov1(efc$c12hour,
-         as.factor(efc$e42dep),
-         axisLabels.y=efc.val['e42dep'],
-         title=efc.var[['c12hour']],
-         type="bars",
-         meansums=TRUE,
-         hideErrorBars=TRUE,
-         theme="minimal",
-         minorGridColor="white",
-         showTickMarks=FALSE,
-         showModelSummary=FALSE,
-         hideGrid.x=TRUE)
+         efc$e42dep,
+         title="auto",
+         axisTitle.x="auto")
 
 sjp.aov1(efc$c12hour,
          as.factor(efc$c172code),

@@ -9,6 +9,11 @@
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
+#' @seealso \code{\link{sjt.pca}} \cr
+#'          \code{\link{sju.reliability}} \cr
+#'          \code{\link{sjt.itemanalysis}} \cr
+#'          \code{\link{sju.cronbach}}
+#' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
 #' @param numberOfFactors A predefined number of factors to use for the calculating the varimax
@@ -22,6 +27,7 @@
 #'          between the highest and 2nd highest factor should be 0.1
 #' @param plotEigenvalues If \code{TRUE}, a plot showing the Eigenvalues according to the
 #'          Kaiser criteria is plotted to determine the number of factors.
+#' @param digits The amount of decimals used. Default is 2.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #' @param titleSize The size of the plot title. Default is 1.3.
 #' @param titleColor The color of the plot title. Default is \code{"black"}.
@@ -135,6 +141,12 @@
 #' 
 #' sjp.pca(df)
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' sjp.pca(efc[,c(start:end)])
+#' 
 #' 
 #' @import ggplot2
 #' @importFrom reshape2 melt
@@ -144,6 +156,7 @@ sjp.pca <- function(data,
                     numberOfFactors=NULL,
                     factorLoadingTolerance=0.1,
                     plotEigenvalues=FALSE,
+                    digits=2,
                     title=NULL,
                     titleSize=1.3,
                     titleColor="black",
@@ -174,6 +187,25 @@ sjp.pca <- function(data,
                     minorGridColor=NULL,
                     theme=NULL,
                     printPlot=TRUE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y) && is.data.frame(data)) {
+    # if yes, iterate each variable
+    for (i in 1:ncol(data)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(data[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        axisLabels.y <- c(axisLabels.y, vn)
+      }
+      else {
+        # else break out of loop
+        axisLabels.y <- NULL
+        break
+      }
+    }
+  }
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
@@ -186,25 +218,12 @@ sjp.pca <- function(data,
     pcadata <- prcomp(na.omit(data), retx=TRUE, center=TRUE, scale.=TRUE)
     dataframeparam <- TRUE
   }
-
-
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
-  
-
   # ----------------------------
   # calculate eigenvalues
   # ----------------------------
@@ -280,7 +299,7 @@ sjp.pca <- function(data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- abs(df[i,])
+      rowval <- as.numeric(abs(df[i,]))
       # retrieve highest loading
       maxload <- max(rowval)
       # retrieve 2. highest loading
@@ -366,9 +385,6 @@ sjp.pca <- function(data,
   df <- cbind(df, ypos=c(1:nrow(pcadata.varim$loadings)), psize=c(exp(abs(df$value))*circleSize))
   # rename first column for more intuitive name
   colnames(df)[1] <- c("xpos")
-  # df$value <- abs(df$value)
-
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -391,8 +407,6 @@ sjp.pca <- function(data,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -404,8 +418,6 @@ sjp.pca <- function(data,
   if (!is.null(minorGridColor)) {
     minorgrid <- element_line(colour=minorGridColor)
   }
-  
-  
   # --------------------------------------------------------
   # Set up visibility oftick marks
   # --------------------------------------------------------
@@ -416,10 +428,8 @@ sjp.pca <- function(data,
     valueLabels <- c("")
   }
   else {
-    valueLabels <- c(round(df$value,2))
+    valueLabels <- sprintf("%.*f", digits, df$value)
   }
-  
-  
   # --------------------------------------------------------
   # start with base plot object here
   # --------------------------------------------------------
@@ -485,7 +495,7 @@ sjp.pca <- function(data,
   if (showCronbachsAlpha) {
     heatmap <- heatmap +
       # annotate("text", x=alphaValues$nr, y=Inf, parse=TRUE, label=sprintf("alpha == %.2f", alphaValues$alpha), size=0.9*valueLabelSize, colour=axisLabelColor, vjust=alphaValues$vpos)
-      annotate("text", x=alphaValues$nr, y=Inf, parse=TRUE, label=sprintf("alpha == %.2f", alphaValues$alpha), size=0.9*valueLabelSize, colour=axisLabelColor, vjust=-0.5)
+      annotate("text", x=alphaValues$nr, y=Inf, parse=TRUE, label=sprintf("alpha == %.*f", digits, alphaValues$alpha), size=0.9*valueLabelSize, colour=axisLabelColor, vjust=-0.5)
   }
   # --------------------------------------------------------
   # the panel-border-property can only be applied to the bw-theme
@@ -522,8 +532,6 @@ sjp.pca <- function(data,
   # print plot
   # --------------------------------------------------------
   if (printPlot) plot(heatmap)
-  
-
   # --------------------------------------------------------
   # if we have a data frame, all factors which do not clearly
   # load on a specific dimension (see patameter "factorLoadingTolerance")

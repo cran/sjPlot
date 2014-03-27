@@ -1,14 +1,14 @@
 \name{sjt.xtab}
 \alias{sjt.xtab}
-\title{Show contigency tables as HTML table}
+\title{Show contingency tables as HTML table}
 \usage{
 sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   file = NULL, variableLabels = NULL, valueLabels = NULL,
   breakVariableLabelsAt = 40, breakValueLabelsAt = 20,
   stringTotal = "Total", showCellPerc = FALSE, showRowPerc = FALSE,
   showColPerc = FALSE, showExpected = FALSE, showHorizontalLine = FALSE,
-  showSummary = TRUE, showLegend = TRUE, tdcol.n = "black",
-  tdcol.expected = "#339999", tdcol.cell = "#993333",
+  showSummary = TRUE, showLegend = TRUE, showNA = FALSE, labelNA = "NA",
+  tdcol.n = "black", tdcol.expected = "#339999", tdcol.cell = "#993333",
   tdcol.row = "#333399", tdcol.col = "#339933", highlightTotal = FALSE,
   highlightColor = "#f8f8f8", percSign = "&nbsp;\%", hundret = "100.0",
   encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
@@ -41,7 +41,10 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   names. Following order is needed: name of \code{var.row},
   name of \code{var.col}, and - if \code{var.grp} is not
   \code{NULL} - name of \code{var.grp}.  See examples for
-  more details.}
+  more details.  variableLabels are detected automatically,
+  if \code{var.row} or \code{var.col} have a
+  \code{"variable.label"} attribute (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{valueLabels}{A list of character vectors that
   indicate the value labels of the supplied variables.
@@ -81,14 +84,25 @@ sjt.xtab(var.row, var.col, var.grp = NULL, weightBy = NULL, digits = 1,
   separated with a horizontal line.}
 
   \item{showSummary}{If \code{TRUE} (default), a summary
-  row with chi-square statistics, Cramer's V or Phi-value
-  etc. is shown.}
+  row with Chi-square statistics (see
+  \code{\link{chisq.test}}), Cramer's V or Phi-value etc.
+  is shown. If a cell contains expected values lower than
+  five (or lower than 10 if df is 1), the Fisher's excact
+  test (see \code{\link{fisher.test}}) is computed instead
+  of Chi-square test.  If the table's matrix is larger than
+  2x2, Fisher's excact test with Monte Carlo simulation is
+  computed.}
 
   \item{showLegend}{If \code{TRUE} (default), the color
   legend for coloring observed and expected values as well
   as cell, row and column percentages is shown. See
-  \code{tdcol.n}, \code{tdcol.expectec}, \code{tdcol.cell},
+  \code{tdcol.n}, \code{tdcol.expected}, \code{tdcol.cell},
   \code{tdcol.row} and \code{tdcol.col}.}
+
+  \item{showNA}{If \code{TRUE}, \code{\link{NA}}'s (missing
+  values) are also printed in the table.}
+
+  \item{labelNA}{The label for the missing column/row.}
 
   \item{tdcol.n}{Color for highlighting count (observed)
   values in table cells. Default is black.}
@@ -173,7 +187,17 @@ opened (specify parameter \code{file}) or they can be saved
 as temporary files and will be displayed in the RStudio
 Viewer pane (if working with RStudio) or opened with the
 default web browser. Displaying resp. opening a temporary
-file is the default behaviour (i.e. \code{file=NULL}).
+file is the default behaviour (i.e. \code{file=NULL}). \cr
+\cr Since package version 1.3, the parameter
+\code{valueLabels}, which represent the value labels, is
+retrieved automatically if a) the variables \code{var.col}
+and \code{var.row} come from a data frame that was imported
+with the \code{\link{sji.SPSS}} function (because then
+value labels are attached as attributes to the data) or b)
+when the variables are factors with named factor levels
+(e.g., see column \code{group} in dataset
+\code{\link{PlantGrowth}}). However, you still can use own
+parameters variable labels.
 }
 \examples{
 # prepare sample data set
@@ -200,11 +224,13 @@ sjt.xtab(efc$e16sex, efc$e42dep,
          showCellPerc=FALSE,
          highlightTotal=TRUE)}
 
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
 # print cross table with labels and all percentages
 \dontrun{
 sjt.xtab(efc$e16sex, efc$e42dep,
-         variableLabels=c("Elder's gender", "Elder's dependency"),
-         valueLabels=list(efc.labels[['e16sex']], efc.labels[['e42dep']]),
          showRowPerc=TRUE, showColPerc=TRUE)}
 
 # print cross table with labels and all percentages, including
@@ -230,7 +256,14 @@ sjt.xtab(efc$e16sex, efc$e42dep,
                  css.tdata="border: 1px solid;",
                  css.horline="border-bottom: double blue;"))}
 }
+\references{
+\itemize{ \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2014/02/20/no-need-for-spss-beautiful-output-in-r-rstats/}
+}
+}
 \seealso{
-\code{\link{sjp.xtab}}
+\code{\link{sjp.xtab}} \cr \code{\link{sju.table.values}}
 }
 

@@ -200,9 +200,16 @@ sjt.frq(efc$neg_c_7,
         highlightMedian=TRUE,
         highlightQuartiles=TRUE)}
 
-# ----------------------------------------------------------------
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, variables)
+\dontrun{
+sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))}
+
+# --------------------------------
 # User defined style sheet
-# ----------------------------------------------------------------
+# --------------------------------
 \dontrun{
 sjt.frq(efc$e42dep,
         variableLabels=variables['e42dep'],

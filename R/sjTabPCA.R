@@ -2,16 +2,20 @@
 #' @name sjt.pca
 #' @references \itemize{
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
 #'              }
 #' 
 #' @description Performes a principle component analysis on a data frame or matrix and
 #'                displays the factor solution as HTML table, or saves them as file. 
 #'                \cr \cr In case a data frame is used as 
-#'                parameter, the cronbach's alpha value for each factor scale will be calculated,
+#'                parameter, the Cronbach's Alpha value for each factor scale will be calculated,
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
-#' @seealso \code{\link{sjp.pca}}
+#' @seealso \code{\link{sjp.pca}} \cr
+#'          \code{\link{sju.reliability}} \cr
+#'          \code{\link{sjt.itemanalysis}} \cr
+#'          \code{\link{sju.cronbach}}
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
@@ -126,8 +130,12 @@
 #' \dontrun{
 #' sjt.pca(df)}
 #' 
+#' # -------------------------------
+#' # auto-detection of labels
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
 #' \dontrun{
-#' sjt.pca(df, showMSA=TRUE, showVariance=TRUE)}
+#' sjt.pca(efc[,c(start:end)])}
 #' 
 #' @export
 sjt.pca <- function (data,
@@ -148,6 +156,25 @@ sjt.pca <- function (data,
                      CSS=NULL,
                      useViewer=TRUE,
                      no.output=FALSE) {
+  # --------------------------------------------------------
+  # try to automatically set labels is not passed as parameter
+  # --------------------------------------------------------
+  if (is.null(varlabels) && is.data.frame(data)) {
+    # if yes, iterate each variable
+    for (i in 1:ncol(data)) {
+      # retrieve variable name attribute
+      vn <- autoSetVariableLabels(data[,i])
+      # if variable has attribute, add to variableLabel list
+      if (!is.null(vn)) {
+        varlabels <- c(varlabels, vn)
+      }
+      else {
+        # else break out of loop
+        varlabels <- NULL
+        break
+      }
+    }
+  }
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
@@ -285,7 +312,7 @@ sjt.pca <- function (data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- abs(df[i,])
+      rowval <- as.numeric(abs(df[i,]))
       # retrieve highest loading
       maxload <- max(rowval)
       # retrieve 2. highest loading
@@ -428,10 +455,10 @@ sjt.pca <- function (data,
       # start table column
       colcss <- sprintf(" class=\"tdata centeralign%s%s\"", arcstring, rowcss)
       if (maxdf[[i]]!=max(abs(df[i,j]))) colcss <- sprintf(" class=\"tdata centeralign minval%s%s\"", arcstring, rowcss)
-      page.content <- paste0(page.content, sprintf("    <td%s>%s</td>\n", colcss, round(df[i,j],digits)))
+      page.content <- paste0(page.content, sprintf("    <td%s>%.*f</td>\n", colcss, digits, df[i,j]))
     }
     # check if msa column should be shown
-    if (showMSA) page.content <- paste0(page.content, sprintf("    <td class=\"tdata msa centeralign%s%s\">%s</td>\n", arcstring, rowcss, round(kmo$MSAi[[i]],digits)))
+    if (showMSA) page.content <- paste0(page.content, sprintf("    <td class=\"tdata msa centeralign%s%s\">%.*f</td>\n", arcstring, rowcss, digits, kmo$MSAi[[i]]))
     # close row
     page.content <- paste0(page.content, "  </tr>\n")
   }
@@ -445,7 +472,7 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata pov\">%s</td>\n", stringPov))
     # iterate alpha-values
     for (i in 1:length(pov)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign pov\">%s&nbsp;%%</td>\n", 100*round(pov[i],digits+2)))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign pov\">%.*f&nbsp;%%</td>\n", digits, 100*pov[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign pov\"></td>\n")
@@ -454,7 +481,7 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata cpov\">%s</td>\n", stringCpov))
     # iterate alpha-values
     for (i in 1:length(pov)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cpov\">%s&nbsp;%%</td>\n", 100*round(cpov[i],digits+2)))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cpov\">%.*f&nbsp;%%</td>\n", digits, 100*cpov[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign cpov\"></td>\n")
@@ -470,7 +497,7 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, "    <td class=\"tdata cronbach\">Cronbach's &alpha;</td>\n")
     # iterate alpha-values
     for (i in 1:length(alphaValues)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cronbach\">%s</td>\n", round(alphaValues[i],digits)))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cronbach\">%.*f</td>\n", digits, alphaValues[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign cronbach\"></td>\n")
@@ -484,7 +511,7 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, "  <tr>\n")
     page.content <- paste0(page.content, "    <td class=\"tdata kmo\">Kaiser-Meyer-Olkin</td>\n")
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kmo\" colspan=\"%i\"></td>\n", ncol(df)))
-    page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kmo\">%s</td>\n", round(kmo$MSA,digits)))
+    page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kmo\">%.*f</td>\n", digits, kmo$MSA))
     page.content <- paste0(page.content, "  </tr>\n")
   }
   # -------------------------------------

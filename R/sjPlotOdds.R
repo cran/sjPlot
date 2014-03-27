@@ -224,20 +224,9 @@ sjp.glm <- function(fit,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
-  
-  
   # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
@@ -254,8 +243,6 @@ sjp.glm <- function(fit,
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)    
   }
-  
-
   # create data frame for ggplot
   tmp <- data.frame(cbind(exp(coef(fit)), exp(confint(fit))))
   # ----------------------------
@@ -280,7 +267,7 @@ sjp.glm <- function(fit,
   # ----------------------------
   if (showValueLabels) {
     for (i in 1:length(pv)) {
-      ps[i] <- c(round(ov[i],labelDigits))
+      ps[i] <- sprintf("%.*f", labelDigits, ov[i])
     }
   }
   # ----------------------------
@@ -318,8 +305,6 @@ sjp.glm <- function(fit,
   if (is.null(axisLabels.y)) {
     axisLabels.y <- row.names(odds)
   }
-
-  
   # ----------------------------
   # sort labels descending in order of
   # odds ratio values
@@ -329,7 +314,6 @@ sjp.glm <- function(fit,
   if (sortOdds) {
     axisLabels.y <- axisLabels.y[order(ov)]
   }
-  
   # ----------------------------
   # bind p-values to data frame
   # ----------------------------
@@ -353,8 +337,6 @@ sjp.glm <- function(fit,
   # in the graph (see reorder in ggplot-function)
   # ----------------------------
   tmp$vars <- as.factor(c(nrow(tmp)))
-  
-  
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user defined range
@@ -409,8 +391,6 @@ sjp.glm <- function(fit,
     ticks <- exp(ticks)-1
     ticks <- round(ticks[which(ticks<=upper_lim)],1)
   }
-  
-  
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
@@ -433,14 +413,6 @@ sjp.glm <- function(fit,
             Chisquare.glm(fit),
             fit$aic))
   }
-  # --------------------------------------
-  # Formatierungen: Generell bei ggplot gilt: "fill"-Wert in
-  # "aes"-Parameter der ggplot-Funktion bezieht sich darauf,
-  # welche Werte eine neue Farbe kriegen sollen (mapping).
-  # Innerhalb von geom_bar etc. bezieht sich der "fill"-Parameter
-  # auf die verschiedenen Farbwerte, die gesetzt werden sollen.
-  # --------------------------------------
-  
   # --------------------------------------------------------
   # define bar / line colors
   # --------------------------------------------------------
@@ -487,8 +459,6 @@ sjp.glm <- function(fit,
       scalecolors <- scale_fill_manual(values=barcols, guide=FALSE)
     }
   }
-  
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -513,8 +483,6 @@ sjp.glm <- function(fit,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -527,8 +495,6 @@ sjp.glm <- function(fit,
     minorgrid <- element_line(colour=minorGridColor)
   }
   hidegrid <- element_line(colour=hideGridColor)
-  
-  
   # --------------------------------------------------------
   # Set up visibility oftick marks
   # --------------------------------------------------------
@@ -538,16 +504,12 @@ sjp.glm <- function(fit,
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
   }
-  
-  
   # --------------------------------------------------------
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
     outlineColor <- waiver()
   }
-  
-  
   # --------------------------------------------------------
   # Order odds according to beta-coefficients
   # --------------------------------------------------------
@@ -556,8 +518,6 @@ sjp.glm <- function(fit,
   }
   odds$vars <- cbind(c(1:nrow(odds)))
   odds$vars <- as.factor(odds$vars)
-  
-  
   # --------------------------------------------------------
   # check whether intercept should be shown
   # --------------------------------------------------------
@@ -565,8 +525,6 @@ sjp.glm <- function(fit,
     odds <- data.frame(rbind(tmp[1,], odds))
     axisLabels.y <- c("Intercept", axisLabels.y)
   }
-
-  
   # --------------------------------------------------------
   # body of plot, i.e. this is the same in both bar and dot plots
   # --------------------------------------------------------
@@ -753,7 +711,6 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
       removedcases <- removedcases + length(vars)
     }
   }
-  
   # ---------------------------------
   # print steps from original to updated model
   # ---------------------------------
@@ -765,14 +722,11 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   
   modelOptmized <- ifelse(removedcases>0, TRUE, FALSE)
   if (showOriginalModelOnly) modelOptmized <- FALSE
-  
   # ---------------------------------
   # show VIF-Values
   # ---------------------------------
   sjp.vif(logreg)
   if (modelOptmized) sjp.vif(model)
-  
-  
   # ------------------------------------------------------
   # Overdispersion
   # Sometimes we can get a deviance that is much larger than expected 
@@ -799,8 +753,6 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     # show half-normal quantiles for updated model
     halfnorm(residuals(model), main="Updated model (over-/underdispersion)")
   }
-  
-  
   # ------------------------------------------------------
   # Influential and leverage points
   # ------------------------------------------------------
@@ -808,8 +760,6 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   if (!showOriginalModelOnly) {
     influencePlot(model)
   }
-
-  
   # ------------------------------------------------------
   # Residual plot
   # ------------------------------------------------------
@@ -825,8 +775,6 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     qqnorm(res)
     qqline(res)
   }
-  
-  
   # -------------------------------------
   # Anova-Test
   # We can see that all terms were highly significant when they were 
@@ -840,14 +788,10 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     print(anova(model,test="Chisq"))
   }
   # -------------------------------------
-  
-
   sjp.glm(logreg, title="Original model")
   if (!showOriginalModelOnly) {
     sjp.glm(model, title="Updated model")
   }
-  
-  
   # return updated model
   return(model)
 }

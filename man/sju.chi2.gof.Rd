@@ -1,0 +1,39 @@
+\name{sju.chi2.gof}
+\alias{sju.chi2.gof}
+\title{Performs a Chi-square goodness-of-fit-test}
+\usage{
+sju.chi2.gof(var, prob, weights = NULL)
+}
+\arguments{
+  \item{var}{a numeric vector / variable.}
+
+  \item{prob}{a vector of probabilities (indicating the
+  population probabilities) of the same length as
+  \code{var}'s amount of categories / factor levels. Use
+  \code{nrow(table(var))} to determine the amount of
+  necessary values for \code{prob}.}
+
+  \item{weights}{a vector with weights, used to weight
+  \code{var}.}
+}
+\description{
+Performs a Chi-square goodness-of-fit-test
+}
+\note{
+This function is a convenient function for
+\code{\link{chisq.test}}, performing goodness-of-fit test.
+}
+\examples{
+data(efc)
+# differing from population
+sju.chi2.gof(efc$e42dep, c(0.3,0.2,0.22,0.28))
+# equal to population
+sju.chi2.gof(efc$e42dep, prop.table(table(efc$e42dep)))
+}
+\seealso{
+\code{\link{sju.mwu}}, \code{\link{sju.aov1.levene}} and
+\code{\link{wilcox.test}}, \code{\link{ks.test}},
+\code{\link{kruskal.test}}, \code{\link{t.test}},
+\code{\link{chisq.test}}, \code{\link{fisher.test}}
+}
+

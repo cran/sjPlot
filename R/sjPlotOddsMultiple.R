@@ -222,15 +222,6 @@ sjp.glmm <- function(...,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   # unlist axis labels (predictors)
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
@@ -239,8 +230,6 @@ sjp.glmm <- function(...,
   if (!is.null(labelDependentVariables) && is.list(labelDependentVariables)) {
     labelDependentVariables <- unlistlabels(labelDependentVariables)
   }
-  
-  
   # ----------------------------
   # init final data frame
   # ----------------------------
@@ -286,7 +275,7 @@ sjp.glmm <- function(...,
     # print p-values in bar charts
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
-    pv <- coef(summary(fit))[,4]
+    pv <- unname(coef(summary(fit))[,4])
     # for better readability, convert p-values to asterisks
     # with:
     # p < 0.001 = ***
@@ -314,7 +303,7 @@ sjp.glmm <- function(...,
     # ----------------------------
     if (showValueLabels) {
       for (i in 1:length(pv)) {
-        ps[i] <- c(round(ov[i],labelDigits))
+        ps[i] <- sprintf("%.*f", labelDigits, ov[i])
       }
     }
     # ----------------------------
@@ -418,15 +407,6 @@ sjp.glmm <- function(...,
     ticks <- exp(ticks)-1
     ticks <- round(ticks[which(ticks<=upper_lim)],1)
   }
-  # --------------------------------------
-  # Formatierungen: Generell bei ggplot gilt: "fill"-Wert in
-  # "aes"-Parameter der ggplot-Funktion bezieht sich darauf,
-  # welche Werte eine neue Farbe kriegen sollen (mapping).
-  # Innerhalb von geom_bar etc. bezieht sich der "fill"-Parameter
-  # auf die verschiedenen Farbwerte, die gesetzt werden sollen.
-  # --------------------------------------
-  
-  
   # --------------------------------------------------------
   # define bar / line colors
   # --------------------------------------------------------
@@ -459,8 +439,6 @@ sjp.glmm <- function(...,
   else {
     scalecolors <- scale_colour_manual(values=barcols, labels=labelDependentVariables)
   }
-  
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -485,8 +463,6 @@ sjp.glmm <- function(...,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -499,8 +475,6 @@ sjp.glmm <- function(...,
     minorgrid <- element_line(colour=minorGridColor)
   }
   hidegrid <- element_line(colour=hideGridColor)
-  
-  
   # --------------------------------------------------------
   # Set up visibility oftick marks
   # --------------------------------------------------------
@@ -510,8 +484,6 @@ sjp.glmm <- function(...,
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
   }
-  
-  
   # --------------------------------------------------------
   # body of plot
   # --------------------------------------------------------

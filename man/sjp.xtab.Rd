@@ -1,6 +1,6 @@
 \name{sjp.xtab}
 \alias{sjp.xtab}
-\title{Plot contigency tables}
+\title{Plot contingency tables}
 \usage{
 sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   legendTitle = NULL, weightBy = NULL, weightByTitleString = NULL,
@@ -81,7 +81,9 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   y-axis. Overrides the \code{maxYlim} parameter.}
 
   \item{title}{Title of the diagram, plotted above the
-  whole diagram panel.}
+  whole diagram panel.  Use \code{"auto"} to automatically
+  detect variable names that will be used as title (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{titleSize}{The size of the plot title. Default is
   1.3.}
@@ -230,9 +232,15 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   shown or not.}
 
   \item{showTableSummary}{If \code{TRUE} (default), a
-  summary of the cross tabulation with N, chi-square, df
+  summary of the cross tabulation with N, Chi-square (see
+  \code{\link{chisq.test}}), df, Cramer's V or Phi-value
   and p-value is printed to the upper right corner of the
-  diagram. Only applies to bar-charts or dot-plots, i.e.
+  diagram. If a cell contains expected values lower than
+  five (or lower than 10 if df is 1), the Fisher's excact
+  test (see \code{\link{fisher.test}}) is computed instead
+  of Chi-square test.  If the table's matrix is larger than
+  2x2, Fisher's excact test with Monte Carlo simulation is
+  computed.  Only applies to bar-charts or dot-plots, i.e.
   when parameter \code{type} is either \code{"bars"} or
   \code{"dots"}.}
 
@@ -252,7 +260,10 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{axisTitle.x}{A label for the x axis. useful when
   plotting histograms with metric scales where no category
-  labels are assigned to the x axis.}
+  labels are assigned to the x axis.  Use \code{"auto"} to
+  automatically detect variable names that will be used as
+  title (see \code{\link{sji.setVariableLabels}}) for
+  details).}
 
   \item{axisTitle.y}{A label for the y axis. useful when
   plotting histograms with metric scales where no category
@@ -292,6 +303,19 @@ for setting up the ggplot-object (\code{df}).
 \description{
 Plot proportional crosstables (contingency tables) of two
 variables as ggplot diagram.
+}
+\note{
+Since package version 1.3, the parameters
+\code{axisLabels.x} and \code{legendLabels}, which
+represent the value labels, are retrieved automatically if
+a) the variables \code{x} and \code{y} come from a data
+frame that was imported with the \code{\link{sji.SPSS}}
+function (because then value labels are attached as
+attributes to the data) or b) when the variables are
+factors with named factor levels (e.g., see column
+\code{group} in dataset \code{\link{PlantGrowth}}).
+However, you still can use own parameters as axis- and
+legendlabels.
 }
 \examples{
 # create 4-category-items
@@ -340,6 +364,12 @@ sjp.xtab(efc$e16sex,
          barPosition="stack",
          flipCoordinates=TRUE,
          jitterValueLabels=TRUE)
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, efc.var)
+sjp.xtab(efc$e16sex, efc$e42dep, title="auto", axisTitle.x="auto")
 }
 \references{
 \itemize{ \item

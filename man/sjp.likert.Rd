@@ -2,12 +2,12 @@
 \alias{sjp.likert}
 \title{Plot likert scales as centered stacked bars}
 \usage{
-sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
-  dropLevels = NULL, weightBy = NULL, weightByTitleString = NULL,
-  hideLegend = FALSE, title = NULL, titleSize = 1.3,
-  titleColor = "black", legendTitle = NULL, includeN = TRUE,
-  axisLabels.y = NULL, axisLabelSize = 1.1, axisLabelAngle.x = 0,
-  axisLabelColor = "gray30", valueLabelSize = 4,
+sjp.likert(items, legendLabels = NULL, orderBy = NULL,
+  reverseOrder = FALSE, dropLevels = NULL, weightBy = NULL,
+  weightByTitleString = NULL, hideLegend = FALSE, title = NULL,
+  titleSize = 1.3, titleColor = "black", legendTitle = NULL,
+  includeN = TRUE, axisLabels.y = NULL, axisLabelSize = 1.1,
+  axisLabelAngle.x = 0, axisLabelColor = "gray30", valueLabelSize = 4,
   valueLabelColor = "black", breakTitleAt = 50, breakLabelsAt = 30,
   breakLegendTitleAt = 30, breakLegendLabelsAt = 28, gridRange = 1,
   gridBreaksAt = 0.2, diagramMargins = TRUE, barWidth = 0.5,
@@ -77,7 +77,9 @@ sjp.likert(items, legendLabels, orderBy = NULL, reverseOrder = FALSE,
   \item{axisLabels.y}{Labels for the y-axis (the labels of
   the \code{items}). These parameters must be passed as
   list! Example: \code{axisLabels.y=list(c("Q1", "Q2",
-  "Q3"))}}
+  "Q3"))} Axis labels will automatically be detected, when
+  they have a \code{"variable.lable"} attribute (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{axisLabelSize}{The size of category labels at the
   axes. Default is 1.1, recommended values range between
@@ -261,7 +263,17 @@ categories (odd-numbered categories) will be removed from
 the plot.
 }
 \note{
-Transformation of data and ggplot-code taken from
+Since package version 1.3, the parameter
+\code{legendLabels}, which represent the value labels, are
+retrieved automatically if a) the variables in \code{items}
+come from a data frame that was imported with the
+\code{\link{sji.SPSS}} function (because then value labels
+are attached as attributes to the data) or b) when the
+variables are factors with named factor levels (e.g., see
+column \code{group} in dataset \code{\link{PlantGrowth}}).
+However, you still can use own parameters as axis- and
+legendlabels. \cr \cr Transformation of data and
+ggplot-code taken from
 \url{http://statisfactions.com/2012/improved-net-stacked-distribution-graphs-via-ggplot2-trickery/}
 }
 \examples{

@@ -12,12 +12,13 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
   axisLabelAngle.y = 0, errorBarColor = "#3366a0", errorBarWidth = 0,
   errorBarSize = 0.8, pointColor = "#3366a0", pointSize = 3,
   pointColorStdBeta = "#cc5533", pointSizeStdBeta = 3,
-  stdBetaLineType = 2, stdBetaLineAlpha = 0.3, breakTitleAt = 50,
-  breakLabelsAt = 12, gridBreaksAt = NULL, borderColor = NULL,
-  axisColor = NULL, theme = NULL, flipCoordinates = TRUE,
-  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
-  hideGrid.y = FALSE, showTickMarks = TRUE, showValueLabels = TRUE,
-  labelDigits = 2, showPValueLabels = TRUE, showModelSummary = TRUE,
+  stdBetaLineType = 2, stdBetaLineAlpha = 0.3, interceptLineType = 2,
+  interceptLineColor = "grey70", breakTitleAt = 50, breakLabelsAt = 12,
+  gridBreaksAt = NULL, borderColor = NULL, axisColor = NULL,
+  theme = NULL, flipCoordinates = TRUE, majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  showTickMarks = TRUE, showValueLabels = TRUE, labelDigits = 2,
+  showPValueLabels = TRUE, showModelSummary = TRUE,
   showStandardBeta = FALSE, showStandardBetaLine = FALSE,
   printPlot = TRUE)
 }
@@ -133,6 +134,12 @@ sjp.lm(fit, sort = "beta", title = NULL, titleSize = 1.3,
 
   \item{stdBetaLineAlpha}{The alpha-value for the line that
   connects the standardized beta-value dots.}
+
+  \item{interceptLineType}{The linetype of the intercept
+  line (zero point). Default is \code{2} (dashed line).}
+
+  \item{interceptLineColor}{The color of the intercept
+  line. Default value is \code{"grey70"}.}
 
   \item{breakTitleAt}{Wordwrap for diagram title.
   Determines how many chars of the title are displayed in

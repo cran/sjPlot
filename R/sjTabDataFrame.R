@@ -3,10 +3,16 @@
 #' 
 #' @seealso \code{\link{sji.viewSPSS}}
 #' 
+#' @references \itemize{
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
+#'              }
+#'              
 #' @description Shows description or the content of data frame (rows and columns) as HTML table,
-#'                or saves it as file.
-#'                Helpful if you want a quick overview of a data frame's content. See parameter
-#'                \code{describe} for details.
+#'                or saves it as file. Helpful if you want a quick overview of a data frame's 
+#'                content. See parameter \code{describe} for details. By default, \code{describe} 
+#'                is \code{TRUE} and a description of the data frame is given,
+#'                using the \code{\link{describe}} function of the \code{psych} package.
 #'
 #' @param df A data frame that should be printed.
 #' @param describe If \code{TRUE} (default), a description of the data frame's variables is given.
@@ -26,6 +32,8 @@
 #'          Use \code{FALSE} to apply descending order. See examples for further details.
 #' @param title A table caption. By default, \code{title} is \code{NULL}, hence no title will be used.
 #' @param stringVariable A string used for the first column name. Default is \code{"Variable"}.
+#' @param repeatHeader If \code{TRUE}, the header row will also be added at the bottom at the table. This might
+#'          be helpful, if you have longer tables and want to see the column names at the end of the table as well.
 #' @param showType If \code{TRUE}, the variable type is shown in a separate row below the column
 #'          names.
 #' @param showCommentRow If \code{TRUE}, an optional comment line can be added to the end / below
@@ -56,18 +64,13 @@
 #'          value.
 #' @return Invisibly returns a \code{\link{structure}} with
 #'          \itemize{
+#'            \item the data frame with the description information (\code{data}),
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
 #'            \item the complete html-output (\code{output.complete}) and
 #'            \item the html-table with inline-css for use with knitr (\code{knitr})
 #'            }
 #'            for further use.
-#'
-#' @description By default, \code{describe} is \code{TRUE} and a description of the data frame is given,
-#'                using the \code{\link{describe}} function of the \code{\link{psych}} package.
-#' Shows description or the content of data frame (rows and columns) as HTML table,
-#'                or saves it as file. To view the data frame's content, use parameter
-#'                \code{describe=FALSE}.
 #'
 #' @examples
 #' # init dataset
@@ -114,6 +117,7 @@ sjt.df <- function (df,
                     orderColumn=NULL,
                     orderAscending=TRUE,
                     title=NULL,
+                    repeatHeader=FALSE,
                     stringVariable="Variable",
                     showType=FALSE,
                     showCommentRow=FALSE,
@@ -133,7 +137,15 @@ sjt.df <- function (df,
   # Description?
   # -------------------------------------
   if (describe) {
+    # also include missings
+    missings <- apply(df, 2, function(x) sum(is.na(x)))
+    # and proportion of missings
+    missings.percentage <- round(100*missings/nrow(df),2)
     df <- round(describe(df),2)
+    # insert missing variables in data frame
+    df <- data.frame(df[,1:2], missings, missings.percentage, df[,3:ncol(df)])
+    # proper column name
+    colnames(df)[4] <- "missings (percentage)"
   }
   # -------------------------------------
   # Order data set if requested
@@ -168,8 +180,8 @@ sjt.df <- function (df,
   tag.tdata <- "tdata"
   tag.arc <- "arc"
   tag.comment <- "comment"
-  tag.lasttablerow <- "lasttablerow"
   tag.firsttablerow <- "firsttablerow"
+  tag.lasttablerow <- "lasttablerow"
   tag.firsttablecol <- "firsttablecol"
   tag.leftalign <- "leftalign"
   tag.centertalign <- "centertalign"
@@ -179,11 +191,12 @@ sjt.df <- function (df,
   css.tdata <- "padding:0.2cm; text-align:left; vertical-align:top;"
   css.arc <- "background-color:#eaeaea;"
   css.lasttablerow <- "border-top:1px solid; border-bottom: double;"
-  css.firsttablerow <- "border-bottom:1px solid;"
+  css.firsttablerow <- "border-bottom:1px solid black;"
   css.firsttablecol <- ""
   css.leftalign <- "text-align:left;"
   css.centertalign <- "text-align:center;"
   css.comment <- "font-style:italic; border-top:double black; text-align:right;"
+  if (showCommentRow && repeatHeader) css.comment <- "font-style:italic; text-align:right;"
   # ------------------------
   # check user defined style sheets
   # ------------------------
@@ -194,8 +207,8 @@ sjt.df <- function (df,
     if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
     if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
     if (!is.null(CSS[['css.comment']])) css.comment <- CSS[['css.comment']]
-    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
     if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- CSS[['css.firsttablerow']]
+    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
     if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
     if (!is.null(CSS[['css.leftalign']])) css.leftalign <- CSS[['css.leftalign']]
     if (!is.null(CSS[['css.centertalign']])) css.centertalign <- CSS[['css.centertalign']]
@@ -271,6 +284,25 @@ sjt.df <- function (df,
   }
   close(pb)
   # -------------------------------------
+  # repeat header row?
+  # -------------------------------------
+  if (repeatHeader) {
+    page.content <- paste0(page.content, sprintf("  <tr>\n    <th class=\"thead lasttablerow firsttablecol\">%s</th>\n", stringVariable))
+    for (i in 1:colcnt) {
+      # check variable type
+      vartype <- c("unknown type")
+      if (is.character(df[,i])) vartype <- c("character")
+      else if (is.factor(df[,i])) vartype <- c("factor")
+      else if (is.numeric(df[,i])) vartype <- c("numeric")
+      else if (is.atomic(df[,i])) vartype <- c("atomic")
+      # column names and variable as table headline
+      page.content <- paste0(page.content, sprintf("    <th class=\"thead lasttablerow\">%s", cnames[i]))
+      if (showType) page.content <- paste0(page.content, sprintf("<br>(%s)", vartype))
+      page.content <- paste0(page.content, "</th>\n")
+    }
+    page.content <- paste0(page.content, "  </tr>\n")
+  }
+  # -------------------------------------
   # add optional "comment" row
   # -------------------------------------
   if (showCommentRow) {
@@ -340,7 +372,8 @@ sjt.df <- function (df,
   # return results
   # -------------------------------------
   invisible (structure(class = "sjtdf",
-                       list(page.style = page.style,
+                       list(data = df,
+                            page.style = page.style,
                             page.content = page.content,
                             output.complete = toWrite,
                             knitr = knitr)))

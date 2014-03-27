@@ -1,6 +1,6 @@
 \name{sjc.elbow}
 \alias{sjc.elbow}
-\title{Plot elbow values of a k-means cluster analysis}
+\title{Compute elbow values of a k-means cluster analysis}
 \usage{
 sjc.elbow(data, steps = 15, showDiff = FALSE)
 }

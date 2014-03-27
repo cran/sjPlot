@@ -20,23 +20,35 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
-#' @param groupcount The amount of groups (clusters) that should be retrieved. By default
+#' @param groupcount The amount of groups (clusters) that should be retrieved. May also be
+#'          a set of initial (distinct) cluster centres, in case \code{method} is \code{"kmeans"}
+#'          (see \code{\link{kmeans}} for details on \code{centers} parameter). By default
 #'          (\code{NULL}), the optimal amount of clusters is calculated using the gap statistics
 #'          (see \code{\link{sjc.kgap}}. However, this works only with kmeans as \code{method}. If
-#'          \code{method} is \code{"h"}, you have to specify a groupcount. Use the \code{\link{sjc.elbow}}-function 
+#'          \code{method} is \code{"hclust"}, you have to specify a groupcount. Use the \code{\link{sjc.elbow}}-function 
 #'          to determine the group-count depending on the elbow-criterion. Use \code{\link{sjc.grpdisc}}-function 
 #'          to inspect the goodness of grouping.
-#' @param method The method for computing the cluster analysis. By default (\code{"k"}), a
-#'          kmeans cluster analysis will be computed. Use \code{"h"} to compute a hierarchical
-#'          cluster analysis.
-#' @param distance The distance measure to be used when \code{"method"} is \code{"h"} (for hierarchical
+#' @param groups By default, this parameter is \code{NULL} and will be ignored. However, if you just want to plot
+#'          an already existing cluster solution without computing a new cluster analysis, specifiy \code{groupcount}
+#'          and \code{group}. \code{group} is a vector of same length as \code{nrow(data)} and indicates the group
+#'          classification of the cluster analysis. The group classification can be computed with the
+#'          \code{\link{sjc.cluster}} function.
+#' @param method The method for computing the cluster analysis. By default (\code{"kmeans"}), a
+#'          kmeans cluster analysis will be computed. Use \code{"hclust"} to compute a hierarchical
+#'          cluster analysis. You can specify the initial letters only.
+#' @param distance The distance measure to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This must be one of \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"}, 
 #'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \code{\link{dist}}.
-#'          By default, method is \code{"k"} and this parameter will be ignored.
-#' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"h"} (for hierarchical
+#'          By default, method is \code{"kmeans"} and this parameter will be ignored.
+#' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
 #'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
-#'          By default, method is \code{"k"} and this parameter will be ignored.
+#'          By default, method is \code{"kmeans"} and this parameter will be ignored.
+#' @param iter.max the maximum number of iterations allowed. Only applies, if \code{method}
+#'          is \code{"kmeans"}. See \code{\link{kmeans}} for details on this parameter.
+#' @param algorithm algorithm used for calculating kmeans cluster. Only applies, if \code{method}
+#'          is \code{"kmeans"}. May be one of \code{"Hartigan-Wong"} (default), \code{"Lloyd"} (used by SPSS),
+#'          or \code{"MacQueen"}. See \code{\link{kmeans}} for details on this parameter.
 #' @param showAccuracy If \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
 #'          which computes a linear discriminant analysis on the classified cluster groups and plots a 
 #'          bar graph indicating the goodness of classification for each group.
@@ -105,6 +117,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param showAxisLabels.y Whether y axis labels (z scores) should be shown or not.
 #' @param showGroupCount if \code{TRUE} (default), the count within each cluster group is added to the 
 #'          legend labels (e.g. \code{"Group 1 (n=87)"}).
+#' @param showAccuracyLabels if \code{TRUE}, the accuracy-values for each cluster group is added to the 
+#'          legend labels (e.g. \code{"Group 1 (n=87, accuracy=95.3)"}). Accuracy is calculated by \code{\link{sjc.grpdisc}}.
 #' @param legendTitle Title of the diagram's legend.
 #' @param legendLabels Labels for the guide/legend. Example: See \code{axisLabels.x}. If \code{legendLabels}
 #'          is \code{NULL} (default), the standard string \code{"Group <nr>"} will be used.
@@ -123,9 +137,25 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #'
-#' @return (Invisibly) returns an object of containing the used data frame for plotting, 
-#'           the ggplot object, the number of found cluster (as calculated by \code{\link{sjc.kgap}})
-#'           and the group classification (as calculated by \code{\link{sjc.cluster}}).
+#' @return (Invisibly) returns an object with
+#'           \itemize{
+#'            \item \code{data}: the used data frame for plotting, 
+#'            \item \code{plot}: the ggplot object,
+#'            \item \code{groupcount}: the number of found cluster (as calculated by \code{\link{sjc.kgap}})
+#'            \item \code{classification}: the group classification (as calculated by \code{\link{sjc.cluster}}), including missing values, so this vector can be appended to the original data frame.
+#'            \item \code{accuracy}: the accuracy of group classification (as calculated by \code{\link{sjc.grpdisc}}).
+#'           }
+#' 
+#' @note To get similar results as in SPSS Quick Cluster function, following points
+#'        have to be considered:
+#'        \enumerate{
+#'          \item Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster to get a table with initial cluster centers.
+#'          \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specifying \code{nrow} and \code{ncol} parameters.
+#'          \item Use \code{algorithm="Lloyd"}.
+#'          \item Use the same amount of \code{iter.max} both in SPSS and this \code{sjc.qclus}.
+#'        }
+#'        This ensures a fixed initial set of cluster centers (as in SPSS), while \code{\link{kmeans}} in R
+#'        always selects initial cluster sets randomly.
 #' 
 #' @examples
 #' # K-means clustering of mtcars-dataset
@@ -133,15 +163,18 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' 
 #' # K-means clustering of mtcars-dataset with 4 pre-defined
 #' # groups in a faceted panel
-#' sjc.qclus(mtcars, groupcount=4, facetCluster=TRUE)
+#' sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)
 #' 
 #' @import ggplot2
 #' @export
 sjc.qclus <- function(data,
                       groupcount=NULL,
+                      groups=NULL,
                       method="k",
                       distance="euclidean", 
                       agglomeration="ward",
+                      iter.max=20,
+                      algorithm="Hartigan-Wong",
                       showAccuracy=FALSE,
                       title=NULL,
                       titleSize=1.3,
@@ -174,6 +207,7 @@ sjc.qclus <- function(data,
                       showAxisLabels.x=TRUE,
                       showAxisLabels.y=TRUE,
                       showGroupCount=TRUE,
+                      showAccuracyLabels=FALSE,
                       legendTitle=NULL,
                       legendLabels=NULL,
                       legendPos="right",
@@ -186,20 +220,18 @@ sjc.qclus <- function(data,
                       hideGrid.y=FALSE,
                       flipCoordinates=FALSE,
                       printPlot=TRUE) {
+  # --------------------------------------------------------
+  # check for abbreviations
+  # --------------------------------------------------------
+  if (method=="kmeans") method <- "k"
+  if (method=="hclust") method <- "h"
+  # --------------------------------------------------------
+  # save original data frame
+  # --------------------------------------------------------
+  rownames(data) <- c(1:nrow(data))
+  data.origin <- data
   # remove missings
   data <- na.omit(data)
-  # --------------------------------------------------------
-  # unlist labels
-  # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.x) && is.list(axisLabels.x)) {
     axisLabels.x <- unlistlabels(axisLabels.x)
   }
@@ -252,23 +284,49 @@ sjc.qclus <- function(data,
     groupcount <- kgap$solution
   }
   # ---------------------------------------------
+  # run cluster analysis with claculated group count
+  # ---------------------------------------------
+  if (is.null(groups)) {
+    grp.class <- grp <- sjc.cluster(data.origin, groupcount, method, distance, agglomeration, iter.max, algorithm)
+  }
+  else {
+    grp.class <- grp <- groups
+  }
+  # remove missings
+  grp <- na.omit(grp)
+  # ---------------------------------------------
+  # check whether groupcount was matrix or not
+  # ---------------------------------------------
+  if (is.matrix(groupcount)) {
+    groupcount <- length(unique(grp))
+  }
+  # ---------------------------------------------
   # auto-set legend labels
   # ---------------------------------------------
   if (is.null(legendLabels)) {
     legendLabels <- sprintf("Group %i", c(1:groupcount))
   }
-  # ---------------------------------------------
-  # run cluster analysis with claculated group count
-  # ---------------------------------------------
-  grp <- sjc.cluster(data, groupcount, method, distance, agglomeration)
+  # --------------------------------------------------------
+  # show goodness of classification
+  # --------------------------------------------------------
+  grp.accuracy <- sjc.grpdisc(data, groups=grp, groupcount=groupcount, printPlot=showAccuracy)
   # ---------------------------------------------
   # Add group count to legend labels
   # ---------------------------------------------
-  if (showGroupCount) {
+  if (showGroupCount || showAccuracyLabels) {
     # iterate legend labels
     for (i in 1:length(legendLabels)) {
+      # label string for group count
+      gcnt.label <- sprintf("n=%i", length(which(grp==i)))
+      # label string for accuracy
+      acc.label <- sprintf("accuracy=%.2f%%", 100*grp.accuracy$accuracy[i])
+      # prepare legend label
+      legendLabels[i] <- paste0(legendLabels[i], " (")
       # add group count to each label
-      legendLabels[i] <- paste0(legendLabels[i], " (n=", length(which(grp==i)), ")")
+      if (showGroupCount) legendLabels[i] <- paste0(legendLabels[i], gcnt.label)
+      if (showGroupCount && showAccuracyLabels) legendLabels[i] <- paste0(legendLabels[i], ", ")
+      if (showAccuracyLabels) legendLabels[i] <- paste0(legendLabels[i], acc.label)
+      legendLabels[i] <- paste0(legendLabels[i], ")")
     }
   }
   # scale data
@@ -299,12 +357,6 @@ sjc.qclus <- function(data,
   # factor for discrete scale
   # --------------------------------------------------------
   df$group <- as.factor(df$group)
-  # --------------------------------------------------------
-  # show goodness of classification
-  # --------------------------------------------------------
-  if (showAccuracy) {
-    sjc.grpdisc(data, grp, groupcount)
-  }
   # --------------------------------------------------------
   # Prepare fill colors
   # --------------------------------------------------------
@@ -481,7 +533,8 @@ sjc.qclus <- function(data,
   invisible (structure(class = "sjcqclus",
                        list(data = df,
                             groupcount = groupcount,
-                            classification = grp,
+                            classification = grp.class,
+                            accuracy=grp.accuracy$accuracy,
                             plot = gp)))
 }
 
@@ -492,30 +545,53 @@ sjc.qclus <- function(data,
 #'                association for each observation as vector.
 #' @seealso \code{\link{sjc.dend}} \cr
 #'          \code{\link{sjc.grpdisc}} \cr
-#'          \code{\link{sjc.elbow}}
+#'          \code{\link{sjc.elbow}} \cr
+#'          \code{\link{kmeans}} \cr
+#'          \code{\link{hclust}}
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
-#' @param groupcount The amount of groups (clusters) that should be retrieved. Following functions
-#'          may be helpful for estimating the amount of clusters:
+#' @param groupcount The amount of groups (clusters) that should be retrieved. May also be
+#'          a set of initial (distinct) cluster centres, in case \code{method} is \code{"kmeans"}
+#'          (see \code{\link{kmeans}} for details on \code{centers} parameter). If \code{groupcount}
+#'          indicates a number of clusters, following functions may be helpful for estimating the 
+#'          amount of clusters:
 #'          \itemize{
 #'            \item Use \code{\link{sjc.elbow}}-function to determine the group-count depending on the elbow-criterion.
 #'            \item If using kmeans as \code{method}, use \code{\link{sjc.kgap}}-function to determine the group-count according to the gap-statistic.
 #'            \item If using hierarchical as \code{method} (default), use  \code{\link{sjc.dend}}-function to inspect different cluster group solutions.
 #'            \item Use \code{\link{sjc.grpdisc}}-function to inspect the goodness of grouping (accuracy of classification).
 #'            }
-#' @param method Indicates the clustering method. If \code{"h"} (default), a hierachical 
-#'          clustering using the ward method is computed. Use any other parameter to compute
-#'          a k-means clustering.
-#' @param distance The distance measure to be used when \code{"method"} is \code{"h"} (for hierarchical
+#' @param method Indicates the clustering method. If \code{"hclust"} (default), a hierachical 
+#'          clustering using the ward method is computed. Use \code{"kmeans"} to compute a k-means clustering.
+#'          You can specifiy inital letters only.
+#' @param distance The distance measure to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This must be one of \code{"euclidean"} (default), \code{"maximum"}, \code{"manhattan"}, 
 #'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \code{\link{dist}}.
-#' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"h"} (for hierarchical
+#' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
 #'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
+#' @param iter.max the maximum number of iterations allowed. Only applies, if \code{method}
+#'          is \code{"kmeans"}. See \code{\link{kmeans}} for details on this parameter.
+#' @param algorithm algorithm used for calculating kmeans cluster. Only applies, if \code{method}
+#'          is \code{"kmeans"}. May be one of \code{"Hartigan-Wong"} (default), \code{"Lloyd"} (used by SPSS),
+#'          or \code{"MacQueen"}. See \code{\link{kmeans}} for details on this parameter.
 #' @return The group classification for each observation as vector. This group
-#'           classification is needed for \code{\link{sjc.grpdisc}}-function to
+#'           classification can be used for \code{\link{sjc.grpdisc}}-function to
 #'           check the goodness of classification.
+#'           The returned vector includes missing values, so it can be appended 
+#'           to the original data frame \code{data}.
+#' 
+#' @note To get similar results as in SPSS Quick Cluster function, following points
+#'        have to be considered:
+#'        \enumerate{
+#'          \item Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster to get a table with initial cluster centers.
+#'          \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specifying \code{nrow} and \code{ncol} parameters.
+#'          \item Use \code{algorithm="Lloyd"}.
+#'          \item Use the same amount of \code{iter.max} both in SPSS and this \code{sjc.qclus}.
+#'        }
+#'        This ensures a fixed initial set of cluster centers (as in SPSS), while \code{\link{kmeans}} in R
+#'        always selects initial cluster sets randomly.
 #' 
 #' @examples
 #' # Hierarchical clustering of mtcars-dataset
@@ -526,10 +602,31 @@ sjc.qclus <- function(data,
 #' 
 #' @import ggplot2
 #' @export
-sjc.cluster <- function(data, groupcount, method="h", distance="euclidean", agglomeration="ward") {
+sjc.cluster <- function(data,
+                        groupcount,
+                        method="h",
+                        distance="euclidean",
+                        agglomeration="ward",
+                        iter.max=20,
+                        algorithm="Hartigan-Wong") {
+  # --------------------------------------------------------
+  # check for abbreviations
+  # --------------------------------------------------------
+  if (method=="kmeans") method <- "k"
+  if (method=="hclust") method <- "h"
+  # --------------------------------------------------------
+  # save original data frame
+  # --------------------------------------------------------
+  data.origin <- data
+  # create id with index numbers for rows
+  data.origin$sj.grp.id <- c(1:nrow(data.origin))
+  # create NA-vector of same length as data frame
+  complete.groups <- rep(NA, times=nrow(data.origin))
   # Prepare Data
   # listwise deletion of missing
   data <- na.omit(data) 
+  # remove missings
+  data.origin <- na.omit(data.origin)
   # --------------------------------------------------
   # Ward Hierarchical Clustering
   # --------------------------------------------------
@@ -542,12 +639,18 @@ sjc.cluster <- function(data, groupcount, method="h", distance="euclidean", aggl
     groups <- cutree(hc, k=groupcount)
   }
   else {
-    km <- kmeans(data, groupcount)
+    km <- kmeans(data, centers=groupcount, iter.max=iter.max, algorithm=algorithm)
     # return cluster assignment
     groups <- km$cluster
   }
+  # -----------------------------------
+  # create vector with cluster group classification,
+  # including missings
+  # -----------------------------------
+  # assign valid group values
+  complete.groups[data.origin$sj.grp.id] <- groups
   # return group assignment
-  return(groups)
+  return(complete.groups)
 }
 
 
@@ -655,6 +758,16 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
 #' @param showTotalCorrect If \code{TRUE} (default), a vertical line indicating the
 #'          overall goodness of classification is added to the plot, so one can see
 #'          whether a certain group is below or above the average classification goodness.
+#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#'
+#' @return (Invisibly) returns an object with
+#'           \itemize{
+#'            \item \code{data}: the used data frame for plotting, 
+#'            \item \code{plot}: the ggplot object,
+#'            \item \code{accuracy}: a vector with the accuracy of classification for each group,
+#'            \item \code{total.accuracy}: the total accuracy of group classification.
+#'           }
 #'          
 #' @examples
 #' # retrieve group classification from hierarchical cluster analysis
@@ -667,10 +780,11 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
 #' @importFrom MASS lda
 #' @import ggplot2
 #' @export
-sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE) {
+sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPlot=TRUE) {
   # Prepare Data
   # listwise deletion of missing
-  data <- na.omit(data) 
+  data <- na.omit(data)
+  groups <- na.omit(groups)
   xval <- cbind(1:groupcount)-0.25
   xplotval <- cbind(1:groupcount)
   # ---------------------------------------------------------------
@@ -683,8 +797,6 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE) {
   # ---------------------------------------------------------------
   ct <- table(groups, disc$class)
   dg <- diag(prop.table(ct, 1))
-  # print correct percentage for each category of groups
-  print(dg)
   # ---------------------------------------------------------------
   # print barplot for correct percentage for each category of groups
   # ---------------------------------------------------------------
@@ -695,15 +807,12 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE) {
   totalcorrect <- sum(diag(prop.table(ct)))
   # round total percentages and transform to percent value
   totalcorrect <- round(100*totalcorrect,2)
-  print(totalcorrect)
-  
   # create three data columns for data frame which is
   # needed to plot the barchart with ggplot
   newdat <- NULL
   tmpdat <- NULL
   filldat <- NULL
   labeldat <- NULL
-  
   # data frame has flexible count of rows, depending on
   # the amount of groups in the lda
   for (i in 1:groupcount) {
@@ -761,11 +870,22 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE) {
       # print text annotation
       annotate("text", x=0, y=totalcorrect, vjust=1.2, label=paste("overall", c(totalcorrect), sep="\n"), size=5, colour="#333333")
   }
-  print(classplot)
+  # --------------------------------------------------------
+  # plot
+  # --------------------------------------------------------
+  if (printPlot) plot(classplot)
+  # --------------------------------------------------------
+  # return values
+  # --------------------------------------------------------
+  invisible (structure(class = "sjcgrpdisc",
+                       list(data = mydat,
+                            accuracy = as.vector(dg),
+                            total.accuracy=totalcorrect,
+                            plot = classplot)))
 }
 
 
-#' @title Plot elbow values of a k-means cluster analysis
+#' @title Compute elbow values of a k-means cluster analysis
 #' @name sjc.elbow
 #' @description Plot elbow values of a k-means cluster analysis. This function
 #'                computes a k-means cluster analysis on the provided data frame

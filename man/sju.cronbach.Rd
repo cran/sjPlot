@@ -12,11 +12,16 @@ sju.cronbach(df)
 The Cronbach's alpha value for \code{df}.
 }
 \description{
-This function calcates the Cronbach's alpha value for each
-column of a data frame or matrix.
+This function calculates the Cronbach's alpha value for
+each column of a data frame or matrix.
 }
 \note{
 For use case, see \code{\link{sjp.pca}} and
 \code{\link{sjt.pca}}.
+}
+\seealso{
+\code{\link{sju.reliability}} \cr
+\code{\link{sjt.itemanalysis}} \cr \code{\link{sjp.pca}}
+\cr \code{\link{sjt.pca}}
 }
 

@@ -25,7 +25,8 @@ SPSS data set and returns the result as list.
 # mydat.val <- sji.getValueLabels(mydat)
 }
 \seealso{
-\link{sji.getValueLabels} \cr \link{sji.SPSS} \cr
+\link{sji.getValueLabels} \cr \link{sji.setValueLabels} \cr
+\link{sji.setVariableLabels} \cr \link{sji.SPSS} \cr
 \link{sji.convertToLabel} \cr \link{sji.convertToValue}
 }
 

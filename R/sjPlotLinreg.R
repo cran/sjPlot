@@ -73,6 +73,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #'          for a better overview. With this parameter you can specify the line type.
 #' @param stdBetaLineAlpha The alpha-value for the line that connects the
 #'          standardized beta-value dots.
+#' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
+#' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -156,6 +158,8 @@ sjp.lm <- function(fit,
                     pointSizeStdBeta=3,
                     stdBetaLineType=2,
                     stdBetaLineAlpha=0.3,
+                    interceptLineType=2,
+                    interceptLineColor="grey70",
                     breakTitleAt=50, 
                     breakLabelsAt=12, 
                     gridBreaksAt=NULL,
@@ -178,15 +182,6 @@ sjp.lm <- function(fit,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  # Help function that unlists a list into a vector
-  unlistlabels <- function(lab) {
-    dummy <- unlist(lab)
-    labels <- c()
-    for (i in 1:length(dummy)) {
-      labels <- c(labels, as.character(dummy[i]))
-    }
-    return (labels)
-  }
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
@@ -233,8 +228,8 @@ sjp.lm <- function(fit,
   # retrieve standardized betas
   stdbv <- sju.betaCoef(fit)
   # init data column for p-values
-  ps <- c(round(bv,labelDigits))
-  pstdbv <- c(round(stdbv,labelDigits))
+  ps <- sprintf("%.*f", labelDigits, bv)
+  pstdbv <- sprintf("%.*f", labelDigits, stdbv)
   # if no values should be shown, clear
   # vector now
   if (!showValueLabels) {
@@ -412,6 +407,8 @@ sjp.lm <- function(fit,
     }
   }
   betaplot <- betaplot +
+    # Intercept-line
+    geom_hline(yintercept=0, linetype=interceptLineType, color=interceptLineColor) +
     # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
     geom_text(aes(label=p, y=Beta, colour=pv>0.05), vjust=-0.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE) +
     # give value labels different colours depending on significance level
@@ -723,7 +720,6 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
       removedcases <- removedcases + length(vars)
     }
   }
-  
   # ---------------------------------
   # print steps from original to updated model
   # ---------------------------------
@@ -734,17 +730,13 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
               summary(linreg)$adj.r.squared,
               summary(model)$r.squared, 
               summary(model)$adj.r.squared))
-  
   modelOptmized <- ifelse(removedcases>0, TRUE, FALSE)
   if (showOriginalModelOnly) modelOptmized <- FALSE
-  
   # ---------------------------------
   # show VIF-Values
   # ---------------------------------
   sjp.vif(linreg)
   if (modelOptmized) sjp.vif(model)
-  
-  
   # ---------------------------------
   # Print non-normality of residuals and outliers both of original and updated model
   # dots should be plotted along the line, this the dots should follow a linear direction
@@ -757,7 +749,6 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
           stat_qq() + 
           geom_abline(slope=slope, intercept=interc, color="blue") +
           ggtitle("Non-normality of residuals and outliers (original model)\n(Dots should be plotted along the line)"))
-
   if (modelOptmized) {
     y <- quantile(model$resid[!is.na(model$resid)], c(0.25, 0.75))
     x <- qnorm(c(0.25, 0.75))
@@ -768,23 +759,22 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
             geom_abline(slope=slope, intercept=interc, color="blue") +
             ggtitle("Non-normality of residuals and outliers (updated model)\n(Dots should be plotted along the line)"))
   }
-  
   # ---------------------------------
   # Print non-normality of residuals both of original and updated model
   # Distribution should look like normal curve
   # ---------------------------------
-  print(ggplot(linreg, aes(x=.resid, y=..density..)) + 
-          geom_histogram(binwidth=0.2, fill="grey60", colour="grey30") +
-          geom_density(fill="#4080cc", alpha=0.2) +
+  print(ggplot(linreg, aes(x=.resid)) + 
+          geom_histogram(aes(y=..density..), binwidth=0.2, fill="grey60", colour="grey30") +
+          geom_density(aes(y=..density..), fill="#4080cc", alpha=0.2) +
+          stat_function(fun=dnorm, args=list(mean=mean(unname(linreg$residuals), na.rm=TRUE), sd=sd(unname(linreg$residuals), na.rm=TRUE)), colour="FireBrick", size=0.8) +
           ggtitle("Non-normality of residuals (original model)\n(Distribution should look like normal curve)"))
-  
   if (modelOptmized) {
-    print(ggplot(model, aes(x=.resid, y=..density..)) + 
-          geom_histogram(binwidth=0.2, fill="grey60", colour="grey30") +
-          geom_density(fill="#4080cc", alpha=0.2) +
-          ggtitle("Non-normality of residuals (updated model)\n(Distribution should look like normal curve)"))
+    print(ggplot(model, aes(x=.resid)) + 
+            geom_histogram(aes(y=..density..), binwidth=0.2, fill="grey60", colour="grey30") +
+            geom_density(aes(y=..density..), fill="#4080cc", alpha=0.2) +
+            stat_function(fun=dnorm, args=list(mean=mean(unname(model$residuals), na.rm=TRUE), sd=sd(unname(model$residuals), na.rm=TRUE)), colour="FireBrick", size=0.8) +
+            ggtitle("Non-normality of residuals (updated model)\n(Distribution should look like normal curve)"))
   }
-  
   # ---------------------------------
   # Non-constant residuals
   # ---------------------------------
@@ -814,30 +804,24 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
             geom_smooth(se=FALSE) +
             ggtitle("Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals, updated model)\n(Amount and distance of points scattered above/below line is equal)"))
   }
-  
   # ---------------------------------
   # summarize old and new model
   # ---------------------------------
   sjp.lm(linreg, title="Original model")
   if (modelOptmized) sjp.lm(model, title="Updated model")
-
-  
   if (completeDiagnostic) {
     # ---------------------------------
     # Non-linearity
     # ---------------------------------
     plot(crPlots(linreg))
-    
     # ---------------------------------
     # non-independence of residuals
     # ---------------------------------
     print(durbinWatsonTest(linreg))
-    
     # ---------------------------------
     # Print leverage plots
     # ---------------------------------
     plot(leveragePlots(linreg))
-    
     # ---------------------------------
     # Non-constant residuals
     # ---------------------------------
@@ -845,7 +829,6 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
     print(bptest(linreg))
     print(spreadLevelPlot(linreg))
   }
-  
   # return updated model
   return(model)
 }

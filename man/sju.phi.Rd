@@ -1,0 +1,26 @@
+\name{sju.phi}
+\alias{sju.phi}
+\title{Phi value for a contingency table}
+\usage{
+sju.phi(tab)
+}
+\arguments{
+  \item{tab}{A simple \code{\link{table}} or
+  \code{\link{ftable}}. Tables of class \code{\link{xtabs}}
+  and other will be coerced to \code{\link{ftable}}
+  objects.}
+}
+\value{
+The table's Phi value.
+}
+\description{
+Compute Phi value for a contingency table.
+}
+\examples{
+tab <- table(sample(1:2, 30, TRUE), sample(1:2, 30, TRUE))
+sju.phi(tab)
+}
+\seealso{
+\code{\link{sju.table.values}} \cr \code{\link{sju.cramer}}
+}
+

@@ -5,9 +5,10 @@
 sjt.stackfrq(items, weightBy = NULL, title = NULL, varlabels = NULL,
   breakLabelsAt = 40, valuelabels = NULL, breakValueLabelsAt = 20,
   orderBy = NULL, reverseOrder = FALSE, alternateRowColors = FALSE,
-  showN = FALSE, showSkew = FALSE, showKurtosis = FALSE,
-  skewString = "Skew", kurtosisString = "Kurtosis", file = NULL,
-  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
+  showN = FALSE, showTotalN = FALSE, showNA = FALSE, labelNA = "NA",
+  showSkew = FALSE, showKurtosis = FALSE, skewString = "Skew",
+  kurtosisString = "Kurtosis", file = NULL, encoding = "UTF-8",
+  CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{items}{A \code{\link{data.frame}} with each column
@@ -20,7 +21,10 @@ sjt.stackfrq(items, weightBy = NULL, title = NULL, varlabels = NULL,
 
   \item{varlabels}{A list or vector of strings with
   variable names. If not specified, row names of
-  \code{items} will be used.}
+  \code{items} will be used, resp. variable labels will
+  automatically be detected, when they have a
+  \code{"variable.lable"} attribute (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{breakLabelsAt}{Wordwrap for variable labels.
   Determines how many chars of the variable labels are
@@ -48,8 +52,16 @@ sjt.stackfrq(items, weightBy = NULL, title = NULL, varlabels = NULL,
   \item{reverseOrder}{If \code{TRUE}, the item order is
   reversed.}
 
-  \item{showN}{If \code{TRUE}, an additional column with
-  each item's N is printed.}
+  \item{showN}{If \code{TRUE}, each item's category N is
+  printed in the table cells.}
+
+  \item{showTotalN}{If \code{TRUE}, an additional column
+  with each item's total N is printed.}
+
+  \item{showNA}{If \code{TRUE}, \code{\link{NA}}'s (missing
+  values) are also printed in the table.}
+
+  \item{labelNA}{The label for the missing column/row.}
 
   \item{showSkew}{If \code{TRUE}, an additional column with
   each item's skewness is printed.  The skewness is
@@ -157,29 +169,42 @@ sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)}
 # Data from the EUROFAMCARE sample dataset
 # -------------------------------
 data(efc)
-
 # recveive first item of COPE-index scale
 start <- which(colnames(efc)=="c82cop1")
-
 # recveive first item of COPE-index scale
 end <- which(colnames(efc)=="c90cop9")
-
-# retrieve variable and value labels
+# retrieve variable labels
 varlabs <- sji.getVariableLabels(efc)
-vallabs <- sji.getValueLabels(efc)
 
+# Note: Parameter "valuelabels" is only needed for datasets
+# that have been imported from SPSS.
 \dontrun{
 sjt.stackfrq(efc[,c(start:end)],
-             valuelabels=vallabs['c82cop1'],
              varlabels=varlabs[c(start:end)],
              alternateRowColors=TRUE)}
 
 \dontrun{
 sjt.stackfrq(efc[,c(start:end)],
-             valuelabels=vallabs['c82cop1'],
              varlabels=varlabs[c(start:end)],
              alternateRowColors=TRUE,
              showN=TRUE,
+             showNA=TRUE)}
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+\dontrun{
+sjt.stackfrq(efc[,c(start:end)])}
+
+# --------------------------------
+# User defined style sheet
+# --------------------------------
+\dontrun{
+sjt.stackfrq(efc[,c(start:end)],
+             varlabels=varlabs[c(start:end)],
+             alternateRowColors=TRUE,
+             showTotalN=TRUE,
              showSkew=TRUE,
              showKurtosis=TRUE,
              CSS=list(css.ncol="border-left:1px dotted black;",
@@ -187,7 +212,10 @@ sjt.stackfrq(efc[,c(start:end)],
 }
 \references{
 \itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
+\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\item
+\url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
+}
 }
 \seealso{
 \code{\link{sjp.stackfrq}} \cr \code{\link{sjp.likert}}

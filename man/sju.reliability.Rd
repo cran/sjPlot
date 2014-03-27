@@ -5,7 +5,7 @@
 sju.reliability(df, scaleItems = FALSE, digits = 3)
 }
 \arguments{
-  \item{df}{A data frame with}
+  \item{df}{A data frame with items (from a scale)}
 
   \item{scaleItems}{If \code{TRUE}, the data frame's
   vectors will be scaled. Recommended, when the variables
@@ -15,15 +15,16 @@ sju.reliability(df, scaleItems = FALSE, digits = 3)
   correlation values in returned data frame.}
 }
 \value{
-A data frame with the corrected item-total correlations and
-Cronbach's alpha (if item deleted) for each item of the
-scale.
+A data frame with the corrected item-total correlations
+(item discrimination) and Cronbach's alpha (if item
+deleted) for each item of the scale, or \code{NULL} if data
+frame had too less columns.
 }
 \description{
-This function calcates the corrected item-total
-correlations for each item of \code{df} with the remaining
-items; furthermore, the Cronbach's alpha for each item, if
-it was deleted from the scale, is calculated.
+This function calculates the item discriminations
+(corrected item-total correlations for each item of
+\code{df} with the remaining items) and the Cronbach's
+alpha for each item, if it was deleted from the scale.
 }
 \note{
 This function is similar to a basic reliability test in
@@ -74,5 +75,10 @@ for (i in 1:length(findex)) {
                                 sju.cronbach(rel.df)))
    }
  }}
+}
+\seealso{
+\code{\link{sju.cronbach}} \cr
+\code{\link{sjt.itemanalysis}} \cr \code{\link{sjp.pca}}
+\cr \code{\link{sjt.pca}} \cr \code{\link{sjt.df}}
 }
 

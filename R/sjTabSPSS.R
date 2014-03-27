@@ -12,7 +12,7 @@
 #' 
 #' @param df An imported data frame, imported by \code{\link{sji.SPSS}} function.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
+#'          the file will be saved as temporary file and openend either in the IDE's viewer pane or
 #'          in the default web browser.
 #' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
@@ -191,27 +191,42 @@ sji.viewSPSS <- function (df,
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, vartype))
     }
     # label
-    varlab <- df.var[[index]]
-    if (!is.null(breakVariableNamesAt)) {
-      # wrap long variable labels
-      varlab <- sju.wordwrap(varlab, breakVariableNamesAt, "<br>")
+    if (index<=length(df.var)) {
+      varlab <- df.var[index]
+      if (!is.null(breakVariableNamesAt)) {
+        # wrap long variable labels
+        varlab <- sju.wordwrap(varlab, breakVariableNamesAt, "<br>")
+      }
+    }
+    else {
+      varlab <- "<NA>"
     }
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, varlab))
     # values
     if (showValues) {
-      vals <- rev(attr(df[,index], "value.labels"))
-      valstring <- c("")
-      for (i in 1:length(vals)) {
-        valstring <- paste0(valstring, vals[i])
-        if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+      if (index<=ncol(df)) {
+        vals <- rev(attr(df[,index], "value.labels"))
+        valstring <- c("")
+        for (i in 1:length(vals)) {
+          valstring <- paste0(valstring, vals[i])
+          if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+        }
+      }
+      else {
+        valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
-      # value labels
-      vals <- df.val[[index]]
-      valstring <- c("")
-      for (i in 1:length(vals)) {
-        valstring <- paste0(valstring, vals[i])
-        if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+      if (index<=length(df.val)) {
+        # value labels
+        vals <- df.val[[index]]
+        valstring <- c("")
+        for (i in 1:length(vals)) {
+          valstring <- paste0(valstring, vals[i])
+          if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+        }
+      }
+      else {
+        valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }

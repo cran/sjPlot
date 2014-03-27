@@ -2,7 +2,7 @@
 \alias{sjp.stackfrq}
 \title{Plot stacked proportional bars}
 \usage{
-sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
+sjp.stackfrq(items, legendLabels = NULL, orderBy = NULL, weightBy = NULL,
   weightByTitleString = NULL, hideLegend = FALSE, reverseOrder = TRUE,
   title = NULL, titleSize = 1.3, titleColor = "black",
   legendTitle = NULL, includeN = TRUE, axisLabels.y = NULL,
@@ -72,7 +72,9 @@ sjp.stackfrq(items, legendLabels, orderBy = NULL, weightBy = NULL,
   \item{axisLabels.y}{Labels for the y-axis (the labels of
   the \code{items}). These parameters must be passed as
   list! Example: \code{axisLabels.y=list(c("Q1", "Q2",
-  "Q3"))}}
+  "Q3"))} Axis labels will automatically be detected, when
+  they have a \code{"variable.lable"} attribute (see
+  \code{\link{sji.setVariableLabels}}) for details).}
 
   \item{axisLabelSize}{The size of category labels at the
   axes. Default is 1.1, recommended values range between
@@ -297,6 +299,12 @@ items <- list(varlabs[c(start:end)])
 
 sjp.stackfrq(efc[,c(start:end)], legendLabels=levels,
              axisLabels.y=items, jitterValueLabels=TRUE)
+
+# -------------------------------
+# auto-detection of labels
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+sjp.stackfrq(efc[,c(start:end)])
 }
 \references{
 \itemize{ \item
