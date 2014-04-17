@@ -11,9 +11,9 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   gridBreaksAt = NULL, barWidth = 0.6, dotSize = 4, barColor = NULL,
   barAlpha = 1, barOutline = FALSE, barOutlineSize = 0.2,
   innerBoxPlotWidth = 0.15, innerBoxPlotDotSize = 3, borderColor = NULL,
-  axisColor = NULL, outlineColor = "black", majorGridColor = NULL,
+  axisColor = NULL, barOutlineColor = "black", majorGridColor = NULL,
   minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
-  showValueLabels = TRUE, showCountValues = TRUE,
+  expand.grid = FALSE, showValueLabels = TRUE, showCountValues = TRUE,
   showPercentageValues = TRUE, showAxisLabels.x = TRUE,
   showAxisLabels.y = TRUE, showTickMarks = TRUE,
   showMeanIntercept = FALSE, showMeanValue = TRUE,
@@ -24,7 +24,7 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
   axisTitleSize = 1.3, startAxisAt = "auto", hist.skipZeros = FALSE,
   autoGroupAt = NULL, theme = NULL, flipCoordinates = FALSE,
-  na.rm = TRUE, printPlot = TRUE)
+  labelPos = "outside", na.rm = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -140,7 +140,7 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{innerBoxPlotDotSize}{Size of mean dot insie a
   violin plot. Applies only when \code{type} is set to
-  \code{"violin"}.}
+  \code{"violin"} or \code{"box"}.}
 
   \item{barColor}{User defined color for bars. If not
   specified, a default blue color palette will be used for
@@ -167,7 +167,7 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   applies if \code{barOutline} is \code{TRUE}.  Default is
   0.2}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is \code{TRUE}.}
 
   \item{majorGridColor}{Specifies the color of the major
@@ -181,6 +181,10 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
+
+  \item{expand.grid}{If \code{TRUE}, the plot grid is
+  expanded, i.e. there is a small margin between axes and
+  plotting region. Default is \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar. Default is
@@ -283,7 +287,7 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
   (categories with no answer) in \code{varCout} are omitted
   when drawing histrograms, and the mapping is changed to
   \code{\link{stat_bin}}. Only applies to histograms (see
-  \code{tye}). Use this parameter to get identical results
+  \code{type}). Use this parameter to get identical results
   to the default \code{\link{qplot}} or
   \code{\link{geom_histogram}} histogram plots of ggplot.
   You may need to adjust the \code{barWidth} parameter for
@@ -324,6 +328,13 @@ sjp.frq(varCount, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped. Default is \code{FALSE}.}
+
+  \item{labelPos}{If \code{flipCoordinates} is \code{TRUE},
+  use this parameter to specify value label position.  Can
+  be either \code{"inside"} or \code{"outside"} (default).
+  You may specify initial letter only. If
+  \code{flipCoordinates} is \code{FALSE}, this parameter
+  will be ignored.}
 
   \item{na.rm}{If \code{TRUE}, missings are not included in
   the frequency calculation and diagram plot.}
@@ -429,11 +440,8 @@ sjp.frq(efc$neg_c_7, axisTitle.x="auto")
 sjp.frq(efc$c160age, type="h", hist.skipZeros=TRUE, barWidth=1)
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\item
-\url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjpfrq} \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjt.frq}}

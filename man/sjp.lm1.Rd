@@ -165,7 +165,7 @@ for setting up the ggplot-object (\code{df}).
 }
 \description{
 Plot a regression line with confidence interval for a
-fitted model with only one predictor (i.e. \code{lm(y~y)}).
+fitted model with only one predictor (i.e. \code{lm(y~x)}).
 This function may plot two lines: The resulting linear
 regression line including confidence interval (in blue) by
 default, and a loess-smoothed line without confidence

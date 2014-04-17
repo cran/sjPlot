@@ -22,7 +22,7 @@ attribute(s), which contains the variable name(s).
 This function sets variable labels to a single variable or
 to a set of variables in a data frame. To each variable,
 the attribute \code{"variable.label"} with the related
-variable name is attached. Most of this package's function
+variable name is attached. Most of this package's functions
 can automatically retrieve the variable name to use it as
 axis labels or plot title.
 }
@@ -48,6 +48,9 @@ dummy <- sji.setVariableLabels(dummy, "Dummy-variable")
 # auto-detection of value labels by default, auto-detection of
 # variable labels if parameter "title" set to "auto"
 sjp.frq(dummy, title="auto")
+}
+\references{
+\url{http://rpubs.com/sjPlot/datainit}
 }
 \seealso{
 \link{sji.getValueLabels} \cr \link{sji.setValueLabels} \cr

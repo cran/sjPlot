@@ -1,3 +1,45 @@
+Version 1.4.1
+------------------------------------------------------------------------------
+New functions:
+* "sjt.mic" to compute mean inter-item-correlation.
+
+Changes to functions:
+* All "sjt"-functions have enhanced options for the "CSS" parameter. With the plus-sign (+) you can add additional style sheets to the default styles. See examples in help files and on http://rpubs.com/sjPlot
+* "sjt.itemanalysis" now also computes the mean inter-item-correlation for each scale.
+* "sjt.itemanalysis" now also computes the component-correlation-matrix (see parameter "showCompCorrMat"), including the Cronbach's alpha for each component to compare internal component consistency with inter-component-correlation.
+* "sjt.itemanalysis" now also includes kurtosis statistics and Shapiro-Wilk-Normality-Test.
+* Improved value label positioning for bar charts in function "sjp.frq" when "flipCoordinate" is TRUE.
+* "sjt.corr" can now display values only in the upper right or lower left triangle of the correlation table (see Parameter changes).
+* "sjt.corr" can suppress correlation values below a specific limit (see parameter "val.rm").
+* "sjt.xtab" table output now has double bottom border by default, even if table summary is hidden.
+* "sji.setValueLabels" can now apply value labels to a complete data frame at once.
+
+Parameter changes:
+* Added parameters "showValueLabels", "showFreq", "showPerc" and "showID" to function "sji.viewSPSS" to be more flexible with table content.
+* Added parameter "expand.grid" to "sjp.frq", "sjp.grpfrq", "sjp.stackfrq", "sjp.xtab" and "sjp.aov1", so plotting region can have margins to axes (ggplot-default-behaviour). 
+* Added parameter "stringDiagonal" to "sjt.corr" to print custom values into the diagnoal "self-correlation" cells (which are by default empty).
+* Added parameter "barOutlineSize" to functions "sjp.grpfrq", "sjc.qclus" and "sjp.xtab".
+* Added parameter "triangle" and "title" to function "sjt.corr".
+* Added parameter "hideProgressBar" to functions "sjt.df" and "sji.viewSPSS" to hide progressbar if needed.
+* Added parameter "showCompCorrMat" to function "sjt.itemanalysis" to compute the component-correlation-matrix.
+* Added parameter "factor.groups.titles" to function "sjt.itemanalysis", which can be used for table captions.
+* Changed parameter name "outlineColor" to "barOutlineColor" for those functions which plot bars. Changes made to harmonize this parameter with "barOutline", "barSize", "barOutlineSize", "barColor" etc.
+* Remamed parameter "diagramMargins" in "sjp.likert" and "sjp.stackfrq" to "expand.grid".
+
+Bug fixes:
+* "sjt.corr" did not work when parameter "data" was a cor-object. Fixed, "data" can now also be a cor-object.
+* "sjp.lm" did not work when fitted model only had one independent variable.
+* "sjt.stackfrq" and "sjp.stackfrq" did not properly plot/print zero-categories.
+* "sjp.grpfrq" used wrong x-axis-labels when auto-detecting value labels.
+* Parameter "no.output" did not work for "sjt.itemanalysis".
+* Parameter "barOutlineSize" did not work properly for bar charts in function "sjp.frq".
+* Parameter "showGroupCount" in function "sjp.grpfrq" did not work properly.
+* Line- and dot-type in "sjp.grpfrq" did not work properly.
+
+Various:
+* Spell corrections and additions to documentation.
+
+
 Version 1.3
 ------------------------------------------------------------------------------
 New functions:
@@ -53,6 +95,8 @@ Bug fixes:
 * Fixed bug in "sjt.xtab" with broken rendering when using grouping variables.
 * Fixed bug in "sjp.grpfrq" when variables were factors with character levels.
 * Fixed bug in "sji.viewSPSS" when list of value or variable labels of imported data sets had a different length from the data frame's number of columns.
+
+Various:
 * Minor improvements.
 * Spell corrections and additions to documentation.
 

@@ -29,6 +29,9 @@ linear regression is applicable
 fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Solar.R)
 fit.updated <- sjp.lm.ma(fit)
 }
+\references{
+\url{http://rpubs.com/sjPlot/sjplm}
+}
 \seealso{
 \code{\link{sjp.lm}} \cr \code{\link{sjp.reglin}} \cr
 \code{\link{sjp.lm.int}}

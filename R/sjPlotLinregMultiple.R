@@ -68,9 +68,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'            \item \code{"gray"}, \code{"grey"} or \code{"gs"} for a grayscale
 #'            \item \code{"brewer"} for colours from the color brewer palette.
 #'            }
-#'          If \code{modelColors} is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'          If \code{modelColors} is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
 #'          Else specify your own color values as vector (e.g. \code{modelColors=c("#f00000", "#00ff00")}).
-#' @param colorPalette If parameter \code{modelColors} is \code{brewer}, specify a color palette from the color brewer here.
+#' @param colorPalette If parameter \code{modelColors} is \code{brewer}, specify a color palette from the \url{http://colorbrewer2.org} here.
 #'          All color brewer palettes supported by ggplot are accepted here.
 #' @param axisLabelColor Colour of the tick labels at the axis (variable names, beta names).
 #' @param valueLabelColor The colour of the beta values. These values are printed above the plots respectively beside the

@@ -156,7 +156,7 @@ sjp.scatter(x, y, grp = NULL, title = NULL, titleSize = 1.3,
   \item{jitterRatio}{The ratio of tolerated overlapping
   (see \code{autojitter}). If approximated amount of
   overlapping points exceed this ration, they are
-  automatically jittered. Defsault is 0.15. Valid values
+  automatically jittered. Default is 0.15. Valid values
   range between 0 and 1.}
 
   \item{showRug}{If \code{TRUE}, a marginal rug plot is
@@ -257,11 +257,9 @@ sjp.scatter(efc$c160age,efc$e17age, efc$e42dep,
             title="auto", axisTitle.x="auto", axisTitle.y="auto")
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjpscatter}
 \item
-\url{http://strengejacke.wordpress.com/2014/02/28/simply-creating-various-scatter-plots-with-ggplot-rstats/}
-}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjp.lm1}} \cr \code{\link{sjp.reglin}}

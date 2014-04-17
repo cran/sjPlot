@@ -5,8 +5,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @title Plot grouped or stacked frequencies
 #' @name sjp.grpfrq
 #' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'              \item \url{http://strengejacke.wordpress.com/2013/03/05/easily-plotting-grouped-bars-with-ggplot}
+#'              \item \url{http://rpubs.com/sjPlot/sjpgrpfrq}
+#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 #'              }
 #'             
 #' @description Plot grouped or stacked frequencies of variables 
@@ -50,7 +50,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
 #' @param useFacetGrid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
 #'          bar charts. Ideal for larger amount of groups. This parameter wraps a single panel into 
-#'          \code{varGrpup} amount of panels, i.e. each group is represented within a new panel.
+#'          \code{varGroup} amount of panels, i.e. each group is represented within a new panel.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #'          Use \code{"auto"} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
@@ -96,10 +96,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            \item If not specified (\code{NULL}), a default red-green-yellow color palette will be used for the bar charts.
 #'            \item If barColor is \code{"gs"}, a greyscale will be used.
 #'            \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
 #'          }
 #'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
+#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here. All color brewer 
 #'          palettes supported by ggplot are accepted here.
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
 #' @param lineType The linetype when using line diagrams. Only applies, when parameter \code{type}
@@ -116,11 +116,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
+#'          Default is 0.2
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.
+#' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
+#'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar. Default
 #'          is \code{TRUE}.
 #' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
@@ -144,6 +148,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
 #'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
 #'          Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is either \code{"bars"} or \code{"dots"}.
+#' @param summaryLabelColor The color of the table summary labels.
 #' @param showGroupCount if \code{TRUE}, the count within each group is added to the category labels (e.g. \code{"Cat 1 (n=87)"}).
 #'          Default value is \code{FALSE}.
 #' @param tableSummaryPos Position of the model summary which is printed when \code{showTableSummary} is \code{TRUE}. Default is
@@ -190,6 +195,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param legendBorderColor Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
 #' @param legendBackColor Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param labelPos If \code{flipCoordinates} is \code{TRUE}, use this parameter to specify value label position.
+#'          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
+#'          initial letter only. If \code{flipCoordinates} is \code{FALSE}, this parameter will
+#'          be ignored.
 #' @param na.rm If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -197,10 +206,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
-#' # histogram plot
-#' sjp.grpfrq(discoveries, sample(1:3, length(discoveries), replace=TRUE), type="hist",
-#'            showValueLabels=FALSE, showMeanIntercept=TRUE)
-#' 
 #' # histrogram with EUROFAMCARE sample dataset
 #' data(efc)
 #' efc.val <- sji.getValueLabels(efc)
@@ -210,23 +215,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            title=efc.var['e17age'],
 #'            legendTitle=efc.var['e16sex'],
 #'            type="hist",
-#'            showValueLabels=FALSE)
+#'            showValueLabels=FALSE,
+#'            showMeanIntercept=TRUE)
 #' 
 #' # boxplot
-#' sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="box")
+#' sjp.grpfrq(efc$e17age, efc$e42dep, type="box")
 #' 
-#' # violin plot
-#' sjp.grpfrq(sample(1:4, length(PlantGrowth$group), replace=TRUE), 
-#'            PlantGrowth$group, type="v")
-#' 
-#' # grouped bars
-#' sjp.grpfrq(sample(1:2, length(PlantGrowth$group), replace=TRUE), 
-#'            PlantGrowth$group, barSpace=0.2)
-#' 
-#' # grouped bars with EUROFAMCARE sample dataset
-#' # dataset was importet from an SPSS-file, using:
-#' # efc <- sji.SPSS("efc.sav", enc="UTF-8")
-#' data(efc)
 #' # -------------------------------------------------
 #' # auto-detection of value labels and variable names
 #' # -------------------------------------------------
@@ -307,11 +301,13 @@ sjp.grpfrq <- function(varCount,
                        borderColor=NULL, 
                        axisColor=NULL, 
                        barOutline=FALSE, 
-                       outlineColor="black", 
+                       barOutlineSize=0.2,
+                       barOutlineColor="black", 
                        majorGridColor=NULL,
                        minorGridColor=NULL,
                        hideGrid.x=FALSE,
                        hideGrid.y=FALSE,
+                       expand.grid=FALSE,
                        showValueLabels=TRUE,
                        showCountValues=TRUE,
                        showPercentageValues=TRUE,
@@ -323,6 +319,7 @@ sjp.grpfrq <- function(varCount,
                        showMeanValue=TRUE,
                        showStandardDeviation=FALSE,
                        showTableSummary=TRUE,
+                       summaryLabelColor="black",
                        showGroupCount=FALSE,
                        tableSummaryPos="r",
                        meanInterceptLineType=2,
@@ -339,12 +336,51 @@ sjp.grpfrq <- function(varCount,
                        legendBorderColor="white",
                        legendBackColor="white",
                        flipCoordinates=FALSE,
+                       labelPos="outside",
                        na.rm=TRUE,
                        printPlot=TRUE) {
   # --------------------------------------------------------
+  # We have several options to name the diagram type
+  # Here we will reduce it to a unique value
+  # --------------------------------------------------------
+  if (type=="b" || type=="bar") {
+    type <- c("bars")
+  }
+  if (type=="l" || type=="line") {
+    type <- c("lines")
+  }
+  if (type=="d" || type=="dot") {
+    type <- c("dots")
+  }
+  if (type=="h" || type=="hist") {
+    type <- c("histogram")
+    # no table summary and no group count for
+    # ctageory labels (to avoid overlapping)
+    showTableSummary <- FALSE
+    showGroupCount <- FALSE
+  }
+  if (type=="box" || type=="boxplot") {
+    type <- c("boxplots")
+  }
+  if (type=="v") {
+    type <- c("violin")
+  }
+  if (expand.grid==TRUE) {
+    expand.grid <- waiver()
+  }
+  else {
+    expand.grid <- c(0,0)
+  }
+  # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(axisLabels.x)) axisLabels.x <- autoSetValueLabels(varCount)
+  if (is.null(axisLabels.x)) {
+    axisLabels.x <- autoSetValueLabels(varCount)
+    # if we have box or violin plots, but no axis labels on x axis (NULL),
+    # we need to hide x-axis, because automatically retrieved labels are
+    # equal to unique values of varCount, and not varGroup.
+    if (type=="boxplots" || type=="violin") showAxisLabels.x <- FALSE
+  }
   if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(varGroup)
   if (is.null(interactionVarLabels) && !is.null(interactionVar)) interactionVarLabels <- autoSetValueLabels(interactionVar)
   if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(varCount)
@@ -372,32 +408,6 @@ sjp.grpfrq <- function(varCount,
     agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
     axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
     varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
-  }
-  # --------------------------------------------------------
-  # We have several options to name the diagram type
-  # Here we will reduce it to a unique value
-  # --------------------------------------------------------
-  if (type=="b" || type=="bar") {
-    type <- c("bars")
-  }
-  if (type=="l" || type=="line") {
-    type <- c("lines")
-  }
-  if (type=="d" || type=="dot") {
-    type <- c("dots")
-  }
-  if (type=="h" || type=="hist") {
-    type <- c("histogram")
-    # no table summary and no group count for
-    # ctageory labels (to avoid overlapping)
-    showTableSummary <- FALSE
-    showGroupCount <- FALSE
-  }
-  if (type=="box" || type=="boxplot") {
-    type <- c("boxplots")
-  }
-  if (type=="v") {
-    type <- c("violin")
   }
   # --------------------------------------------------------
   # unlist labels
@@ -771,11 +781,17 @@ sjp.grpfrq <- function(varCount,
       }
     }
     else {
-      sums <- colSums(ftab)
+      sums <- unname(rowSums(ftab))
       # iterate category labels
       for (i in 1:length(sums)) {
         # add group count to each cat. label
         axisLabels.x[i] <- paste(axisLabels.x[i], " (n=", sums[i], ")", sep="")
+      }
+      sums <- unname(colSums(ftab))
+      # iterate category labels
+      for (i in 1:length(sums)) {
+        # add group count to each cat. label
+        legendLabels[i] <- paste(legendLabels[i], " (n=", sums[i], ")", sep="")
       }
     }
   }
@@ -819,7 +835,12 @@ sjp.grpfrq <- function(varCount,
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- ifelse(type == "dots", 0.45, 0.35)
-    hort <- -0.2
+    if (labelPos=="inside" || labelPos=="i") {
+      hort <- 1.1
+    }
+    else {
+      hort <- -0.1
+    }
   }
   else {
     hort <- waiver()
@@ -841,7 +862,7 @@ sjp.grpfrq <- function(varCount,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # init shaded rectangles for plot
   ganno <- NULL
@@ -858,28 +879,28 @@ sjp.grpfrq <- function(varCount,
   }
   else if (type=="bars") {
     if (barPosition=="dodge") {
-      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
     else {
-      geob <- geom_bar(stat="identity", position="stack", colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
   }
   else if (type=="lines") {
     if (smoothLines) {
-      geob <- geom_line(data=mydat, aes(x=as.numeric(count), y=frq, colour=group), linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
+      geob <- geom_line(linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
     }
     else {
-      geob <- geom_line(data=mydat, aes(x=as.numeric(count), y=frq, colour=group), linetype=lineType, alpha=lineAlpha, size=lineSize)
+      geob <- geom_line(linetype=lineType, alpha=lineAlpha, size=lineSize)
     }
   }
   else if (type=="boxplots") {
-    geob <- geom_boxplot(colour=outlineColor, width=barWidth, alpha=barAlpha)
+    geob <- geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha)
   }
   else if (type=="violin") {
-    geob <- geom_violin(colour=outlineColor, width=barWidth, alpha=barAlpha, trim=trimViolin)
+    geob <- geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, trim=trimViolin)
   }
   else {
-    geob <- geom_histogram(stat="identity", binwidth=barWidth, position=barPosition, alpha=barAlpha)
+    geob <- geom_histogram(stat="identity", binwidth=barWidth, colour=barOutlineColor, size=barOutlineSize, position=barPosition, alpha=barAlpha)
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -1086,7 +1107,7 @@ sjp.grpfrq <- function(varCount,
   # ----------------------------------
   # construct final plot, base constructor
   # ----------------------------------
-  if (type=="histogram") {
+  if (type=="histogram" || type=="dots") {
     mydat$count <- as.numeric(as.character(mydat$count))
     baseplot <- ggplot(mydat, aes(x=count, y=frq, fill=group))
     scalex <- scale_x_continuous(limits=c(catmin, catcount))
@@ -1100,6 +1121,10 @@ sjp.grpfrq <- function(varCount,
       baseplot <- ggplot(mydat, aes(x=interaction(ia, group), y=frq, fill=group, weight=wb))
       scalex <- scale_x_discrete(labels=interactionVarLabels)
     }
+  }
+  else if (type=="lines") {
+    baseplot <- ggplot(mydat, aes(x=as.numeric(count), y=frq, colour=group))
+    scalex <- scale_x_continuous(limits=c(catmin, catcount))
   }
   else {
     baseplot <- ggplot(mydat, aes(x=factor(count), y=frq, fill=group))
@@ -1121,10 +1146,10 @@ sjp.grpfrq <- function(varCount,
     # plot bar chart
     geob
   # if we have line diagram, print lines here
-  if (type=="lines") {
-    baseplot <- baseplot + 
-      geom_point(size=dotSize, alpha=lineAlpha, shape=21, show_guide=FALSE)
-  }
+#   if (type=="lines") {
+#     baseplot <- baseplot + 
+#       geom_point(size=dotSize, alpha=lineAlpha, shape=21, show_guide=FALSE)
+#   }
   # if we have a histogram, add mean-lines
   if (type=="histogram" && showMeanIntercept) {
     baseplot <- baseplot + 
@@ -1175,10 +1200,10 @@ sjp.grpfrq <- function(varCount,
       # add annotations with table summary
       # here we print out total N of cases, chi-square and significance of the table
       if (tableSummaryPos=="r") {
-        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, vjust=1.6, hjust=1.1)
+        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=Inf, y=Inf, colour=summaryLabelColor, size=valueLabelSize, vjust=1.6, hjust=1.1)
       }
       else {
-        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, vjust=1.6, hjust=-0.1)
+        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=summaryLabelColor, size=valueLabelSize, vjust=1.6, hjust=-0.1)
       }
     }
   }
@@ -1187,10 +1212,10 @@ sjp.grpfrq <- function(varCount,
   # show or hide y-axis-labels
   # ------------------------------
   if (showAxisLabels.y) {
-    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=c(0,0))
+    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=expand.grid)
   }
   else {
-    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=c(0,0), labels=NULL)
+    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=expand.grid, labels=NULL)
   }
   # ------------------------------
   # continue with plot objects...

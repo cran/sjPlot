@@ -15,20 +15,22 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   innerBoxPlotWidth = 0.15, innerBoxPlotDotSize = 3,
   colorPalette = "GnBu", lineType = 1, lineSize = 1, lineAlpha = 1,
   smoothLines = FALSE, borderColor = NULL, axisColor = NULL,
-  barOutline = FALSE, outlineColor = "black", majorGridColor = NULL,
-  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
-  showValueLabels = TRUE, showCountValues = TRUE,
-  showPercentageValues = TRUE, showAxisLabels.x = TRUE,
-  showAxisLabels.y = TRUE, showTickMarks = TRUE,
+  barOutline = FALSE, barOutlineSize = 0.2, barOutlineColor = "black",
+  majorGridColor = NULL, minorGridColor = NULL, hideGrid.x = FALSE,
+  hideGrid.y = FALSE, expand.grid = FALSE, showValueLabels = TRUE,
+  showCountValues = TRUE, showPercentageValues = TRUE,
+  showAxisLabels.x = TRUE, showAxisLabels.y = TRUE, showTickMarks = TRUE,
   showPlotAnnotation = TRUE, showMeanIntercept = FALSE,
   showMeanValue = TRUE, showStandardDeviation = FALSE,
-  showTableSummary = TRUE, showGroupCount = FALSE, tableSummaryPos = "r",
+  showTableSummary = TRUE, summaryLabelColor = "black",
+  showGroupCount = FALSE, tableSummaryPos = "r",
   meanInterceptLineType = 2, meanInterceptLineSize = 0.5,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
   axisTitleSize = 1.3, autoGroupAt = NULL, startAxisAt = "auto",
   theme = NULL, legendPos = "right", legendSize = 1,
   legendBorderColor = "white", legendBackColor = "white",
-  flipCoordinates = FALSE, na.rm = TRUE, printPlot = TRUE)
+  flipCoordinates = FALSE, labelPos = "outside", na.rm = TRUE,
+  printPlot = TRUE)
 }
 \arguments{
   \item{varCount}{The variable which frequencies should be
@@ -98,7 +100,7 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{useFacetGrid}{\code{TRUE} when bar charts should be
   plotted as facet grids instead of integrated single bar
   charts. Ideal for larger amount of groups. This parameter
-  wraps a single panel into \code{varGrpup} amount of
+  wraps a single panel into \code{varGroup} amount of
   panels, i.e. each group is represented within a new
   panel.}
 
@@ -192,14 +194,15 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   will be used.  \item If barColor is \code{"bw"}, a
   monochrome white filling will be used.  \item If barColor
   is \code{"brewer"}, use the \code{colorPalette} parameter
-  to specify a palette of the color brewer.  } Else specify
-  your own color values as vector (e.g.
-  \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).}
+  to specify a palette of the
+  \url{http://colorbrewer2.org}.  } Else specify your own
+  color values as vector (e.g. \code{barColor=c("#f00000",
+  "#00ff00", "#0080ff")}).}
 
   \item{colorPalette}{If \code{barColor} is
-  \code{"brewer"}, specify a color palette from the color
-  brewer here. All color brewer palettes supported by
-  ggplot are accepted here.}
+  \code{"brewer"}, specify a color palette from the
+  \url{http://colorbrewer2.org} here. All color brewer
+  palettes supported by ggplot are accepted here.}
 
   \item{barAlpha}{Specify the transparancy (alpha value) of
   bars.}
@@ -234,7 +237,11 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{barOutline}{If \code{TRUE}, each bar gets a colored
   outline. Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineSize}{The size of the bar outlines. Only
+  applies if \code{barOutline} is \code{TRUE}.  Default is
+  0.2}
+
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.}
 
   \item{majorGridColor}{Specifies the color of the major
@@ -248,6 +255,10 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default is \code{FALSE}.}
+
+  \item{expand.grid}{If \code{TRUE}, the plot grid is
+  expanded, i.e. there is a small margin between axes and
+  plotting region. Default is \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar. Default is
@@ -302,6 +313,9 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   computed.  Only applies to bar-charts or dot-plots, i.e.
   when parameter \code{type} is either \code{"bars"} or
   \code{"dots"}.}
+
+  \item{summaryLabelColor}{The color of the table summary
+  labels.}
 
   \item{showGroupCount}{if \code{TRUE}, the count within
   each group is added to the category labels (e.g.
@@ -397,6 +411,13 @@ sjp.grpfrq(varCount, varGroup, weightBy = NULL, weightByTitleString = NULL,
   \item{flipCoordinates}{If \code{TRUE}, the x and y axis
   are swapped.}
 
+  \item{labelPos}{If \code{flipCoordinates} is \code{TRUE},
+  use this parameter to specify value label position.  Can
+  be either \code{"inside"} or \code{"outside"} (default).
+  You may specify initial letter only. If
+  \code{flipCoordinates} is \code{FALSE}, this parameter
+  will be ignored.}
+
   \item{na.rm}{If \code{TRUE}, missings are not included in
   the frequency calculation and diagram plot.}
 
@@ -415,10 +436,6 @@ Plot grouped or stacked frequencies of variables as bar/dor
 graphs, box or violin plots, histograms etc.  using ggplot.
 }
 \examples{
-# histogram plot
-sjp.grpfrq(discoveries, sample(1:3, length(discoveries), replace=TRUE), type="hist",
-           showValueLabels=FALSE, showMeanIntercept=TRUE)
-
 # histrogram with EUROFAMCARE sample dataset
 data(efc)
 efc.val <- sji.getValueLabels(efc)
@@ -428,23 +445,12 @@ sjp.grpfrq(efc$e17age,
            title=efc.var['e17age'],
            legendTitle=efc.var['e16sex'],
            type="hist",
-           showValueLabels=FALSE)
+           showValueLabels=FALSE,
+           showMeanIntercept=TRUE)
 
 # boxplot
-sjp.grpfrq(ChickWeight$weight, as.numeric(ChickWeight$Diet), type="box")
+sjp.grpfrq(efc$e17age, efc$e42dep, type="box")
 
-# violin plot
-sjp.grpfrq(sample(1:4, length(PlantGrowth$group), replace=TRUE),
-           PlantGrowth$group, type="v")
-
-# grouped bars
-sjp.grpfrq(sample(1:2, length(PlantGrowth$group), replace=TRUE),
-           PlantGrowth$group, barSpace=0.2)
-
-# grouped bars with EUROFAMCARE sample dataset
-# dataset was importet from an SPSS-file, using:
-# efc <- sji.SPSS("efc.sav", enc="UTF-8")
-data(efc)
 # -------------------------------------------------
 # auto-detection of value labels and variable names
 # -------------------------------------------------
@@ -479,10 +485,8 @@ sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=1)
 sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\cr \cr \item
-\url{http://strengejacke.wordpress.com/2013/03/05/easily-plotting-grouped-bars-with-ggplot}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjpgrpfrq}
+\item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 

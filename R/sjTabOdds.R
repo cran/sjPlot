@@ -17,7 +17,7 @@
 #' @seealso \code{\link{sjt.lm}} \cr
 #'          \code{\link{sjp.glm}}
 #' 
-#' @param ... One or more fitted glm-objects.
+#' @param ... One or more fitted \code{\link{glm}}-objects.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
@@ -90,13 +90,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.colnames='+color:green'} to add green color formatting to column names.
 #'          }
-#'          See further examples below.
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -273,22 +275,22 @@ sjt.glm <- function (...,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- CSS[['css.leftalign']]
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
-    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
-    if (!is.null(CSS[['css.labelcellborder']])) css.labelcellborder <- CSS[['css.labelcellborder']]
-    if (!is.null(CSS[['css.colnames']])) css.colnames <- CSS[['css.colnames']]
-    if (!is.null(CSS[['css.firstsumrow']])) css.firstsumrow <- CSS[['css.firstsumrow']]
-    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
-    if (!is.null(CSS[['css.topborder']])) css.topborder <- CSS[['css.topborder']]
-    if (!is.null(CSS[['css.depvarhead']])) css.depvarhead <- CSS[['css.depvarhead']]
-    if (!is.null(CSS[['css.topcontentborder']])) css.topcontentborder <- CSS[['css.topcontentborder']]
-    if (!is.null(CSS[['css.annorow']])) css.annorow <- CSS[['css.annorow']]
-    if (!is.null(CSS[['css.noannorow']])) css.noannorow <- CSS[['css.noannorow']]
-    if (!is.null(CSS[['css.annostyle']])) css.annostyle <- CSS[['css.annostyle']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- ifelse(substring(CSS[['css.leftalign']],1,1)=='+', paste0(css.leftalign, substring(CSS[['css.leftalign']],2)), CSS[['css.leftalign']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1)=='+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
+    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- ifelse(substring(CSS[['css.lasttablerow']],1,1)=='+', paste0(css.lasttablerow, substring(CSS[['css.lasttablerow']],2)), CSS[['css.lasttablerow']])
+    if (!is.null(CSS[['css.labelcellborder']])) css.labelcellborder <- ifelse(substring(CSS[['css.labelcellborder']],1,1)=='+', paste0(css.table, substring(CSS[['css.labelcellborder']],2)), CSS[['css.labelcellborder']])
+    if (!is.null(CSS[['css.colnames']])) css.colnames <- ifelse(substring(CSS[['css.colnames']],1,1)=='+', paste0(css.colnames, substring(CSS[['css.colnames']],2)), CSS[['css.colnames']])
+    if (!is.null(CSS[['css.firstsumrow']])) css.firstsumrow <- ifelse(substring(CSS[['css.firstsumrow']],1,1)=='+', paste0(css.firstsumrow, substring(CSS[['css.firstsumrow']],2)), CSS[['css.firstsumrow']])
+    if (!is.null(CSS[['css.topborder']])) css.topborder <- ifelse(substring(CSS[['css.topborder']],1,1)=='+', paste0(css.topborder, substring(CSS[['css.topborder']],2)), CSS[['css.topborder']])
+    if (!is.null(CSS[['css.depvarhead']])) css.depvarhead <- ifelse(substring(CSS[['css.depvarhead']],1,1)=='+', paste0(css.depvarhead, substring(CSS[['css.depvarhead']],2)), CSS[['css.depvarhead']])
+    if (!is.null(CSS[['css.topcontentborder']])) css.topcontentborder <- ifelse(substring(CSS[['css.topcontentborder']],1,1)=='+', paste0(css.topcontentborder, substring(CSS[['css.topcontentborder']],2)), CSS[['css.topcontentborder']])
+    if (!is.null(CSS[['css.annorow']])) css.annorow <- ifelse(substring(CSS[['css.annorow']],1,1)=='+', paste0(css.annorow, substring(CSS[['css.annorow']],2)), CSS[['css.annorow']])
+    if (!is.null(CSS[['css.noannorow']])) css.noannorow <- ifelse(substring(CSS[['css.noannorow']],1,1)=='+', paste0(css.noannorow, substring(CSS[['css.noannorow']],2)), CSS[['css.noannorow']])
+    if (!is.null(CSS[['css.annostyle']])) css.annostyle <- ifelse(substring(CSS[['css.annostyle']],1,1)=='+', paste0(css.annostyle, substring(CSS[['css.annostyle']],2)), CSS[['css.annostyle']])
   }
   # ------------------------
   # set page style

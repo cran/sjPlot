@@ -6,8 +6,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @title Plot frequencies of (count) variables
 #' @name sjp.frq
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjpfrq}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/02/25/simplify-frequency-plots-with-ggplot-in-r-rstats/}
 #'              }
 #' 
 #' @seealso \code{\link{sjt.frq}}
@@ -73,7 +73,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param dotSize The size of dots in case of dot-plots (\code{type="dots"}).
 #' @param innerBoxPlotWidth The width of the inner box plot that is plotted inside of violin plots. Only applies 
 #'          if \code{type} is \code{"violin"}. Default value is 0.15
-#' @param innerBoxPlotDotSize Size of mean dot insie a violin plot. Applies only when \code{type} is set to \code{"violin"}.
+#' @param innerBoxPlotDotSize Size of mean dot insie a violin plot. Applies only when \code{type} is set to \code{"violin"} or \code{"box"}.
 #' @param barColor User defined color for bars. If not specified, a default blue
 #'          color palette will be used for the bar charts.
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
@@ -85,11 +85,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
 #' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
 #'          Default is 0.2
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is \code{TRUE}.
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is \code{TRUE}.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
+#' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
+#'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar. Default
 #'          is \code{TRUE}.
 #' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
@@ -138,7 +140,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          or category labels. Default is 1.3.
 #' @param hist.skipZeros If \code{TRUE}, zero counts (categories with no answer) in \code{varCout} are omitted
 #'          when drawing histrograms, and the mapping is changed to \code{\link{stat_bin}}. Only applies to 
-#'          histograms (see \code{tye}). Use this parameter to get identical results to the default
+#'          histograms (see \code{type}). Use this parameter to get identical results to the default
 #'          \code{\link{qplot}} or \code{\link{geom_histogram}} histogram plots of ggplot. You may need
 #'          to adjust the \code{barWidth} parameter for better visual results (which, by ggplot-default, is
 #'          1/30 of the x-axis-range).
@@ -162,6 +164,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          \item \code{"none"} for no borders, grids and ticks.
 #'          }
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped. Default is \code{FALSE}.
+#' @param labelPos If \code{flipCoordinates} is \code{TRUE}, use this parameter to specify value label position.
+#'          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
+#'          initial letter only. If \code{flipCoordinates} is \code{FALSE}, this parameter will
+#'          be ignored.
 #' @param na.rm If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -288,11 +294,12 @@ sjp.frq <- function(varCount,
                     innerBoxPlotDotSize=3,
                     borderColor=NULL, 
                     axisColor=NULL,
-                    outlineColor="black",
+                    barOutlineColor="black",
                     majorGridColor=NULL,
                     minorGridColor=NULL,
                     hideGrid.x=FALSE,
                     hideGrid.y=FALSE,
+                    expand.grid=FALSE,
                     showValueLabels=TRUE,
                     showCountValues=TRUE,
                     showPercentageValues=TRUE,
@@ -319,6 +326,7 @@ sjp.frq <- function(varCount,
                     autoGroupAt=NULL,
                     theme=NULL,
                     flipCoordinates=FALSE,
+                    labelPos="outside",
                     na.rm=TRUE,
                     printPlot=TRUE) {
   # --------------------------------------------------------
@@ -358,6 +366,12 @@ sjp.frq <- function(varCount,
   }
   if (type=="v") {
     type <- c("violin")
+  }
+  if (expand.grid==TRUE) {
+    expand.grid <- waiver()
+  }
+  else {
+    expand.grid <- c(0,0)
   }
   #---------------------------------------------------
   # weight variable
@@ -588,7 +602,7 @@ sjp.frq <- function(varCount,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # define bar colors
@@ -598,7 +612,7 @@ sjp.frq <- function(varCount,
     # set default color for histograms
     barColor <- c("#4080c0")
     if (type=="bars") {
-      geob <- geom_bar(stat="identity", colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
     else if (type=="dots") {
       geob <- geom_point(size=dotSize, alpha=barAlpha)
@@ -607,7 +621,7 @@ sjp.frq <- function(varCount,
   else {
     # continue here, if barcolor is defined.
     if (type=="bars") {
-      geob <- geom_bar(stat="identity", fill=barColor, colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", fill=barColor, colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
     else if (type=="dots") {
       geob <- geom_point(colour=barColor, size=dotSize, alpha=barAlpha)
@@ -652,8 +666,13 @@ sjp.frq <- function(varCount,
   if (flipCoordinates) {
     # adjust vertical position for labels, based on whether percentage values
     # are shown or not
-    vert <- ifelse((showPercentageValues == TRUE && showCountValues == TRUE), 0.5, 0.1)
-    hort <- 1.5
+    vert <- waiver() # ifelse((showPercentageValues == TRUE && showCountValues == TRUE), 0.5, 0.1)
+    if (labelPos=="inside" || labelPos=="i") {
+      hort <- 1.1
+    }
+    else {
+      hort <- -0.1
+    }
   }
   else {
     # adjust vertical position for labels, based on whether percentage values
@@ -671,16 +690,25 @@ sjp.frq <- function(varCount,
   if (showValueLabels) {
     # here we have counts and percentages
     if (showPercentageValues && showCountValues) {
-      ggvaluelabels <-  geom_text(label=sprintf("%i\n(%.01f%%)", mydat$frq, mydat$prz),
-                                  size=valueLabelSize,
-                                  vjust=vert,
-                                  hjust = hort,
-                                  colour=valueLabelColor)
+      if (flipCoordinates) {
+        ggvaluelabels <-  geom_text(label=sprintf("%i (%.01f%%)", mydat$frq, mydat$prz),
+                                    hjust=hort,
+                                    size=valueLabelSize,
+                                    vjust=vert,
+                                    colour=valueLabelColor)
+      }
+      else {
+        ggvaluelabels <-  geom_text(label=sprintf("%i\n(%.01f%%)", mydat$frq, mydat$prz),
+                                    hjust=hort,
+                                    size=valueLabelSize,
+                                    vjust=vert,
+                                    colour=valueLabelColor)
+      }
     }
     else if (showCountValues) {
       # here we have counts, without percentages
       ggvaluelabels <-  geom_text(label=sprintf("%i", mydat$frq),
-                                  hjust = hort,
+                                  hjust=hort,
                                   size=valueLabelSize,
                                   vjust=vert,
                                   colour=valueLabelColor)
@@ -688,7 +716,7 @@ sjp.frq <- function(varCount,
     else if (showPercentageValues) {
       # here we have counts, without percentages
       ggvaluelabels <-  geom_text(label=sprintf("%.01f%%", mydat$prz),
-                                  hjust = hort,
+                                  hjust=hort,
                                   size=valueLabelSize,
                                   vjust=vert,
                                   colour=valueLabelColor)
@@ -733,10 +761,10 @@ sjp.frq <- function(varCount,
   # It either corresponds to the maximum amount of cases in the data set
   # (length of var) or to the highest count of var's categories.
   if (showAxisLabels.y) {
-    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=c(0,0), breaks=gridbreaks)
+    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=expand.grid, breaks=gridbreaks)
   }
   else {
-    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=c(0,0), breaks=gridbreaks, labels=NULL)
+    yscale <- scale_y_continuous(limits=c(lower_lim, upper_lim), expand=expand.grid, breaks=gridbreaks, labels=NULL)
   }
   # ----------------------------------
   # Print plot
@@ -790,11 +818,11 @@ sjp.frq <- function(varCount,
       }
       if (type=="boxplots") {
         baseplot <- baseplot + 
-          geom_boxplot(colour=outlineColor, width=barWidth, alpha=barAlpha, fill=barColor)
+          geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor)
       }
       else {
         baseplot <- baseplot + 
-          geom_violin(colour=outlineColor, width=barWidth, alpha=barAlpha, fill=barColor, trim=trimViolin) +
+          geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor, trim=trimViolin) +
           # if we have a violin plot, add an additional boxplot inside to show
           # more information
           geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
@@ -814,7 +842,7 @@ sjp.frq <- function(varCount,
     # Start density plot here
     # --------------------------------------------------
     else if (type=="dens") {
-      geoh <- geom_histogram(aes(y=..density..), fill=barColor, colour=outlineColor, size=barOutlineSize, alpha=barAlpha)
+      geoh <- geom_histogram(aes(y=..density..), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha)
       x <- na.omit(varCount)
       densityDat <- data.frame(x)
       # First, plot histogram with density curve
@@ -823,7 +851,7 @@ sjp.frq <- function(varCount,
         # transparent density curve above bars
         geom_density(aes(y=..density..), fill="cornsilk", alpha=0.3) +
         # remove margins from left and right diagram side
-        scale_x_continuous(expand=c(0,0), breaks=histgridbreaks)
+        scale_x_continuous(expand=expand.grid, breaks=histgridbreaks)
       # check whether user wants to overlay the histogram
       # with a normal curve
       if (showNormalCurve) {
@@ -857,11 +885,11 @@ sjp.frq <- function(varCount,
         if (barWidth<round(diff(range(x))/50)) cat("Using very small binwidth. Consider adjusting \"barWidth\"-parameter.\n")
         hist.dat <- data.frame(x)
         baseplot <- ggplot(mydat)
-        basehist <- geom_histogram(data=hist.dat, aes(x=x), fill=barColor, colour=outlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        basehist <- geom_histogram(data=hist.dat, aes(x=x), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
       }
       else {
         baseplot <- ggplot(mydat, aes(x=var, y=frq))
-        basehist <- geom_histogram(stat="identity", fill=barColor, colour=outlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        basehist <- geom_histogram(stat="identity", fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
       }
       basehistline <- geom_area(fill=barColor, alpha=0.3)
       # check whether user wants line or bar histogram
@@ -926,7 +954,7 @@ sjp.frq <- function(varCount,
       }
       baseplot <- baseplot +
         # remove margins from left and right diagram side
-        scale_x_continuous(limits=c(catmin,maxx), expand=c(0,0), breaks=histgridbreaks) +
+        scale_x_continuous(limits=c(catmin,maxx), expand=expand.grid, breaks=histgridbreaks) +
         yscale
     }
   }

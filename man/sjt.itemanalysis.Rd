@@ -2,10 +2,11 @@
 \alias{sjt.itemanalysis}
 \title{Show item analysis of an item scale as HTML table}
 \usage{
-sjt.itemanalysis(df, factor.groups = NULL, scaleItems = FALSE,
-  alternateRowColors = TRUE, orderColumn = NULL, orderAscending = TRUE,
-  file = NULL, encoding = "UTF-8", CSS = NULL, useViewer = TRUE,
-  no.output = FALSE)
+sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
+  scaleItems = FALSE, alternateRowColors = TRUE, orderColumn = NULL,
+  orderAscending = TRUE, showShapiro = FALSE, showKurtosis = FALSE,
+  showCompCorrMat = TRUE, file = NULL, encoding = "UTF-8", CSS = NULL,
+  useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{df}{A data frame with items (from a scale)}
@@ -17,6 +18,14 @@ sjt.itemanalysis(df, factor.groups = NULL, scaleItems = FALSE,
   each item in this vector represents the group number of
   the related columns of \code{df}. See examples for more
   details.}
+
+  \item{factor.groups.titles}{Titles for each factor group
+  that will be used as table caption for each
+  component-table. Must be a character vector of same
+  length as \code{length(unique(factor.groups))}.  Default
+  is \code{"auto"}, which means that each table has a
+  standard caption \emph{Component x}.  Use \code{NULL} to
+  suppress table captions.}
 
   \item{scaleItems}{If \code{TRUE}, the data frame's
   vectors will be scaled when calculating the Cronbach's
@@ -41,6 +50,28 @@ sjt.itemanalysis(df, factor.groups = NULL, scaleItems = FALSE,
   order.  Use \code{FALSE} to apply descending order. See
   examples in \code{\link{sjt.df}} for further details.}
 
+  \item{showShapiro}{If \code{TRUE}, a Shapiro-Wilk
+  normality test is computed for each item.  See
+  \code{\link{shapiro.test}} for details.}
+
+  \item{showKurtosis}{If \code{TRUE}, the kurtosis for each
+  item will also be shown (see \code{\link{kurtosi}} and
+  \code{\link{describe}} in the \code{psych}-package for
+  more details.}
+
+  \item{showCompCorrMat}{If \code{TRUE} (default), a
+  correlation matrix of each component's index score is
+  shown. Only applies if \code{factor.groups} is not
+  \code{NULL} and \code{df} has more than one group. First,
+  for each case (df's row), the sum of all variables (df's
+  columns) is scaled (using the
+  \code{\link{scale}}-function) and represents a "total
+  score" for each component (a component is represented by
+  each group of \code{factor.groups}).  After that, each
+  case (df's row) has a scales sum score for each
+  component.  Finally, a correlation of these "scale sum
+  scores" is computed.}
+
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified (default), the
   file will be saved as temporary file and openend either
@@ -59,13 +90,17 @@ sjt.itemanalysis(df, factor.groups = NULL, scaleItems = FALSE,
   Parameters for this list need: \enumerate{ \item the
   class-names with \code{"css."}-prefix as parameter name
   and \item each style-definition must end with a semicolon
-  } Examples: \itemize{ \item \code{css.table='border:2px
-  solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold
+  } You can add style information to the default styles by
+  using a + (plus-sign) as initial character for the
+  parameter attributes. Examples: \itemize{ \item
+  \code{css.table='border:2px solid red;'} for a solid
+  2-pixel table border in red.  \item
+  \code{css.summary='font-weight:bold;'} for a bold
   fontweight in the summary row.  \item
   \code{css.arc='color:blue;'} for a blue text color each
-  2nd row.  } See \code{\link{sjt.df}} for further
-  examples.}
+  2nd row.  \item \code{css.arc='+font-style:italic;'} to
+  add italic formatting to each 2nd row.  } See further
+  examples at \url{http://rpubs.com/sjPlot/sjtbasics}.}
 
   \item{useViewer}{If \code{TRUE}, the function tries to
   show the HTML table in the IDE's viewer pane. If
@@ -118,20 +153,32 @@ are computed for each item of a data frame: \itemize{ \item
 percentage of missing values \item mean value \item
 standard deviation \item skew \item item difficulty \item
 item discrimination \item Cronbach's Alpha if item was
-removed from scale } If \code{factor.groups} is not
-\code{NULL}, the data frame \code{df} will be splitted into
-groups, assuming that \code{factor.groups} indicate those
-columns of the data frame that belong to a certain factor
-(see return value of function \code{\link{sjt.pca}} as
-example for retrieving factor groups for a scale and see
+removed from scale \item mean (or average)
+inter-item-correlation } Optional, following statistics can
+be computed as well: \itemize{ \item kurstosis \item
+Shapiro-Wilk Normality Test } If \code{factor.groups} is
+not \code{NULL}, the data frame \code{df} will be splitted
+into groups, assuming that \code{factor.groups} indicate
+those columns of the data frame that belong to a certain
+factor (see return value of function \code{\link{sjt.pca}}
+as example for retrieving factor groups for a scale and see
 examples for more details).
 }
 \note{
-\itemize{ \item Item difficulty should range between 0.2
-and 0.8. Ideal value is \code{p+(1-p)/2} (which mostly is
-between 0.5 and 0.8).  \item For item discrimination,
+\itemize{ \item The \emph{Shapiro-Wilk Normality Test} (see
+column \code{W(p)}) tests if an item has a distribution
+that is significantly different from normal.  \item
+\emph{Item difficulty} should range between 0.2 and 0.8.
+Ideal value is \code{p+(1-p)/2} (which mostly is between
+0.5 and 0.8).  \item For \emph{item discrimination},
 acceptable values are 0.20 or higher; the closer to 1.00
-the better }
+the better. See \code{\link{sju.reliability}} for more
+details.  \item In case the total \emph{Cronbach's Alpha}
+value is below the acceptable cut-off of 0.7 (mostly if an
+index has few items), the \emph{mean
+inter-item-correlation} is an alternative measure to
+indicate acceptability. Satisfactory range lies between 0.2
+and 0.4.  }
 }
 \examples{
 # -------------------------------
@@ -169,9 +216,27 @@ sjt.itemanalysis(efc[,c(start:end)])}
 factor.groups <- sjt.pca(df, no.output=TRUE)$factor.index
 sjt.itemanalysis(df, factor.groups)}
 }
+\references{
+\itemize{ \item Jorion N, Self B, James K, Schroeder L,
+DiBello L, Pellegrino J (2013) Classical Test Theory
+Analysis of the Dynamics Concept Inventory.
+(\url{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory})
+\item Briggs SR, Cheek JM (1986) The role of factor
+analysis in the development and evaluation of personality
+scales. Journal of Personality, 54(1), 106-148
+(\url{http://onlinelibrary.wiley.com/doi/10.1111/j.1467-6494.1986.tb00391.x/abstract})
+\item McLean S et al. (2013) Stigmatizing attitudes and
+beliefs about bulimia nervosa: Gender, age, education and
+income variability in a community sample. International
+Journal of Eating Disorders, doi: 10.1002/eat.22227.  \item
+Trochim WMK (2008) Types of Reliability.
+\url{http://www.socialresearchmethods.net/kb/reltypes.php}
+}
+}
 \seealso{
 \code{\link{sju.cronbach}} \cr
-\code{\link{sju.reliability}} \cr \code{\link{sjp.pca}} \cr
-\code{\link{sjt.pca}} \cr \code{\link{sjt.df}}
+\code{\link{sju.reliability}} \cr \code{\link{sju.mic}} \cr
+\code{\link{sjp.pca}} \cr \code{\link{sjt.pca}} \cr
+\code{\link{sjt.df}}
 }
 

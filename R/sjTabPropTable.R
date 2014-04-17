@@ -4,8 +4,8 @@
 #' @description Shows contingency tables as HTML file in browser or viewer pane, or saves them as file.
 #' 
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjtxtab}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/02/20/no-need-for-spss-beautiful-output-in-r-rstats/}
 #'              }
 #'              
 #' @seealso \code{\link{sjp.xtab}} \cr
@@ -75,13 +75,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.summary='+color:blue;'} to add blue font color style to the summary row.
 #'          }
-#'          See further examples below.
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -193,7 +195,7 @@ sjt.xtab <- function (var.row,
                       tdcol.col="#339933",
                       highlightTotal=FALSE,
                       highlightColor="#f8f8f8",
-                      percSign="&nbsp;%",
+                      percSign="&nbsp;&#37;",
                       hundret="100.0",
                       encoding="UTF-8",
                       CSS=NULL,
@@ -423,27 +425,27 @@ sjt.xtab <- function (var.row,
   css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
   css.leftalign <- "text-align:left; vertical-align:top;"
   css.centeralign <- "text-align:center;"
-  css.lasttablerow <- ifelse(highlightTotal==TRUE, sprintf("background-color:%s;", highlightColor), "")
-  css.totcol <- css.lasttablerow
+  css.lasttablerow <- ifelse(highlightTotal==TRUE, sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
+  css.totcol <- ifelse(highlightTotal==TRUE, sprintf(" background-color:%s;", highlightColor), "")
   css.tothi <- "font-weight:bolder; font-style:italic;"
-  css.summary <- "text-align:right; font-size:0.9em; font-style:italic; border-top:double;"
+  css.summary <- "text-align:right; font-size:0.9em; font-style:italic;"
   css.horline <- ifelse(showHorizontalLine==TRUE, "border-bottom:1px solid;", "")
   # ------------------------
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.firstcolborder']])) css.firstcolborder <- CSS[['css.firstcolborder']]
-    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
-    if (!is.null(CSS[['css.secondtablerow']])) css.secondtablerow <- CSS[['css.secondtablerow']]
-    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- CSS[['css.leftalign']]
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
-    if (!is.null(CSS[['css.totcol']])) css.totcol <- CSS[['css.totcol']]
-    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- CSS[['css.lasttablerow']]
-    if (!is.null(CSS[['css.tothi']])) css.tothi <- CSS[['css.tothi']]
-    if (!is.null(CSS[['css.horline']])) css.horline <- CSS[['css.horline']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1)=='+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
+    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- ifelse(substring(CSS[['css.leftalign']],1,1)=='+', paste0(css.leftalign, substring(CSS[['css.leftalign']],2)), CSS[['css.leftalign']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- ifelse(substring(CSS[['css.lasttablerow']],1,1)=='+', paste0(css.lasttablerow, substring(CSS[['css.lasttablerow']],2)), CSS[['css.lasttablerow']])
+    if (!is.null(CSS[['css.firstcolborder']])) css.firstcolborder <- ifelse(substring(CSS[['css.firstcolborder']],1,1)=='+', paste0(css.firstcolborder, substring(CSS[['css.firstcolborder']],2)), CSS[['css.firstcolborder']])
+    if (!is.null(CSS[['css.secondtablerow']])) css.secondtablerow <- ifelse(substring(CSS[['css.secondtablerow']],1,1)=='+', paste0(css.secondtablerow, substring(CSS[['css.secondtablerow']],2)), CSS[['css.secondtablerow']])
+    if (!is.null(CSS[['css.totcol']])) css.totcol <- ifelse(substring(CSS[['css.totcol']],1,1)=='+', paste0(css.totcol, substring(CSS[['css.totcol']],2)), CSS[['css.totcol']])
+    if (!is.null(CSS[['css.tothi']])) css.tothi <- ifelse(substring(CSS[['css.tothi']],1,1)=='+', paste0(css.tothi, substring(CSS[['css.tothi']],2)), CSS[['css.tothi']])
+    if (!is.null(CSS[['css.horline']])) css.horline <- ifelse(substring(CSS[['css.horline']],1,1)=='+', paste0(css.horline, substring(CSS[['css.horline']],2)), CSS[['css.horline']])
   }
   # -------------------------------------
   # set style sheet
@@ -672,7 +674,7 @@ sjt.xtab <- function (var.row,
     }
     else {
       kook <- sprintf("&Phi;=%.3f", sju.phi(tab))
-      # if minimum expected values below 5, compute fisher's exact test
+      # if minimum expected values below 5 and df=1, compute fisher's exact test
       if(min(tab.expected)<5 || (min(tab.expected)<10 && chsq$parameter==1)) fish <- fisher.test(tab)
     }
     # create summary row
@@ -692,7 +694,7 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   # print legend
   # -------------------------------------
-  if (showLegend) page.content <- paste(page.content, sprintf("<p class=\"abstand\"><span class=\"td_n\">observed values</span> &middot; <span class=\"td_ex\">expected values</span> &middot; <span class=\"td_rw\">%% within %s</span> &middot; <span class=\"td_cl\">%% within %s</span> &middot; <span class=\"td_c\">%% of total</span></p>", gsub("<br>", " ", s.var.row), gsub("<br>", " ", s.var.col)), "\n")
+  if (showLegend) page.content <- paste(page.content, sprintf("<p>\n  <span class=\"td_n\">observed values</span> &middot; \n  <span class=\"td_ex\">expected values</span> &middot; \n  <span class=\"td_rw\">&#37; within %s</span> &middot; \n  <span class=\"td_cl\">&#37; within %s</span> &middot; \n  <span class=\"td_c\">&#37; of total</span>\n</p>", gsub("<br>", " ", s.var.row), gsub("<br>", " ", s.var.col)), "\n")
   # -------------------------------------
   # add table to return value list, so user can access each
   # single frequency table
@@ -737,7 +739,7 @@ sjt.xtab <- function (var.row,
   knitr <- gsub(tag.td_c, sprintf("color:%s;",tdcol.cell), knitr)  
   knitr <- gsub(tag.td_n, sprintf("color:%s;",tdcol.n), knitr)  
   # -------------------------------------
-  # check if html-content should be outputted
+  # check if html-content should be printed
   # -------------------------------------
   if (!no.output) {
     # -------------------------------------

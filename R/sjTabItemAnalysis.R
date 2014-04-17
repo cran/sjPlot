@@ -12,6 +12,12 @@
 #'                  \item item difficulty
 #'                  \item item discrimination
 #'                  \item Cronbach's Alpha if item was removed from scale
+#'                  \item mean (or average) inter-item-correlation
+#'                }
+#'                Optional, following statistics can be computed as well:
+#'                \itemize{
+#'                  \item kurstosis
+#'                  \item Shapiro-Wilk Normality Test
 #'                }
 #'                If \code{factor.groups} is not \code{NULL}, the data frame \code{df} will be
 #'                splitted into groups, assuming that \code{factor.groups} indicate those columns
@@ -20,6 +26,7 @@
 #'
 #' @seealso \code{\link{sju.cronbach}} \cr
 #'          \code{\link{sju.reliability}} \cr
+#'          \code{\link{sju.mic}} \cr
 #'          \code{\link{sjp.pca}} \cr
 #'          \code{\link{sjt.pca}} \cr
 #'          \code{\link{sjt.df}}
@@ -29,6 +36,10 @@
 #'          where the item analysis is carried out for each of these groups. Must be a vector of same 
 #'          length as \code{ncol(df)}, where each item in this vector represents the group number of
 #'          the related columns of \code{df}. See examples for more details.
+#' @param factor.groups.titles Titles for each factor group that will be used as table caption for each
+#'          component-table. Must be a character vector of same length as \code{length(unique(factor.groups))}.
+#'          Default is \code{"auto"}, which means that each table has a standard caption \emph{Component x}.
+#'          Use \code{NULL} to suppress table captions.
 #' @param scaleItems If \code{TRUE}, the data frame's vectors will be scaled when calculating the
 #'          Cronbach's Alpha value (see \code{\link{sju.reliability}}). Recommended, when 
 #'          the variables have different measures / scales.
@@ -43,6 +54,17 @@
 #'          data frame is ordered according to the specified column in an ascending order.
 #'          Use \code{FALSE} to apply descending order. See examples in \code{\link{sjt.df}} 
 #'          for further details.
+#' @param showShapiro If \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
+#'          See \code{\link{shapiro.test}} for details.
+#' @param showKurtosis If \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link{kurtosi}}
+#'          and \code{\link{describe}} in the \code{psych}-package for more details.
+#' @param showCompCorrMat If \code{TRUE} (default), a correlation matrix of each component's
+#'          index score is shown. Only applies if \code{factor.groups} is not \code{NULL} and \code{df} has
+#'          more than one group. First, for each case (df's row), the sum of all variables (df's columns) is
+#'          scaled (using the \code{\link{scale}}-function) and represents a "total score" for
+#'          each component (a component is represented by each group of \code{factor.groups}).
+#'          After that, each case (df's row) has a scales sum score for each component.
+#'          Finally, a correlation of these "scale sum scores" is computed.
 #' @param file The destination file, which will be in html-format. If no filepath is specified (default),
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
@@ -55,13 +77,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
+#'            \item \code{css.arc='+font-style:italic;'} to add italic formatting to each 2nd row.
 #'          }
-#'          See \code{\link{sjt.df}} for further examples.
+#'          See further examples at \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -84,10 +108,19 @@
 #'          is a vector of group-index-values, the lists contain elements for each sub-group.
 #' 
 #' @note \itemize{
-#'          \item Item difficulty should range between 0.2 and 0.8. Ideal value is \code{p+(1-p)/2} (which mostly is between 0.5 and 0.8).
-#'          \item For item discrimination, acceptable values are 0.20 or higher; the closer to 1.00 the better
+#'          \item The \emph{Shapiro-Wilk Normality Test} (see column \code{W(p)}) tests if an item has a distribution that is significantly different from normal.
+#'          \item \emph{Item difficulty} should range between 0.2 and 0.8. Ideal value is \code{p+(1-p)/2} (which mostly is between 0.5 and 0.8).
+#'          \item For \emph{item discrimination}, acceptable values are 0.20 or higher; the closer to 1.00 the better. See \code{\link{sju.reliability}} for more details.
+#'          \item In case the total \emph{Cronbach's Alpha} value is below the acceptable cut-off of 0.7 (mostly if an index has few items), the \emph{mean inter-item-correlation} is an alternative measure to indicate acceptability. Satisfactory range lies between 0.2 and 0.4.
 #'        }
-#'         
+#' 
+#' @references \itemize{
+#'              \item Jorion N, Self B, James K, Schroeder L, DiBello L, Pellegrino J (2013) Classical Test Theory Analysis of the Dynamics Concept Inventory. (\url{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory})
+#'              \item Briggs SR, Cheek JM (1986) The role of factor analysis in the development and evaluation of personality scales. Journal of Personality, 54(1), 106-148 (\url{http://onlinelibrary.wiley.com/doi/10.1111/j.1467-6494.1986.tb00391.x/abstract})
+#'              \item McLean S et al. (2013) Stigmatizing attitudes and beliefs about bulimia nervosa: Gender, age, education and income variability in a community sample. International Journal of Eating Disorders, doi: 10.1002/eat.22227.
+#'              \item Trochim WMK (2008) Types of Reliability. \url{http://www.socialresearchmethods.net/kb/reltypes.php}
+#'             }
+#' 
 #' @examples
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
@@ -128,10 +161,14 @@
 #' @export
 sjt.itemanalysis <- function(df,
                              factor.groups=NULL,
+                             factor.groups.titles="auto",
                              scaleItems=FALSE,
                              alternateRowColors=TRUE,
                              orderColumn=NULL,
                              orderAscending=TRUE,
+                             showShapiro=FALSE,
+                             showKurtosis=FALSE,
+                             showCompCorrMat=TRUE,
                              file=NULL,
                              encoding="UTF-8",
                              CSS=NULL,
@@ -162,14 +199,26 @@ sjt.itemanalysis <- function(df,
   if (is.null(factor.groups)) {
     factor.groups <- rep(1, length.out=ncol(df))
   }
+  # data frame with data from item-analysis-output-table
   df.ia <- list()
+  # component's correlation matrix
+  df.comcor <- list()
   diff.ideal.list <- list()
   index.scores <- list()
+  # cronbach's alpha values
   cronbach.total <- list()
+  # mean inter-item-correlation values
+  mic.total <- list()
   # -----------------------------------
   # retrieve unique factor / group index values
   # -----------------------------------
   findex <- sort(unique(factor.groups))
+  # -----------------------------------
+  # set titles
+  # -----------------------------------
+  if (!is.null(factor.groups.titles) && (factor.groups.titles[1]=="auto" || length(factor.groups.titles)!=length(findex))) {
+    factor.groups.titles <- sprintf("Component %i", seq_along(findex))
+  }
   # -----------------------------------
   # prepare data frame for index-scores, used
   # later
@@ -233,6 +282,12 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     item.score <- apply(df.sub, 1, mean)
     # -----------------------------------
+    # store scaled values of each item's total score
+    # to compute correlation coefficients between identified components
+    # -----------------------------------
+    df.subcc <- subset(na.omit(df), select=which(factor.groups==findex[i]))
+    comcor <- scale(apply(df.subcc, 1, sum), center=TRUE, scale=TRUE)
+    # -----------------------------------
     # check if we have valid return values from reliability test.
     # In case df had less than 3 columns, NULL is returned
     # -----------------------------------
@@ -247,11 +302,30 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     # create dummy data frame
     # -----------------------------------
-    df.dummy <- data.frame(cbind(sprintf("%.2f %%", missings.prz), round(dstat$mean,2), round(dstat$sd,2), round(dstat$skew,2), difficulty, itemdis, alpha))
+    df.dummy <- data.frame(cbind(sprintf("%.2f %%", missings.prz), round(dstat$mean,2), round(dstat$sd,2), round(dstat$skew,2)))
+    df.colnames <- c("Missings", "Mean", "SD", "Skew")
+    # -----------------------------------
+    # include kurtosis statistics
+    # -----------------------------------
+    if (showKurtosis) {
+      df.dummy <- data.frame(cbind(df.dummy, round(dstat$kurtosis,2)))
+      df.colnames <- c(df.colnames, "Kurtosis")
+    }
+    # -----------------------------------
+    # include shapiro-wilk normality test
+    # -----------------------------------
+    if (showShapiro) {
+      shaptest.w <- apply(df.sub, 2, function(x) shapiro.test(x)$statistic)
+      shaptest.p <- apply(df.sub, 2, function(x) shapiro.test(x)$p.value)
+      df.dummy <- data.frame(cbind(df.dummy, sprintf("%.2f (%.3f)", shaptest.w, shaptest.p)))
+      df.colnames <- c(df.colnames, "W(p)")
+    }
+    df.dummy <- data.frame(cbind(df.dummy, difficulty, itemdis, alpha))
+    df.colnames <- c(df.colnames, "Item Difficulty", "Item Discrimination", "&alpha; if deleted")
     # -----------------------------------
     # set names of data frame
     # -----------------------------------
-    colnames(df.dummy) <- c("Missings", "Mean", "SD", "Skew", "Item Difficulty", "Item Discrimination", "&alpha; if deleted")
+    colnames(df.dummy) <- df.colnames
     rownames(df.dummy) <- df.names    
     # -----------------------------------
     # add results to return list
@@ -260,6 +334,11 @@ sjt.itemanalysis <- function(df,
     diff.ideal.list[[length(diff.ideal.list)+1]] <- diff.ideal
     index.scores[[length(index.scores)+1]] <- item.score
     cronbach.total[[length(cronbach.total)+1]] <- sju.cronbach(df.sub)
+    df.comcor[[length(df.comcor)+1]] <- comcor
+    # -----------------------------------
+    # Mean-interitem-corelation
+    # -----------------------------------
+    mic.total[[length(mic.total)+1]] <- sju.mic(df.sub)
   }
   # -----------------------------------
   # create data frame with index scores,
@@ -280,10 +359,31 @@ sjt.itemanalysis <- function(df,
   # iterate all data frames etc.
   # -----------------------------------
   for (i in 1:length(df.ia)) {
-    html <- sjt.df(df.ia[[i]], describe=FALSE, no.output=TRUE, orderAscending=orderAscending, orderColumn=orderColumn, alternateRowColors=alternateRowColors, CSS=CSS, encoding=encoding, showCommentRow=TRUE, commentString=sprintf("Cronbach's &alpha;=%.2f", cronbach.total[[i]]))
+    # check if we have titles for each component-table
+    if (!is.null(factor.groups.titles)) dftitle <- factor.groups.titles[i]
+    # get html-table from data frame
+    html <- sjt.df(df.ia[[i]], describe=FALSE, no.output=TRUE, title=dftitle, orderAscending=orderAscending, orderColumn=orderColumn, alternateRowColors=alternateRowColors, CSS=CSS, encoding=encoding, showCommentRow=TRUE, commentString=sprintf("Mean inter-item-correlation=%.3f &middot; Cronbach's &alpha;=%.3f", mic.total[[i]], cronbach.total[[i]]))
+    # add to complete html-page
     complete.page <- paste0(complete.page, html$knitr)
     complete.page <- paste0(complete.page, "<p style=\"margin:2em;\">&nbsp;</p>")
     knitr.list[[length(knitr.list)+1]] <- html$knitr
+  }
+  # -------------------------------------
+  # show component correlation table
+  # -------------------------------------
+  if (showCompCorrMat) {
+    # check if we have enough components
+    if (length(df.comcor)>1) {
+      # copy all component correlation values to a data frame
+      df.cc <- data.frame(matrix(unlist(df.comcor), nrow=nrow(na.omit(df)), byrow=TRUE))
+      # give proper columm names
+      colnames(df.cc) <- sprintf("Component %i", c(1:ncol(df.cc)))
+      # compute correlation table, store html result
+      html <- sjt.corr(df.cc, missingDeletion="listwise", pvaluesAsNumbers=TRUE, stringDiagonal=sprintf("&alpha;=%.3f", unlist(cronbach.total)), encoding=encoding, no.output=TRUE)
+      # add to html that is printed
+      complete.page <- paste0(complete.page, html$knitr)
+      knitr.list[[length(knitr.list)+1]] <- html$knitr
+    }
   }
   # -------------------------------------
   # wrap html-tags
@@ -291,29 +391,34 @@ sjt.itemanalysis <- function(df,
   knitr <- complete.page
   complete.page <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n</head>\n<body>\n%s\n</body></html>", encoding, complete.page)
   # -------------------------------------
-  # check if we have filename specified
+  # check if html-content should be printed
   # -------------------------------------
-  if (!is.null(file)) {
-    # write file
-    write(knitr, file=file)
-  }
-  # -------------------------------------
-  # else open in viewer pane
-  # -------------------------------------
-  else {
-    # else create and browse temporary file
-    htmlFile <- tempfile(fileext=".html")
-    write(complete.page, file=htmlFile)
-    # check whether we have RStudio Viewer
-    viewer <- getOption("viewer")
-    if (useViewer && !is.null(viewer)) {
-      viewer(htmlFile)
+  if (!no.output) {
+    # -------------------------------------
+    # check if we have filename specified
+    # -------------------------------------
+    if (!is.null(file)) {
+      # write file
+      write(knitr, file=file)
     }
+    # -------------------------------------
+    # else open in viewer pane
+    # -------------------------------------
     else {
-      utils::browseURL(htmlFile)    
+      # else create and browse temporary file
+      htmlFile <- tempfile(fileext=".html")
+      write(complete.page, file=htmlFile)
+      # check whether we have RStudio Viewer
+      viewer <- getOption("viewer")
+      if (useViewer && !is.null(viewer)) {
+        viewer(htmlFile)
+      }
+      else {
+        utils::browseURL(htmlFile)    
+      }
+      # delete temp file
+      # unlink(htmlFile)
     }
-    # delete temp file
-    # unlink(htmlFile)
   }
   invisible (list(class="sjtitemanalysis",
                   df.list=df.ia,

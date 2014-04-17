@@ -9,18 +9,18 @@ sjp.stackfrq(items, legendLabels = NULL, orderBy = NULL, weightBy = NULL,
   axisLabelSize = 1.1, axisLabelAngle.x = 0, axisLabelColor = "gray30",
   valueLabelSize = 4, valueLabelColor = "black", breakTitleAt = 50,
   breakLabelsAt = 30, breakLegendTitleAt = 30, breakLegendLabelsAt = 28,
-  gridBreaksAt = 0.2, diagramMargins = FALSE, barWidth = 0.5,
+  gridBreaksAt = 0.2, expand.grid = FALSE, barWidth = 0.5,
   barColor = NULL, colorPalette = "GnBu", barAlpha = 1,
   borderColor = NULL, axisColor = NULL, barOutline = FALSE,
-  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
-  hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
-  axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
-  theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
-  jitterValueLabels = FALSE, showItemLabels = TRUE,
-  showSeparatorLine = FALSE, separatorLineColor = "grey80",
-  separatorLineSize = 0.3, legendPos = "right", legendSize = 1,
-  legendBorderColor = "white", legendBackColor = "white",
-  flipCoordinates = TRUE, printPlot = TRUE)
+  barOutlineSize = 0.2, barOutlineColor = "black", majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
+  axisTitleSize = 1.3, theme = NULL, showTickMarks = FALSE,
+  showValueLabels = TRUE, jitterValueLabels = FALSE,
+  showItemLabels = TRUE, showSeparatorLine = FALSE,
+  separatorLineColor = "grey80", separatorLineSize = 0.3,
+  legendPos = "right", legendSize = 1, legendBorderColor = "white",
+  legendBackColor = "white", flipCoordinates = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{items}{A data frame with each column representing
@@ -116,9 +116,9 @@ sjp.stackfrq(items, legendLabels = NULL, orderBy = NULL, weightBy = NULL,
   at every n'th position a major grid is being printed.
   Valid values range from 0 to 1.}
 
-  \item{diagramMargins}{If \code{TRUE} (default), the
-  diagram has margins, i.e. the y-axis is not exceeded to
-  the diagram's boundaries.}
+  \item{expand.grid}{If \code{TRUE} (default), the diagram
+  has margins, i.e. the y-axis is not exceeded to the
+  diagram's boundaries.}
 
   \item{barWidth}{Width of bars. Recommended values for
   this parameter are from 0.4 to 1.5}
@@ -147,8 +147,12 @@ sjp.stackfrq(items, legendLabels = NULL, orderBy = NULL, weightBy = NULL,
   \item{barOutline}{If \code{TRUE}, each bar gets a colored
   outline. Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.}
+
+  \item{barOutlineSize}{The size of the bar outlines. Only
+  applies if \code{barOutline} is \code{TRUE}.  Default is
+  0.2}
 
   \item{majorGridColor}{Specifies the color of the major
   grid lines of the diagram background.}
@@ -307,11 +311,9 @@ efc <- sji.setVariableLabels(efc, varlabs)
 sjp.stackfrq(efc[,c(start:end)])
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjpstackfrq}
 \item
-\url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
-}
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjp.likert}} \cr \code{\link{sjt.stackfrq}}

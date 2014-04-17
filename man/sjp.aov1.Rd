@@ -14,12 +14,12 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   errorBarSize = 0.8, errorBarLineType = 1, pointColors = c("#3366a0",
   "#aa3333"), pointSize = 3, barColors = c("#3366a0", "#aa3333"),
   barWidth = 0.5, barAlpha = 1, barOutline = FALSE,
-  outlineColor = "black", breakTitleAt = 50, breakLabelsAt = 12,
+  barOutlineColor = "black", breakTitleAt = 50, breakLabelsAt = 12,
   gridBreaksAt = NULL, borderColor = NULL, axisColor = NULL,
   theme = NULL, majorGridColor = NULL, minorGridColor = NULL,
-  hideGrid.x = FALSE, hideGrid.y = FALSE, showTickMarks = TRUE,
-  showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
-  showModelSummary = TRUE, printPlot = TRUE)
+  hideGrid.x = FALSE, hideGrid.y = FALSE, expand.grid = FALSE,
+  showTickMarks = TRUE, showValueLabels = TRUE, labelDigits = 2,
+  showPValueLabels = TRUE, showModelSummary = TRUE, printPlot = TRUE)
 }
 \arguments{
   \item{depVar}{The dependent variable. Will be used with
@@ -178,7 +178,7 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
   outline. Only applies if parameter \code{type} is
   \code{bars}.  Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.
   Default is black.}
 
@@ -223,6 +223,10 @@ sjp.aov1(depVar, grpVar, meansums = FALSE, type = "dots",
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
+
+  \item{expand.grid}{If \code{TRUE}, the plot grid is
+  expanded, i.e. there is a small margin between axes and
+  plotting region. Default is \code{FALSE}.}
 
   \item{showTickMarks}{Whether tick marks of axes should be
   shown or not}

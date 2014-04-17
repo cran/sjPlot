@@ -63,13 +63,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.cronbach='+color:green;'} to add green color formatting to the Cronbach's Alpha value.
 #'          }
-#'          See further examples below.
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -236,21 +238,21 @@ sjt.pca <- function (data,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.caption']])) css.caption <- CSS[['css.caption']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
-    if (!is.null(CSS[['css.cronbach']])) css.cronbach <- CSS[['css.cronbach']]
-    if (!is.null(CSS[['css.msa']])) css.msa <- CSS[['css.msa']]
-    if (!is.null(CSS[['css.kmo']])) css.kmo <- CSS[['css.kmo']]
-    if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
-    if (!is.null(CSS[['css.pov']])) css.pov <- CSS[['css.pov']]
-    if (!is.null(CSS[['css.cpov']])) css.cpov <- CSS[['css.cpov']]
-    if (!is.null(CSS[['css.minval']])) css.minval <- CSS[['css.minval']]
-    if (!is.null(CSS[['css.removable']])) css.removable <- CSS[['css.removable']]
-    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- CSS[['css.firsttablerow']]
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1)=='+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1)=='+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
+    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- ifelse(substring(CSS[['css.firsttablerow']],1,1)=='+', paste0(css.firsttablerow, substring(CSS[['css.firsttablerow']],2)), CSS[['css.firsttablerow']])
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1)=='+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
+    if (!is.null(CSS[['css.cronbach']])) css.cronbach <- ifelse(substring(CSS[['css.cronbach']],1,1)=='+', paste0(css.cronbach, substring(CSS[['css.cronbach']],2)), CSS[['css.cronbach']])
+    if (!is.null(CSS[['css.msa']])) css.msa <- ifelse(substring(CSS[['css.msa']],1,1)=='+', paste0(css.msa, substring(CSS[['css.msa']],2)), CSS[['css.msa']])
+    if (!is.null(CSS[['css.kmo']])) css.kmo <- ifelse(substring(CSS[['css.kmo']],1,1)=='+', paste0(css.kmo, substring(CSS[['css.kmo']],2)), CSS[['css.kmo']])
+    if (!is.null(CSS[['css.pov']])) css.pov <- ifelse(substring(CSS[['css.pov']],1,1)=='+', paste0(css.pov, substring(CSS[['css.pov']],2)), CSS[['css.pov']])
+    if (!is.null(CSS[['css.cpov']])) css.cpov <- ifelse(substring(CSS[['css.cpov']],1,1)=='+', paste0(css.cpov, substring(CSS[['css.cpov']],2)), CSS[['css.cpov']])
+    if (!is.null(CSS[['css.minval']])) css.minval <- ifelse(substring(CSS[['css.minval']],1,1)=='+', paste0(css.minval, substring(CSS[['css.minval']],2)), CSS[['css.minval']])
+    if (!is.null(CSS[['css.removable']])) css.removable <- ifelse(substring(CSS[['css.removable']],1,1)=='+', paste0(css.removable, substring(CSS[['css.removable']],2)), CSS[['css.removable']])
   }
   # ------------------------
   # set page style

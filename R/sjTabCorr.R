@@ -1,8 +1,8 @@
 #' @title Show correlations as HTML table
 #' @name sjt.corr
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjtcorr}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
 #'              }
 #' 
 #' @description Shows the results of a computed correlation as HTML table. Requires either 
@@ -16,6 +16,7 @@
 #'          \code{"listwise"} or \code{"pairwise"} (default).
 #' @param corMethod Indicates the correlation computation method. May be one of
 #'          \code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
+#' @param title A table caption. By default, \code{title} is \code{NULL}, hence no title will be used.
 #' @param showPValues Whether significance levels (p-values) of correlations should 
 #'          be printed or not.
 #' @param pvaluesAsNumbers If \code{TRUE}, the significance levels (p-values) are printed as numbers.
@@ -34,6 +35,21 @@
 #'          one line and when a line break is inserted. Default is 40.
 #' @param digits The amount of digits used the values inside table cells.
 #'          Default is 2.
+#' @param triangle Indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
+#'          or both (use \code{"both"}) triangles of the correlation table is filled with values. Default
+#'          is \code{"both"}. You can specifiy the inital letter only.
+#' @param val.rm Specify a number between 0 and 1 to suppress the output of correlation values 
+#'          that are smaller than \code{val.rm}. The absolute correlation values are used, so
+#'          a correlation value of -.5 would be greater that \code{"val.rm=.4"} and thus not be
+#'          omitted. By default, this parameter is \code{NULL}, hence all values are shown in the table.
+#'          If a correlation value is below the specified value of \code{val.rm}, it is still printed to
+#'          the HTML table, but made "invisible" with white foreground color. You can use the \code{CSS}
+#'          parameter (\code{"css.valueremove"}) to change color and appearance of those correlation value that are smaller than
+#'          the limit specified by \code{val.rm}. 
+#' @param stringDiagonal a vector with string values of the same length as \code{ncol(data)} (number of
+#'          correlated items) that can be used to display content in the diagonal cells
+#'          where row and column item are identical (i.e. the "self-correlation"). By defauilt,
+#'          this parameter is \code{NULL} and the diagnal cells are empty.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
@@ -43,13 +59,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.summary='+color:blue;'} adds blue font color to summary row.
 #'          }
-#'          See further examples below.
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -101,16 +119,36 @@
 #' sjt.corr(df, pvaluesAsNumbers=TRUE)}
 #' 
 #' # -------------------------------
-#' # auto-detection of labels
+#' # auto-detection of labels, only lower triangle
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, varlabs)
 #' \dontrun{
-#' sjt.corr(efc[,c(start:end)])}
+#' sjt.corr(efc[,c(start:end)], triangle="lower")}
+#' 
+#' # -------------------------------
+#' # auto-detection of labels, only lower triangle,
+#' # all correlation values smaller than 0.3 are not
+#' # shown in the table
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' \dontrun{
+#' sjt.corr(efc[,c(start:end)], triangle="lower", val.rm=0.3)}
+#' 
+#' # -------------------------------
+#' # auto-detection of labels, only lower triangle,
+#' # all correlation values smaller than 0.3 are printed
+#' # in blue
+#' # -------------------------------
+#' efc <- sji.setVariableLabels(efc, varlabs)
+#' \dontrun{
+#' sjt.corr(efc[,c(start:end)], triangle="lower",
+#'          val.rm=0.3, CSS=list(css.valueremove='color:blue;'))}
 #' 
 #' @export
 sjt.corr <- function (data,
                       missingDeletion="pairwise",
                       corMethod="spearman",
+                      title=NULL,
                       showPValues=TRUE,
                       pvaluesAsNumbers=FALSE,
                       fadeNS=TRUE,
@@ -118,10 +156,26 @@ sjt.corr <- function (data,
                       varlabels=NULL,
                       breakLabelsAt=40,
                       digits=3,
+                      triangle="both",
+                      val.rm=NULL,
+                      stringDiagonal=NULL,
                       encoding="UTF-8",
                       CSS=NULL,
                       useViewer=TRUE,
                       no.output=FALSE) {
+  # --------------------------------------------------------
+  # parameter check
+  # --------------------------------------------------------
+  if (is.null(triangle)) {
+    triangle <- "both"
+  }
+  else if (triangle=="u" || triangle=="upper") {
+    triangle <- "upper"
+  }
+  else if (triangle=="l" || triangle=="lower") {
+    triangle <- "lower"
+  }
+  else triangle <- "both"
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -239,18 +293,22 @@ sjt.corr <- function (data,
   # later for return value
   # -------------------------------------
   tag.table <- "table"
+  tag.caption <- "caption"
   tag.thead <- "thead"
   tag.tdata <- "tdata"
   tag.notsig <- "notsig"
   tag.pval <- "pval"
+  tag.valueremove <- "valueremove"
   tag.summary <- "summary"
   tag.centeralign <- "centeralign"
   tag.firsttablecol <- "firsttablecol"
   css.table <- "border-collapse:collapse; border:none;"
-  css.thead <- "border-top:double black; padding:0.2cm;"
+  css.thead <- "font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;"
   css.tdata <- "padding:0.2cm;"
+  css.caption <- "font-weight: bold; text-align:left;"
+  css.valueremove <- "color:white;"
   css.centeralign <- "text-align:center;"
-  css.firsttablecol <- "font-weight:bold;"
+  css.firsttablecol <- "font-style:italic;"
   css.notsig <- "color:#999999;"
   css.summary <- "border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;"
   css.pval <- "vertical-align:super;font-size:0.8em;"
@@ -259,25 +317,29 @@ sjt.corr <- function (data,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
-    if (!is.null(CSS[['css.notsig']])) css.notsig <- CSS[['css.notsig']]
-    if (!is.null(CSS[['css.pval']])) css.pval <- CSS[['css.pval']]
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1)=='+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
+    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1)=='+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1)=='+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
+    if (!is.null(CSS[['css.notsig']])) css.notsig <- ifelse(substring(CSS[['css.notsig']],1,1)=='+', paste0(css.notsig, substring(CSS[['css.notsig']],2)), CSS[['css.notsig']])
+    if (!is.null(CSS[['css.pval']])) css.pval <- ifelse(substring(CSS[['css.pval']],1,1)=='+', paste0(css.pval, substring(CSS[['css.pval']],2)), CSS[['css.pval']])
+    if (!is.null(CSS[['css.valueremove']])) css.valueremove <- ifelse(substring(CSS[['css.valueremove']],1,1)=='+', paste0(css.valueremove, substring(CSS[['css.valueremove']],2)), CSS[['css.valueremove']])
   }
   # ------------------------
   # set page style
   # ------------------------
-  page.style <-  sprintf("<style>%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>",
-                         tag.table, css.table, tag.thead, css.thead, tag.tdata, css.tdata,
+  page.style <-  sprintf("<style>%s { %s }\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>",
+                         tag.table, css.table, tag.caption, css.caption,
+                         tag.thead, css.thead, tag.tdata, css.tdata,
                          tag.firsttablecol, css.firsttablecol, 
                          tag.centeralign, css.centeralign,
                          tag.notsig, css.notsig,
                          tag.pval, css.pval,
-                         tag.summary, css.summary)
+                         tag.summary, css.summary,
+                         tag.valueremove, css.valueremove)
   # ------------------------
   # start content
   # ------------------------
@@ -287,6 +349,10 @@ sjt.corr <- function (data,
   # start table tag
   # -------------------------------------
   page.content <- "<table>\n"
+  # -------------------------------------
+  # table caption, variable label
+  # -------------------------------------
+  if (!is.null(title)) page.content <- paste0(page.content, sprintf("  <caption>%s</caption>\n", title))
   # -------------------------------------
   # header row
   # -------------------------------------
@@ -317,42 +383,68 @@ sjt.corr <- function (data,
       # leave out self-correlations
       # --------------------------------------------------------
       if (j==i) {
-        page.content <- paste0(page.content, "    <td class=\"tdata\">&nbsp;</td>\n")
+        if (is.null(stringDiagonal) || length(stringDiagonal)>ncol(corr)) {
+          page.content <- paste0(page.content, "    <td class=\"tdata centeralign\">&nbsp;</td>\n")
+        }
+        else {
+          page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign\">%s</td>\n", stringDiagonal[j]))
+        }
       }
       else {
         # --------------------------------------------------------
-        # print table-cell-data (cor-value)
+        # check whether only lower or upper triangle of correlation
+        # table should be printed
         # --------------------------------------------------------
-        cellval <- round(corr[i,j],digits)
-        # --------------------------------------------------------
-        # check whether we want to show P-Values
-        # --------------------------------------------------------
-        if (showPValues) {
-          if (pvaluesAsNumbers) {
-            # --------------------------------------------------------
-            # if we have p-values as number, print them in new row
-            # --------------------------------------------------------
-            cellval <- sprintf("%s<br><span class=\"pval\">(%.*f)</span>", cellval, digits, cpvalues[i,j])
+        if((triangle=="upper" && j>i) || (triangle=="lower" && i>j) || triangle=="both") {
+          # --------------------------------------------------------
+          # print table-cell-data (cor-value)
+          # --------------------------------------------------------
+          cellval <- sprintf("%.*f", digits, corr[i,j])
+          # --------------------------------------------------------
+          # check whether we want to show P-Values
+          # --------------------------------------------------------
+          if (showPValues) {
+            if (pvaluesAsNumbers) {
+              # --------------------------------------------------------
+              # if we have p-values as number, print them in new row
+              # --------------------------------------------------------
+              cellval <- sprintf("%s<br><span class=\"pval\">(%.*f)</span>", cellval, digits, cpvalues[i,j])
+            }
+            else {
+              # --------------------------------------------------------
+              # if we have p-values as "*", add them
+              # --------------------------------------------------------
+              cellval <- sprintf("%s<span class=\"pval\">%s</span>", cellval, cpvalues[i,j])
+            }
           }
-          else {
-            # --------------------------------------------------------
-            # if we have p-values as "*", add them
-            # --------------------------------------------------------
-            cellval <- sprintf("%s<span class=\"pval\">%s</span>", cellval, cpvalues[i,j])
+          # --------------------------------------------------------
+          # prepare css for not significant values
+          # --------------------------------------------------------
+          notsig <- ""
+          # --------------------------------------------------------
+          # check whether non significant values should be blurred
+          # --------------------------------------------------------
+          if (fadeNS && !is.null(cpv)) {
+            # set css-class-attribute
+            if (cpv[i,j] >=0.05) notsig <- " notsig"
           }
+          # --------------------------------------------------------
+          # prepare css for values that shoould be removed due to low
+          # correlation value
+          # --------------------------------------------------------
+          value.remove <- ""
+          # --------------------------------------------------------
+          # check whether correlation value is too small and should
+          # be omitted
+          # --------------------------------------------------------
+          if (!is.null(val.rm) && abs(corr[i,j])<abs(val.rm)) {
+            value.remove <- " valueremove"            
+          }
+          page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s%s\">%s</td>\n", notsig, value.remove, cellval))
         }
-        # --------------------------------------------------------
-        # prepare css for not significant values
-        # --------------------------------------------------------
-        notsig <- ""
-        # --------------------------------------------------------
-        # check whether not significant values should be blurred
-        # --------------------------------------------------------
-        if (fadeNS) {
-          # set css-class-attribute
-          if (cpv[i,j] >=0.05) notsig <- " notsig"
+        else {
+          page.content <- paste0(page.content, "    <td class=\"tdata centeralign\">&nbsp;</td>\n")
         }
-        page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%s</td>\n", notsig, cellval))
       }
     }
     # close row
@@ -386,6 +478,7 @@ sjt.corr <- function (data,
   # -------------------------------------
   knitr <- gsub("class=", "style=", knitr)
   knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
@@ -396,6 +489,7 @@ sjt.corr <- function (data,
   knitr <- gsub(tag.pval, css.pval, knitr)  
   knitr <- gsub(tag.summary, css.summary, knitr)  
   knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)  
+  knitr <- gsub(tag.valueremove, css.valueremove, knitr)  
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------

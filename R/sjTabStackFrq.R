@@ -1,8 +1,8 @@
 #' @title Show stacked frequencies as HTML table
 #' @name sjt.stackfrq
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjtstackfrq}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
 #'              }
 #' 
 #' @description Shows the results of stacked frequencies (such as likert scales) as HTML table.
@@ -60,12 +60,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.caption='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
 #'          }
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -253,6 +256,17 @@ sjt.stackfrq <- function (items,
   itemcount <- c()
   mat <- data.frame()
   mat.n <- data.frame()
+  # ----------------------------
+  # determine minimum value. if 0, add one, because
+  # vector indexing starts with 1
+  # ----------------------------
+  if (any(apply(items, c(1,2), is.factor)) || any(apply(items, c(1,2), is.character))) {
+    diff <- ifelse(min(apply(items, c(1,2), as.numeric),na.rm=TRUE)==0, 1, 0)
+  }
+  else {
+    diff <- ifelse(min(items,na.rm=TRUE)==0, 1, 0)
+  }
+  # iterate item-list
   for (i in 1:ncol(items)) {
     # ----------------------------
     # if we don't have weights, create simple frequency table
@@ -292,12 +306,6 @@ sjt.stackfrq <- function (items,
     # ----------------------------
     fr <- rep(0, catcount)
     # ----------------------------
-    # determine difference from minimum value to 1
-    # we just want copy the category values (e.g. 3 to 5)
-    # to a vector, but vector indexing starts with 1, not 3.
-    # ----------------------------
-    diff <- minval-1
-    # ----------------------------
     # if we have missings, manually change table names
     # ----------------------------
     if (showNA) {
@@ -313,7 +321,7 @@ sjt.stackfrq <- function (items,
     # table name equals cateogory value,
     # table itself contains counts of each category
     # ----------------------------
-    fr[as.numeric(names(dummy))-diff] <- dummy
+    fr[as.numeric(names(dummy))+diff] <- dummy
     # ----------------------------
     # add proportional percentages to data frame row
     # ----------------------------
@@ -378,17 +386,17 @@ sjt.stackfrq <- function (items,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.caption']])) css.caption <- CSS[['css.caption']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.ncol']])) css.ncol <- CSS[['css.ncol']]
-    if (!is.null(CSS[['css.skewcol']])) css.skewcol <- CSS[['css.skewcol']]
-    if (!is.null(CSS[['css.kurtcol']])) css.kurtcol <- CSS[['css.kurtcol']]
-    if (!is.null(CSS[['css.summary']])) css.summary <- CSS[['css.summary']]
-    if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- CSS[['css.centeralign']]
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- CSS[['css.firsttablecol']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1)=='+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
+    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1)=='+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
+    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1)=='+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1)=='+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
+    if (!is.null(CSS[['css.ncol']])) css.ncol <- ifelse(substring(CSS[['css.ncol']],1,1)=='+', paste0(css.ncol, substring(CSS[['css.ncol']],2)), CSS[['css.ncol']])
+    if (!is.null(CSS[['css.skewcol']])) css.skewcol <- ifelse(substring(CSS[['css.skewcol']],1,1)=='+', paste0(css.skewcol, substring(CSS[['css.skewcol']],2)), CSS[['css.skewcol']])
+    if (!is.null(CSS[['css.kurtcol']])) css.kurtcol <- ifelse(substring(CSS[['css.kurtcol']],1,1)=='+', paste0(css.kurtcol, substring(CSS[['css.kurtcol']],2)), CSS[['css.kurtcol']])
   }
   # ------------------------
   # set page style

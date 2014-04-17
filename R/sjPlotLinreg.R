@@ -5,8 +5,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @title Plot beta coefficients of lm
 #' @name sjp.lm
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjplm}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
 #'             }
 #' 
 #' @description Plot beta coefficients of linear regressions with confidence intervalls as dot plot
@@ -185,8 +185,6 @@ sjp.lm <- function(fit,
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
-
-  
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
@@ -202,8 +200,6 @@ sjp.lm <- function(fit,
   if (!is.null(axisLabels.y)) {
     axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
-  
-  
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
@@ -211,8 +207,6 @@ sjp.lm <- function(fit,
   if (showModelSummary) {
     modsum <- sju.modsum.lm(fit)
   }
-  
-
   # ----------------------------
   # print beta- and p-values in bar charts
   # ----------------------------
@@ -236,7 +230,6 @@ sjp.lm <- function(fit,
     ps <- rep(c(""), length(ps))
     pstdbv <- rep(c(""), length(pstdbv))
   }
-  
   # --------------------------------------------------------
   # copy p-values into data column
   # --------------------------------------------------------
@@ -255,24 +248,36 @@ sjp.lm <- function(fit,
       }
     }  
   }
-  
   # --------------------------------------------------------
   # create new data.frame, since ggplot requires data.frame as parameter
   # The data frame contains betas, CI and p-values
   # --------------------------------------------------------
-  tmp<-data.frame(cbind(
-    # Append beta coefficients, [-1] means that the first
-    # row (Intercept) will be removed / ignored
-    coefficients(fit)[-1],
-    # append CI
-    confint(fit, level=0.95)[-1,]))
+  # if we have only one independent variable, cbind does not
+  # work, since it duplicates the coefficients. so we simply
+  # concatenate here
+  if (1==length(coefficients(fit)[-1])) {
+    tmp <- data.frame(
+      # Append beta coefficients, [-1] means that the first
+      # row (Intercept) will be removed / ignored
+      coefficients(fit)[-1],
+      # append CI
+      confint(fit, level=0.95)[-1,1],
+      confint(fit, level=0.95)[-1,2])
+  }
+  else {
+    tmp <- data.frame(cbind(
+      # Append beta coefficients, [-1] means that the first
+      # row (Intercept) will be removed / ignored
+      coefficients(fit)[-1],
+      # append CI
+      confint(fit, level=0.95)[-1,]))
+  }
   # append p-values and standardized beta coefficients
   # further more, we take the stand. beta as string, because in
   # case no values are drawn, we simply use an empty string.
   # finally, we need the p-values of the coefficients, because the value
   # labels may have different colours according to their significance level
   betas <- cbind(tmp, c(ps), sju.betaCoef(fit), c(pstdbv), pv)
-  
   # --------------------------------------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -280,13 +285,10 @@ sjp.lm <- function(fit,
   if (is.null(axisLabels.y)) {
     axisLabels.y <- row.names(betas)
   }
-  
   # --------------------------------------------------------
-  # define sorting critaria. the values on the x-axis are being sorted
+  # define sorting criteria. the values on the x-axis are being sorted
   # either by beta-values (sort="beta") or by standardized
   # beta values (sort = anything else)
-  # --------------------------------------------------------
-  
   # --------------------------------------------------------
   # sort labels descending in order of (std.) beta values
   # --------------------------------------------------------
@@ -296,7 +298,6 @@ sjp.lm <- function(fit,
   else {
     axisLabels.y <- axisLabels.y[order(stdbv)]
   }
-  
   # --------------------------------------------------------
   # sort rows of data frame descending in order of (std.) beta values
   # --------------------------------------------------------
@@ -307,9 +308,9 @@ sjp.lm <- function(fit,
     betas <- betas[order(stdbv),]
   }
   betas <- cbind(c(seq(1:nrow(betas))), betas)
-  betas$p <- as.character(betas$p)
   # give columns names
   names(betas)<-c("xv", "Beta", "lower", "upper", "p", "stdbeta", "pstdbv", "pv")
+  betas$p <- as.character(betas$p)
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user-defined range (if "axisLimits"
@@ -330,8 +331,6 @@ sjp.lm <- function(fit,
   else {
     ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
   }
-  
-  
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
   # might be adjusted later
@@ -356,8 +355,6 @@ sjp.lm <- function(fit,
     minorGridColor <- c("white")
     showTickMarks <-FALSE
   }
-  
-  
   # --------------------------------------------------------
   # Set up grid colours
   # --------------------------------------------------------
@@ -370,8 +367,6 @@ sjp.lm <- function(fit,
     minorgrid <- element_line(colour=minorGridColor)
   }
   hidegrid <- element_line(colour=hideGridColor)
-  
-  
   # --------------------------------------------------------
   # Set up visibility of tick marks
   # --------------------------------------------------------
@@ -381,8 +376,6 @@ sjp.lm <- function(fit,
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
   }
-  
-  
   # --------------------------------------------------------
   # Start plot here!
   # --------------------------------------------------------
@@ -496,6 +489,8 @@ sjp.lm <- function(fit,
 #'                (i.e. the red loess-smoothed line is almost linear). \cr \cr
 #'                Furthermore, a scatter plot of response and predictor values
 #'                is plotted.
+#'                
+#' @references \url{http://rpubs.com/sjPlot/sjplm}
 #'                
 #' @seealso \code{\link{sjp.lm}} \cr
 #'          \code{\link{sjp.scatter}} \cr
@@ -660,6 +655,8 @@ sjp.reglin <- function(fit,
 #' 
 #' @description Plots model assumptions of linear models to verify if linear regression is applicable
 #' 
+#' @references \url{http://rpubs.com/sjPlot/sjplm}
+#' 
 #' @seealso \code{\link{sjp.lm}} \cr
 #'          \code{\link{sjp.reglin}} \cr
 #'          \code{\link{sjp.lm.int}}
@@ -794,14 +791,14 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   print(ggplot(linreg, aes(x=.fitted, y=.resid)) +
           geom_hline(yintercept=0, alpha=0.7) +
           geom_point() +
-          geom_smooth(se=FALSE) +
+          geom_smooth(method="loess", se=FALSE) +
           ggtitle("Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals, original model)\n(Amount and distance of points scattered above/below line is equal)"))
   
   if (modelOptmized) {
     print(ggplot(model, aes(x=.fitted, y=.resid)) +
             geom_hline(yintercept=0, alpha=0.7) +
             geom_point() +
-            geom_smooth(se=FALSE) +
+            geom_smooth(method="loess", se=FALSE) +
             ggtitle("Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals, updated model)\n(Amount and distance of points scattered above/below line is equal)"))
   }
   # ---------------------------------
@@ -838,7 +835,7 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #' @name sjp.lm1
 #' 
 #' @description Plot a regression line with confidence interval for a fitted model with only
-#'                one predictor (i.e. \code{lm(y~y)}).
+#'                one predictor (i.e. \code{lm(y~x)}).
 #'                This function may plot two lines: The resulting linear regression line
 #'                including confidence interval (in blue) by default, and a loess-smoothed line without
 #'                confidence interval (in red) if parameter \code{showLoess} is \code{TRUE}.

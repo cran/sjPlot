@@ -6,7 +6,8 @@ sjt.df(df, describe = TRUE, file = NULL, alternateRowColors = FALSE,
   orderColumn = NULL, orderAscending = TRUE, title = NULL,
   repeatHeader = FALSE, stringVariable = "Variable", showType = FALSE,
   showCommentRow = FALSE, commentString = "No comment...",
-  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
+  hideProgressBar = FALSE, encoding = "UTF-8", CSS = NULL,
+  useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
   \item{df}{A data frame that should be printed.}
@@ -61,6 +62,10 @@ sjt.df(df, describe = TRUE, file = NULL, alternateRowColors = FALSE,
   end / below the table. Only applies, if
   \code{showCommentRow} is \code{TRUE}.}
 
+  \item{hideProgressBar}{If \code{TRUE}, the progress bar
+  that is displayed when creating the table is hidden.
+  Default in \code{FALSE}, hence the bar is visible.}
+
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
@@ -74,12 +79,18 @@ sjt.df(df, describe = TRUE, file = NULL, alternateRowColors = FALSE,
   Parameters for this list need: \enumerate{ \item the
   class-names with \code{"css."}-prefix as parameter name
   and \item each style-definition must end with a semicolon
-  } Examples: \itemize{ \item \code{css.table='border:2px
-  solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold
+  } You can add style information to the default styles by
+  using a + (plus-sign) as initial character for the
+  parameter attributes. Examples: \itemize{ \item
+  \code{css.table='border:2px solid red;'} for a solid
+  2-pixel table border in red.  \item
+  \code{css.summary='font-weight:bold;'} for a bold
   fontweight in the summary row.  \item
   \code{css.arc='color:blue;'} for a blue text color each
-  2nd row.  } See further examples below.}
+  2nd row.  \item \code{css.caption='+color:red;'} to add
+  red font-color to the default table caption style.  } See
+  further examples below and
+  \url{http://rpubs.com/sjPlot/sjtbasics}.}
 
   \item{useViewer}{If \code{TRUE}, the function tries to
   show the HTML table in the IDE's viewer pane. If

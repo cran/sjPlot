@@ -5,7 +5,7 @@
 sjp.glm.ma(logreg, showOriginalModelOnly = TRUE)
 }
 \arguments{
-  \item{logreg}{a fitted glm-model}
+  \item{logreg}{a fitted \code{\link{glm}}-model}
 
   \item{showOriginalModelOnly}{if \code{TRUE} (default),
   only the model assumptions of the fitted model

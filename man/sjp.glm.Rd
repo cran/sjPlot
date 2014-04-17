@@ -13,7 +13,7 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   colorPalette = "Paired", barColor = NULL, barWidth = 0.3,
   barAlpha = 1, valueLabelColor = "black", valueLabelSize = 4.5,
   valueLabelAlpha = 1, axisColor = NULL, borderColor = NULL,
-  barOutline = FALSE, outlineColor = "black", interceptLineType = 2,
+  barOutline = FALSE, barOutlineColor = "black", interceptLineType = 2,
   interceptLineColor = "grey70", majorGridColor = NULL,
   minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
   theme = NULL, flipCoordinates = TRUE, showIntercept = FALSE,
@@ -22,8 +22,8 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   printPlot = TRUE)
 }
 \arguments{
-  \item{fit}{The fitted model of a logistic regression
-  (glm-Object).}
+  \item{fit}{The fitted model of a logistic regression (or
+  any other \code{\link{glm}}-object).}
 
   \item{sortOdds}{If \code{TRUE} (default), the odds ratios
   are ordered according their OR value from highest first
@@ -127,13 +127,14 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   \code{"brewer"} for colours from the color brewer
   palette.  } If barColors is \code{"brewer"}, use the
   \code{colorPalette} parameter to specify a palette of the
-  color brewer.  Else specify your own color values as
-  vector (e.g. \code{barColors=c("#f00000", "#00ff00")}).}
+  \url{http://colorbrewer2.org} Else specify your own color
+  values as vector (e.g. \code{barColors=c("#f00000",
+  "#00ff00")}).}
 
   \item{colorPalette}{If parameter \code{barColor} is
-  \code{brewer}, specify a color palette from the color
-  brewer here.  All color brewer palettes supported by
-  ggplot are accepted here.}
+  \code{brewer}, specify a color palette from the
+  \url{http://colorbrewer2.org} here.  All color brewer
+  palettes supported by ggplot are accepted here.}
 
   \item{barWidth}{The width of the bars in bar charts. only
   applies if parameter \code{type} is \code{bars}. Default
@@ -168,7 +169,7 @@ sjp.glm(fit, sortOdds = TRUE, title = NULL, titleSize = 1.3,
   outline. only applies if parameter \code{type} is
   \code{bars}.  Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.
   Default is black.}
 
@@ -244,8 +245,8 @@ plot (\code{plot}) as well as the data frame that was used
 for setting up the ggplot-object (\code{df}).
 }
 \description{
-Plot odds ratios with confidence intervalls as bar chart or
-dot plot
+Plot odds ratios (exponentiated coefficients) with
+confidence intervalls as bar chart or dot plot
 }
 \note{
 Based on the script from surefoss:

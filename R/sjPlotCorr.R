@@ -16,6 +16,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #'                blue and red colors indicate positive or negative correlations, where
 #'                stronger correlations are darkened.
 #' 
+#' @seealso \code{\link{sjt.corr}}
+#' 
 #' @param data A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
 #'          which correlations should be calculated.
 #' @param title Title of the diagram, plotted above the whole diagram panel.

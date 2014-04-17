@@ -93,8 +93,10 @@ groups <- sjc.cluster(mtcars, 5)
 groups <- sjc.cluster(mtcars, 5, method="k")
 }
 \seealso{
-\code{\link{sjc.dend}} \cr \code{\link{sjc.grpdisc}} \cr
-\code{\link{sjc.elbow}} \cr \code{\link{kmeans}} \cr
-\code{\link{hclust}}
+\code{\link{sjc.qclus}} \cr \code{\link{sjc.dend}} \cr
+\code{\link{sjc.grpdisc}} \cr \code{\link{sjc.elbow}} \cr
+\code{\link{kmeans}} \cr \code{\link{hclust}} \cr Maechler
+M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014)
+cluster: Cluster Analysis Basics and Extensions. R package.
 }
 

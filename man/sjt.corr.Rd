@@ -3,8 +3,9 @@
 \title{Show correlations as HTML table}
 \usage{
 sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
-  showPValues = TRUE, pvaluesAsNumbers = FALSE, fadeNS = TRUE,
-  file = NULL, varlabels = NULL, breakLabelsAt = 40, digits = 3,
+  title = NULL, showPValues = TRUE, pvaluesAsNumbers = FALSE,
+  fadeNS = TRUE, file = NULL, varlabels = NULL, breakLabelsAt = 40,
+  digits = 3, triangle = "both", val.rm = NULL, stringDiagonal = NULL,
   encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
@@ -19,6 +20,9 @@ sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
   \item{corMethod}{Indicates the correlation computation
   method. May be one of \code{"spearman"} (default),
   \code{"pearson"} or \code{"kendall"}.}
+
+  \item{title}{A table caption. By default, \code{title} is
+  \code{NULL}, hence no title will be used.}
 
   \item{showPValues}{Whether significance levels (p-values)
   of correlations should be printed or not.}
@@ -54,6 +58,34 @@ sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
   \item{digits}{The amount of digits used the values inside
   table cells.  Default is 2.}
 
+  \item{triangle}{Indicates whether only the upper right
+  (use \code{"upper"}), lower left (use \code{"lower"}) or
+  both (use \code{"both"}) triangles of the correlation
+  table is filled with values. Default is \code{"both"}.
+  You can specifiy the inital letter only.}
+
+  \item{val.rm}{Specify a number between 0 and 1 to
+  suppress the output of correlation values that are
+  smaller than \code{val.rm}. The absolute correlation
+  values are used, so a correlation value of -.5 would be
+  greater that \code{"val.rm=.4"} and thus not be omitted.
+  By default, this parameter is \code{NULL}, hence all
+  values are shown in the table.  If a correlation value is
+  below the specified value of \code{val.rm}, it is still
+  printed to the HTML table, but made "invisible" with
+  white foreground color. You can use the \code{CSS}
+  parameter (\code{"css.valueremove"}) to change color and
+  appearance of those correlation value that are smaller
+  than the limit specified by \code{val.rm}.}
+
+  \item{stringDiagonal}{a vector with string values of the
+  same length as \code{ncol(data)} (number of correlated
+  items) that can be used to display content in the
+  diagonal cells where row and column item are identical
+  (i.e. the "self-correlation"). By defauilt, this
+  parameter is \code{NULL} and the diagnal cells are
+  empty.}
+
   \item{encoding}{The charset encoding used for variable
   and value labels. Default is \code{"UTF-8"}. Change
   encoding if specific chars are not properly displayed
@@ -67,13 +99,18 @@ sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
   Parameters for this list need: \enumerate{ \item the
   class-names with \code{"css."}-prefix as parameter name
   and \item each style-definition must end with a semicolon
-  } Examples: \itemize{ \item \code{css.table='border:2px
-  solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold
+  } You can add style information to the default styles by
+  using a + (plus-sign) as initial character for the
+  parameter attributes. Examples: \itemize{ \item
+  \code{css.table='border:2px solid red;'} for a solid
+  2-pixel table border in red.  \item
+  \code{css.summary='font-weight:bold;'} for a bold
   fontweight in the summary row.  \item
   \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
-  for a blue dotted border of the last table row.  } See
-  further examples below.}
+  for a blue dotted border of the last table row.  \item
+  \code{css.summary='+color:blue;'} adds blue font color to
+  summary row.  } See further examples below and
+  \url{http://rpubs.com/sjPlot/sjtbasics}.}
 
   \item{useViewer}{If \code{TRUE}, the function tries to
   show the HTML table in the IDE's viewer pane. If
@@ -138,18 +175,34 @@ colnames(df) <- varlabs[c(start:end)]
 sjt.corr(df, pvaluesAsNumbers=TRUE)}
 
 # -------------------------------
-# auto-detection of labels
+# auto-detection of labels, only lower triangle
 # -------------------------------
 efc <- sji.setVariableLabels(efc, varlabs)
 \dontrun{
-sjt.corr(efc[,c(start:end)])}
+sjt.corr(efc[,c(start:end)], triangle="lower")}
+
+# -------------------------------
+# auto-detection of labels, only lower triangle,
+# all correlation values smaller than 0.3 are not
+# shown in the table
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+\dontrun{
+sjt.corr(efc[,c(start:end)], triangle="lower", val.rm=0.3)}
+
+# -------------------------------
+# auto-detection of labels, only lower triangle,
+# all correlation values smaller than 0.3 are printed
+# in blue
+# -------------------------------
+efc <- sji.setVariableLabels(efc, varlabs)
+\dontrun{
+sjt.corr(efc[,c(start:end)], triangle="lower",
+         val.rm=0.3, CSS=list(css.valueremove='color:blue;'))}
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\item
-\url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjtcorr} \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjp.corr}}

@@ -4,8 +4,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @title Plot contingency tables
 #' @name sjp.xtab
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjpxtab}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 #'              }
 #' 
 #' @seealso \code{\link{sjt.xtab}}
@@ -66,14 +66,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          in between. Recommended values for this parameter are from 0 to 0.5.
 #' @param barColor User defined color for bars.
 #'          \itemize{
-#'          \item If not specified (\code{NULL}), a default red-green-yellow color palette will be used for the bar charts.
+#'          \item If not specified (\code{NULL}), the "Set1" color palette from \url{http://colorbrewer2.org} will be used for the bar charts.
 #'          \item If barColor is \code{"gs"}, a greyscale will be used.
 #'          \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'          \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'          \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
 #'          }
 #'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
-#'          palettes supported by ggplot are accepted here.
+#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here.
+#'          All color brewer palettes supported by ggplot are accepted here.
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
 #' @param lineType The linetype when using line diagrams. Only applies, when parameter \code{type}
 #'          is set to \code{"lines"}.
@@ -91,11 +91,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}
+#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
+#'          Default is 0.2
 #' @param majorGridColor specifies the color of the major grid lines of the diagram background
 #' @param minorGridColor specifies the color of the minor grid lines of the diagram background
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
+#' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
+#'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
@@ -249,11 +253,13 @@ sjp.xtab <- function(y,
                     borderColor=NULL, 
                     axisColor=NULL, 
                     barOutline=FALSE, 
-                    outlineColor="black", 
+                    barOutlineSize=0.2,
+                    barOutlineColor="black", 
                     majorGridColor=NULL,
                     minorGridColor=NULL,
                     hideGrid.x=FALSE,
                     hideGrid.y=FALSE,
+                    expand.grid=FALSE,
                     showValueLabels=TRUE,
                     jitterValueLabels=FALSE,
                     showCategoryLabels=TRUE,
@@ -303,6 +309,12 @@ sjp.xtab <- function(y,
   }
   if (type=="l" || type=="line") {
     type <- c("lines")
+  }
+  if (expand.grid==TRUE) {
+    expand.grid <- waiver()
+  }
+  else {
+    expand.grid <- c(0,0)
   }
   # --------------------------------------------------------
   # unlist labels
@@ -587,7 +599,7 @@ sjp.xtab <- function(y,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -629,7 +641,7 @@ sjp.xtab <- function(y,
     # for lines, we have a different default colour palette because RYG is
     # better to distinguish with thin lines. For bars, we take blue colours
     # as default
-    fpal <- ifelse(type=="lines", "RdYlGn", "PuBu")
+    fpal <- ifelse(type=="lines", "RdYlGn", "Set1")
     scalecolors <- scale_fill_brewer(labels=legendLabels, palette=fpal)
     scalecolorsline <- scale_colour_brewer(labels=legendLabels, palette="RdYlGn")
   }
@@ -727,10 +739,10 @@ sjp.xtab <- function(y,
   # ----------------------------------
   if (type=="bars") {
     if (barPosition=="dodge") {
-      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
     else {
-      geob <- geom_bar(stat="identity", position="stack", colour=outlineColor, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
     }
   }
   # check if we have lines
@@ -803,7 +815,7 @@ sjp.xtab <- function(y,
     # set Y-axis, depending on the calculated upper y-range.
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
-    scale_y_continuous(breaks=gridbreaks, limits=c(0, upper_lim), expand=c(0,0), labels=percent) +
+    scale_y_continuous(breaks=gridbreaks, limits=c(0, upper_lim), expand=expand.grid, labels=percent) +
     scalecolors +
     ggtheme
   # when we have lines, we additionally need to apply "scale_colour"...

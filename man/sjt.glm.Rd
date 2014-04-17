@@ -18,7 +18,7 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   no.output = FALSE)
 }
 \arguments{
-  \item{...}{One or more fitted glm-objects.}
+  \item{...}{One or more fitted \code{\link{glm}}-objects.}
 
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified, the file will
@@ -162,13 +162,18 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   Parameters for this list need: \enumerate{ \item the
   class-names with \code{"css."}-prefix as parameter name
   and \item each style-definition must end with a semicolon
-  } Examples: \itemize{ \item \code{css.table='border:2px
-  solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold
+  } You can add style information to the default styles by
+  using a + (plus-sign) as initial character for the
+  parameter attributes. Examples: \itemize{ \item
+  \code{css.table='border:2px solid red;'} for a solid
+  2-pixel table border in red.  \item
+  \code{css.summary='font-weight:bold;'} for a bold
   fontweight in the summary row.  \item
   \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
-  for a blue dotted border of the last table row.  } See
-  further examples below.}
+  for a blue dotted border of the last table row.  \item
+  \code{css.colnames='+color:green'} to add green color
+  formatting to column names.  } See further examples below
+  and \url{http://rpubs.com/sjPlot/sjtbasics}.}
 
   \item{useViewer}{If \code{TRUE}, the function tries to
   show the HTML table in the IDE's viewer pane. If

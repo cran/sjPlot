@@ -16,17 +16,22 @@
 #'          in the default web browser.
 #' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
+#' @param showID If \code{TRUE} (default), the variable ID is shown in the first column.
 #' @param showType If \code{TRUE}, the variable type is shown in a separate column. Since
 #'          SPSS variable types are mostly \code{\link{numeric}} after import, this column
 #'          is hidden by default.
-#' @param showValues If \code{TRUE} (default), the variable values and their associated value labels
-#'          are shown as additional column.
+#' @param showValues If \code{TRUE} (default), the variable values are shown as additional column.
+#' @param showValueLabels If \code{TRUE} (default), the value labels are shown as additional column.
+#' @param showFreq If \code{TRUE}, an additional column with frequencies for each variable is shown.
+#' @param showPerc If \code{TRUE}, an additional column with percentage of frequencies for each variable is shown.
 #' @param orderByName If \code{TRUE}, rows are ordered according to the variable
 #'          names. By default, rows (variables) are ordered according to their
 #'          order in the data frame.
 #' @param breakVariableNamesAt Wordwrap for lomg variable names. Determines how many chars of
 #'          a variable name are displayed in one line and when a line break is inserted.
 #'          Default value is 50, use \code{NULL} to turn off word wrap.
+#' @param hideProgressBar If \code{TRUE}, the progress bar that is displayed when creating the
+#'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
@@ -36,13 +41,15 @@
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
-#'          Examples:
+#'          You can add style information to the default styles by using a + (plus-sign) as
+#'          initial character for the parameter attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
 #'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
+#'            \item \code{css.summary='+color:blue;'} to add blue font color style to the summary row.
 #'          }
-#'          See further examples below.
+#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -68,7 +75,7 @@
 #' 
 #' # view variables w/o values and value labels
 #' \dontrun{
-#' sji.viewSPSS(efc, showValues=FALSE)}
+#' sji.viewSPSS(efc, showValues=FALSE, showValueLabels=FALSE)}
 #' 
 #' # view variables including variable typed, orderd by name
 #' \dontrun{
@@ -87,11 +94,16 @@
 sji.viewSPSS <- function (df,
                           file=NULL,
                           alternateRowColors=TRUE,
+                          showID=TRUE,
                           showType=FALSE,
                           showValues=TRUE,
+                          showValueLabels=TRUE,
+                          showFreq=FALSE,
+                          showPerc=FALSE,
                           orderByName=FALSE,
                           breakVariableNamesAt=50,
                           encoding="UTF-8",
+                          hideProgressBar=FALSE,
                           CSS=NULL,
                           useViewer=TRUE,
                           no.output=FALSE) {
@@ -136,10 +148,10 @@ sji.viewSPSS <- function (df,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- CSS[['css.table']]
-    if (!is.null(CSS[['css.thead']])) css.thead <- CSS[['css.thead']]
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- CSS[['css.tdata']]
-    if (!is.null(CSS[['css.arc']])) css.arc <- CSS[['css.arc']]
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1)=='+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
   }
   # -------------------------------------
   # set style sheet
@@ -157,15 +169,20 @@ sji.viewSPSS <- function (df,
   # -------------------------------------
   # header row
   # -------------------------------------
-  page.content <- paste0(page.content, "  <tr>\n    <th class=\"thead\">ID</th><th class=\"thead\">Name</th>")
+  page.content <- paste0(page.content, "  <tr>\n    ")
+  if (showID) page.content <- paste0(page.content, "<th class=\"thead\">ID</th>")
+  page.content <- paste0(page.content, "<th class=\"thead\">Name</th>")
   if (showType) page.content <- paste0(page.content, "<th class=\"thead\">Type</th>")
   page.content <- paste0(page.content, "<th class=\"thead\">Label</th>")
-  if (showValues) page.content <- paste0(page.content, "<th class=\"thead\">Values</th><th class=\"thead\">Value Labels</th>")
+  if (showValues) page.content <- paste0(page.content, "<th class=\"thead\">Values</th>")
+  if (showValueLabels) page.content <- paste0(page.content, "<th class=\"thead\">Value Labels</th>")
+  if (showFreq) page.content <- paste0(page.content, "<th class=\"thead\">Freq.</th>")
+  if (showPerc) page.content <- paste0(page.content, "<th class=\"thead\">%</th>")
   page.content <- paste0(page.content, "\n  </tr>\n")
   # -------------------------------------
   # create progress bar
   # -------------------------------------
-  pb <- txtProgressBar(min=0, max=rowcnt, style=3)
+  if (!hideProgressBar) pb <- txtProgressBar(min=0, max=rowcnt, style=3)
   # -------------------------------------
   # subsequent rows
   # -------------------------------------
@@ -178,7 +195,7 @@ sji.viewSPSS <- function (df,
     if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 ==0, " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
     # ID
-    page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
+    if (showID) page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
     # name
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, names(df.var[index])))
     # type
@@ -205,7 +222,7 @@ sji.viewSPSS <- function (df,
     # values
     if (showValues) {
       if (index<=ncol(df)) {
-        vals <- rev(attr(df[,index], "value.labels"))
+        vals <- rev(unname(attr(df[,index], "value.labels")))
         valstring <- c("")
         for (i in 1:length(vals)) {
           valstring <- paste0(valstring, vals[i])
@@ -216,6 +233,9 @@ sji.viewSPSS <- function (df,
         valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
+    }
+    # values
+    if (showValueLabels) {
       if (index<=length(df.val)) {
         # value labels
         vals <- df.val[[index]]
@@ -230,12 +250,42 @@ sji.viewSPSS <- function (df,
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
+    # frequencies
+    if (showFreq) {
+      if (index<=ncol(df) && !is.null(attr(df[,index], "value.labels"))) {
+        ftab <- as.numeric(table(df[,index]))
+        valstring <- c("")
+        for (i in 1:length(ftab)) {
+          valstring <- paste0(valstring, ftab[i])
+          if (i<length(ftab)) valstring <- paste0(valstring, "<br>")
+        }
+      }
+      else {
+        valstring <- ""
+      }
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
+    }
+    # frequencies
+    if (showPerc) {
+      if (index<=ncol(df) && !is.null(attr(df[,index], "value.labels"))) {
+        ftab <- 100*as.numeric(prop.table(table(df[,index])))
+        valstring <- c("")
+        for (i in 1:length(ftab)) {
+          valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
+          if (i<length(ftab)) valstring <- paste0(valstring, "<br>")
+        }
+      }
+      else {
+        valstring <- ""
+      }
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
+    }
     # update progress bar
-    setTxtProgressBar(pb, rcnt)
+    if (!hideProgressBar) setTxtProgressBar(pb, rcnt)
     # close row tag
     page.content <- paste0(page.content, "  </tr>\n")
   }
-  close(pb)
+  if (!hideProgressBar) close(pb)
   # -------------------------------------
   # finish html page
   # -------------------------------------

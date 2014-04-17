@@ -16,7 +16,7 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   \item{data}{The variables which frequencies should be
   printed as table. Either use a single variable (vector)
   or a data frame where each column represents a variable
-  (see examples.}
+  (see examples).}
 
   \item{file}{The destination file, which will be in
   html-format. If no filepath is specified, the file will
@@ -125,13 +125,18 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   Parameters for this list need: \enumerate{ \item the
   class-names with \code{"css."}-prefix as parameter name
   and \item each style-definition must end with a semicolon
-  } Examples: \itemize{ \item \code{css.table='border:2px
-  solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold
+  } You can add style information to the default styles by
+  using a + (plus-sign) as initial character for the
+  parameter attributes. Examples: \itemize{ \item
+  \code{css.table='border:2px solid red;'} for a solid
+  2-pixel table border in red.  \item
+  \code{css.summary='font-weight:bold;'} for a bold
   fontweight in the summary row.  \item
   \code{css.lasttablerow='border-bottom: 1px dotted blue;'}
-  for a blue dotted border of the last table row.  } See
-  further examples below.}
+  for a blue dotted border of the last table row.  \item
+  \code{css.caption='+color:red;'} to add red font-color to
+  the default table caption style.  } See further examples
+  below and \url{http://rpubs.com/sjPlot/sjtbasics}.}
 
   \item{useViewer}{If \code{TRUE}, the function tries to
   show the HTML table in the IDE's viewer pane. If
@@ -219,11 +224,8 @@ sjt.frq(efc$e42dep,
                  css.firsttablecol="color:#003399; font-weight:bold;"))}
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\item
-\url{http://strengejacke.wordpress.com/2014/02/20/no-need-for-spss-beautiful-output-in-r-rstats/}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjtfrq} \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjp.frq}} \cr \code{\link{sjt.xtab}}

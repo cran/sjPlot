@@ -1,8 +1,8 @@
 #' @title Plot stacked proportional bars
 #' @name sjp.stackfrq
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjpstackfrq}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/07/17/plotting-likert-scales-net-stacked-distributions-with-ggplot-rstats/}
 #'              }
 #'             
 #' @seealso \code{\link{sjp.likert}} \cr
@@ -56,7 +56,7 @@
 #'          displayed in one line and when a line break is inserted.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Valid values range from 0 to 1.
-#' @param diagramMargins If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
+#' @param expand.grid If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
 #'          to the diagram's boundaries.
 #' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
 #' @param barColor User defined color for bars.
@@ -69,7 +69,9 @@
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
+#'          Default is 0.2
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -192,7 +194,7 @@ sjp.stackfrq <- function(items,
                         breakLegendTitleAt=30, 
                         breakLegendLabelsAt=28,
                         gridBreaksAt=0.2,
-                        diagramMargins=FALSE,
+                        expand.grid=FALSE,
                         barWidth=0.5, 
                         barColor=NULL,
                         colorPalette="GnBu",
@@ -200,7 +202,8 @@ sjp.stackfrq <- function(items,
                         borderColor=NULL, 
                         axisColor=NULL, 
                         barOutline=FALSE, 
-                        outlineColor="black", 
+                        barOutlineSize=0.2,
+                        barOutlineColor="black", 
                         majorGridColor=NULL,
                         minorGridColor=NULL,
                         hideGrid.x=FALSE,
@@ -282,6 +285,16 @@ sjp.stackfrq <- function(items,
   # passed as parameter
   #---------------------------------------------------
   mydat <- c()
+  # ----------------------------
+  # determine minimum value. if 0, add one, because
+  # vector indexing starts with 1
+  # ----------------------------
+  if (any(apply(items, c(1,2), is.factor)) || any(apply(items, c(1,2), is.character))) {
+    diff <- ifelse(min(apply(items, c(1,2), as.numeric),na.rm=TRUE)==0, 1, 0)
+  }
+  else {
+    diff <- ifelse(min(items,na.rm=TRUE)==0, 1, 0)
+  }
   # iterate item-list
   for (i in 1:ncol(items)) {
     # get each single items
@@ -302,17 +315,12 @@ sjp.stackfrq <- function(items,
     }
     # give columns names
     names(df) <- c("var", "prc")
-
-		##	FRS:  I can't suss out why we convert to numeric but rather than
-		##		this I'm just going to number them:
-    ## convert to numeric
-    #df$var <- as.numeric(as.character(df$var))
-    ## if categories start with zero, fix this here
-    #if (min(df$var)==0) {
-    #  df$var <- df$var+1
-    #}
-		df$var <- 1:length(df$var)
-
+    # need to be numeric, so percentage values (see below) are
+    # correctly assigned, i.e. missing categories are considered
+    df$var <- as.numeric(as.character(df$var))+diff # if categories start with zero, fix this here
+#     if (min(df$var)==0) {
+#       df$var <- df$var+1
+#     }
     # Create a vector of zeros 
     prc <- rep(0,countlen)
     # Replace the values in prc for those indices which equal df$var
@@ -422,7 +430,7 @@ sjp.stackfrq <- function(items,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -451,7 +459,7 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   # set diagram margins
   # --------------------------------------------------------
-  if (diagramMargins) {
+  if (expand.grid) {
     expgrid <- waiver()
   }
   else {
@@ -541,7 +549,7 @@ sjp.stackfrq <- function(items,
   }  
   baseplot <- baseplot +
     # plot bar chart
-    geom_bar(stat="identity", position="stack", colour=outlineColor, width=barWidth, alpha=barAlpha)
+    geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
   # --------------------------------------------------------
   # check whether bars should be visually separated by an 
   # additional separator line

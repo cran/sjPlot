@@ -229,4 +229,7 @@ sjp.corr(efc[,c(start:end)])
 \url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
 }
 }
+\seealso{
+\code{\link{sjt.corr}}
+}
 

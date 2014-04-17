@@ -11,13 +11,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'              \item \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
 #'              }
 #' 
-#' @description Plot odds ratios with confidence intervalls as bar chart or dot plot
+#' @description Plot odds ratios (exponentiated coefficients) with confidence intervalls as bar chart or dot plot
 #' @seealso \code{\link{sjp.glm.ma}}
 #' 
 #' @note Based on the script from surefoss:
 #' \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
 #'
-#' @param fit The fitted model of a logistic regression (glm-Object).
+#' @param fit The fitted model of a logistic regression (or any other \code{\link{glm}}-object).
 #' @param sortOdds If \code{TRUE} (default), the odds ratios are ordered according their OR value from highest first
 #'          to lowest last. Use \code{FALSE} if you don't want to change the order of the predictors.
 #' @param title Diagram's title as string.
@@ -68,9 +68,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'            \item \code{"gray"}, \code{"grey"} or \code{"gs"} for a grayscale
 #'            \item \code{"brewer"} for colours from the color brewer palette.
 #'            }
-#'          If barColors is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'          If barColors is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}
 #'          Else specify your own color values as vector (e.g. \code{barColors=c("#f00000", "#00ff00")}).
-#' @param colorPalette If parameter \code{barColor} is \code{brewer}, specify a color palette from the color brewer here.
+#' @param colorPalette If parameter \code{barColor} is \code{brewer}, specify a color palette from the \url{http://colorbrewer2.org} here.
 #'          All color brewer palettes supported by ggplot are accepted here.
 #' @param barWidth The width of the bars in bar charts. only applies if parameter \code{type} is \code{bars}. Default is 0.5
 #' @param barAlpha The alpha value of the bars in bar charts. only applies if parameter \code{type} is \code{bars}. Default is 1
@@ -86,7 +86,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. only applies if parameter \code{type} is \code{bars}.
 #'          Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
 #'          Default is black.
 #' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
 #' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
@@ -204,7 +204,7 @@ sjp.glm <- function(fit,
                     axisColor=NULL, 
                     borderColor=NULL, 
                     barOutline=FALSE, 
-                    outlineColor="black", 
+                    barOutlineColor="black", 
                     interceptLineType=2,
                     interceptLineColor="grey70",
                     majorGridColor=NULL,
@@ -508,7 +508,7 @@ sjp.glm <- function(fit,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Order odds according to beta-coefficients
@@ -560,7 +560,7 @@ sjp.glm <- function(fit,
       # stat-parameter indicates statistics
       # stat="bin": y-axis relates to count of variable
       # stat="identity": y-axis relates to value of variable
-      geom_bar(aes(fill=(OR>1)), stat="identity", position="identity", width=barWidth, colour=outlineColor, alpha=barAlpha) +
+      geom_bar(aes(fill=(OR>1)), stat="identity", position="identity", width=barWidth, colour=barOutlineColor, alpha=barAlpha) +
       # print value labels and p-values
       geom_text(aes(label=p, y=1), vjust=-1, hjust=odds$labhjust, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha)
     if (hideErrorBars==FALSE) {
@@ -651,7 +651,7 @@ sjp.glm <- function(fit,
 #' 
 #' @seealso \code{\link{sjp.glm}}
 
-#' @param logreg a fitted glm-model
+#' @param logreg a fitted \code{\link{glm}}-model
 #' @param showOriginalModelOnly if \code{TRUE} (default), only the model assumptions of the fitted model
 #'   \code{logreg} are plotted. if \code{FALSE}, the model assumptions of an updated model where outliers
 #'   are automatically excluded are also plotted.

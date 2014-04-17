@@ -141,14 +141,14 @@ sjp.glmm(..., title = NULL, titleSize = 1.3, titleColor = "black",
   \code{"brewer"} for colours from the color brewer
   palette.  } If \code{modelColors} is \code{"brewer"}, use
   the \code{colorPalette} parameter to specify a palette of
-  the color brewer.  Else specify your own color values as
-  vector (e.g. \code{modelColors=c("#f00000",
-  "#00ff00")}).}
+  the \url{http://colorbrewer2.org} Else specify your own
+  color values as vector (e.g.
+  \code{modelColors=c("#f00000", "#00ff00")}).}
 
   \item{colorPalette}{If parameter \code{modelColors} is
-  \code{brewer}, specify a color palette from the color
-  brewer here.  All color brewer palettes supported by
-  ggplot are accepted here.}
+  \code{brewer}, specify a color palette from the
+  \url{http://colorbrewer2.org} here.  All color brewer
+  palettes supported by ggplot are accepted here.}
 
   \item{axisLabelColor}{Colour of the tick labels at the
   axis (variable names, odds names).}

@@ -12,11 +12,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'                \item After that, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
 #'                \item These results are shown in a graph.
 #'                }
+#'                This method can also be used to plot existing cluster solution as graph witouth computing
+#'                a new cluster analysis. See parameter \code{groups} for more details.
 #'                
 #' @seealso \code{\link{sjc.cluster}} \cr
 #'          \code{\link{sjc.kgap}} \cr
 #'          \code{\link{sjc.elbow}} \cr
-#'          \code{\link{sjc.grpdisc}}
+#'          \code{\link{sjc.grpdisc}} \cr
+#'          Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
@@ -89,17 +92,19 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'            \item If not specified (\code{NULL}), a default color palette will be used for the bar charts.
 #'            \item If barColor is \code{"gs"}, a greyscale will be used.
 #'            \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer.
+#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
 #'            }
 #'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
+#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here. All color brewer 
 #'          palettes supported by ggplot are accepted here.
 #' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
 #' @param barSpace Spacing between bars. Default value is 0.1. If 0 is used, the grouped bars are sticked together and have no space
 #'          in between. Recommended values for this parameter are from 0 to 0.5
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
+#'          Default is 0.2
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
 #'          background with white grids.
 #'          \itemize{
@@ -198,7 +203,8 @@ sjc.qclus <- function(data,
                       barWidth=0.5,
                       barSpace=0.1,
                       barOutline=FALSE, 
-                      outlineColor="black", 
+                      barOutlineSize=0.2,
+                      barOutlineColor="black", 
                       theme=NULL,
                       borderColor=NULL, 
                       axisColor=NULL, 
@@ -381,7 +387,7 @@ sjc.qclus <- function(data,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -433,7 +439,7 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   gp <- 
     ggplot(df, aes(x=x, y=y, fill=group)) +
-      geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=outlineColor, width=barWidth, alpha=barAlpha) +
+      geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha) +
       scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
       labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)
   # --------------------------------------------------------
@@ -543,11 +549,13 @@ sjc.qclus <- function(data,
 #' @name sjc.cluster
 #' @description Compute hierarchical or kmeans cluster analysis and returns the group
 #'                association for each observation as vector.
-#' @seealso \code{\link{sjc.dend}} \cr
+#' @seealso \code{\link{sjc.qclus}} \cr
+#'          \code{\link{sjc.dend}} \cr
 #'          \code{\link{sjc.grpdisc}} \cr
 #'          \code{\link{sjc.elbow}} \cr
 #'          \code{\link{kmeans}} \cr
-#'          \code{\link{hclust}}
+#'          \code{\link{hclust}} \cr
+#'          Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.

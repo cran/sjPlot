@@ -6,8 +6,8 @@
 #'                for each group as well as for the overall plot.
 #'
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjpscatter}
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/02/28/simply-creating-various-scatter-plots-with-ggplot-rstats/}
 #'              }
 #'              
 #' @seealso \code{\link{sjp.lm1}} \cr
@@ -79,7 +79,7 @@
 #'          If more than 15\% (see \code{jitterRatio}) of the approximated amount of unique point coordinates seem to
 #'          overlap, they are automatically jittered.
 #' @param jitterRatio The ratio of tolerated overlapping (see \code{autojitter}). If approximated amount of overlapping 
-#'          points exceed this ration, they are automatically jittered. Defsault is 0.15. Valid values range between 0 and 1.
+#'          points exceed this ration, they are automatically jittered. Default is 0.15. Valid values range between 0 and 1.
 #' @param showRug If \code{TRUE}, a marginal rug plot is displayed in the graph (see \url{http://docs.ggplot2.org/current/geom_rug.html}
 #'          for more details).)
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.

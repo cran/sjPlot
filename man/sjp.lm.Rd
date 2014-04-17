@@ -245,11 +245,8 @@ sjp.lm(fit, gridBreaksAt=2)
 sjp.lm(fit, showStandardBeta=FALSE)
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\item
-\url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjplm} \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjp.lm.ma}} \cr \code{\link{sjp.reglin}} \cr

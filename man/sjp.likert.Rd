@@ -10,10 +10,10 @@ sjp.likert(items, legendLabels = NULL, orderBy = NULL,
   axisLabelAngle.x = 0, axisLabelColor = "gray30", valueLabelSize = 4,
   valueLabelColor = "black", breakTitleAt = 50, breakLabelsAt = 30,
   breakLegendTitleAt = 30, breakLegendLabelsAt = 28, gridRange = 1,
-  gridBreaksAt = 0.2, diagramMargins = TRUE, barWidth = 0.5,
+  gridBreaksAt = 0.2, expand.grid = TRUE, barWidth = 0.5,
   barColor = NULL, colorPalette = "GnBu", barAlpha = 1,
   borderColor = NULL, axisColor = NULL, barOutline = FALSE,
-  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
+  barOutlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, axisTitle.x = NULL,
   axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
   theme = NULL, showTickMarks = FALSE, showValueLabels = TRUE,
@@ -126,9 +126,9 @@ sjp.likert(items, legendLabels = NULL, orderBy = NULL,
   at every n'th position a major grid is being printed.
   Valid values range from 0 to 1.}
 
-  \item{diagramMargins}{If \code{TRUE} (default), the
-  diagram has margins, i.e. the y-axis is not exceeded to
-  the diagram's boundaries.}
+  \item{expand.grid}{If \code{TRUE} (default), the diagram
+  has margins, i.e. the y-axis is not exceeded to the
+  diagram's boundaries.}
 
   \item{barWidth}{Width of bars. Recommended values for
   this parameter are from 0.4 to 1.5}
@@ -162,7 +162,7 @@ sjp.likert(items, legendLabels = NULL, orderBy = NULL,
   \item{barOutline}{If \code{TRUE}, each bar gets a colored
   outline. Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.}
 
   \item{majorGridColor}{Specifies the color of the major

@@ -24,6 +24,9 @@ SPSS data set and returns the result as list.
 # retrieve value labels
 # mydat.val <- sji.getValueLabels(mydat)
 }
+\references{
+\url{http://rpubs.com/sjPlot/datainit}
+}
 \seealso{
 \link{sji.SPSS} \cr \link{sji.getVariableLabels} \cr
 \link{sji.convertToLabel} \cr \link{sji.convertToValue} \cr

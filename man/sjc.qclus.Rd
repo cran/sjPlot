@@ -12,10 +12,10 @@ sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
   axisTitleSize = 1.3, breakTitleAt = 40, breakLabelsAt = 12,
   breakLegendTitleAt = 20, breakLegendLabelsAt = 20, facetCluster = FALSE,
   barColor = NULL, barAlpha = 1, colorPalette = "GnBu", barWidth = 0.5,
-  barSpace = 0.1, barOutline = FALSE, outlineColor = "black",
-  theme = NULL, borderColor = NULL, axisColor = NULL,
-  hideLegend = FALSE, showTickMarks = TRUE, showAxisLabels.x = TRUE,
-  showAxisLabels.y = TRUE, showGroupCount = TRUE,
+  barSpace = 0.1, barOutline = FALSE, barOutlineSize = 0.2,
+  barOutlineColor = "black", theme = NULL, borderColor = NULL,
+  axisColor = NULL, hideLegend = FALSE, showTickMarks = TRUE,
+  showAxisLabels.x = TRUE, showAxisLabels.y = TRUE, showGroupCount = TRUE,
   showAccuracyLabels = FALSE, legendTitle = NULL, legendLabels = NULL,
   legendPos = "right", legendSize = 1, legendBorderColor = "white",
   legendBackColor = "white", majorGridColor = NULL, minorGridColor = NULL,
@@ -162,17 +162,17 @@ sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
   If barColor is \code{"bw"}, a monochrome white filling
   will be used.  \item If barColor is \code{"brewer"}, use
   the \code{colorPalette} parameter to specify a palette of
-  the color brewer.  } Else specify your own color values
-  as vector (e.g. \code{barColor=c("#f00000", "#00ff00",
-  "#0080ff")}).}
+  the \url{http://colorbrewer2.org}.  } Else specify your
+  own color values as vector (e.g.
+  \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).}
 
   \item{barAlpha}{Specify the transparancy (alpha value) of
   bars.}
 
   \item{colorPalette}{If \code{barColor} is
-  \code{"brewer"}, specify a color palette from the color
-  brewer here. All color brewer palettes supported by
-  ggplot are accepted here.}
+  \code{"brewer"}, specify a color palette from the
+  \url{http://colorbrewer2.org} here. All color brewer
+  palettes supported by ggplot are accepted here.}
 
   \item{barWidth}{Width of bars. Recommended values for
   this parameter are from 0.4 to 1.5}
@@ -185,8 +185,12 @@ sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
   \item{barOutline}{If \code{TRUE}, each bar gets a colored
   outline. Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}.}
+
+  \item{barOutlineSize}{The size of the bar outlines. Only
+  applies if \code{barOutline} is \code{TRUE}.  Default is
+  0.2}
 
   \item{theme}{Specifies the diagram's background theme.
   Default (parameter \code{NULL}) is a gray background with
@@ -297,7 +301,10 @@ scaled and centered. The mean value of these z-scores
 within each cluster group is calculated to see how certain
 characteristics (variables) in a cluster group differ in
 relation to other cluster groups.  \item These results are
-shown in a graph.  }
+shown in a graph.  } This method can also be used to plot
+existing cluster solution as graph witouth computing a new
+cluster analysis. See parameter \code{groups} for more
+details.
 }
 \note{
 To get similar results as in SPSS Quick Cluster function,
@@ -324,6 +331,9 @@ sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)
 }
 \seealso{
 \code{\link{sjc.cluster}} \cr \code{\link{sjc.kgap}} \cr
-\code{\link{sjc.elbow}} \cr \code{\link{sjc.grpdisc}}
+\code{\link{sjc.elbow}} \cr \code{\link{sjc.grpdisc}} \cr
+Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K
+(2014) cluster: Cluster Analysis Basics and Extensions. R
+package.
 }
 

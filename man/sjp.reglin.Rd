@@ -90,6 +90,9 @@ sjp.reglin(fit, efc, showScatterPlot=FALSE)
 # reression line w/o CI
 sjp.reglin(fit, efc, showCI=FALSE)
 }
+\references{
+\url{http://rpubs.com/sjPlot/sjplm}
+}
 \seealso{
 \code{\link{sjp.lm}} \cr \code{\link{sjp.scatter}} \cr
 \code{\link{sjp.lm.ma}} \cr \code{\link{sjp.lm.int}}

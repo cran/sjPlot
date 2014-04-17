@@ -15,13 +15,14 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   barColor = NULL, colorPalette = "GnBu", barAlpha = 1, lineType = 1,
   lineSize = 1, lineAlpha = 1, lineDotSize = 3, smoothLines = FALSE,
   borderColor = NULL, axisColor = NULL, barOutline = FALSE,
-  outlineColor = "black", majorGridColor = NULL, minorGridColor = NULL,
-  hideGrid.x = FALSE, hideGrid.y = FALSE, showValueLabels = TRUE,
-  jitterValueLabels = FALSE, showCategoryLabels = TRUE,
-  showTickMarks = TRUE, showTableSummary = TRUE, tableSummaryPos = "r",
-  showTotalColumn = TRUE, hideLegend = FALSE, axisTitle.x = NULL,
-  axisTitle.y = NULL, axisTitleColor = "black", axisTitleSize = 1.3,
-  theme = NULL, flipCoordinates = FALSE, printPlot = TRUE)
+  barOutlineSize = 0.2, barOutlineColor = "black", majorGridColor = NULL,
+  minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
+  expand.grid = FALSE, showValueLabels = TRUE, jitterValueLabels = FALSE,
+  showCategoryLabels = TRUE, showTickMarks = TRUE,
+  showTableSummary = TRUE, tableSummaryPos = "r", showTotalColumn = TRUE,
+  hideLegend = FALSE, axisTitle.x = NULL, axisTitle.y = NULL,
+  axisTitleColor = "black", axisTitleSize = 1.3, theme = NULL,
+  flipCoordinates = FALSE, printPlot = TRUE)
 }
 \arguments{
   \item{y}{The variable which proportions (percentage
@@ -139,20 +140,21 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   to 0.5.}
 
   \item{barColor}{User defined color for bars.  \itemize{
-  \item If not specified (\code{NULL}), a default
-  red-green-yellow color palette will be used for the bar
-  charts.  \item If barColor is \code{"gs"}, a greyscale
-  will be used.  \item If barColor is \code{"bw"}, a
-  monochrome white filling will be used.  \item If barColor
-  is \code{"brewer"}, use the \code{colorPalette} parameter
-  to specify a palette of the color brewer.  } Else specify
-  your own color values as vector (e.g.
-  \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).}
+  \item If not specified (\code{NULL}), the "Set1" color
+  palette from \url{http://colorbrewer2.org} will be used
+  for the bar charts.  \item If barColor is \code{"gs"}, a
+  greyscale will be used.  \item If barColor is
+  \code{"bw"}, a monochrome white filling will be used.
+  \item If barColor is \code{"brewer"}, use the
+  \code{colorPalette} parameter to specify a palette of the
+  \url{http://colorbrewer2.org}.  } Else specify your own
+  color values as vector (e.g. \code{barColor=c("#f00000",
+  "#00ff00", "#0080ff")}).}
 
   \item{colorPalette}{If \code{barColor} is
-  \code{"brewer"}, specify a color palette from the color
-  brewer here. All color brewer palettes supported by
-  ggplot are accepted here.}
+  \code{"brewer"}, specify a color palette from the
+  \url{http://colorbrewer2.org} here.  All color brewer
+  palettes supported by ggplot are accepted here.}
 
   \item{barAlpha}{Specify the transparancy (alpha value) of
   bars.}
@@ -190,8 +192,12 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
   \item{barOutline}{If \code{TRUE}, each bar gets a colored
   outline. Default is \code{FALSE}.}
 
-  \item{outlineColor}{The color of the bar outline. Only
+  \item{barOutlineColor}{The color of the bar outline. Only
   applies, if \code{barOutline} is set to \code{TRUE}}
+
+  \item{barOutlineSize}{The size of the bar outlines. Only
+  applies if \code{barOutline} is \code{TRUE}.  Default is
+  0.2}
 
   \item{majorGridColor}{specifies the color of the major
   grid lines of the diagram background}
@@ -204,6 +210,10 @@ sjp.xtab(y, x, title = NULL, titleSize = 1.3, titleColor = "black",
 
   \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines
   are hidden. Default if \code{FALSE}.}
+
+  \item{expand.grid}{If \code{TRUE}, the plot grid is
+  expanded, i.e. there is a small margin between axes and
+  plotting region. Default is \code{FALSE}.}
 
   \item{showValueLabels}{Whether counts and percentage
   values should be plotted to each bar}
@@ -372,11 +382,8 @@ efc <- sji.setVariableLabels(efc, efc.var)
 sjp.xtab(efc$e16sex, efc$e42dep, title="auto", axisTitle.x="auto")
 }
 \references{
-\itemize{ \item
-\url{http://strengejacke.wordpress.com/sjplot-r-package/}
-\item
-\url{http://strengejacke.wordpress.com/2013/04/18/examples-for-sjplotting-functions-including-correlations-and-proportional-tables-with-ggplot-rstats/}
-}
+\itemize{ \item \url{http://rpubs.com/sjPlot/sjpxtab} \item
+\url{http://strengejacke.wordpress.com/sjplot-r-package/} }
 }
 \seealso{
 \code{\link{sjt.xtab}}

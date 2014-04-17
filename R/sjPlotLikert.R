@@ -67,7 +67,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #'          range from 0 (0 percent) to 1 (100 percent).
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Valid values range from 0 to 1.
-#' @param diagramMargins If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
+#' @param expand.grid If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
 #'          to the diagram's boundaries.
 #' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
 #' @param barColor User defined color for bars.
@@ -85,7 +85,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #' @param barAlpha Specify the transparancy (alpha value) of bars.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param outlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
+#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -201,7 +201,7 @@ sjp.likert <- function(items,
                         breakLegendLabelsAt=28,
                         gridRange=1,
                         gridBreaksAt=0.2,
-                        diagramMargins=TRUE,
+                        expand.grid=TRUE,
                         barWidth=0.5, 
                         barColor=NULL,
                         colorPalette="GnBu",
@@ -209,7 +209,7 @@ sjp.likert <- function(items,
                         borderColor=NULL, 
                         axisColor=NULL, 
                         barOutline=FALSE, 
-                        outlineColor="black", 
+                        barOutlineColor="black", 
                         majorGridColor=NULL,
                         minorGridColor=NULL,
                         hideGrid.x=FALSE,
@@ -531,7 +531,7 @@ sjp.likert <- function(items,
   # check whether bars should have an outline
   # --------------------------------------------------------
   if (!barOutline) {
-    outlineColor <- waiver()
+    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -560,7 +560,7 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # set diagram margins
   # --------------------------------------------------------
-  if (diagramMargins) {
+  if (expand.grid) {
     expgrid <- waiver()
   }
   else {
@@ -671,8 +671,8 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   baseplot <- ggplot() +
     aes(Question, Freq, fill = Response, order = Response) + 
-    geom_bar(data = neg, stat = "identity", colour=outlineColor, width=barWidth, alpha=barAlpha) +
-    geom_bar(data = pos, stat = "identity", colour=outlineColor, width=barWidth, alpha=barAlpha) +
+    geom_bar(data = neg, stat = "identity", colour=barOutlineColor, width=barWidth, alpha=barAlpha) +
+    geom_bar(data = pos, stat = "identity", colour=barOutlineColor, width=barWidth, alpha=barAlpha) +
     geom_hline(yintercept=0, colour="white")
   # --------------------------------------------------------
   # check whether bars should be visually separated by an 
