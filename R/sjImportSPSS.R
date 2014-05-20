@@ -118,7 +118,7 @@ getValLabels <- function(x){
 #' 
 #' @export
 sji.setValueLabels <- function(x, labels) {
-  if (is.vector(x)) {
+  if (is.vector(x) || is.atomic(x)) {
     return (sji.setValueLabels.vector(x, labels))
   }
   else if (is.data.frame(x) || is.matrix(x)) {

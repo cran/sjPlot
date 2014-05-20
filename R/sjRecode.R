@@ -726,7 +726,7 @@ sju.mwu <- function(var, grp, alternative="two.sided") {
 #'          as \code{var}'s amount of categories / factor levels. Use \code{nrow(table(var))} to
 #'          determine the amount of necessary values for \code{prob}.
 #' @param weights a vector with weights, used to weight \code{var}.
-#' @value (insisibly) returns the object of the computed \code{\link{chisq.test}}.
+#' @return (insisibly) returns the object of the computed \code{\link{chisq.test}}.
 #' 
 #' @note This function is a convenient function for \code{\link{chisq.test}}, performing goodness-of-fit test.
 #' 

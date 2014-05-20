@@ -285,7 +285,7 @@ sjt.itemanalysis <- function(df,
     # store scaled values of each item's total score
     # to compute correlation coefficients between identified components
     # -----------------------------------
-    df.subcc <- subset(na.omit(df), select=which(factor.groups==findex[i]))
+    df.subcc <- subset(df, select=which(factor.groups==findex[i]))
     comcor <- scale(apply(df.subcc, 1, sum), center=TRUE, scale=TRUE)
     # -----------------------------------
     # check if we have valid return values from reliability test.
@@ -375,11 +375,11 @@ sjt.itemanalysis <- function(df,
     # check if we have enough components
     if (length(df.comcor)>1) {
       # copy all component correlation values to a data frame
-      df.cc <- data.frame(matrix(unlist(df.comcor), nrow=nrow(na.omit(df)), byrow=TRUE))
+      df.cc <- data.frame(matrix(unlist(df.comcor), nrow=nrow(df), byrow=FALSE))
       # give proper columm names
       colnames(df.cc) <- sprintf("Component %i", c(1:ncol(df.cc)))
       # compute correlation table, store html result
-      html <- sjt.corr(df.cc, missingDeletion="listwise", pvaluesAsNumbers=TRUE, stringDiagonal=sprintf("&alpha;=%.3f", unlist(cronbach.total)), encoding=encoding, no.output=TRUE)
+      html <- sjt.corr(df.cc, missingDeletion="listwise", pvaluesAsNumbers=TRUE, triangle="lower", stringDiagonal=sprintf("&alpha;=%.3f", unlist(cronbach.total)), encoding=encoding, no.output=TRUE)
       # add to html that is printed
       complete.page <- paste0(complete.page, html$knitr)
       knitr.list[[length(knitr.list)+1]] <- html$knitr
