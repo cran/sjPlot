@@ -87,6 +87,7 @@
 #' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
 #'          not to the tick mark or category labels.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
+#' @param showPercentageAxis If \code{TRUE} (default), the percentage values at the x-axis are shown.
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
@@ -215,6 +216,7 @@ sjp.stackfrq <- function(items,
                         theme=NULL,
                         showTickMarks=FALSE,
                         showValueLabels=TRUE,
+                        showPercentageAxis=TRUE,
                         jitterValueLabels=FALSE,
                         showItemLabels=TRUE,
                         showSeparatorLine=FALSE,
@@ -565,6 +567,10 @@ sjp.stackfrq <- function(items,
     # remove guide / legend
     baseplot <- baseplot + guides(fill=FALSE)
   }
+  # -----------------
+  # show/hide percentage values on x axis
+  # ----------------------------
+  if (!showPercentageAxis) percent <- NULL
   baseplot <- baseplot +
     # show absolute and percentage value of each bar.
     ggvaluelabels +

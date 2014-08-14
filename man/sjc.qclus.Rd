@@ -21,7 +21,7 @@ sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
   legendPos = "right", legendSize = 1, legendBorderColor = "white",
   legendBackColor = "white", majorGridColor = NULL, minorGridColor = NULL,
   hideGrid.x = FALSE, hideGrid.y = FALSE, flipCoordinates = FALSE,
-  printPlot = TRUE)
+  reverseAxis.x = FALSE, printPlot = TRUE)
 }
 \arguments{
 \item{data}{The data frame containing all variables that should be used for the
@@ -194,6 +194,8 @@ positioning is default.}
 \item{hideGrid.y}{If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.}
 
 \item{flipCoordinates}{If \code{TRUE}, the x and y axis are swapped.}
+
+\item{reverseAxis.x}{if \code{TRUE}, the values on the x-axis are reversed.}
 
 \item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
          want to plot any graphs. In either case, the ggplot-object will be returned as value.}

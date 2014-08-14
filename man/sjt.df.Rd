@@ -6,9 +6,9 @@
 sjt.df(df, describe = TRUE, file = NULL, alternateRowColors = FALSE,
   orderColumn = NULL, orderAscending = TRUE, title = NULL,
   repeatHeader = FALSE, stringVariable = "Variable", showType = FALSE,
-  showCommentRow = FALSE, commentString = "No comment...",
-  hideProgressBar = FALSE, encoding = "UTF-8", CSS = NULL,
-  useViewer = TRUE, no.output = FALSE)
+  showRowNames = TRUE, showCommentRow = FALSE,
+  commentString = "No comment...", hideProgressBar = FALSE,
+  encoding = "UTF-8", CSS = NULL, useViewer = TRUE, no.output = FALSE)
 }
 \arguments{
 \item{df}{A data frame that should be printed.}
@@ -42,6 +42,9 @@ be helpful, if you have longer tables and want to see the column names at the en
 
 \item{showType}{If \code{TRUE}, the variable type is shown in a separate row below the column
 names.}
+
+\item{showRowNames}{If \code{TRUE} and \code{describe} is \code{false}, first table column contains row names
+of data frame. Use \code{showRowNames=FALSE} to omit first table column with row names.}
 
 \item{showCommentRow}{If \code{TRUE}, an optional comment line can be added to the end / below
 the table. Use \code{commentString} to specify the comment.}

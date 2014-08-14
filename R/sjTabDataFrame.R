@@ -36,6 +36,8 @@
 #'          be helpful, if you have longer tables and want to see the column names at the end of the table as well.
 #' @param showType If \code{TRUE}, the variable type is shown in a separate row below the column
 #'          names.
+#' @param showRowNames If \code{TRUE} and \code{describe} is \code{false}, first table column contains row names
+#'          of data frame. Use \code{showRowNames=FALSE} to omit first table column with row names.
 #' @param showCommentRow If \code{TRUE}, an optional comment line can be added to the end / below
 #'          the table. Use \code{commentString} to specify the comment.
 #' @param commentString A string that will be added to the end / below the table. Only
@@ -124,6 +126,7 @@ sjt.df <- function (df,
                     repeatHeader=FALSE,
                     stringVariable="Variable",
                     showType=FALSE,
+                    showRowNames=TRUE,
                     showCommentRow=FALSE,
                     commentString="No comment...",
                     hideProgressBar=FALSE,
@@ -249,7 +252,9 @@ sjt.df <- function (df,
   # -------------------------------------
   # header row
   # -------------------------------------
-  page.content <- paste0(page.content, sprintf("  <tr>\n    <th class=\"thead firsttablerow firsttablecol\">%s</th>\n", stringVariable))
+  page.content <- paste0(page.content, "  <tr>\n")
+  # first columns are rownames
+  if (showRowNames) page.content <- paste0(page.content, sprintf("    <th class=\"thead firsttablerow firsttablecol\">%s</th>\n", stringVariable))
   for (i in 1:colcnt) {
     # check variable type
     vartype <- c("unknown type")
@@ -277,7 +282,7 @@ sjt.df <- function (df,
     if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 ==0, " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
     # first table cell is rowname
-    page.content <- paste0(page.content, sprintf("    <td class=\"tdata leftalign firsttablecol%s\">%s</td>\n", arcstring, rnames[rcnt]))
+    if (showRowNames) page.content <- paste0(page.content, sprintf("    <td class=\"tdata leftalign firsttablecol%s\">%s</td>\n", arcstring, rnames[rcnt]))
     # all columns of a row
     for (ccnt in 1:colcnt) {
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata centertalign%s\">%s</td>\n", arcstring, df[rcnt,ccnt]))
@@ -292,7 +297,8 @@ sjt.df <- function (df,
   # repeat header row?
   # -------------------------------------
   if (repeatHeader) {
-    page.content <- paste0(page.content, sprintf("  <tr>\n    <th class=\"thead lasttablerow firsttablecol\">%s</th>\n", stringVariable))
+    page.content <- paste0(page.content, "  <tr>\n")
+    if (showRowNames) page.content <- paste0(page.content, sprintf("    <th class=\"thead lasttablerow firsttablecol\">%s</th>\n", stringVariable))
     for (i in 1:colcnt) {
       # check variable type
       vartype <- c("unknown type")
@@ -312,6 +318,7 @@ sjt.df <- function (df,
   # -------------------------------------
   if (showCommentRow) {
     page.content <- paste0(page.content, "  <tr>\n")
+    if (!showRowNames) colcnt <- colcnt-1
     page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"comment\">%s</td>\n", colcnt+1, commentString))
     # close row tag
     page.content <- paste0(page.content, "</tr>\n")

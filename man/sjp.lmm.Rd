@@ -21,7 +21,8 @@ sjp.lmm(..., title = NULL, titleSize = 1.3, titleColor = "black",
   legendPos = "right", legendSize = 1, legendBorderColor = "white",
   legendBackColor = "white", showIntercept = FALSE,
   showAxisLabels.y = TRUE, showTickMarks = TRUE, showValueLabels = TRUE,
-  labelDigits = 2, showPValueLabels = TRUE, printPlot = TRUE)
+  labelDigits = 2, showPValueLabels = TRUE, useFacetGrid = FALSE,
+  printPlot = TRUE)
 }
 \arguments{
 \item{...}{One or more fitted lm-objects.}
@@ -183,6 +184,9 @@ Default is 2, i.e. estimators have 2 digits after decimal point.}
 \item{showPValueLabels}{Whether the significance levels of each coefficient should be appended
 to values or not.}
 
+\item{useFacetGrid}{\code{TRUE} when each model should be plotted as single facet instead of
+an integrated single graph.}
+
 \item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
@@ -208,7 +212,7 @@ fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
 
 # plot multiple models
-sjp.lmm(fit1, fit2, fit3)
+sjp.lmm(fit1, fit2, fit3, useFacetGrid=TRUE)
 
 # plot multiple models with legend labels and point shapes instead of value  labels
 sjp.lmm(fit1, fit2, fit3,

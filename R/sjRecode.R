@@ -1,3 +1,6 @@
+# bind global variables
+if(getRversion() >= "2.15.1") utils::globalVariables(c("NEWDAT"))
+
 #' @title Dichotomize variables
 #' @name sju.dicho
 #' @description Dichotomizes variables into dummy variables (0/1). Dichotomization is
@@ -657,21 +660,31 @@ sju.weight <- function(var, weights) {
 #' @title Performs a Mann-Whitney-U-Test
 #' @name sju.mwu
 #' @description This function performs a Mann-Whitney-U-Test (or \code{Wilcoxon rank sum test},
-#'                see \code{\link{wilcox.test}}) for the variable \code{var}, which is
+#'                see \code{\link{wilcox.test}} and \code{\link{wilcox_test}}) for the variable \code{var}, which is
 #'                divided into groups indicated by \code{grp} (so the formula \code{var ~ grp}
 #'                is used). If \code{grp} has more than two categories, a comparison between each 
-#'                two groups is performed.
-#'
+#'                two groups is performed. \cr \cr 
+#'                The function reports U, p and Z-values as well as effect size r and group-rank-means.
+#' 
 #' @param var A numeric vector / variable, where the Mann-Whitney-U-Test should be applied to.
 #' @param grp The grouping variable indicating the groups that should be used for comparison.
-#' @param alternative a character string specifying the alternative hypothesis, must be one 
-#'          of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}. You can 
-#'          specify just the initial letter.
-#' @return (Invisibly) returns a data frame with p-values for each group-comparison.
+#' @param distribution indicates how the null distribution of the test statistic should be computed. Mey be one of
+#'          \code{exact}, \code{approximate} or \code{asymptotic} (default).
+#'          See \code{\link{wilcox_test}} for details.
+#' @param weights defining integer valued weights for the observations. By default,
+#'          this is \code{NULL}.
+#' @return (Invisibly) returns a data frame with U, p and Z-values for each group-comparison
+#'         as well as effect-size r.
 #' 
-#' @note This function calls the \code{\link{wilcox.test}} with formula. If \code{grp}
+#' @note This function calls the \code{\link{wilcox_test}} (from the coin package) with formula. If \code{grp}
 #'         has more than two groups, additionally a Kruskal-Wallis-Test (see \code{\link{kruskal.test}})
-#'         is performed.
+#'         is performed. \cr \cr
+#'         Interpretation of effect sizes:
+#'         \itemize{
+#'          \item small effect >= 0.1
+#'          \item medium effect >= 0.3
+#'          \item large effect >= 0.5
+#'        }
 #' 
 #' @seealso \code{\link{sju.chi2.gof}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
 #'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}
@@ -681,27 +694,54 @@ sju.weight <- function(var, weights) {
 #' # Mann-Whitney-U-Tests for elder's age by elder's dependency.
 #' sju.mwu(efc$e17age, efc$e42dep)
 #' 
+#' @importFrom coin wilcox_test statistic pvalue
 #' @export
-sju.mwu <- function(var, grp, alternative="two.sided") {
+sju.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
   if (min(grp, na.rm=TRUE)==0) {
     grp <- grp+1
   }
   cnt <- length(unique(na.omit(grp)))
+  labels <- autoSetValueLabels(grp)
   cat("\nPerforming Mann-Whitney-U-Test...\n")
   cat("---------------------------------\n")
-  cat("(showing p-levels between groups (x|y)\n")
+  cat("(showing statistics between groups (x|y)\n")
   df <- data.frame()
   for (i in 1:cnt) {
     for (j in i:cnt) {
       if (i!=j) {
+        # retrieve cases (rows) of subgroups
         xsub <- var[which(grp==i | grp==j)]
         ysub <- grp[which(grp==i | grp==j)]
+        # only use rows with non-missings
         ysub <- ysub[which(!is.na(xsub))]
+        # adjust weights, pick rows from subgroups (see above)
+        if (!is.null(weights)) {
+          wsub <- as.integer(na.omit(weights[which(!is.na(xsub))]))
+        }
         xsub <- as.numeric(na.omit(xsub))
-        ysub <- as.numeric(na.omit(ysub))
-        wt <- wilcox.test(xsub ~ ysub, paired=FALSE, alternative=alternative)
-        cat(sprintf("p(%i|%i)=%.3f\n", i, j, wt$p.value))
-        df <- rbind(df, cbind(grp1=i, grp2=j, p=wt$p.value))
+        ysub.n <- na.omit(ysub)
+        ysub <- as.factor(ysub.n)
+        if (is.null(weights)) {
+          wt <- wilcox_test(xsub ~ ysub, distribution=distribution)
+        }
+        else {
+          wt <- wilcox_test(xsub ~ ysub, distribution=distribution, weights=as.formula("~wsub"))
+        }
+        u <- as.numeric(statistic(wt, type="linear"))
+        z <- as.numeric(statistic(wt, type="standardized"))
+        p <- pvalue(wt)
+        r <- abs(z / sqrt(length(var)))
+        w <- wilcox.test(xsub, ysub.n, paired = TRUE)$statistic
+        rkm.i <- mean(rank(xsub)[which(ysub.n==i)], na.rm=TRUE)
+        rkm.j <- mean(rank(xsub)[which(ysub.n==j)], na.rm=TRUE)
+        if (is.null(labels)) {
+          cat(sprintf("Groups (%i|%i), n=%i/%i:\n", i, j, length(xsub[which(ysub.n==i)]), length(xsub[which(ysub.n==j)])))
+        }
+        else {
+          cat(sprintf("Groups %i=%s (n=%i) | %i=%s (n=%i):\n", i, labels[i], length(xsub[which(ysub.n==i)]), j, labels[j], length(xsub[which(ysub.n==j)])))
+        }
+        cat(sprintf("  U=%.3f, W=%.3f, p=%.3f, Z=%.3f\n  effect-size r=%.3f\n  rank-mean(%i)=%.2f\n  rank-mean(%i)=%.2f\n\n", u, w, p, z, r, i, rkm.i, j, rkm.j))
+        df <- rbind(df, cbind(grp1=i, grp2=j, u=u, w=w, p=p, z=z, r=r, rank.mean.grp1=rkm.i, rank.mean.grp2=rkm.j))
       }
     }
   }
@@ -1073,4 +1113,28 @@ sju.cramer <- function(tab) {
   phi <- sju.phi(tab)
   cramer <- sqrt(phi^2/min(dim(tab)-1))
   return (cramer)
+}
+
+
+sju.mediator <- function(x, m, y, controls=NULL) {
+  df.med <- data.frame(x=x, m=m, y=y)
+  if (!is.null(controls)) {
+    df.med <- cbind(df.med, controls)
+  }
+    df.med <- na.exclude(df.med)
+    model1 <- lm(y ~ x, data=df.med)
+    model2 <- lm(y ~ x + m, data=df.med)
+    model3 <- lm(m ~ x, data=df.med)
+    
+  mod1.out <- summary(model1)$coef
+  mod2.out <- summary(model2)$coef
+  mod3.out <- summary(model3)$coef
+  indir <- mod3.out[2, 1] * mod2.out[3, 1]
+  effvar <- (mod3.out[2, 1])^2 * (mod2.out[3, 2])^2 + (mod2.out[3,1])^2 * (mod3.out[2,2])^2
+  serr <- sqrt(effvar)
+  zvalue = indir/serr
+  out <- list(`Mod1: Y~X` = mod1.out, `Mod2: Y~X+M` = mod2.out, 
+              `Mod3: M~X` = mod3.out, Indirect.Effect = indir, SE = serr, 
+              z.value = zvalue, N = nrow(NEWDAT))
+  return(out)
 }

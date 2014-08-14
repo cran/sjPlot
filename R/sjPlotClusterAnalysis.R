@@ -139,6 +139,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param reverseAxis.x if \code{TRUE}, the values on the x-axis are reversed.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #'
@@ -225,6 +226,7 @@ sjc.qclus <- function(data,
                       hideGrid.x=FALSE,
                       hideGrid.y=FALSE,
                       flipCoordinates=FALSE,
+                      reverseAxis.x=FALSE,
                       printPlot=TRUE) {
   # --------------------------------------------------------
   # check for abbreviations
@@ -437,8 +439,14 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # create plot
   # --------------------------------------------------------
-  gp <- 
-    ggplot(df, aes(x=x, y=y, fill=group)) +
+  if (reverseAxis.x) {
+    gp <- ggplot(df, aes(x=rev(x), y=y, fill=group))
+    axisLabels.x <- rev(axisLabels.x)
+  }
+  else {
+    gp <- ggplot(df, aes(x=x, y=y, fill=group))
+  }
+  gp <- gp +
       geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha) +
       scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
       labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)

@@ -1,13 +1,15 @@
-#' @title Plot interaction terms of linear models
+#' @title Plot interaction terms (moderation) of linear models
 #' @name sjp.lm.int
 #' @references \itemize{
 #'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
 #'              \item \url{http://strengejacke.wordpress.com/2013/10/31/visual-interpretation-of-interaction-terms-in-linear-models-with-ggplot-rstats/}
 #'              \item \url{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/}
 #'              \item \url{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}
+#'              \item \url{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}
+#'              \item Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
 #'              }
 #'             
-#' @description Plot regression curves of significant interaction terms in linear models (lm). Note that beside interaction
+#' @description Plot regression curves of significant interaction terms (moderation) in linear models (lm). Note that beside interaction
 #'                terms, also the single predictors of each interaction must be included in the fitted model as well.
 #'                Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
 #' 
@@ -15,6 +17,7 @@
 #'         Thus, \code{lm(dep~pred1*pred2)} will work, but \code{lm(dep~pred1:pred2)} won't!
 #' 
 #' @seealso \code{\link{sjp.lm}} \cr
+#'          \code{\link{sjp.emm.int}} \cr
 #'          \code{\link{sjp.reglin}} \cr
 #'          \code{\link{sjp.lm.ma}}
 #' 
@@ -24,6 +27,14 @@
 #' @param diff if \code{FALSE} (default), the minimum and maximum interaction effects of predictor 2 on predictor 1
 #'          are shown (one line each). if \code{TRUE}, only the difference between minimum and maximum interaction effect
 #'          is shown (single line)
+#' @param moderatorValues indicates which values of the moderator variable should be used when plotting the effects of the 
+#'          independent variable on the dependent variable. By default, \code{"minmax"} is used, i.e. the minimum and maximum values
+#'          (lower and upper bounds) of the moderator are used to plot the interaction between independent variable and moderator.
+#'          Use \code{"meansd"} to use the mean value of the moderator as well as one standard deviation below and above mean value
+#'          to plot the effect of the moderator on the independent variable (following
+#'          the convention suggested by Cohen and Cohen and popularized by Aiken and West, 
+#'          i.e. using the mean, the value one standard deviation above, and the value one standard deviation below the mean
+#'          as values of the moderator, see \url{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}).
 #' @param swapPredictors if \code{TRUE}, the predictor with less unique values is printed along the x-axis. Default is
 #'          \code{FALSE}, so the predictor with more unique values is printed along the x-axis.
 #' @param plevel Indicates at which p-value an interaction term is considered as significant. Default is
@@ -36,10 +47,12 @@
 #'          Either set \code{fillColor} to \code{NULL} or use 0 for \code{fillAlpha} if you want to hide the shaded area.
 #' @param fillAlpha alpha value (transparancy) of the shaded area between the minimum and maximum lines. Default is 0.4.
 #'          Use either 0 or set \code{fillColor} to \code{NULL} if you want to hide the shaded area.
-#' @param lowerBoundColor the color of the line indicating the lower bound of the interaction term.
+#' @param lowerBoundColor the color of the line indicating the lower bound of the interaction term (moderator value).
 #'          Default value is \code{"#3366cc"} (blue-like)
-#' @param upperBoundColor the color of the line indicating the upper bound of the interaction term.
+#' @param upperBoundColor the color of the line indicating the upper bound of the interaction term (moderator value).
 #'          Default value is \code{"#cc3300"} (red-like)
+#' @param meanColor the color of the line indicating the mean value of the interaction term (moderator value).
+#'          Only applies, when \code{moderatorValues} is \code{"meansd"}.
 #' @param lineColor the color of the line indicating the upper difference between lower and upper
 #'          bound of interaction terms. Only applies if \code{diff} is \code{TRUE}. 
 #'          Default value is \code{"#33cc66"} (green-like)
@@ -98,6 +111,7 @@
 #'          variable name. By default, this string is \code{"(no interaction)"}.
 #' @param borderColor user defined color of whole diagram border (panel border)
 #' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
+#'          the diagram border).
 #' @param majorGridColor specifies the color of the major grid lines of the diagram background
 #' @param minorGridColor specifies the color of the minor grid lines of the diagram background
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -149,6 +163,7 @@
 sjp.lm.int <- function(fit,
                       smooth="none",
                       diff=FALSE,
+                      moderatorValues="minmax",
                       swapPredictors=FALSE,
                       plevel=0.05,
                       title=NULL,
@@ -158,6 +173,7 @@ sjp.lm.int <- function(fit,
                       fillAlpha=0.4,
                       lowerBoundColor="#3366cc",
                       upperBoundColor="#cc3300",
+                      meanColor="#00cc33",
                       lineColor="#33cc66",
                       axisTitle.x=NULL,
                       axisTitle.y=NULL,
@@ -397,8 +413,22 @@ sjp.lm.int <- function(fit,
     if (useFirstPredOnY) {
       labx <- c(interactionterms[[1]][1])
       predy <- c(interactionterms[[1]][2])
-      ymin <- min(pred2uniquevals)
-      ymax <- max(pred2uniquevals)
+      # -----------------------------------------------------------
+      # check which values of moderator should be plotted, i.e. if
+      # lower/upper bound (min-max) or mean and standard-deviation 
+      # should be used as valus for the moderator.
+      # see http://www.theanalysisfactor.com/3-tips-interpreting-moderation/
+      # -----------------------------------------------------------
+      if (moderatorValues=="minmax") {
+        mw <- NA
+        ymin <- min(pred2uniquevals)
+        ymax <- max(pred2uniquevals)
+      }
+      else {
+        mw <- mean(pred2uniquevals, na.rm=T)
+        ymin <- mw-sd(pred2uniquevals, na.rm=T)
+        ymax <- mw+sd(pred2uniquevals, na.rm=T)
+      }
       # intercept of predictor's reference category
       est_b <- b2+b0
       # -----------------------------------------------------------
@@ -432,13 +462,38 @@ sjp.lm.int <- function(fit,
         # store in df
         tmp <- as.data.frame(cbind(x=pr, y=maxy, ymin=miny, ymax=maxy, grp="max"))
         intdf <- as.data.frame(rbind(intdf, tmp))
+        # store in df
+        if (moderatorValues!="minmax") {
+          # ------------------------------
+          # here we calculate the effect of predictor 1 under presence 
+          # of mean of predictor 2 on the dependent variable. Thus, the slope for
+          # predictor 2 only is not needed. see references above
+          # ------------------------------
+          mittelwert <- (b0 + (b1*pr) + (b3*pr*mw))
+          tmp <- as.data.frame(cbind(x=pr, y=mittelwert, ymin=miny, ymax=maxy, grp="mean"))
+          intdf <- as.data.frame(rbind(intdf, tmp))
+        }
       }
     }
     else {
       labx <- c(interactionterms[[1]][2])
       predy <- c(interactionterms[[1]][1])
-      ymin <- min(pred1uniquevals)
-      ymax <- max(pred1uniquevals)
+      # -----------------------------------------------------------
+      # check which values of moderator should be plotted, i.e. if
+      # lower/upper bound (min-max) or mean and standard-deviation 
+      # should be used as valus for the moderator.
+      # see http://www.theanalysisfactor.com/3-tips-interpreting-moderation/
+      # -----------------------------------------------------------
+      if (moderatorValues=="minmax") {
+        mw <- NA
+        ymin <- min(pred1uniquevals)
+        ymax <- max(pred1uniquevals)
+      }
+      else {
+        mw <- mean(pred1uniquevals, na.rm=T)
+        ymin <- mw-sd(pred1uniquevals, na.rm=T)
+        ymax <- mw+sd(pred1uniquevals, na.rm=T)
+      }
       # intercept of predictor's reference category
       est_b <- b1+b0
       # -----------------------------------------------------------
@@ -473,6 +528,17 @@ sjp.lm.int <- function(fit,
         # store in df
         tmp <- as.data.frame(cbind(x=pr, y=maxy, ymin=miny, ymax=maxy, grp="max"))
         intdf <- as.data.frame(rbind(intdf, tmp))
+        # store in df
+        if (moderatorValues!="minmax") {
+          # ------------------------------
+          # here we calculate the effect of predictor 2 under presence 
+          # of mean of predictor 1 on the dependent variable. Thus, the slope for
+          # predictor 1 only is not needed. see references above
+          # ------------------------------
+          mittelwert <- (b0 + (b2*pr) + (b3*pr*mw))
+          tmp <- as.data.frame(cbind(x=pr, y=mittelwert, ymin=miny, ymax=maxy, grp="mean"))
+          intdf <- as.data.frame(rbind(intdf, tmp))
+        }
       }
     }
     # -----------------------------------------------------------
@@ -530,7 +596,12 @@ sjp.lm.int <- function(fit,
       labtitle <- title
     }
     if (is.null(legendLabels)) {
-      lLabels <- c(paste0("lower bound of ", predy), paste0("upper bound of ", predy))
+      if (moderatorValues=="minmax") {
+        lLabels <- c(paste0("lower bound of ", predy), paste0("upper bound of ", predy))
+      }
+      else {
+        lLabels <- c(paste0("lower sd of ", predy), paste0("upper sd of ", predy), paste0("mean of ", predy))
+      }
     }
     else {
       lLabels <- legendLabels
@@ -679,8 +750,14 @@ sjp.lm.int <- function(fit,
         guides(fill=FALSE)
     }
     else {
-      baseplot <- baseplot +
-        scale_colour_manual(values=c(lowerBoundColor, upperBoundColor), name="", labels=lLabels)
+      if (moderatorValues=="minmax") {
+        baseplot <- baseplot +
+          scale_colour_manual(values=c(lowerBoundColor, upperBoundColor), name="", labels=lLabels)
+      }
+      else {
+        baseplot <- baseplot +
+          scale_colour_manual(values=c(lowerBoundColor, upperBoundColor, meanColor), name="", labels=lLabels)
+      }
     }
     # ------------------------------------------------------------------------------------
     # apply specific border/theme properties

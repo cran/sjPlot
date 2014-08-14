@@ -17,11 +17,12 @@ sjp.stackfrq(items, legendLabels = NULL, orderBy = NULL, weightBy = NULL,
   minorGridColor = NULL, hideGrid.x = FALSE, hideGrid.y = FALSE,
   axisTitle.x = NULL, axisTitle.y = NULL, axisTitleColor = "black",
   axisTitleSize = 1.3, theme = NULL, showTickMarks = FALSE,
-  showValueLabels = TRUE, jitterValueLabels = FALSE,
-  showItemLabels = TRUE, showSeparatorLine = FALSE,
-  separatorLineColor = "grey80", separatorLineSize = 0.3,
-  legendPos = "right", legendSize = 1, legendBorderColor = "white",
-  legendBackColor = "white", flipCoordinates = TRUE, printPlot = TRUE)
+  showValueLabels = TRUE, showPercentageAxis = TRUE,
+  jitterValueLabels = FALSE, showItemLabels = TRUE,
+  showSeparatorLine = FALSE, separatorLineColor = "grey80",
+  separatorLineSize = 0.3, legendPos = "right", legendSize = 1,
+  legendBorderColor = "white", legendBackColor = "white",
+  flipCoordinates = TRUE, printPlot = TRUE)
 }
 \arguments{
 \item{items}{A data frame with each column representing one likert-item.}
@@ -138,6 +139,8 @@ not to the tick mark or category labels.}
 not to the tick mark or category labels.}
 
 \item{showValueLabels}{Whether counts and percentage values should be plotted to each bar.}
+
+\item{showPercentageAxis}{If \code{TRUE} (default), the percentage values at the x-axis are shown.}
 
 \item{jitterValueLabels}{If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 alternating vertical positions to avoid overlapping of labels in case bars are

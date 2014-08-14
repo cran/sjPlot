@@ -119,6 +119,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each coefficient should be appended
 #'          to values or not.
+#' @param useFacetGrid \code{TRUE} when each model should be plotted as single facet instead of 
+#'          an integrated single graph.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
@@ -138,7 +140,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
 #' 
 #' # plot multiple models
-#' sjp.lmm(fit1, fit2, fit3)
+#' sjp.lmm(fit1, fit2, fit3, useFacetGrid=TRUE)
 #' 
 #' # plot multiple models with legend labels and point shapes instead of value  labels
 #' sjp.lmm(fit1, fit2, fit3,
@@ -205,6 +207,7 @@ sjp.lmm <- function(...,
                      showValueLabels=TRUE, 
                      labelDigits=2,
                      showPValueLabels=TRUE,
+                     useFacetGrid=FALSE,
                      printPlot=TRUE) {
   # --------------------------------------------------------
   # retrieve list of fitted models
@@ -564,6 +567,9 @@ sjp.lmm <- function(...,
     plotHeader <- plotHeader + 
       theme(panel.grid.major.y = hidegrid,
             panel.grid.minor.y = hidegrid)
+  }
+  if (useFacetGrid) {
+    plotHeader <- plotHeader + facet_grid(.~grp)
   }
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted

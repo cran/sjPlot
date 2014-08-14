@@ -3,31 +3,42 @@
 \alias{sju.mwu}
 \title{Performs a Mann-Whitney-U-Test}
 \usage{
-sju.mwu(var, grp, alternative = "two.sided")
+sju.mwu(var, grp, distribution = "asymptotic", weights = NULL)
 }
 \arguments{
 \item{var}{A numeric vector / variable, where the Mann-Whitney-U-Test should be applied to.}
 
 \item{grp}{The grouping variable indicating the groups that should be used for comparison.}
 
-\item{alternative}{a character string specifying the alternative hypothesis, must be one
-of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}. You can
-specify just the initial letter.}
+\item{distribution}{indicates how the null distribution of the test statistic should be computed. Mey be one of
+\code{exact}, \code{approximate} or \code{asymptotic} (default).
+See \code{\link{wilcox_test}} for details.}
+
+\item{weights}{defining integer valued weights for the observations. By default,
+this is \code{NULL}.}
 }
 \value{
-(Invisibly) returns a data frame with p-values for each group-comparison.
+(Invisibly) returns a data frame with U, p and Z-values for each group-comparison
+        as well as effect-size r.
 }
 \description{
 This function performs a Mann-Whitney-U-Test (or \code{Wilcoxon rank sum test},
-               see \code{\link{wilcox.test}}) for the variable \code{var}, which is
+               see \code{\link{wilcox.test}} and \code{\link{wilcox_test}}) for the variable \code{var}, which is
                divided into groups indicated by \code{grp} (so the formula \code{var ~ grp}
                is used). If \code{grp} has more than two categories, a comparison between each
-               two groups is performed.
+               two groups is performed. \cr \cr
+               The function reports U, p and Z-values as well as effect size r and group-rank-means.
 }
 \note{
-This function calls the \code{\link{wilcox.test}} with formula. If \code{grp}
+This function calls the \code{\link{wilcox_test}} (from the coin package) with formula. If \code{grp}
         has more than two groups, additionally a Kruskal-Wallis-Test (see \code{\link{kruskal.test}})
-        is performed.
+        is performed. \cr \cr
+        Interpretation of effect sizes:
+        \itemize{
+         \item small effect >= 0.1
+         \item medium effect >= 0.3
+         \item large effect >= 0.5
+       }
 }
 \examples{
 data(efc)
