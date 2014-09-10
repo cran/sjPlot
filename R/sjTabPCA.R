@@ -13,9 +13,9 @@
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
 #' @seealso \code{\link{sjp.pca}} \cr
-#'          \code{\link{sju.reliability}} \cr
+#'          \code{\link{sjs.reliability}} \cr
 #'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sju.cronbach}}
+#'          \code{\link{sjs.cronbach}}
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
@@ -139,6 +139,7 @@
 #' \dontrun{
 #' sjt.pca(efc[,c(start:end)])}
 #' 
+#' @importFrom psych KMO
 #' @export
 sjt.pca <- function (data,
                      numberOfFactors=NULL,
@@ -365,7 +366,7 @@ sjt.pca <- function (data,
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- c(cbv, sju.cronbach(na.omit(dataframe[,which(itemloadings==n)])))
+      cbv <- c(cbv, sjs.cronbach(na.omit(dataframe[,which(itemloadings==n)])))
     }
     # cbv now contains the factor numbers and the related alpha values
     # for each "factor dimension scale"
@@ -395,7 +396,7 @@ sjt.pca <- function (data,
   # retrieve kmo and msa for data set
   # -------------------------------------
   kmo <- NULL
-  if (showMSA) kmo <- pca.kmo(data)
+  if (showMSA) kmo <- KMO(data)
   # -------------------------------------
   # variance
   # -------------------------------------

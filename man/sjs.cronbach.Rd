@@ -1,0 +1,27 @@
+\name{sjs.cronbach}
+\alias{sjs.cronbach}
+\title{Calculates Cronbach's Alpha for a matrix}
+\usage{
+sjs.cronbach(df)
+}
+\arguments{
+  \item{df}{A data frame or matrix with more than 2
+  columns.}
+}
+\value{
+The Cronbach's alpha value for \code{df}.
+}
+\description{
+This function calculates the Cronbach's alpha value for
+each column of a data frame or matrix.
+}
+\note{
+For use case, see \code{\link{sjp.pca}} and
+\code{\link{sjt.pca}}.
+}
+\seealso{
+\code{\link{sjs.reliability}} \cr
+\code{\link{sjt.itemanalysis}} \cr \code{\link{sjp.pca}}
+\cr \code{\link{sjt.pca}}
+}
+

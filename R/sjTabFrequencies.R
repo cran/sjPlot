@@ -62,6 +62,14 @@
 #'          Default is lower case Greek gamma.
 #' @param kurtosisString A character string, which is used as header for the kurtosis column (see \code{showKurtosis})).
 #'          Default is lower case Greek omega.
+#' @param removeStringVectors If \code{TRUE} (default), character vectors / string variables will be removed from
+#'          \code{data} before frequency tables are computed.
+#' @param autoGroupStrings if \code{TRUE} (default), string values in character vectors (string variables) are automatically
+#'          grouped based on their similarity. The similarity is estimated with the \code{stringdist} package.
+#'          You can specify a distance-measure via \code{maxStringDist} parameter. This parameter only
+#'          applies if \code{removeStringVectors} is \code{FALSE}.
+#' @param maxStringDist the allowed distance of string values in a character vector, which indicates
+#'          when two string values are merged because they are considered as close enough.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
 #'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
@@ -101,6 +109,7 @@
 #'         default behaviour (i.e. \code{file=NULL}).
 #' 
 #' @examples
+#' \dontrun{
 #' # load sample data
 #' data(efc)
 #' 
@@ -110,48 +119,43 @@
 #' 
 #' # show frequencies of "e42dep" in RStudio Viewer Pane
 #' # or default web browser
-#' \dontrun{
-#' sjt.frq(efc$e42dep)}
+#' sjt.frq(efc$e42dep)
 #' 
 #' # plot and show frequency table of "e42dep" with labels
-#' \dontrun{
 #' sjt.frq(efc$e42dep,
 #'         variableLabels=variables['e42dep'],
-#'         valueLabels=values[['e42dep']])}
+#'         valueLabels=values[['e42dep']])
 #' 
 #' # plot frequencies of e42dep, e16sex and c172code in one HTML file
 #' # and show table in RStudio Viewer Pane or default web browser
-#' \dontrun{
 #' sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
 #'         variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
-#'         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))}
+#'         valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))
 #' 
 #' # plot larger scale including zero-counts
 #' # indicating median and quartiles
-#' \dontrun{
 #' sjt.frq(efc$neg_c_7,
 #'         variableLabels=variables['neg_c_7'],
 #'         valueLabels=values[['neg_c_7']],
 #'         highlightMedian=TRUE,
-#'         highlightQuartiles=TRUE)}
+#'         highlightQuartiles=TRUE)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, variables)
-#' \dontrun{
-#' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))}
+#' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
 #' 
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
-#' \dontrun{
 #' sjt.frq(efc$e42dep,
 #'         variableLabels=variables['e42dep'],
 #'         valueLabels=values[['e42dep']],
 #'         CSS=list(css.table="border: 2px solid;",
 #'                  css.tdata="border: 1px solid;",
-#'                  css.firsttablecol="color:#003399; font-weight:bold;"))}
+#'                  css.firsttablecol="color:#003399; font-weight:bold;"))
+#' }
 #' 
 #' @importFrom psych describe
 #' @export
@@ -176,6 +180,9 @@ sjt.frq <- function (data,
                      showKurtosis=FALSE,
                      skewString="&gamma;",
                      kurtosisString="&omega;",
+                     removeStringVectors=TRUE,
+                     autoGroupStrings=TRUE,
+                     maxStringDist=3,
                      encoding="UTF-8",
                      CSS=NULL,
                      useViewer=TRUE,
@@ -250,6 +257,33 @@ sjt.frq <- function (data,
   toWrite <- paste(toWrite, page.style)
   toWrite <- paste(toWrite, "\n</head>\n<body>\n")
   # -------------------------------------
+  # check if string vectors should be removed
+  # -------------------------------------
+  if (removeStringVectors) {
+    # ---------------------------------------
+    # check if we have data frame with several variables
+    # ---------------------------------------
+    if (is.data.frame(data)) {
+      # store column indices of string variables
+      stringcolumns <- c()
+      # if yes, iterate each variable
+      for (i in 1:ncol(data)) {
+        # check type
+        if (is.character(data[,i])) stringcolumns <- c(stringcolumns, i)
+      }
+      # check if any strings found
+      if (length(stringcolumns)>0) {
+        # remove string variables
+        data <- data[,-stringcolumns]
+      }
+    }
+    else {
+      if (is.character(data)) {
+        stop("Parameter 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See parameter 'removeStringVectors' for details.", call. = FALSE)
+      }
+    }
+  }
+  # -------------------------------------
   # auto-retrieve variable labels
   # -------------------------------------
   if (is.null(variableLabels)) {
@@ -291,15 +325,36 @@ sjt.frq <- function (data,
   # unique handling for the data
   # -------------------------------------
   if (!is.data.frame(data)) {
-    # check for auto-detection of labels
-    if (is.null(valueLabels)) valueLabels <- autoSetValueLabels(data)
+    isString <- is.character(data)
+    # check for auto-detection of labels, but only for non-character-vectors
+    # characters will be handled later
+    if (is.null(valueLabels) && !isString) valueLabels <- autoSetValueLabels(data)
     # copy variable to data frame for unuqie handling
     data <- as.data.frame(data)
+    if (isString) {
+      # reformat into string, if it was...
+      data$data <- as.character(data$data)
+    }
   }
   # -------------------------------------
   # determine number of variables
   # -------------------------------------
   nvar <- ncol(data)
+  # -------------------------------------
+  # auto-group string vectors
+  # -------------------------------------
+  if (autoGroupStrings) {
+    # iterate data frame
+    for (i in 1:nvar) {
+      # get variable
+      sv <- data[,i]
+      # check if character
+      if (is.character(sv)) {
+        # group strings
+        data[,i] <- sju.groupString(sv, maxStringDist, remove.empty = F)
+      }
+    }
+  }
   # -------------------------------------
   # transform variable and value labels 
   # to list object
@@ -324,8 +379,15 @@ sjt.frq <- function (data,
     for (i in 1:nvar) {
       # retrieve variable
       dummy <- data[,i]
-      # check for auto-detection of labels
-      valueLabels <- c(valueLabels, list(autoSetValueLabels(dummy)))
+      # usually, value labels are NULL if we have string vector. if so
+      # set value labels according to values
+      if (is.character(dummy)) {
+        valueLabels <- c(valueLabels, list(names(table(dummy))))
+      }
+      else {
+        # check for auto-detection of labels
+        valueLabels <- c(valueLabels, list(autoSetValueLabels(dummy)))
+      }
       # and add label range to value labels list
       if (is.null(valueLabels)) valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
     }
@@ -343,8 +405,15 @@ sjt.frq <- function (data,
     # prepare data: create frequencies and weight them,
     # if requested. put data into a data frame
     #---------------------------------------------------
-    # get variable
-    orivar <- var <- as.numeric(data[,cnt])
+    # check if we have a string-vector
+    if (is.character(data[,cnt])) {
+      # convert string to numeric
+      orivar <- var <- as.numeric(as.factor(data[,cnt]))
+    }
+    # here we have numeric or factor variables
+    else {
+      orivar <- var <- as.numeric(data[,cnt])
+    }
     # -----------------------------------------------
     # check for length of unique values and skip if too long
     # -----------------------------------------------

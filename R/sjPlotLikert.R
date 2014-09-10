@@ -119,9 +119,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -542,6 +544,9 @@ sjp.likert <- function(items,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -569,7 +574,7 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # Hide or show Tick Marks and Category Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showItemLabels) {
@@ -703,18 +708,21 @@ sjp.likert <- function(items,
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
     scale_y_continuous(breaks=gridbreaks, limits=c(-gridRange, gridRange), expand=expgrid, labels=gridlabs) +
-    scalecolors  +
-    ggtheme
+    scalecolors
+  # apply theme
+  if (!is.null(ggtheme)) {
+    baseplot <- baseplot +
+      ggtheme +
+      # set font size for axes.
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+            axis.text.x = element_text(angle=axisLabelAngle.x))
+  }
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   if (flipCoordinates) {
     baseplot <- baseplot + coord_flip()
   }
-  # set font size for axes.
-  baseplot <- baseplot + 
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-          axis.text.x = element_text(angle=axisLabelAngle.x))
   # --------------------------------------
   # set position and size of legend
   # --------------------------------------

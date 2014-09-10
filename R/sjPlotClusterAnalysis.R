@@ -45,7 +45,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          By default, method is \code{"kmeans"} and this parameter will be ignored.
 #' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
-#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
+#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"} (see \code{\link{hclust}}).
+#'          Note that since R version > 3.0.3, the \code{"ward"} option has been replaced by either \code{"ward.D"}
+#'          or \code{"ward.D2"}. In such case, you may also use these values.
 #'          By default, method is \code{"kmeans"} and this parameter will be ignored.
 #' @param iter.max the maximum number of iterations allowed. Only applies, if \code{method}
 #'          is \code{"kmeans"}. See \code{\link{kmeans}} for details on this parameter.
@@ -108,11 +110,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
 #'          background with white grids.
 #'          \itemize{
-#'            \item Use \code{"bw"} for a white background with gray grids
-#'            \item \code{"classic"} for a classic theme (black border, no grids)
-#'            \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'            \item \code{"none"} for no borders, grids and ticks.
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param borderColor User defined color of whole diagram border (panel border).
 #' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
 #'          the diagram border).
@@ -164,12 +168,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'        always selects initial cluster sets randomly.
 #' 
 #' @examples
+#' \dontrun{
 #' # K-means clustering of mtcars-dataset
 #' sjc.qclus(mtcars)
 #' 
 #' # K-means clustering of mtcars-dataset with 4 pre-defined
 #' # groups in a faceted panel
-#' sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)
+#' sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)}
 #' 
 #' @import ggplot2
 #' @export
@@ -280,6 +285,12 @@ sjc.qclus <- function(data,
   # check for auto-groupcount
   # ---------------------------------------------
   if (is.null(groupcount)) {
+    # ------------------------
+    # check if suggested package is available
+    # ------------------------
+    if (!requireNamespace("cluster", quietly = TRUE)) {
+      stop("Package 'cluster' needed for this function to work. Please install it.", call. = FALSE)
+    }
     # check whether method is kmeans. hierarchical clustering
     # requires a specified groupcount
     if (method!="k") {
@@ -295,6 +306,8 @@ sjc.qclus <- function(data,
   # run cluster analysis with claculated group count
   # ---------------------------------------------
   if (is.null(groups)) {
+    # check for parameter and R version
+    if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
     grp.class <- grp <- sjc.cluster(data.origin, groupcount, method, distance, agglomeration, iter.max, algorithm)
   }
   else {
@@ -400,6 +413,9 @@ sjc.qclus <- function(data,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -418,7 +434,7 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # Hide or show Tick Marks and Axis Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showAxisLabels.x) {
@@ -447,15 +463,10 @@ sjc.qclus <- function(data,
     gp <- ggplot(df, aes(x=x, y=y, fill=group))
   }
   gp <- gp +
-      geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha) +
-      scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
-      labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)
-  # --------------------------------------------------------
-  # set colour palette for filling bars
-  # --------------------------------------------------------
-  if (!is.null(scalecolors)) {
-    gp <- gp + scalecolors
-  }
+    geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha) +
+    scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
+    scalecolors +
+    labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)
   # --------------------------------------------------------
   # hide y-axis labels
   # --------------------------------------------------------
@@ -465,12 +476,15 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # set axis label sizes and colors
   # --------------------------------------------------------
-  gp <- gp +
-    ggtheme +
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+  # apply theme
+  if (!is.null(ggtheme)) {
+    gp <- gp +
+      ggtheme +
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
             axis.text.x = element_text(angle=axisLabelAngle.x),
             axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
             plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  }
   # --------------------------------------
   # set position and size of legend
   # --------------------------------------
@@ -586,7 +600,9 @@ sjc.qclus <- function(data,
 #'          \code{"canberra"}, \code{"binary"} or \code{"minkowski"}. See \code{\link{dist}}.
 #' @param agglomeration The agglomeration method to be used when \code{"method"} is \code{"hclust"} (for hierarchical
 #'          clustering). This should be one of \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
-#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"}. See \code{\link{hclust}}.
+#'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is \code{"ward"} (see \code{\link{hclust}}).
+#'          Note that since R version > 3.0.3, the \code{"ward"} option has been replaced by either \code{"ward.D"}
+#'          or \code{"ward.D2"}. In such case, you may also use these values.
 #' @param iter.max the maximum number of iterations allowed. Only applies, if \code{method}
 #'          is \code{"kmeans"}. See \code{\link{kmeans}} for details on this parameter.
 #' @param algorithm algorithm used for calculating kmeans cluster. Only applies, if \code{method}
@@ -647,6 +663,8 @@ sjc.cluster <- function(data,
   # Ward Hierarchical Clustering
   # --------------------------------------------------
   if (method=="h") {
+    # check for parameter and R version
+    if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
     # distance matrix
     d <- dist(data, method=distance)
     # hierarchical clustering, using ward
@@ -696,8 +714,10 @@ sjc.cluster <- function(data,
 #' @param agglomeration The agglomeration method to be used. This should be one of
 #'          \code{"ward"}, \code{"single"}, \code{"complete"}, \code{"average"}, 
 #'          \code{"mcquitty"}, \code{"median"} or \code{"centroid"}. Default is 
-#'          \code{"ward"}. See \code{\link{hclust}}.
-#' 
+#'          \code{"ward"} (see \code{\link{hclust}}).
+#'          Note that since R version > 3.0.3, the \code{"ward"} option has been replaced by either \code{"ward.D"}
+#'          or \code{"ward.D2"}. In such case, you may also use these values.
+#'          
 #' @importFrom scales brewer_pal
 #' @examples
 #' # Plot dendrogram of hierarchical clustering of mtcars-dataset
@@ -718,6 +738,8 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
   # --------------------------------------------------
   # distance matrix
   d <- dist(data, method=distance)
+  # check for parameter and R version
+  if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
   # hierarchical clustering, using ward
   hc <- hclust(d, method=agglomeration) 
   # display simple dendrogram
@@ -941,7 +963,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
   for (i in 2:steps) wss[i] <- sum(kmeans(data,centers=i)$withinss)
   # round and print elbow values
   wssround <- round(wss,0)
-  dfElbowValues <- as.data.frame(melt(wssround))
+  dfElbowValues <- as.data.frame(wssround)
   dfElbowValues <- cbind(dfElbowValues, xpos=1:nrow(dfElbowValues))
   # calculate differences between each step
   diff <- c()
@@ -952,7 +974,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
   # all pointes are connected with a line
   # a bend the in curve progression might indicate elbow
   # --------------------------------------------------
-  plot(ggplot(dfElbowValues, aes(x=xpos, y=value, label=value)) + 
+  plot(ggplot(dfElbowValues, aes(x=xpos, y=wssround, label=wssround)) + 
     geom_line(colour=lcol) + 
     geom_point(colour=lcol, size=3) +
     geom_text(hjust=-0.3, size=4) +
@@ -976,11 +998,11 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
 #' @name sjc.kgap
 #' @description An implementation of the gap statistic algorithm from Tibshirani, Walther, and Hastie's
 #'                "Estimating the number of clusters in a data set via the gap statistic".
-#'                Source code was taken from the \code{\link{clusGap}} function of the
-#'                cluster-package (\url{http://cran.r-project.org/web/packages/cluster/index.html}).
+#'                This function calls the \code{clusGap} function of the
+#'                cluster-package (\url{http://cran.r-project.org/web/packages/cluster/index.html})
+#'                to calculate the data for the plot.
 #'                
-#' @seealso \code{\link{sjc.elbow}} \cr
-#'          \code{\link{clusGap}}
+#' @seealso \code{\link{sjc.elbow}}
 #' 
 #' @param x A matrix, where rows are observations and columns are individual dimensions, 
 #'          to compute and plot the gap statistic (according to a uniform reference distribution).
@@ -1007,39 +1029,41 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
 #' @return An object containing the used data frame for plotting, the ggplot object
 #'           and the number of found cluster.
 #' 
-#' @note Source code was taken from the \code{\link{clusGap}} function of the
-#'         cluster-package (\url{http://cran.r-project.org/web/packages/cluster/index.html}).
-#' 
 #' @references \itemize{
 #'              \item Tibshirani R, Walther G, Hastie T (2001) Estimating the number of clusters in a data set via gap statistic. J. R. Statist. Soc. B, 63, Part 2, pp. 411-423
 #'              \item Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4. (\url{http://cran.r-project.org/web/packages/cluster/index.html})
 #'             }
 #' 
 #' @examples
+#' \dontrun{
 #' # plot gap statistic and determine best number of clusters
 #' # in mtcars dataset
 #' sjc.kgap(mtcars)
 #' 
 #' # and in iris dataset
-#' sjc.kgap(iris[,1:4])
+#' sjc.kgap(iris[,1:4])}
 #' 
 #' @import ggplot2
 #' @export
 sjc.kgap <- function(x, max=10, B=100, SE.factor=1, method="Tibs2001SEmax", plotResults=TRUE) {
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("cluster", quietly = TRUE)) {
+    stop("Package 'cluster' needed for this function to work. Please install it.", call. = FALSE)
+  }
   # Prepare Data
   # listwise deletion of missing
   x <- na.omit(x) 
   
-  gap <- clusGap(x, kmeans, max, B)
+  gap <- cluster::clusGap(x, kmeans, max, B)
 
   stopifnot((K <- nrow(T <-gap$Tab)) >= 1, SE.factor >= 0)
-  cat("Clustering Gap statistic [\"clusGap\"].\n",
-      sprintf("B=%d simulated reference sets, k = 1..%d\n",gap$B, K), sep="")
-  nc <- maxSE(f = T[,"gap"], SE.f = T[,"SE.sim"],
-              method=method, SE.factor=SE.factor)
+  cat("Clustering Gap statistic [\"clusGap\"].\n", sprintf("B=%d simulated reference sets, k = 1..%d\n",gap$B, K), sep="")
+  nc <- cluster::maxSE(f = T[,"gap"], SE.f = T[,"SE.sim"], method=method, SE.factor=SE.factor)
   cat(sprintf(" --> Number of clusters (method '%s'%s): %d\n",
-              method, if(grepl("SE", method))
-                sprintf(", SE.factor=%g",SE.factor) else "", nc))
+              method,
+              if(grepl("SE", method)) sprintf(", SE.factor=%g",SE.factor) else "", nc))
   # point size for cluster solution
   nclus <- rep(2, max)
   nclus[nc] <- 4

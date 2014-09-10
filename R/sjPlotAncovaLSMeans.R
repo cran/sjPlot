@@ -4,6 +4,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #' @title Plot adjusted (estimated marginal) means of interaction (moderation) in linear models
 #' @name sjp.emm.int
 #' @references \itemize{
+#'              \item \url{http://rpubs.com/sjPlot/sjpemmint}
+#'              \item \url{http://strengejacke.wordpress.com/2014/08/19/visualize-pre-post-comparison-of-intervention-rstats/}
 #'              \item \url{http://www.theanalysisfactor.com/using-adjusted-means-to-interpret-moderators-in-analysis-of-covariance/}
 #'              }
 #'             
@@ -17,6 +19,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'         (i.e. lm(y~a+b+a:b) means that "a" is used as grouping variable and "b" is plotted along the x-axis).
 #' 
 #' @seealso \code{\link{sjp.lm.int}} \cr
+#'          \code{\link{sjp.reglin}} \cr
+#'          \code{\link{sjp.aov1}} \cr
 #'          \code{\link{sjp.lm.ma}}
 #' 
 #' @param fit the fitted linear model (lm) object, including interaction terms
@@ -32,7 +36,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'          Default value is \code{"#3366cc"} (blue-like)
 #' @param upperBoundColor the color of the line indicating the upper bound of the interaction term (moderator value).
 #'          Default value is \code{"#cc3300"} (red-like)
-#' @param colorPalette If the grouping variable has mor than two levels, more than two colors are
+#' @param colorPalette If the grouping variable has more than two levels, more than two colors are
 #'          needed for plotting the lines. In this case, specify a color palette from the \url{http://colorbrewer2.org} here. 
 #'          All color brewer palettes supported by ggplot are accepted here. Alternatively, you can provide
 #'          a vector of colors, i.e. \code{c("blue", "red", "gren")}.
@@ -69,12 +73,21 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #' @param breakAnnotationLabelsAt Wordwrap for diagram annotation labels. Determines how many chars of the legend labels are 
 #'          displayed in one line and when a line break is inserted. Default is \code{50}.
 #'          Only applies if \code{showInterceptLine} is \code{TRUE}.
+#' @param axisLimits.y A vector with two values, defining the lower and upper limit from the y-axis.
+#'          By default, this value is \code{NULL}, i.e. axis limits will be calculated upon the
+#'          range of y-values.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}.
-#' @param theme specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{lowerBoundColor} parameter)
+#'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param borderColor user defined color of whole diagram border (panel border)
 #' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
@@ -89,6 +102,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'           as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
 #' 
 #' @examples
+#' \dontrun{
 #' # Note that the data sets used in this example may not be perfectly suitable for
 #' # fitting linear models. I just used them because they are part of the R-software.
 #' 
@@ -126,16 +140,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #' summary(fit)
 #' 
 #' # plot marginal means of interactions, no interaction found
-#' \dontrun{
-#' sjp.emm.int(fit)}
+#' sjp.emm.int(fit)
 #' # plot marginal means of interactions, including those with p-value up to 1
 #' sjp.emm.int(fit, plevel=1)
 #' # swap predictors
-#' sjp.emm.int(fit, plevel=1, swapPredictors=TRUE)
+#' sjp.emm.int(fit, plevel=1, swapPredictors=TRUE)}
 #' 
 #' 
 #' @import ggplot2
-#' @import lsmeans
 #' @export
 sjp.emm.int <- function(fit,
                        swapPredictors=FALSE,
@@ -163,6 +175,7 @@ sjp.emm.int <- function(fit,
                        breakTitleAt=50,
                        breakLegendLabelsAt=20,
                        breakAnnotationLabelsAt=50,
+                       axisLimits.y=NULL,
                        gridBreaksAt=NULL,
                        theme=NULL,
                        showTickMarks=TRUE,
@@ -173,6 +186,12 @@ sjp.emm.int <- function(fit,
                        hideGrid.x=FALSE,
                        hideGrid.y=FALSE,
                        printPlot=TRUE) {
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("lsmeans", quietly = TRUE)) {
+    stop("Package 'lsmeans' needed for this function to work. Please install it.", call. = FALSE)
+  }
   # init vector that saves ggplot objects
   plotlist <- list()
   dflist <- list()
@@ -255,6 +274,9 @@ sjp.emm.int <- function(fit,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -273,7 +295,7 @@ sjp.emm.int <- function(fit,
   # --------------------------------------------------------
   # Hide or show Tick Marks
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   # --------------------------------------------------------
@@ -332,7 +354,7 @@ sjp.emm.int <- function(fit,
     # -----------------------------------------------------------
     # retrieve estiamted marginal means
     # -----------------------------------------------------------
-    emm <- summary(lsmeans(fit, term.pairs))
+    emm <- summary(lsmeans::lsmeans(fit, term.pairs))
     # create data frame from lsmeans
     intdf <- data.frame(emm[2], emm[3], emm[1], emm[6], emm[7], rep(valueLabel.digits, times=nrow(emm[1])))
     colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
@@ -348,8 +370,14 @@ sjp.emm.int <- function(fit,
     # retrieve lowest and highest x and y position to determine
     # the scale limits
     # -----------------------------------------------------------
-    lowerLim.y <- floor(min(intdf$y))
-    upperLim.y <- ceiling(max(intdf$y))
+    if (is.null(axisLimits.y)) {
+      lowerLim.y <- floor(min(intdf$y))
+      upperLim.y <- ceiling(max(intdf$y))
+    }
+    else {
+      lowerLim.y <- axisLimits.y[1]
+      upperLim.y <- axisLimits.y[2]
+    }
     # -----------------------------------------------------------
     # check whether user defined grid breaks / tick marks are used
     # -----------------------------------------------------------
@@ -417,14 +445,17 @@ sjp.emm.int <- function(fit,
       # set plot and axis titles
       labs(title=labtitle, x=labx, y=laby) +
       # set axis scale breaks
-      scale_y_continuous(limits=c(lowerLim.y, upperLim.y), breaks=gridbreaks.y) +
-      # apply theme
-      ggtheme  + 
-      # do minor modifications to theme
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
-            legend.text = element_text(size=rel(legendLabelSize), colour=legendLabelColor),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+      scale_y_continuous(limits=c(lowerLim.y, upperLim.y), breaks=gridbreaks.y)
+    # apply theme
+    if (!is.null(ggtheme)) {
+      baseplot <- baseplot + 
+        ggtheme +
+        # do minor modifications to theme
+        theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+              axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
+              legend.text = element_text(size=rel(legendLabelSize), colour=legendLabelColor),
+              plot.title = element_text(size=rel(titleSize), colour=titleColor))
+    }
     # ------------------------------------------------------------------------------------
     # check whether only diff-line is shown or upper and lower boundaries. in the latter
     # case, show legend, else hide legend

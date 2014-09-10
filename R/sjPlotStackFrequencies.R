@@ -106,9 +106,11 @@
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -320,9 +322,9 @@ sjp.stackfrq <- function(items,
     # need to be numeric, so percentage values (see below) are
     # correctly assigned, i.e. missing categories are considered
     df$var <- as.numeric(as.character(df$var))+diff # if categories start with zero, fix this here
-#     if (min(df$var)==0) {
-#       df$var <- df$var+1
-#     }
+    #     if (min(df$var)==0) {
+    #       df$var <- df$var+1
+    #     }
     # Create a vector of zeros 
     prc <- rep(0,countlen)
     # Replace the values in prc for those indices which equal df$var
@@ -443,6 +445,9 @@ sjp.stackfrq <- function(items,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -470,7 +475,7 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   # Hide or show Tick Marks and Category Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showItemLabels) {
@@ -584,19 +589,24 @@ sjp.stackfrq <- function(items,
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
     scale_y_continuous(breaks=gridbreaks, limits=c(0, 1), expand=expgrid, labels=percent) +
-    scalecolors  +
-    ggtheme
+    scalecolors
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   if (flipCoordinates) {
     baseplot <- baseplot + coord_flip()
   }
-  # set font size for axes.
-  baseplot <- baseplot + 
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-          axis.text.x = element_text(angle=axisLabelAngle.x),
-          plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  # --------------------------------------------------------
+  # apply theme
+  # --------------------------------------------------------
+  if (!is.null(ggtheme)) {
+    baseplot <- baseplot + 
+      ggtheme +
+      # set font size for axes.
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+            axis.text.x = element_text(angle=axisLabelAngle.x),
+            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  }
   # --------------------------------------
   # set position and size of legend
   # --------------------------------------

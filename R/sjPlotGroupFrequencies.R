@@ -184,9 +184,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
 #'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. Right
 #'          positioning is default.
@@ -598,7 +600,7 @@ sjp.grpfrq <- function(varCount,
   # convert prz to numeric
   mydat$texty <- as.numeric(as.character(mydat$prz))
   # add half of Percentage values as new y-position for stacked bars
-  mydat = ddply(mydat, "count", transform, ypos = cumsum(frq) - 0.5*frq)
+  mydat <- ddply(mydat, "count", transform, ypos = cumsum(frq) - 0.5*frq)
   # --------------------------------------------------------
   # If we have boxplots, use different data frame structure
   # --------------------------------------------------------
@@ -878,11 +880,21 @@ sjp.grpfrq <- function(varCount,
     }
   }
   else if (type=="bars") {
-    if (barPosition=="dodge") {
-      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+    if (!is.null(theme) && theme=="themr") {
+      if (barPosition=="dodge") {
+        geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace))
+      }
+      else {
+        geob <- geom_bar(stat="identity", position="stack")
+      }
     }
     else {
-      geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      if (barPosition=="dodge") {
+        geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      }
+      else {
+        geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      }
     }
   }
   else if (type=="lines") {
@@ -894,13 +906,28 @@ sjp.grpfrq <- function(varCount,
     }
   }
   else if (type=="boxplots") {
-    geob <- geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha)
+    if (!is.null(theme) && theme=="themr") {
+      geob <- geom_boxplot()
+    }
+    else {
+      geob <- geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha)
+    }
   }
   else if (type=="violin") {
-    geob <- geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, trim=trimViolin)
+    if (!is.null(theme) && theme=="themr") {
+      geob <- geom_violin(trim=trimViolin)
+    }
+    else {
+      geob <- geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, trim=trimViolin)
+    }
   }
   else {
-    geob <- geom_histogram(stat="identity", binwidth=barWidth, colour=barOutlineColor, size=barOutlineSize, position=barPosition, alpha=barAlpha)
+    if (!is.null(theme) && theme=="themr") {
+      geob <- geom_histogram(stat="identity", position=barPosition)
+    }
+    else {
+      geob <- geom_histogram(stat="identity", binwidth=barWidth, colour=barOutlineColor, size=barOutlineSize, position=barPosition, alpha=barAlpha)
+    }
   }
   # --------------------------------------------------------
   # Set theme and default grid colours. grid colours
@@ -910,6 +937,9 @@ sjp.grpfrq <- function(varCount,
   if (is.null(theme)) {
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
+  }
+  else if (theme=="themr") {
+    ggtheme <- NULL
   }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
@@ -929,7 +959,7 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   # Hide or show Tick Marks and Category Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showAxisLabels.x) {
@@ -1240,20 +1270,25 @@ sjp.grpfrq <- function(varCount,
   if (type=="lines") {
     baseplot <- baseplot + scalecolorsline
   }
-  baseplot <- baseplot + 
-    scalecolors +
-    ggtheme
+  if (!is.null(theme) && theme!="themr") {
+    baseplot <- baseplot + 
+      scalecolors
+  }
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   if (flipCoordinates) {
     baseplot <- baseplot + coord_flip()
   }
   # set font size for axes.
-  baseplot <- baseplot + 
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-          axis.text.x = element_text(angle=axisLabelAngle.x),
-          plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  # apply theme
+  if (!is.null(ggtheme)) {
+    baseplot <- baseplot + 
+      ggtheme +
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+            axis.text.x = element_text(angle=axisLabelAngle.x),
+            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  }
   # --------------------------------------
   # set position and size of legend
   # --------------------------------------

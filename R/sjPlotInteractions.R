@@ -88,12 +88,21 @@
 #' @param breakAnnotationLabelsAt Wordwrap for diagram annotation labels. Determines how many chars of the legend labels are 
 #'          displayed in one line and when a line break is inserted. Default is \code{50}.
 #'          Only applies if \code{showInterceptLine} is \code{TRUE}.
+#' @param axisLimits.y A vector with two values, defining the lower and upper limit from the y-axis.
+#'          By default, this value is \code{NULL}, i.e. axis limits will be calculated upon the
+#'          range of y-values.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}.
-#' @param theme specifies the diagram's background theme. default (parameter \code{NULL}) is a gray 
-#'          background with white grids. Use \code{"bw"} for a white background with gray grids, \code{"classic"} for
-#'          a classic theme (black border, no grids), \code{"minimal"} for a minimalistic theme (no border,
-#'          gray grids) or \code{"none"} for no borders, grids and ticks.
+#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
+#'          background with white grids.
+#'          \itemize{
+#'          \item Use \code{"bw"} for a white background with gray grids
+#'          \item \code{"classic"} for a classic theme (black border, no grids)
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package
+#'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param showInterceptLines If \code{TRUE}, the intercept and the estimate of the predictor
 #'          (reference category of predictor in case interaction is not present) are plotted.
@@ -191,6 +200,7 @@ sjp.lm.int <- function(fit,
                       breakTitleAt=50,
                       breakLegendLabelsAt=20,
                       breakAnnotationLabelsAt=50,
+                      axisLimits.y=NULL,
                       gridBreaksAt=NULL,
                       theme=NULL,
                       showTickMarks=TRUE,
@@ -304,6 +314,9 @@ sjp.lm.int <- function(fit,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -322,7 +335,7 @@ sjp.lm.int <- function(fit,
   # --------------------------------------------------------
   # Hide or show Tick Marks
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   # --------------------------------------------------------
@@ -555,8 +568,14 @@ sjp.lm.int <- function(fit,
     # -----------------------------------------------------------
     lowerLim.x <- floor(min(intdf$x))
     upperLim.x <- ceiling(max(intdf$x))
-    lowerLim.y <- floor(min(intdf$y))
-    upperLim.y <- ceiling(max(intdf$y))
+    if (is.null(axisLimits.y)) {
+      lowerLim.y <- floor(min(intdf$y))
+      upperLim.y <- ceiling(max(intdf$y))
+    }
+    else {
+      lowerLim.y <- axisLimits.y[1]
+      upperLim.y <- axisLimits.y[2]
+    }
     # -----------------------------------------------------------
     # check whether we have to modify axis limits in case intercept
     # lines are also plotted
@@ -733,14 +752,17 @@ sjp.lm.int <- function(fit,
       labs(title=labtitle, x=labx, y=laby) +
       # set axis scale breaks
       scale_x_continuous(limits=c(lowerLim.x, upperLim.x), breaks=gridbreaks.x) +
-      scale_y_continuous(limits=c(lowerLim.y, upperLim.y), breaks=gridbreaks.y) +
-      # apply theme
+      scale_y_continuous(limits=c(lowerLim.y, upperLim.y), breaks=gridbreaks.y)
+    # apply theme
+    if (!is.null(ggtheme)) {
+      baseplot <- baseplot + 
       ggtheme  + 
       # do minor modifications to theme
       theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
             axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
             legend.text = element_text(size=rel(legendLabelSize), colour=legendLabelColor),
             plot.title = element_text(size=rel(titleSize), colour=titleColor))
+    }
     # ------------------------------------------------------------------------------------
     # check whether only diff-line is shown or upper and lower boundaries. in the latter
     # case, show legend, else hide legend

@@ -9,7 +9,7 @@
 #'              }
 #'              
 #' @seealso \code{\link{sjp.xtab}} \cr
-#'          \code{\link{sju.table.values}}
+#'          \code{\link{sjs.table.values}}
 #' 
 #' @param var.row Variable that should be displayed in the table rows.
 #' @param var.col Variable that should be displayed in the table columns.
@@ -336,7 +336,7 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   # compute table percentages
   # -------------------------------------
-  tab.values <- sju.table.values(tab, digits)
+  tab.values <- sjs.table.values(tab, digits)
   tab.cell <- tab.values$cell
   tab.row <- tab.values$row
   tab.col <- tab.values$col
@@ -668,12 +668,12 @@ sjt.xtab <- function (var.row,
     # than two categories. if they have more, use Cramer's V to calculate
     # the contingency coefficient
     if (nrow(tab)>2 || ncol(tab)>2) {
-      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sju.cramer(tab))
+      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sjs.cramer(tab))
       # if minimum expected values below 5, compute fisher's exact test
       if(min(tab.expected)<5 || (min(tab.expected)<10 && chsq$parameter==1)) fish <- fisher.test(tab, simulate.p.value=TRUE)
     }
     else {
-      kook <- sprintf("&Phi;=%.3f", sju.phi(tab))
+      kook <- sprintf("&Phi;=%.3f", sjs.phi(tab))
       # if minimum expected values below 5 and df=1, compute fisher's exact test
       if(min(tab.expected)<5 || (min(tab.expected)<10 && chsq$parameter==1)) fish <- fisher.test(tab)
     }

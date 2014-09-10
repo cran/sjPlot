@@ -67,16 +67,16 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #' @param axisLabelAngle.y Angle for y-axis-labels, passed as numeric value.
 #' @param errorBarColor The color of the error bars that indicate the confidence intervalls
 #'          of the group means. Default is \code{NULL}, which means that if \code{type} is \code{"dots"},
-#'          the \code{pointColors} value will be used as error bar color. In case \code{type} is \code{"bars"},
+#'          the \code{pointColor} value will be used as error bar color. In case \code{type} is \code{"bars"},
 #'          \code{"black"} will be used as error bar color.
 #' @param errorBarWidth The width of the error bar ends. Default is 0.
 #' @param errorBarSize The size of the error bar. Default is 0.8.
 #' @param errorBarLineType The linetype of error bars. Default is \code{1} (solid line).
-#' @param pointColors The colours of the points that indicate the mean-value. \code{pointColors} is a 
+#' @param pointColor The colors of the points that indicate the mean-value. \code{pointColor} is a 
 #'          vector with two values: the first indicating groups with positive means and the second 
 #'          indicating negative means. Default is \code{c("#3366a0", "#aa6633")}.
 #' @param pointSize The size of the points that indicate the mean-value. Default is 3.
-#' @param barColors The colors of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. \code{barColors} is a 
+#' @param barColor The colors of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. \code{barColor} is a 
 #'          vector with two values: the first indicating groups with positive means and the second 
 #'          indicating negative means. Default is \code{c("#3366a0", "#aa6633")}.
 #' @param barWidth The width of the bars in bar charts. Only applies if parameter \code{type} is \code{"bars"}. Default is 0.5
@@ -99,9 +99,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xv", "lower", "upper", "
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
 #' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
 #' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
@@ -187,9 +189,9 @@ sjp.aov1 <- function(depVar,
                     errorBarWidth=0,
                     errorBarSize=0.8,
                     errorBarLineType=1,
-                    pointColors=c("#3366a0", "#aa3333"),
+                    pointColor=c("#3366a0", "#aa3333"),
                     pointSize=3,
-                    barColors=c("#3366a0", "#aa3333"),
+                    barColor=c("#3366a0", "#aa3333"),
                     barWidth=0.5,
                     barAlpha=1,
                     barOutline=FALSE,
@@ -259,10 +261,10 @@ sjp.aov1 <- function(depVar,
   # set geom colors
   # --------------------------------------------------------
   if (type=="dots") {
-    geomcols <- pointColors
+    geomcols <- pointColor
   }
   else {
-    geomcols <- barColors
+    geomcols <- barColor
   }
   # --------------------------------------------------------
   # check whether we colors for error bars. if not, use point color
@@ -502,6 +504,9 @@ sjp.aov1 <- function(depVar,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -532,7 +537,7 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   # Set up visibility of tick marks
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showAxisLabels.y) {
@@ -589,14 +594,18 @@ sjp.aov1 <- function(depVar,
     # set value labels to x-axis
     scale_x_discrete(labels=axisLabels.y, limits=c(1:nrow(df))) +
     # flip coordinates
-    labs(title=title, x=NULL, y=axisTitle.x) +
-    ggtheme +
-    # set axes text and 
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-          axis.text.y = element_text(angle=axisLabelAngle.y),
-          axis.text.x = element_text(angle=axisLabelAngle.x),
-          plot.title = element_text(size=rel(titleSize), colour=titleColor))
+    labs(title=title, x=NULL, y=axisTitle.x)
+  # apply theme
+  if (!is.null(ggtheme)) {
+    anovaplot <- anovaplot +
+      ggtheme +
+      # set axes text and 
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+            axis.text.y = element_text(angle=axisLabelAngle.y),
+            axis.text.x = element_text(angle=axisLabelAngle.x),
+            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  }
   # --------------------------------------------------------
   # Flip coordinates when we have dots
   # --------------------------------------------------------
@@ -666,7 +675,7 @@ sjp.aov1 <- function(depVar,
 #' @name sju.aov1.levene
 #' 
 #' @description Plot results of Levene's Test for Equality of Variances for One-Way-Anova.
-#' @seealso \code{\link{sjp.aov1}}, \code{\link{sju.chi2.gof}}, \code{\link{sju.mwu}} and \code{\link{wilcox.test}}, 
+#' @seealso \code{\link{sjp.aov1}}, \code{\link{sjs.chi2.gof}}, \code{\link{sjs.mwu}} and \code{\link{wilcox.test}}, 
 #'          \code{\link{ks.test}}, \code{\link{kruskal.test}}, \code{\link{t.test}}, \code{\link{chisq.test}}, 
 #'          \code{\link{fisher.test}}
 #'           

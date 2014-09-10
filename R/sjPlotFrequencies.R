@@ -160,9 +160,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("grp", "ia", "..density..
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped. Default is \code{FALSE}.
 #' @param labelPos If \code{flipCoordinates} is \code{TRUE}, use this parameter to specify value label position.
 #'          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
@@ -609,13 +611,24 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   # check whether barcolor is defined
   if (is.null(barColor)) {
-    # set default color for histograms
-    barColor <- c("#4080c0")
-    if (type=="bars") {
-      geob <- geom_bar(stat="identity", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+    # check for cutom theme
+    if (!is.null(theme) && theme=="themr") {
+      if (type=="bars") {
+        geob <- geom_bar(stat="identity")
+      }
+      else if (type=="dots") {
+        geob <- geom_point()
+      }
     }
-    else if (type=="dots") {
-      geob <- geom_point(size=dotSize, alpha=barAlpha)
+    else {
+      # set default color for histograms
+      barColor <- c("#4080c0")
+      if (type=="bars") {
+        geob <- geom_bar(stat="identity", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      }
+      else if (type=="dots") {
+        geob <- geom_point(size=dotSize, alpha=barAlpha)
+      }
     }
   }
   else {
@@ -639,6 +652,9 @@ sjp.frq <- function(varCount,
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="classic") {
     ggtheme <- theme_classic()
   }
@@ -654,7 +670,7 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   # Hide or show Tick Marks and Category Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showAxisLabels.x) {
@@ -817,15 +833,30 @@ sjp.frq <- function(varCount,
         scalex <- scale_x_discrete(labels=interactionVarLabels)
       }
       if (type=="boxplots") {
-        baseplot <- baseplot + 
-          geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor)
+        if (!is.null(theme) && theme=="themr") {
+          baseplot <- baseplot + 
+            geom_boxplot()
+        }
+        else {
+          baseplot <- baseplot + 
+            geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor)
+        }
       }
       else {
-        baseplot <- baseplot + 
-          geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor, trim=trimViolin) +
-          # if we have a violin plot, add an additional boxplot inside to show
-          # more information
-          geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
+        if (!is.null(theme) && theme=="themr") {
+          baseplot <- baseplot + 
+            geom_violin(trim=trimViolin) +
+            # if we have a violin plot, add an additional boxplot inside to show
+            # more information
+            geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
+        }
+        else {
+          baseplot <- baseplot + 
+            geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, fill=barColor, trim=trimViolin) +
+            # if we have a violin plot, add an additional boxplot inside to show
+            # more information
+            geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
+        }
       }
       # if we have boxplots or violon plots, also add a point that indicates
       # the mean value
@@ -842,7 +873,12 @@ sjp.frq <- function(varCount,
     # Start density plot here
     # --------------------------------------------------
     else if (type=="dens") {
-      geoh <- geom_histogram(aes(y=..density..), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha)
+      if (!is.null(theme) && theme=="themr") {
+        geoh <- geom_histogram(aes(y=..density..))
+      }
+      else {
+        geoh <- geom_histogram(aes(y=..density..), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha)
+      }
       x <- na.omit(varCount)
       densityDat <- data.frame(x)
       # First, plot histogram with density curve
@@ -885,11 +921,21 @@ sjp.frq <- function(varCount,
         if (barWidth<round(diff(range(x))/50)) cat("Using very small binwidth. Consider adjusting \"barWidth\"-parameter.\n")
         hist.dat <- data.frame(x)
         baseplot <- ggplot(mydat)
-        basehist <- geom_histogram(data=hist.dat, aes(x=x), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        if (!is.null(theme) && theme=="themr") {
+          basehist <- geom_histogram(data=hist.dat, aes(x=x), binwidth=barWidth)
+        }
+        else {
+          basehist <- geom_histogram(data=hist.dat, aes(x=x), fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        }
       }
       else {
         baseplot <- ggplot(mydat, aes(x=var, y=frq))
-        basehist <- geom_histogram(stat="identity", fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        if (!is.null(theme) && theme=="themr") {
+          basehist <- geom_histogram(stat="identity", binwidth=barWidth)
+        }
+        else {
+          basehist <- geom_histogram(stat="identity", fill=barColor, colour=barOutlineColor, size=barOutlineSize, alpha=barAlpha, binwidth=barWidth)
+        }
       }
       basehistline <- geom_area(fill=barColor, alpha=0.3)
       # check whether user wants line or bar histogram
@@ -960,12 +1006,16 @@ sjp.frq <- function(varCount,
   }
   # set axes text and 
   baseplot <- baseplot + 
-    labs(title=title, x=axisTitle.x, y=axisTitle.y) +
-    ggtheme +
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.text.x = element_text(angle=axisLabelAngle.x),
-          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
-          plot.title = element_text(size=rel(titleSize), colour=titleColor))
+    labs(title=title, x=axisTitle.x, y=axisTitle.y)
+  # apply theme
+  if (!is.null(ggtheme)) {
+    baseplot <- baseplot + 
+      ggtheme +
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+            axis.text.x = element_text(angle=axisLabelAngle.x),
+            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
+            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+  }
   # the panel-border-property can only be applied to the bw-theme
   if (!is.null(borderColor)) {
     if (!is.null(theme) && theme=="bw") {

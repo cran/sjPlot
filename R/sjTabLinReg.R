@@ -395,7 +395,7 @@ sjt.lm <- function (...,
     # standard error
     se <- cbind(se, round(summary(fit)$coefficients[,2], digits.se))
     # retrieve standardized betas
-    stdbv <- cbind(stdbv, sprintf("%.*f", digits.sb, sju.betaCoef(fit)))
+    stdbv <- cbind(stdbv, sprintf("%.*f", digits.sb, sjs.betaCoef(fit)))
   }
   # -------------------------------------
   # rotate coefficients

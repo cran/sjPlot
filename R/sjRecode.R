@@ -1,6 +1,3 @@
-# bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("NEWDAT"))
-
 #' @title Dichotomize variables
 #' @name sju.dicho
 #' @description Dichotomizes variables into dummy variables (0/1). Dichotomization is
@@ -233,42 +230,6 @@ sju.groupVarLabels <- function(var, groupsize=5, rightInterval=FALSE, autoGroupC
     retval[i] <- c(paste(c(lower), "-", c(upper), sep=""))
   }
   return (c(retval))
-}
-
-
-
-#' @title Retrieve std. beta coefficients of lm
-#' @name sju.betaCoef
-#' @description Returns the standardized beta coefficients of a fitted linear model.
-#' 
-#' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjt.lm}}
-#'         
-#' @param fit A fitted linear model.
-#' @return The standardiized beta coefficients of the fitted linear model.
-#' 
-#' @note "Standardized coefficients refer to how many standard deviations a dependent variable will change, 
-#'         per standard deviation increase in the predictor variable. Standardization of the coefficient is 
-#'         usually done to answer the question of which of the independent variables have a greater effect 
-#'         on the dependent variable in a multiple regression analysis, when the variables are measured 
-#'         in different units of measurement (for example, income measured in dollars and family size 
-#'         measured in number of individuals)." (Source: Wikipedia)
-#' 
-#' @references \url{http://en.wikipedia.org/wiki/Standardized_coefficient}
-#' 
-#' @examples
-#' # fit linear model
-#' fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Solar.R)
-#' # print std. beta coefficients
-#' sju.betaCoef(fit)
-#' 
-#' @export
-sju.betaCoef <- function(fit) {
-  b <- summary(fit)$coef[-1, 1]
-  sx <- sapply(fit$model[-1], sd)
-  sy <- sapply(fit$model[1], sd)
-  beta <- b * sx/sy
-  return(beta)
 }
 
 
@@ -656,485 +617,401 @@ sju.weight <- function(var, weights) {
 }
 
 
-
-#' @title Performs a Mann-Whitney-U-Test
-#' @name sju.mwu
-#' @description This function performs a Mann-Whitney-U-Test (or \code{Wilcoxon rank sum test},
-#'                see \code{\link{wilcox.test}} and \code{\link{wilcox_test}}) for the variable \code{var}, which is
-#'                divided into groups indicated by \code{grp} (so the formula \code{var ~ grp}
-#'                is used). If \code{grp} has more than two categories, a comparison between each 
-#'                two groups is performed. \cr \cr 
-#'                The function reports U, p and Z-values as well as effect size r and group-rank-means.
+#' @title Group near elements of string vectors
+#' @name sju.groupString
+#' @description This function groups elements of a string vector (character or string variable) according
+#'                to the element's distance. The more similar two string elements are, the higher is the
+#'                chance to be combined into a group.
+#'
+#' @param strings a character vector with string elements
+#' @param maxdist the maximum distance between two string elements, which is allowed to treat two
+#'          elements as similar or equal.
+#' @param method Method for distance calculation. The default is \code{"lv"}. See \code{stringdist} package for details.
+#' @param strict if \code{TRUE}, value matching is more strictly. See examples for details.
+#' @param trim.whitespace if \code{TRUE} (default), leading and trailing white spaces will
+#'          be removed from string values.
+#' @param remove.empty if \code{TRUE} (default), empty string values will be removed from the
+#'          character vector \code{strings}.
+#' @param showProgressBar If \code{TRUE}, the progress bar is displayed when computing the distance matrix.
+#'          Default in \code{FALSE}, hence the bar is hidden.
 #' 
-#' @param var A numeric vector / variable, where the Mann-Whitney-U-Test should be applied to.
-#' @param grp The grouping variable indicating the groups that should be used for comparison.
-#' @param distribution indicates how the null distribution of the test statistic should be computed. Mey be one of
-#'          \code{exact}, \code{approximate} or \code{asymptotic} (default).
-#'          See \code{\link{wilcox_test}} for details.
-#' @param weights defining integer valued weights for the observations. By default,
-#'          this is \code{NULL}.
-#' @return (Invisibly) returns a data frame with U, p and Z-values for each group-comparison
-#'         as well as effect-size r.
-#' 
-#' @note This function calls the \code{\link{wilcox_test}} (from the coin package) with formula. If \code{grp}
-#'         has more than two groups, additionally a Kruskal-Wallis-Test (see \code{\link{kruskal.test}})
-#'         is performed. \cr \cr
-#'         Interpretation of effect sizes:
-#'         \itemize{
-#'          \item small effect >= 0.1
-#'          \item medium effect >= 0.3
-#'          \item large effect >= 0.5
-#'        }
-#' 
-#' @seealso \code{\link{sju.chi2.gof}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
-#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}
+#' @return A character vector where similar string elements (values) are recoded into a new, single value.
 #' 
 #' @examples
-#' data(efc)
-#' # Mann-Whitney-U-Tests for elder's age by elder's dependency.
-#' sju.mwu(efc$e17age, efc$e42dep)
-#' 
-#' @importFrom coin wilcox_test statistic pvalue
-#' @export
-sju.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
-  if (min(grp, na.rm=TRUE)==0) {
-    grp <- grp+1
-  }
-  cnt <- length(unique(na.omit(grp)))
-  labels <- autoSetValueLabels(grp)
-  cat("\nPerforming Mann-Whitney-U-Test...\n")
-  cat("---------------------------------\n")
-  cat("(showing statistics between groups (x|y)\n")
-  df <- data.frame()
-  for (i in 1:cnt) {
-    for (j in i:cnt) {
-      if (i!=j) {
-        # retrieve cases (rows) of subgroups
-        xsub <- var[which(grp==i | grp==j)]
-        ysub <- grp[which(grp==i | grp==j)]
-        # only use rows with non-missings
-        ysub <- ysub[which(!is.na(xsub))]
-        # adjust weights, pick rows from subgroups (see above)
-        if (!is.null(weights)) {
-          wsub <- as.integer(na.omit(weights[which(!is.na(xsub))]))
-        }
-        xsub <- as.numeric(na.omit(xsub))
-        ysub.n <- na.omit(ysub)
-        ysub <- as.factor(ysub.n)
-        if (is.null(weights)) {
-          wt <- wilcox_test(xsub ~ ysub, distribution=distribution)
-        }
-        else {
-          wt <- wilcox_test(xsub ~ ysub, distribution=distribution, weights=as.formula("~wsub"))
-        }
-        u <- as.numeric(statistic(wt, type="linear"))
-        z <- as.numeric(statistic(wt, type="standardized"))
-        p <- pvalue(wt)
-        r <- abs(z / sqrt(length(var)))
-        w <- wilcox.test(xsub, ysub.n, paired = TRUE)$statistic
-        rkm.i <- mean(rank(xsub)[which(ysub.n==i)], na.rm=TRUE)
-        rkm.j <- mean(rank(xsub)[which(ysub.n==j)], na.rm=TRUE)
-        if (is.null(labels)) {
-          cat(sprintf("Groups (%i|%i), n=%i/%i:\n", i, j, length(xsub[which(ysub.n==i)]), length(xsub[which(ysub.n==j)])))
-        }
-        else {
-          cat(sprintf("Groups %i=%s (n=%i) | %i=%s (n=%i):\n", i, labels[i], length(xsub[which(ysub.n==i)]), j, labels[j], length(xsub[which(ysub.n==j)])))
-        }
-        cat(sprintf("  U=%.3f, W=%.3f, p=%.3f, Z=%.3f\n  effect-size r=%.3f\n  rank-mean(%i)=%.2f\n  rank-mean(%i)=%.2f\n\n", u, w, p, z, r, i, rkm.i, j, rkm.j))
-        df <- rbind(df, cbind(grp1=i, grp2=j, u=u, w=w, p=p, z=z, r=r, rank.mean.grp1=rkm.i, rank.mean.grp2=rkm.j))
-      }
-    }
-  }
-  # if we have more than 2 groups, also perfom kruskal-wallis-test
-  if (cnt>2) {
-    cat("\nPerforming Kruskal-Wallis-Test...\n")
-    cat("---------------------------------\n")
-    kw <- kruskal.test(var, grp)
-    cat(sprintf("chi-squared=%.3f\n",kw$statistic ))
-    cat(sprintf("df=%i\n",kw$parameter ))
-    cat(sprintf("p=%.3f\n",kw$p.value ))
-  }
-  invisible(df)
-}
-
-
-#' @title Performs a Chi-square goodness-of-fit-test
-#' @name sju.chi2.gof
-#'
-#' @param var a numeric vector / variable.
-#' @param prob a vector of probabilities (indicating the population probabilities) of the same length 
-#'          as \code{var}'s amount of categories / factor levels. Use \code{nrow(table(var))} to
-#'          determine the amount of necessary values for \code{prob}.
-#' @param weights a vector with weights, used to weight \code{var}.
-#' @return (insisibly) returns the object of the computed \code{\link{chisq.test}}.
-#' 
-#' @note This function is a convenient function for \code{\link{chisq.test}}, performing goodness-of-fit test.
-#' 
-#' @seealso \code{\link{sju.mwu}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
-#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}, \code{\link{ks.test}}
-#' 
-#' @examples
-#' data(efc)
-#' # differing from population
-#' sju.chi2.gof(efc$e42dep, c(0.3,0.2,0.22,0.28))
-#' # equal to population
-#' sju.chi2.gof(efc$e42dep, prop.table(table(efc$e42dep)))
-#' 
-#' @export
-sju.chi2.gof <- function(var, prob, weights=NULL) {
-  # performs a Chi-square goodnes-of-fit-test
-  if (!is.null(weights)) var <- sju.weight(var, weights)
-  dummy <- as.vector(table(var))
-  chi2gof <- chisq.test(dummy, p=prob)
-  print(chi2gof)
-  invisible (chi2gof)
-}
-
-
-#' @title Calculates Cronbach's Alpha for a matrix
-#' @name sju.cronbach
-#' @description This function calculates the Cronbach's alpha value for each column
-#'                of a data frame or matrix.
-#'
-#' @seealso \code{\link{sju.reliability}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}}
-#'
-#' @param df A data frame or matrix with more than 2 columns.
-#' @return The Cronbach's alpha value for \code{df}.
-#' 
-#' @note For use case, see \code{\link{sjp.pca}} and \code{\link{sjt.pca}}.
-#' 
-#' @export
-sju.cronbach <- function(df) { # df must be matrix or data.frame with more than 2 columns
-  df <- na.omit(df)
-  if (is.null(ncol(df)) || ncol(df)<2) {
-    cat("\nToo less columns in this factor to calculate alpha value!\n")
-    return(0)
-  }
-  return (dim(df)[2]/(dim(df)[2]-1)*(1-sum(apply(df,2,var))/var(rowSums(df))))
-}    
-
-
-#' @title Performs a reliability test on an item scale.
-#' @name sju.reliability
-#' @description This function calculates the item discriminations (corrected item-total 
-#'                correlations for each item of \code{df} with the remaining items) and
-#'                the Cronbach's alpha for each item, if it was deleted from the 
-#'                scale.
-#'
-#' @seealso \code{\link{sju.cronbach}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sju.mic}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}} \cr
-#'          \code{\link{sjt.df}}
-#'          
-#' @param df A data frame with items (from a scale)
-#' @param scaleItems If \code{TRUE}, the data frame's vectors will be scaled. Recommended,
-#'          when the variables have different measures / scales.
-#' @param digits Amount of digits for Cronbach's Alpha and correlation values in
-#'          returned data frame.
-#' @return A data frame with the corrected item-total correlations (item discrimination)
-#'           and Cronbach's alpha (if item deleted) for each item of the scale, or
-#'           \code{NULL} if data frame had too less columns.
-#' 
-#' @note This function is similar to a basic reliability test in SPSS. The correlations in
-#'         the Item-Total-Statistic are a computed correlation of each item against the sum
-#'         of the remaining items (which are thus treated as one item).
-#' 
-#' @examples
-#' # -------------------------------
-#' # Data from the EUROFAMCARE sample dataset
-#' # -------------------------------
-#' data(efc)
-#' 
-#' # retrieve variable and value labels
-#' varlabs <- sji.getVariableLabels(efc)
-#' 
-#' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
-#' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
-#'  
-#' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[,c(start:end)])
-#' colnames(df) <- varlabs[c(start:end)]
-#' 
 #' \dontrun{
-#' sjt.df(sju.reliability(df), 
-#'        describe=FALSE,
-#'        showCommentRow=TRUE, 
-#'        commentString=sprintf("Cronbach's &alpha;=%.2f", sju.cronbach(df)))}
+#' oldstring <- c("Hello", "Helo", "Hole", "Apple", "Ape", "New", "Old", "System", "Systemic")
+#' newstring <- sju.groupString(oldstring)
+#' sjt.frq(data.frame(oldstring, newstring), removeStringVectors = FALSE, autoGroupStrings = FALSE)
 #' 
-#' # ---------------------------------------
-#' # Compute PCA on Cope-Index, and perform a
-#' # reliability check on each extracted factor.
-#' # ---------------------------------------
-#' \dontrun{
-#' factors <- sjt.pca(df)$factor.index
-#' findex <- sort(unique(factors))
-#' for (i in 1:length(findex)) {
-#'  rel.df <- subset(df, select=which(factors==findex[i]))
-#'  if (ncol(rel.df)>=3) {
-#'    sjt.df(sju.reliability(rel.df),
-#'           describe=FALSE,
-#'           showCommentRow=TRUE,
-#'           useViewer=FALSE,
-#'           title="Item-Total-Statistic",
-#'           commentString=sprintf("Scale's overall Cronbach's &alpha;=%.2f", 
-#'                                 sju.cronbach(rel.df)))
-#'    }
-#'  }}
-#'  
+#' newstring <- sju.groupString(oldstring, strict = TRUE)
+#' sjt.frq(data.frame(oldstring, newstring), removeStringVectors = FALSE, autoGroupStrings = FALSE)}
+#' 
 #' @export
-sju.reliability <- function(df, scaleItems=FALSE, digits=3) {
-  # -----------------------------------
-  # remove missings, so correlation works
-  # -----------------------------------
-  df <- na.omit(df)
-  # -----------------------------------
-  # remember item (column) names for return value
-  # return value gets column names of initial data frame
-  # -----------------------------------
-  df.names <- colnames(df)
-  # -----------------------------------
-  # check for minimum amount of columns
-  # can't be less than 3, because the reliability
-  # test checks for Cronbach's alpha if a specific
-  # item is deleted. If data frame has only two columns
-  # and one is deleted, Cronbach's alpha cannot be calculated.
-  # -----------------------------------
-  if (ncol(df)>2) {
-    # -----------------------------------
-    # Check whether items should be scaled. Needed,
-    # when items have different measures / scales
-    # -----------------------------------
-    if (scaleItems) {
-      df <- data.frame(scale(df, center=TRUE, scale=TRUE))
-    }
-    # -----------------------------------
-    # init vars
-    # -----------------------------------
-    totalCorr <- c()
-    cronbachDeleted <- c()
-    # -----------------------------------
-    # iterate all items
-    # -----------------------------------
-    for (i in 1:ncol(df)) {
-      # -----------------------------------
-      # create subset with all items except current one
-      # (current item "deleted")
-      # -----------------------------------
-      sub.df <- subset(df, select=c(-i))
-      # -----------------------------------
-      # calculate cronbach-if-deleted
-      # -----------------------------------
-      cronbachDeleted <- c(cronbachDeleted, sju.cronbach(sub.df))
-      # -----------------------------------
-      # calculate corrected total-item correlation
-      # -----------------------------------
-      totalCorr <- c(totalCorr, cor(df[,i], apply(sub.df, 1, sum), use="pairwise.complete.obs"))
-    }
-    # -----------------------------------
-    # create return value
-    # -----------------------------------
-    ret.df <- data.frame(cbind(round(cronbachDeleted,digits), round(totalCorr,digits)))
-    # -----------------------------------
-    # set names of data frame
-    # -----------------------------------
-    colnames(ret.df) <- c("Cronbach's &alpha; if item deleted", "Item discrimination")
-    rownames(ret.df) <- df.names
+sju.groupString <- function(strings, maxdist = 3, method = "lv", strict = FALSE, trim.whitespace = TRUE, remove.empty = TRUE, showProgressBar = FALSE) {
+  # -------------------------------------
+  # check if required package is available
+  # -------------------------------------
+  if (!requireNamespace("stringdist", quietly = TRUE)) {
+    stop("Package 'stringdist' needed for this function to work. Please install it.", call. = FALSE)
   }
-  else {
-    warning("Data frame needs at least three columns for reliability-test!")
-    ret.df <- NULL
+  # -------------------------------------
+  # coerce to character, if necessary
+  # -------------------------------------
+  if (!is.character(strings)) strings <- as.character(strings)
+  # -------------------------------------
+  # helper function to trim white spaces
+  # -------------------------------------
+  trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+  # -------------------------------------
+  # trim white spaces
+  # -------------------------------------
+  if (trim.whitespace) {
+    for (i in 1:length(strings)) {
+      strings[i] <- trim(strings[i])
+    }
   }
-  # -----------------------------------
-  return(ret.df)
+  # -------------------------------------
+  # remove empty values
+  # -------------------------------------
+  if (remove.empty) {
+    removers <- c()
+    for (i in 1:length(strings)) {
+      if (0==nchar(strings[i])) {
+        removers <- c(removers, i)
+      }
+    }
+    if (length(removers)>0) strings <- strings[-removers]
+  }
+  # -------------------------------------
+  # create matrix from string values of variable
+  # -------------------------------------
+  m <- stringdist::stringdistmatrix(strings, strings, method = method)
+  colnames(m) <- strings
+  rownames(m) <- strings
+  # -------------------------------------
+  # init variable that contains "close" pairs
+  # -------------------------------------
+  pairs <- list()
+  # -------------------------------------
+  # helper function that finds elements in
+  # final list of grouped elements
+  # -------------------------------------
+  findInPairs <- function(curel) {
+    elfound <- FALSE
+    if (length(pairs)>0) {
+      for (ll in 1:length(pairs)) {
+        pel <- pairs[[ll]]
+        if (any(pel==curel)) elfound <- TRUE
+      }
+    }
+    return (elfound)
+  }
+  # -------------------------------------
+  # create progress bar
+  # -------------------------------------
+  if (showProgressBar) pb <- txtProgressBar(min=0, max=ncol(m), style=3)
+  # -------------------------------------
+  # iterate matrix
+  # -------------------------------------
+  for (i in 1:nrow(m)) {
+    # update progress bar
+    if (showProgressBar) setTxtProgressBar(pb, i)
+    # -------------------------------------
+    # check if current element is already grouped
+    # -------------------------------------
+    if (!findInPairs(rownames(m)[i])) {
+      # -------------------------------------
+      # current row element has not been grouped
+      # yet, so go on...
+      # -------------------------------------
+      pairvector <- c()
+      for (j in 1:ncol(m)) {
+        # -------------------------------------
+        # check if we found a pair's distance that
+        # is within the maximum requested distance
+        # i.e. which are "close" enough
+        # -------------------------------------
+        if (m[i,j] <= maxdist) {
+          # -------------------------------------
+          # go through all rows of this column and 
+          # check if there's a better match for the
+          # currently compared token
+          # -------------------------------------
+          foundBetterToken <- !strict
+          for (cnt in 1:nrow(m)) {
+            if (strict) {
+              if (m[cnt,j] > 0 && m[cnt,j] < m[i,j]) foundBetterToken <- TRUE
+            }
+            else {
+              if (m[cnt,j] <= maxdist && m[i,cnt] <= maxdist) foundBetterToken <- FALSE
+            }
+          }
+          # -------------------------------------
+          # in the current column, there's no better
+          # matching of strings, so we pick this values
+          # and add it to our results
+          # -------------------------------------
+          if (!foundBetterToken) {
+            # -------------------------------------
+            # remember string value
+            # -------------------------------------
+            token <- colnames(m)[j]
+            # -------------------------------------
+            # check if we already found a string value
+            # within this column
+            # -------------------------------------
+            if (!any(pairvector==token) && !findInPairs(token)) {
+              # -------------------------------------
+              # if not, add string values to "close" pairs
+              # of this column
+              # -------------------------------------
+              pairvector <- c(pairvector, token)
+            }
+          }
+        }
+      }
+      # -------------------------------------
+      # now we have a vector with all "close" string values
+      # from the current row's value
+      # -------------------------------------
+      pairvector <- sort(pairvector)
+      # -------------------------------------
+      # check if we already have saved these values to our list
+      # -------------------------------------
+      if (!any(unlist(lapply(pairs, function(x) length(x)==length(pairvector) && any(x==pairvector))))) {
+        # -------------------------------------
+        # if not, add "close" values as new list element
+        # -------------------------------------
+        pairs <- c(pairs, list(pairvector))
+      }
+    }
+  }
+  # -------------------------------------
+  # we now have a list, where each list element
+  # is a vector of "close" string values
+  # -------------------------------------
+  strings.new <- c()
+  # -------------------------------------
+  # go through each list element
+  # -------------------------------------
+  for (i in 1:length(pairs)) {
+    r <- pairs[[i]]
+    # -------------------------------------
+    # find vector indices of "close" values in
+    # original string
+    # -------------------------------------
+    indices <- unlist(lapply(r, function(x) which(strings==x)))  
+    newvalue <- r[1]
+    count <- 2
+    # -------------------------------------
+    # "merge" each close values into one
+    # single value that combines all close values
+    # -------------------------------------
+    while (count <= length(r)) {
+      newvalue <- paste0(newvalue, ", ", r[count])
+      count <- count+1
+    }
+    strings.new[indices] <- newvalue
+  }
+  if (showProgressBar) close(pb)
+  # -------------------------------------
+  # return new vector, where all single "close"
+  # values are replaced by the group of closed values.
+  # e.g. the three values "hello", "holle" and "hole"
+  # will be "recoded" into on value "hello, holle, hole"
+  # -------------------------------------
+  return (strings.new)
 }
 
 
-#' @title Computes a mean inter-item-correlation.
-#' @name sju.mic
-#' @description This function calculates a mean inter-item-correlation, i.e.
-#'                a correlation matrix of \code{data} will be computed (unless
-#'                \code{data} is already a \code{\link{cor}}-object) and the mean
-#'                of all added item's correlation values is returned.
-#'                Requires either a data frame or a computed \code{\link{cor}}-object.
+#' @title Find partial matching and close distance elements in strings
+#' @name sju.strpos
+#' @description This function finds the element indices of partial matching or similar strings 
+#'                in a character vector. Can be used to find exact or slightly mistyped elements
+#'                in a string vector.
 #'
-#' @seealso \code{\link{sju.cronbach}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sju.reliability}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}}
+#' @param searchString a character vector with string elements
+#' @param findTerm the string that should be matched against the elements of \code{searchString}.
+#' @param maxdist the maximum distance between two string elements, which is allowed to treat them
+#'          as similar or equal.
+#' @param part.dist.match activates similar matching (close distance strings) for parts (substrings)
+#'          of the \code{searchString}. Following values are accepted:
+#'          \itemize{
+#'            \item 0 for no partial distance matching
+#'            \item 1 for one-step matching, which means, only substrings of same length as \code{findTerm} are extracted from \code{searchString} matching
+#'            \item 2 for two-step matching, which means, substrings of same length as \code{findTerm} as well as strings with a slightly wider range are extracted from \code{searchString} matching
+#'          }
+#'          Default value is 0.
+#' @param showProgressBar If \code{TRUE}, the progress bar is displayed when computing the distance matrix.
+#'          Default in \code{FALSE}, hence the bar is hidden.
 #'          
-#' @param data A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
-#'          which correlations should be calculated.
-#' @param corMethod Indicates the correlation computation method. May be one of
-#'          \code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
-#' @return The value of the computed mean inter-item-correlation.
+#' @return A numeric vector with index position of elements in \code{searchString} that 
+#'           partially match or are similar to \code{findTerm}. Returns \code{-1} if no
+#'           match was found.
+#' 
+#' @note this function does \emph{not} return the position of a matching string \emph{inside}
+#'         another string, but the element's index of the \code{searchString} vector, where
+#'         a (partial) match with \code{findTerm} was found. Thus, searching for "abc" in
+#'         a string "this is abc" will not return 9 (the start position of the substring),
+#'         but 1 (the element index, which is always 1 if \code{searchString} only has one element).
 #' 
 #' @examples
-#' # -------------------------------
-#' # Data from the EUROFAMCARE sample dataset
-#' # -------------------------------
-#' data(efc)
-#' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
-#' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
-#' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[,c(start:end)])
+#' \dontrun{
+#' string <- c("Hello", "Helo", "Hole", "Apple", "Ape", "New", "Old", "System", "Systemic")
+#' sju.strpos(string, "hel")   # partial match
+#' sju.strpos(string, "stem")  # partial match
+#' sju.strpos(string, "R")     # no match
+#' sju.strpos(string, "saste") # similarity to "System"
 #' 
-#' sju.mic(df)
+#' # finds nothing
+#' sju.strpos("We are Sex Pistols!", "postils")
+#' # finds partial matching of similarity
+#' sju.strpos("We are Sex Pistols!", "postils", part.dist.match = TRUE)}
+#' 
 #' @export
-sju.mic <- function(data,
-                    corMethod="pearson") {
-  # -----------------------------------
-  # Mean-interitem-corelation
-  # -----------------------------------
-  if (class(data)=="matrix") {
-    corr <- data
+sju.strpos <- function(searchString, findTerm, maxdist = 3, part.dist.match = 0, showProgressBar = FALSE) {
+  # -------------------------------------
+  # init return value
+  # -------------------------------------
+  indices <- c()
+  # -------------------------------------
+  # find element indices from partial matching of string and find term
+  # -------------------------------------
+  pos <- as.numeric(grep(findTerm, searchString, ignore.case = T))
+  if (length(pos)>0) indices <- c(indices, pos)
+  # -------------------------------------
+  # check if required package is available
+  # -------------------------------------
+  if (!requireNamespace("stringdist", quietly = TRUE)) {
+    cat("Package 'stringdist' needed for this function to fully work. Please install it. Only partial matching indices are returned.")
+    return (indices)
   }
-  else {
-    data <- na.omit(data)
-    corr <- cor(data, method=corMethod)
-  }
-  # -----------------------------------
-  # Sum up all correlation values
-  # -----------------------------------
-  mic <- c()
-  for (j in 1:(ncol(corr)-1)) {
-    # first correlation is always "1" (self-correlation)
-    for (i in (j+1):nrow(corr)) {
-      # check four valid bound
-      if (i<=nrow(corr) && j<=ncol(corr)) {
-        # add up all subsequent values
-        mic <- c(mic, corr[i,j])
+  # -------------------------------------
+  # find element indices from similar strings
+  # -------------------------------------
+  pos <- which(stringdist::stringdist(tolower(findTerm), tolower(searchString)) <= maxdist)
+  if (length(pos)>0) indices <- c(indices, pos)
+  # -------------------------------------
+  # find element indices from partial similar (distance) 
+  # string matching
+  # -------------------------------------
+  if (part.dist.match>0) {
+    # -------------------------------------
+    # helper function to trim white spaces
+    # -------------------------------------
+    trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+    ftlength <- nchar(findTerm)
+    # -------------------------------------
+    # create progress bar
+    # -------------------------------------
+    if (showProgressBar) pb <- txtProgressBar(min=0, max=length(searchString), style=3)
+    # -------------------------------------
+    # iterate search string vector
+    # -------------------------------------
+    for (ssl in 1:length(searchString)) {
+      # -------------------------------------
+      # retrieve each element of search string vector
+      # we do this step by step instead of vectorizing
+      # due to the substring approach
+      # -------------------------------------
+      sst <- searchString[ssl]
+      # -------------------------------------
+      # we extract substrings of same length as findTerm
+      # starting from first char of searchString until end
+      # and try to find similar matches
+      # -------------------------------------
+      steps <- nchar(sst) - ftlength + 1
+      for (pi in 1:steps) {
+        # -------------------------------------
+        # retrieve substring
+        # -------------------------------------
+        sust <- trim(substr(sst, pi, pi+ftlength-1))
+        # -------------------------------------
+        # find element indices from similar substrings
+        # -------------------------------------
+        pos <- which(stringdist::stringdist(tolower(findTerm), tolower(sust)) <= maxdist)
+        if (length(pos)>0) indices <- c(indices, pos)
       }
-      else {
-        mic <- c(mic, "NA")
+      if (part.dist.match>1) {
+        # -------------------------------------
+        # 2nd loop picks longer substrings, because similarity
+        # may also be present if length of strings differ
+        # (e.g. "app" and "apple")
+        # -------------------------------------
+        steps <- nchar(sst) - ftlength
+        if (steps>1) {
+          for (pi in 2:steps) {
+            # -------------------------------------
+            # retrieve substring
+            # -------------------------------------
+            sust <- trim(substr(sst, pi-1, pi+ftlength))
+            # -------------------------------------
+            # find element indices from similar substrings
+            # -------------------------------------
+            pos <- which(stringdist::stringdist(tolower(findTerm), tolower(sust)) <= maxdist)
+            if (length(pos)>0) indices <- c(indices, pos)
+          }
+        }
       }
+      # update progress bar
+      if (showProgressBar) setTxtProgressBar(pb, ssl)
     }
   }
-  return (mean(mic))
-}
-
-
-#' @title Compute table's values
-#' @name sju.table.values
-#' @description This function calculates a table's cell, row and column percentages as
-#'                well as expected values and returns all results as lists of tables.
-#'
-#' @seealso \code{\link{sju.phi}} \cr
-#'          \code{\link{sju.cramer}}
-#'
-#' @param tab A simple \code{\link{table}} or \code{\link{ftable}} of which cell, row and column percentages 
-#'          as well as expected values are calculated. Tables of class \code{\link{xtabs}} and other will
-#'          be coerced to \code{\link{ftable}} objects.
-#' @param digits The amount of digits for the table percentage values.
-#' @return (invisibly) returns a list with four tables:
-#'         \enumerate{
-#'          \item \code{cell} a table with cell percentages of \code{tab}
-#'          \item \code{row} a table with row percentages of \code{tab}
-#'          \item \code{col} a table with column percentages of \code{tab}
-#'          \item \code{expected} a table with expected values of \code{tab}
-#'         }
-#' 
-#' @examples
-#' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
-#' # show expected values
-#' sju.table.values(tab)$expected
-#' # show cell percentages
-#' sju.table.values(tab)$cell
-#' 
-#' @export
-sju.table.values <- function(tab, digits=2) {
-  if (class(tab)!="ftable") tab <- ftable(tab)
-  tab.cell <- round(100*prop.table(tab),digits)
-  tab.row <- round(100*prop.table(tab,1),digits)
-  tab.col <- round(100*prop.table(tab,2),digits)
-  tab.expected <- as.table(round(as.array(margin.table(tab,1)) %*% t(as.array(margin.table(tab,2))) / margin.table(tab)))
+  if (showProgressBar) close(pb)
   # -------------------------------------
-  # return results
+  # return result
   # -------------------------------------
-  invisible (structure(class = "sjutablevalues",
-                       list(cell = tab.cell,
-                            row = tab.row,
-                            col = tab.col,
-                            expected = tab.expected)))
-}
-
-
-#' @title Phi value for a contingency table
-#' @name sju.phi
-#' @description Compute Phi value for a contingency table.
-#'
-#' @seealso \code{\link{sju.table.values}} \cr
-#'          \code{\link{sju.cramer}}
-#'
-#' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
-#'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
-#' @return The table's Phi value.
-#' 
-#' @examples
-#' tab <- table(sample(1:2, 30, TRUE), sample(1:2, 30, TRUE))
-#' sju.phi(tab)
-#' 
-#' @export
-sju.phi <- function(tab) {
-  if (class(tab)!="ftable") tab <- ftable(tab)
-  tb <- summary(loglm(~1+2, tab))$tests
-  phi <- sqrt(tb[2,1]/sum(tab))
-  return (phi)
-}
-
-
-#' @title Cramer's V for a contingency table
-#' @name sju.cramer
-#' @description Compute Cramer's V for a table with more than 2x2 fields.
-#'
-#' @seealso \code{\link{sju.table.values}} \cr
-#'          \code{\link{sju.phi}}
-#'
-#' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
-#'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
-#' @return The table's Cramer's V.
-#' 
-#' @examples
-#' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
-#' sju.cramer(tab)
-#' 
-#' @export
-sju.cramer <- function(tab) {
-  if (class(tab)!="ftable") tab <- ftable(tab)
-  phi <- sju.phi(tab)
-  cramer <- sqrt(phi^2/min(dim(tab)-1))
-  return (cramer)
-}
-
-
-sju.mediator <- function(x, m, y, controls=NULL) {
-  df.med <- data.frame(x=x, m=m, y=y)
-  if (!is.null(controls)) {
-    df.med <- cbind(df.med, controls)
+  if (length(indices) > 0) {
+    return (sort(unique(indices)))
   }
-    df.med <- na.exclude(df.med)
-    model1 <- lm(y ~ x, data=df.med)
-    model2 <- lm(y ~ x + m, data=df.med)
-    model3 <- lm(m ~ x, data=df.med)
-    
-  mod1.out <- summary(model1)$coef
-  mod2.out <- summary(model2)$coef
-  mod3.out <- summary(model3)$coef
-  indir <- mod3.out[2, 1] * mod2.out[3, 1]
-  effvar <- (mod3.out[2, 1])^2 * (mod2.out[3, 2])^2 + (mod2.out[3,1])^2 * (mod3.out[2,2])^2
-  serr <- sqrt(effvar)
-  zvalue = indir/serr
-  out <- list(`Mod1: Y~X` = mod1.out, `Mod2: Y~X+M` = mod2.out, 
-              `Mod3: M~X` = mod3.out, Indirect.Effect = indir, SE = serr, 
-              z.value = zvalue, N = nrow(NEWDAT))
-  return(out)
+  return (-1)
+}
+
+
+#' @title Compute row means with min amount of valid values
+#' @name sju.mean.n
+#' @description This function is similar to the SPSS \code{MEAN.n} function and computes
+#'                row means from a \link{data.frame} or \link{matrix} if at least \code{n}
+#'                values of a row a valid (and not \link{NA}).
+#'
+#' @param df a \link{data.frame} with at least two columns, where row means are applied.
+#' @param n the amount of valid values per row to calculate the row mean. If a row's valid
+#'          values is smaller than \code{n}, \link{NA} will be returned as row mean value.
+#' 
+#' @return A vector with row mean values of \code{df} for those rows with at least \code{n}
+#'           valid values. Else, \link{NA} is returned.
+#' 
+#' @references \itemize{
+#'              \item \url{http://candrea.ch/blog/compute-spss-like-mean-index-variables/}
+#'              \item \url{http://r4stats.com/2014/09/03/adding-the-spss-mean-n-function-to-r/}
+#'              }
+#' 
+#' @examples
+#' df <- data.frame(a=c(1,2,NA,4), b=c(NA,2,NA,5), c=c(NA,4,NA,NA), d=c(2,3,7,8))
+#' sju.mean.n(df, 4) # 1 valid return value
+#' sju.mean.n(df, 3) # 2 valid return values
+#' sju.mean.n(df, 2)
+#' sju.mean.n(df, 1) # all means are shown
+#' 
+#' @export
+sju.mean.n <- function(df, n) {
+  # ---------------------------------------
+  # coerce matrix to data frame
+  # ---------------------------------------
+  if (is.matrix(df)) df <- as.data.frame(df)
+  # ---------------------------------------
+  # check if we have a data framme with at least two columns
+  # ---------------------------------------
+  if (!is.data.frame(df) || ncol(df) < 2) {
+    warning("'df' must be a data.frame with at least two columns.")
+    return (NA)
+  }
+  # ---------------------------------------
+  # n may not be larger as df's amount of columns
+  # ---------------------------------------
+  if (ncol(df) < n) {
+    warning("'n' must be smaller or equal to data.frame's amount of columns.")
+    return (NA)
+  }
+  apply(df, 1, function(x) ifelse(sum(!is.na(x)) >= n, mean(x, na.rm=TRUE), NA))
 }

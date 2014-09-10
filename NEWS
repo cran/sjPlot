@@ -1,3 +1,29 @@
+Version 1.5
+------------------------------------------------------------------------------
+New functions:
+* "sju.groupString" to recode similar (close distance) elements of a character vector into a new, single string value.
+* "sju.strpos" to find partial matching and close distance elements in strings.
+* "sju.mean.n" to compute means for rows with at least n valid values (like SPSS MEAN.n function).
+
+Changes to functions:
+* "sjt.frq" can now handle character vectors (string variables), see parameter "removeStringVectors".
+* "sjt.frq" can automatically group string values in character vectors according to their distance metrics (similarity). This will merge different but similar values into a new, single value.
+* Prefixes of statistical test functions have been renamed from "sju" to "sjs".
+* Added "themr" option to "theme" parameter of all sjp-plotting function, so the sjPlot package can be used with the ggthemr-package (https://github.com/cttobin/ggthemr). You may use the "ggthemr::swatch" function to retrieve theme-colors as bar/point/line-colors.
+* Added parameter "axisLimits.y" to function "sjp.emm.int"
+* Added parameter "axisLimits.y" to function "sjp.lm.int"
+* "sjp.lm" now shows adjusted r-square in model summary.
+* "sjc.cluster", "sjc.qclus" and "sjc.dend" now also accept agglomeration options "ward.D" and "ward.D2" if you are using an R version later than 3.0.3.
+* "sjt.itemanalysis" now calulates index scores based on "sju.mean.n" function (see parameter "minValidRowMeanValue").
+
+General:
+* Removed extracted single functions from other packages and added imports for those functions. sjPlot now also imports "psych" and "cluster" package.
+* Removed packages cluster, coin, lsmeans and lmtest from required imports and moved them to suggested packages.
+
+Bug fixes
+* Parameter "theme" was ignored in "sjp.scatter" - fixed.
+
+
 Version 1.4.3
 ------------------------------------------------------------------------------
 New functions:

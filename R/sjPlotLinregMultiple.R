@@ -100,9 +100,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #'          \itemize{
 #'          \item Use \code{"bw"} for a white background with gray grids
 #'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids) or 
-#'          \item \code{"none"} for no borders, grids and ticks.
+#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
+#'          \item \code{"none"} for no borders, grids and ticks or
+#'          \item \code{"themr"} if you are using the \code{ggthemr} package
 #'          }
+#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
@@ -434,6 +436,9 @@ sjp.lmm <- function(...,
     ggtheme <- theme_gray()
     hideGridColor <- c("gray90")
   }
+  else if (theme=="themr") {
+    ggtheme <- NULL
+  }
   else if (theme=="bw") {
     ggtheme <- theme_bw()
   }
@@ -464,7 +469,7 @@ sjp.lmm <- function(...,
   # --------------------------------------------------------
   # Set up visibility oftick marks
   # --------------------------------------------------------
-  if (!showTickMarks) {
+  if (!showTickMarks && !is.null(ggtheme)) {
     ggtheme <- ggtheme + theme(axis.ticks = element_blank())
   }
   if (!showAxisLabels.y) {
@@ -514,19 +519,25 @@ sjp.lmm <- function(...,
     # add colour legend to indicate different fitted models
     scalecolors +
     # use transparancy if requested, but hide legend
-    scale_alpha_manual(values=c(nsAlpha,1.0), guide="none") +
-    ggtheme +
-    # --------------------------------------------------------
-    # set axes text and label position etc.
-    # --------------------------------------------------------
-    theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-        axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-        axis.text.x = element_text(angle=axisLabelAngle.x),
-        axis.text.y = element_text(angle=axisLabelAngle.y),
-        plot.title = element_text(size=rel(titleSize), colour=titleColor),
-        legend.position = legendPos,
-        legend.text = element_text(size=rel(legendSize)),
-        legend.background = element_rect(colour=legendBorderColor, fill=legendBackColor))
+    scale_alpha_manual(values=c(nsAlpha,1.0), guide="none")
+  # --------------------------------------------------------
+  # apply theme
+  # --------------------------------------------------------
+  if (!is.null(ggtheme)) {
+    plotHeader <- plotHeader +
+      ggtheme +
+      # --------------------------------------------------------
+      # set axes text and label position etc.
+      # --------------------------------------------------------
+      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
+          axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
+          axis.text.x = element_text(angle=axisLabelAngle.x),
+          axis.text.y = element_text(angle=axisLabelAngle.y),
+          plot.title = element_text(size=rel(titleSize), colour=titleColor),
+          legend.position = legendPos,
+          legend.text = element_text(size=rel(legendSize)),
+          legend.background = element_rect(colour=legendBorderColor, fill=legendBackColor))
+  }
   # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
