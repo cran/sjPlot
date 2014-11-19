@@ -1,5 +1,6 @@
 #' @title Dichotomize variables
 #' @name sju.dicho
+#' 
 #' @description Dichotomizes variables into dummy variables (0/1). Dichotomization is
 #'                either done by median or mean (see \code{dichBy}).
 #'
@@ -13,7 +14,8 @@
 #'          Note that \code{dichVal} is inclusive, i.e. \code{dichVal=10} will split \code{var}
 #'          into one group with values from lowest to 10 and another group with values greater
 #'          than 10.
-#' @return A dichotomized variable (0/1-coded).
+#' @param asNum If \code{TRUE}, return value will be numeric, not a factor.
+#' @return A dichotomized factor (or numeric, if \code{asNum = TRUE} variable (0/1-coded).
 #' 
 #' @examples
 #' data(efc)
@@ -23,7 +25,7 @@
 #' table(sju.dicho(efc$c12hour, "value", 30))
 #'  
 #' @export
-sju.dicho <- function(var, dichBy="median", dichVal=-1) {
+sju.dicho <- function(var, dichBy="median", dichVal=-1, asNum = FALSE) {
   # check abbreviations
   if (dichBy=="md") dichBy <- "median"
   if (dichBy=="m") dichBy <- "mean"
@@ -46,13 +48,16 @@ sju.dicho <- function(var, dichBy="median", dichVal=-1) {
   else {
     var <- ifelse(var<=dichVal,0,1)
   }
+  if (!asNum) var <- as.factor(var)
   return(var)
 }
 
 
 #' @title Recode count variables into grouped factors
 #' @name sju.groupVar
+#' 
 #' @description Recode count variables into grouped factors.
+#' 
 #' @seealso \code{\link{sju.groupVarLabels}}
 #'
 #' @param var The count variable, which should recoded into groups.
@@ -128,6 +133,7 @@ sju.groupVar <- function(var, groupsize=5, asNumeric=TRUE, rightInterval=FALSE, 
 
 #' @title Create labels for recoded groups
 #' @name sju.groupVarLabels
+#' 
 #' @description Creates the related labels for the grouped variable created by
 #'                the \code{\link{sju.groupVar}} function.
 #'                
@@ -235,6 +241,7 @@ sju.groupVarLabels <- function(var, groupsize=5, rightInterval=FALSE, autoGroupC
 
 #' @title Adjust y range of ggplot-objects
 #' @name sju.adjustPlotRange.y
+#' 
 #' @description This method adjusts the y-range of a ggplot-object, which is useful when
 #'                value labels are outside of the plot region. A modified ggplot-object will
 #'                be returned with adjusted y-range so everything should be visible.
@@ -242,7 +249,7 @@ sju.groupVarLabels <- function(var, groupsize=5, rightInterval=FALSE, autoGroupC
 #'
 #' @note Note that this function only works on \code{scale_y_continuous}.
 #' 
-#' @references \url{http://www.r-bloggers.com/setting-axis-limits-on-ggplot-charts/}
+#' @references \href{http://www.r-bloggers.com/setting-axis-limits-on-ggplot-charts/}{r-bloggers.com}
 #' 
 #' @param gp A ggplot-object. Usually, this will be returned by most of this
 #'          package's plotting functions.
@@ -283,6 +290,7 @@ sju.adjustPlotRange.y <- function(gp, upperMargin=1.05) {
 
 #' @title Insert line breaks in long labels
 #' @name sju.wordwrap
+#' 
 #' @description Insert line breaks in long character strings. Useful if you want to wordwrap
 #'                plot labels.
 #'
@@ -319,20 +327,23 @@ sju.wordwrap <- function(labels, wrap, linesep=NULL) {
   pattern <- c(paste('(.{1,', wrap, '})(\\s|$)', sep=""))
   # iterate all labels
   for (n in 1:length(labels)) {
-    # insert line breaks
-    labels[n] <- gsub(pattern, linesep, labels[n])
-    # -----------------------
-    # in case label was short enough, we still have a line break
-    # at the end of the label. here we remove any trailing line breaks
-    # -----------------------
-    # get length of label
-    l <- nchar(labels[n])
-    # get last char
-    lc <- substr(labels[n], l-lsub, l)
-    # check if line breaj
-    if (lc==ori.linesep) {
-      # if yes, remove it
-      labels[n] <- substr(labels[n], 0, l-(lsub+1))
+    # check if wrap exceeds lengths of labels
+    if (wrap>0 && nchar(labels[n])>wrap) {
+      # insert line breaks
+      labels[n] <- gsub(pattern, linesep, labels[n])
+      # -----------------------
+      # in case label was short enough, we still have a line break
+      # at the end of the label. here we remove any trailing line breaks
+      # -----------------------
+      # get length of label
+      l <- nchar(labels[n])
+      # get last char
+      lc <- substr(labels[n], l-lsub, l)
+      # check if line break
+      if (lc==ori.linesep) {
+        # if yes, remove it
+        labels[n] <- substr(labels[n], 0, l-(lsub+1))
+      }
     }
   }
   return(labels)
@@ -341,6 +352,7 @@ sju.wordwrap <- function(labels, wrap, linesep=NULL) {
 
 #' @title Recode variable categories into new values.
 #' @name sju.recodeTo
+#' 
 #' @description Recodes the categories of a variables \code{var} into new category values, beginning
 #'                with the lowest value specified by parameter \code{lowest}. Useful if you want
 #'                to recode dummy variables with 1/2 coding to 0/1 coding, or recoding scales from
@@ -399,6 +411,7 @@ sju.recodeTo <- function(var, lowest=0, highest=-1) {
 
 #' @title Recode variable values.
 #' @name sju.recode
+#' 
 #' @description Recodes the categories of a variables. Wrapper function that calls
 #'                the \code{\link{recode}} function from the \code{car} package.
 #'
@@ -420,6 +433,7 @@ sju.recode <- function(...) {
 
 #' @title Plot Variance Inflation Factors of linear models
 #' @name sjp.vif
+#' 
 #' @description Plots the Variance Inflation Factors (check for multicollinearity) of 
 #'                (generalized) linear models. Values below 5 are good and indicating no
 #'                multicollinearity, values between 5 and 10 may be tolerable. Values 
@@ -498,13 +512,14 @@ sjp.vif <- function(fit) {
 
 #' @title Set NA for specific variable values
 #' @name sju.setNA
+#' 
 #' @description This function sets specific values of a variable \code{var}
 #'                as missings (\code{NA}).
 #'
 #' @param var The variable where new missing values should be defined.
-#' @param values The values that should be replaced with \code{\link{NA}}'s.
+#' @param values A numeric vector with values that should be replaced with \code{\link{NA}}'s.
 #' 
-#' @return The \code{var} with each values of \code{values} replaced by an \code{NA}.
+#' @return The \code{var} where each value of \code{values} replaced by an \code{NA}.
 #' 
 #' @examples
 #' # create random variable
@@ -518,23 +533,36 @@ sjp.vif <- function(fit) {
 #' 
 #' @export
 sju.setNA <- function(var, values) {
+  # retrieve value labels
+  vl <- attr(var, "value.labels")
+  # retrieve label names
+  ln <- names(vl)
   # iterate all values that should be 
   # replaced by NA's
   for (i in seq_along(values)) {
     # find associated values in var
     # and set them to NA
     var[var==values[i]] <- NA
+    # check if value labels exist, and if yes, remove them
+    labelpos <- which(as.numeric(vl)==values[i])
+    if (length(labelpos > 0)) {
+      # remove NA label
+      vl <- vl[-labelpos]
+    }
   }
+  # set back updated label attribute
+  attr(var, "value.labels") <- vl
   return(var)
 }
 
 
 #' @title Weight a variable
 #' @name sju.weight2
+#' 
 #' @description This function weights the variable \code{var} by
 #'                a specific vector of \code{weights}. It's an 
 #'                alternative weight calculation to \code{\link{sju.weight}},
-#'                where \code{\link{sju.weight}} usage is recommended.
+#'                though \code{\link{sju.weight}} usage is recommended.
 #'                This function sums up all \code{weights} values of the associated
 #'                categories of \code{var}, whereas the \code{\link{sju.weight}} function
 #'                uses a \code{\link{xtabs}} formula to weight cases. Thus, this function
@@ -619,6 +647,9 @@ sju.weight <- function(var, weights) {
 
 #' @title Group near elements of string vectors
 #' @name sju.groupString
+#' 
+#' @seealso \code{\link{sju.strpos}}
+#' 
 #' @description This function groups elements of a string vector (character or string variable) according
 #'                to the element's distance. The more similar two string elements are, the higher is the
 #'                chance to be combined into a group.
@@ -830,6 +861,8 @@ sju.groupString <- function(strings, maxdist = 3, method = "lv", strict = FALSE,
 #'                in a character vector. Can be used to find exact or slightly mistyped elements
 #'                in a string vector.
 #'
+#' @seealso \code{\link{sju.groupString}}
+#'
 #' @param searchString a character vector with string elements
 #' @param findTerm the string that should be matched against the elements of \code{searchString}.
 #' @param maxdist the maximum distance between two string elements, which is allowed to treat them
@@ -863,10 +896,16 @@ sju.groupString <- function(strings, maxdist = 3, method = "lv", strict = FALSE,
 #' sju.strpos(string, "R")     # no match
 #' sju.strpos(string, "saste") # similarity to "System"
 #' 
+#' # finds two indices, because partial matching now 
+#' # also applies to "Systemic"
+#' sju.strpos(string, 
+#'            "sytsme", 
+#'            part.dist.match = 1)
+#' 
 #' # finds nothing
 #' sju.strpos("We are Sex Pistols!", "postils")
 #' # finds partial matching of similarity
-#' sju.strpos("We are Sex Pistols!", "postils", part.dist.match = TRUE)}
+#' sju.strpos("We are Sex Pistols!", "postils", part.dist.match = 1)}
 #' 
 #' @export
 sju.strpos <- function(searchString, findTerm, maxdist = 3, part.dist.match = 0, showProgressBar = FALSE) {
@@ -930,7 +969,7 @@ sju.strpos <- function(searchString, findTerm, maxdist = 3, part.dist.match = 0,
         # find element indices from similar substrings
         # -------------------------------------
         pos <- which(stringdist::stringdist(tolower(findTerm), tolower(sust)) <= maxdist)
-        if (length(pos)>0) indices <- c(indices, pos)
+        if (length(pos)>0) indices <- c(indices, ssl)
       }
       if (part.dist.match>1) {
         # -------------------------------------
@@ -949,7 +988,7 @@ sju.strpos <- function(searchString, findTerm, maxdist = 3, part.dist.match = 0,
             # find element indices from similar substrings
             # -------------------------------------
             pos <- which(stringdist::stringdist(tolower(findTerm), tolower(sust)) <= maxdist)
-            if (length(pos)>0) indices <- c(indices, pos)
+            if (length(pos)>0) indices <- c(indices, ssl)
           }
         }
       }
@@ -982,8 +1021,8 @@ sju.strpos <- function(searchString, findTerm, maxdist = 3, part.dist.match = 0,
 #'           valid values. Else, \link{NA} is returned.
 #' 
 #' @references \itemize{
-#'              \item \url{http://candrea.ch/blog/compute-spss-like-mean-index-variables/}
-#'              \item \url{http://r4stats.com/2014/09/03/adding-the-spss-mean-n-function-to-r/}
+#'              \item \href{http://candrea.ch/blog/compute-spss-like-mean-index-variables/}{candrea's blog}
+#'              \item \href{http://r4stats.com/2014/09/03/adding-the-spss-mean-n-function-to-r/}{r4stats.com}
 #'              }
 #' 
 #' @examples

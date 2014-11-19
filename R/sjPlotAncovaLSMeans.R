@@ -3,10 +3,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 
 #' @title Plot adjusted (estimated marginal) means of interaction (moderation) in linear models
 #' @name sjp.emm.int
+#' 
 #' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjpemmint}
-#'              \item \url{http://strengejacke.wordpress.com/2014/08/19/visualize-pre-post-comparison-of-intervention-rstats/}
-#'              \item \url{http://www.theanalysisfactor.com/using-adjusted-means-to-interpret-moderators-in-analysis-of-covariance/}
+#'              \item \href{http://www.theanalysisfactor.com/using-adjusted-means-to-interpret-moderators-in-analysis-of-covariance/}{Grace-Martin K: Using Adjusted Means to Interpret Moderators in Analysis of Covariance.}
 #'              }
 #'             
 #' @description Plot estimated marginal means of (significant) interaction terms in linear models (lm). This function may
@@ -18,10 +17,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'         are used as grouping variable, while the latter predictor is printed along the x-axis
 #'         (i.e. lm(y~a+b+a:b) means that "a" is used as grouping variable and "b" is plotted along the x-axis).
 #' 
-#' @seealso \code{\link{sjp.lm.int}} \cr
-#'          \code{\link{sjp.reglin}} \cr
-#'          \code{\link{sjp.aov1}} \cr
-#'          \code{\link{sjp.lm.ma}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/sjp.emm.int/}{sjPlot manual: sjp.emm.int}
+#'            \item \href{http://strengejacke.wordpress.com/2014/08/19/visualize-pre-post-comparison-of-intervention-rstats/}{Weblog example}
+#'            \item \code{\link{sjp.lm.int}}
+#'            \item \code{\link{sjp.reglin}}
+#'            \item \code{\link{sjp.aov1}}
+#'            \item \code{\link{sjp.lm.ma}}
+#'          }
 #' 
 #' @param fit the fitted linear model (lm) object, including interaction terms
 #' @param swapPredictors if \code{TRUE}, the grouping variable and predictor on
@@ -30,42 +33,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'          0.05 (5 percent).
 #' @param title a default title used for the plots. Default value is \code{NULL}, which means that each plot's title
 #'          includes the dependent variable as well as the names of the interaction terms.
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
-#' @param lowerBoundColor the color of the line indicating the lower bound of the interaction term (moderator value).
-#'          Default value is \code{"#3366cc"} (blue-like)
-#' @param upperBoundColor the color of the line indicating the upper bound of the interaction term (moderator value).
-#'          Default value is \code{"#cc3300"} (red-like)
-#' @param colorPalette If the grouping variable has more than two levels, more than two colors are
-#'          needed for plotting the lines. In this case, specify a color palette from the \url{http://colorbrewer2.org} here. 
-#'          All color brewer palettes supported by ggplot are accepted here. Alternatively, you can provide
-#'          a vector of colors, i.e. \code{c("blue", "red", "gren")}.
+#' @param geom.colors A vector of color values.
 #' @param axisTitle.x a default title used for the x-axis. Default value is \code{NULL}, 
 #'          which means that each plot's x-axis uses the predictor's name as title.
 #' @param axisTitle.y a default title used for the y-axis. Default value is \code{NULL}, 
 #'          which means that each plot's y-axis uses the dependent variable's name as title.
-#' @param axisLabelColor the color value for the axis labels at the tick marks. Default value
-#'          is \code{"darkgray"}.
-#' @param axisLabelSize The size of axis labels. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0
-#' @param axisTitleColor the color value for the axis titles (both x and y). Default value
-#'          is \code{"black"}.
-#' @param axisTitleSize The size of axis titles (both x and y). Default is 1.3, recommended values range
-#'          between 0.5 and 3.0
 #' @param legendLabels Labels for the guide/legend. Default is \code{NULL}, so the name of the predictor with 
 #'          min/max-effect is used as legend label.
-#' @param legendLabelSize The size of legend labels. Default is 0.9, recommended values range
-#'          between 0.5 and 3.0
-#' @param legendLabelColor user defined color for legend labels. If not specified, black will be used for the labels
 #' @param showValueLabels if \code{TRUE}, value labels are plotted along the lines. Default is \code{FALSE}.
 #' @param valueLabel.digits the amount of digits of the displayed value labels. Defaults to 2.
-#' @param valueLabelSize size of the value labels. Default is 4. Recommended Values range from
-#'          2 to 8
-#' @param valueLabelColor colour of the values inside the diagrams. Only applies, when parameter
-#'          \code{showValueLabels} is set to \code{TRUE}. Use any valid colour value, e.g. \code{valueLabelColor="grey50"} or
-#'          \code{valueLabelColor=c("#cc3366")}. Default is \code{"black"}.
-#' @param valueLabelAlpha the alpha level (transparancy) of the value labels. Default is 0.8, use
-#'          any value from 0 to 1.
 #' @param breakTitleAt Wordwrap for diagram's title. Determines how many chars of the title are 
 #'          displayed in one line and when a line break is inserted. Default is \code{50}.
 #' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are 
@@ -78,24 +54,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld"))
 #'          range of y-values.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{lowerBoundColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param showTickMarks Whether tick marks of axes should be shown or not
-#' @param borderColor user defined color of whole diagram border (panel border)
-#' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param majorGridColor specifies the color of the major grid lines of the diagram background
-#' @param minorGridColor specifies the color of the minor grid lines of the diagram background
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list}) 
@@ -153,38 +111,17 @@ sjp.emm.int <- function(fit,
                        swapPredictors=FALSE,
                        plevel=0.05,
                        title=NULL,
-                       titleSize=1.3,
-                       titleColor="black",
-                       lowerBoundColor="#3366cc",
-                       upperBoundColor="#cc3300",
-                       colorPalette="Set2",
+                       geom.colors="Set1",
                        axisTitle.x=NULL,
                        axisTitle.y=NULL,
-                       axisLabelColor="gray30", 
-                       axisLabelSize=1.1,
-                       axisTitleColor="black",
-                       axisTitleSize=1.3,
                        legendLabels=NULL,
-                       legendLabelSize=0.9,
-                       legendLabelColor="black",
                        showValueLabels=FALSE,
                        valueLabel.digits=2,
-                       valueLabelSize=4,
-                       valueLabelColor="black",
-                       valueLabelAlpha=0.8,
                        breakTitleAt=50,
                        breakLegendLabelsAt=20,
                        breakAnnotationLabelsAt=50,
                        axisLimits.y=NULL,
                        gridBreaksAt=NULL,
-                       theme=NULL,
-                       showTickMarks=TRUE,
-                       borderColor=NULL, 
-                       axisColor=NULL, 
-                       majorGridColor=NULL,
-                       minorGridColor=NULL,
-                       hideGrid.x=FALSE,
-                       hideGrid.y=FALSE,
                        printPlot=TRUE) {
   # ------------------------
   # check if suggested package is available
@@ -265,51 +202,6 @@ sjp.emm.int <- function(fit,
   if (is.null(intnames) || 0==length(intnames)) {
     stop("No significant interactions found...", call.=FALSE)
   }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Hide or show Tick Marks
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
   # -----------------------------------------------------------
   # Now iterate all interaction terms from model
   # -----------------------------------------------------------
@@ -337,7 +229,7 @@ sjp.emm.int <- function(fit,
       # we have to find, which terms match the significant coefficients
       # found, and use the term labels for ls means...
       # -----------------------------------------------------------
-      if (grep(terms[1], lvls[1])>0 && grep(terms[2], lvls[2])>0) {
+      if (grepl(terms[1], lvls[1]) && grepl(terms[2], lvls[2])) {
         # we found a match        
         interactionterms <- rbind(interactionterms, terms)
         # leave loop
@@ -354,7 +246,7 @@ sjp.emm.int <- function(fit,
     # -----------------------------------------------------------
     # retrieve estiamted marginal means
     # -----------------------------------------------------------
-    emm <- summary(lsmeans::lsmeans(fit, term.pairs))
+    emm <- summary(lsmeans::lsmeans.character(fit, term.pairs))
     # create data frame from lsmeans
     intdf <- data.frame(emm[2], emm[3], emm[1], emm[6], emm[7], rep(valueLabel.digits, times=nrow(emm[1])))
     colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
@@ -436,77 +328,20 @@ sjp.emm.int <- function(fit,
     # ------------------------------------------------------------
     if (showValueLabels) {
       baseplot <- baseplot +
-        geom_text(aes(label=round(y,vld), x=x, y=y), colour=valueLabelColor, vjust=1.5, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+        geom_text(aes(label=round(y,vld), x=x, y=y), vjust=1.5, show_guide=FALSE)
     }
     # ------------------------------------------------------------------------------------
     # build plot object with theme and labels
     # ------------------------------------------------------------------------------------
     baseplot <- baseplot + 
       # set plot and axis titles
-      labs(title=labtitle, x=labx, y=laby) +
+      labs(title=labtitle, x=labx, y=laby, colour = term.pairs[1]) +
       # set axis scale breaks
       scale_y_continuous(limits=c(lowerLim.y, upperLim.y), breaks=gridbreaks.y)
-    # apply theme
-    if (!is.null(ggtheme)) {
-      baseplot <- baseplot + 
-        ggtheme +
-        # do minor modifications to theme
-        theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-              axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
-              legend.text = element_text(size=rel(legendLabelSize), colour=legendLabelColor),
-              plot.title = element_text(size=rel(titleSize), colour=titleColor))
-    }
-    # ------------------------------------------------------------------------------------
-    # check whether only diff-line is shown or upper and lower boundaries. in the latter
-    # case, show legend, else hide legend
-    # ------------------------------------------------------------------------------------
-    if (length(lLabels)==2) {
-      scalecolorsline <- scale_colour_manual(values=c(lowerBoundColor, upperBoundColor), name=term.pairs[1], labels=lLabels)
-    }
-    else {
-      if (length(colorPalette)==1) {
-        scalecolorsline <- scale_colour_brewer(palette=colorPalette, name=term.pairs[1], labels=lLabels)
-      }
-      else {
-        scalecolorsline <- scale_colour_manual(values=colorPalette, name=term.pairs[1], labels=lLabels)
-      }
-    }
-    baseplot <- baseplot + scalecolorsline
-    # ------------------------------------------------------------------------------------
-    # apply specific border/theme properties
-    # ------------------------------------------------------------------------------------
-    # the panel-border-property can only be applied to the bw-theme
-    if (!is.null(borderColor)) {
-      if (!is.null(theme) && theme=="bw") {
-        baseplot <- baseplot + 
-          theme(panel.border = element_rect(colour=borderColor))
-      }
-      else {
-        cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-      }
-    }
-    if (!is.null(axisColor)) {
-      baseplot <- baseplot + 
-        theme(axis.line = element_line(colour=axisColor))
-    }
-    if (!is.null(minorgrid)) {
-      baseplot <- baseplot + 
-        theme(panel.grid.minor = minorgrid)
-    }
-    if (!is.null(majorgrid)) {
-      baseplot <- baseplot + 
-        theme(panel.grid.major = majorgrid)
-    }
-    if (hideGrid.x) {
-      baseplot <- baseplot + 
-        theme(panel.grid.major.x = hidegrid,
-              panel.grid.minor.x = hidegrid)
-    }
-    if (hideGrid.y) {
-      baseplot <- baseplot + 
-        theme(panel.grid.major.y = hidegrid,
-              panel.grid.minor.y = hidegrid)
-    }
+    # ---------------------------------------------------------
+    # set geom colors
+    # ---------------------------------------------------------
+    baseplot <- sj.setGeomColors(baseplot, geom.colors, length(lLabels), TRUE, lLabels)
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
@@ -518,7 +353,7 @@ sjp.emm.int <- function(fit,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpaocint",
+  invisible (structure(class = "sjpemmint",
                        list(plot.list = plotlist,
                             df.list = dflist)))
 }

@@ -1,8 +1,10 @@
 #' @title Show stacked frequencies as HTML table
 #' @name sjt.stackfrq
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjtstackfrq}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#' 
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjt.stackfrq}{sjPlot manual: sjt-basics}
+#'              \item \code{\link{sjp.stackfrq}}
+#'              \item \code{\link{sjp.likert}}
 #'              }
 #' 
 #' @description Shows the results of stacked frequencies (such as likert scales) as HTML table.
@@ -10,9 +12,6 @@
 #'                should be printed as table to compare their distributions (e.g.
 #'                when plotting scales like SF, Barthel-Index, Quality-of-Life-scales etc.).
 #'                
-#' @seealso \code{\link{sjp.stackfrq}} \cr
-#'          \code{\link{sjp.likert}}
-#' 
 #' @param items A \code{\link{data.frame}} with each column representing one (likert- or scale-)item.
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
 #' @param title A table caption.
@@ -51,10 +50,11 @@
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -68,7 +68,7 @@
 #'            \item \code{css.caption='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -107,7 +107,7 @@
 #' 
 #' # plot stacked frequencies of 5 (ordered) item-scales
 #' \dontrun{
-#' sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)}
+#' sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)
 #' 
 #' 
 #' # -------------------------------
@@ -123,29 +123,25 @@
 #' 
 #' # Note: Parameter "valuelabels" is only needed for datasets
 #' # that have been imported from SPSS.
-#' \dontrun{
 #' sjt.stackfrq(efc[,c(start:end)],
 #'              varlabels=varlabs[c(start:end)],
-#'              alternateRowColors=TRUE)}
+#'              alternateRowColors=TRUE)
 #' 
-#' \dontrun{
 #' sjt.stackfrq(efc[,c(start:end)],
 #'              varlabels=varlabs[c(start:end)],
 #'              alternateRowColors=TRUE,
 #'              showN=TRUE,
-#'              showNA=TRUE)}
+#'              showNA=TRUE)
 #'          
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, varlabs)
-#' \dontrun{
-#' sjt.stackfrq(efc[,c(start:end)])}
+#' sjt.stackfrq(efc[,c(start:end)])
 #'          
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
-#' \dontrun{
 #' sjt.stackfrq(efc[,c(start:end)],
 #'              varlabels=varlabs[c(start:end)],
 #'              alternateRowColors=TRUE,
@@ -176,10 +172,14 @@ sjt.stackfrq <- function (items,
                           skewString="Skew",
                           kurtosisString="Kurtosis",
                           file=NULL, 
-                          encoding="UTF-8",
+                          encoding=NULL,
                           CSS=NULL,
                           useViewer=TRUE,
                           no.output=FALSE) {
+  # --------------------------------------------------------
+  # check encoding
+  # --------------------------------------------------------
+  encoding <- get.encoding(encoding)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -510,33 +510,7 @@ sjt.stackfrq <- function (items,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer) 
   # -------------------------------------
   # return results
   # -------------------------------------

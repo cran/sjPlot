@@ -1,9 +1,5 @@
 #' @title Show (and compare) generalized linear models as HTML table
 #' @name sjt.glm
-#' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
-#'              }
 #' 
 #' @description Shows (and compares multiple) generalized linear models (Odds Ratios)
 #'                as HTML table, or saves them as file. The fitted glm's should have the same predictor variables and
@@ -14,8 +10,10 @@
 #'                }
 #'                See parameter \code{showFamily} for details and section \code{examples}.
 #' 
-#' @seealso \code{\link{sjt.lm}} \cr
-#'          \code{\link{sjp.glm}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjt.lm}}
+#'            \item \code{\link{sjp.glm}}
+#'            }
 #' 
 #' @param ... One or more fitted \code{\link{glm}}-objects.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
@@ -81,10 +79,11 @@
 #'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 #'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 #'          cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -98,7 +97,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.colnames='+color:green'} to add green color formatting to column names.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -121,57 +120,61 @@
 #'         
 #' @examples
 #' # prepare dummy variables for binary logistic regression
-#' y1 <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
-#' y2 <- ifelse(swiss$Infant.Mortality<median(swiss$Infant.Mortality), 0, 1)
-#' y3 <- ifelse(swiss$Agriculture<median(swiss$Agriculture), 0, 1)
+#' y1 <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
+#' y2 <- ifelse(swiss$Infant.Mortality < median(swiss$Infant.Mortality), 0, 1)
+#' y3 <- ifelse(swiss$Agriculture < median(swiss$Agriculture), 0, 1)
 #' 
 #' # Now fit the models. Note that both models share the same predictors
 #' # and only differ in their dependent variable (y1, y2 and y3)
-#' fitOR1 <- glm(y1 ~ swiss$Education+swiss$Examination+swiss$Catholic,
-#'               family=binomial(link="logit"))
-#' fitOR2 <- glm(y2 ~ swiss$Education+swiss$Examination+swiss$Catholic,
-#'               family=binomial(link="logit"))
-#' fitOR3 <- glm(y3 ~ swiss$Education+swiss$Examination+swiss$Catholic,
-#'               family=binomial(link="logit"))
+#' fitOR1 <- glm(y1 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+#'               family = binomial(link = "logit"))
+#' fitOR2 <- glm(y2 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+#'               family = binomial(link = "logit"))
+#' fitOR3 <- glm(y3 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+#'               family = binomial(link = "logit"))
 #'
 #' # open HTML-table in RStudio Viewer Pane or web browser
 #' \dontrun{
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
-#'         labelPredictors=c("Education", "Examination", "Catholic"))}
+#' sjt.glm(fitOR1, 
+#'         fitOR2, 
+#'         labelDependentVariables = c("Fertility", 
+#'                                     "Infant Mortality"),
+#'         labelPredictors = c("Education", 
+#'                             "Examination", 
+#'                             "Catholic"))
 #' 
 #' # open HTML-table in RStudio Viewer Pane or web browser,
 #' # table indicating p-values as numbers
-#' \dontrun{
-#' sjt.glm(fitOR1, fitOR2, labelDependentVariables=c("Fertility", "Infant Mortality"),
+#' sjt.glm(fitOR1, 
+#'         fitOR2, 
+#'         labelDependentVariables = c("Fertility", 
+#'                                     "Infant Mortality"),
 #'         labelPredictors=c("Education", "Examination", "Catholic"),
-#'         pvaluesAsNumbers=TRUE)}
+#'         pvaluesAsNumbers=TRUE)
 #' 
 #' # open HTML-table in RStudio Viewer Pane or web browser,
 #' # printing CI in a separate column
-#' \dontrun{
 #' sjt.glm(fitOR1, fitOR2, fitOR3,
 #'         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
 #'         labelPredictors=c("Education", "Examination", "Catholic"),
-#'         separateConfColumn=TRUE)}
+#'         separateConfColumn=TRUE)
 #' 
 #' # open HTML-table in RStudio Viewer Pane or web browser,
 #' # indicating p-values as numbers and printing CI in a separate column
-#' \dontrun{
 #' sjt.glm(fitOR1, fitOR2, fitOR3,
 #'         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
 #'         labelPredictors=c("Education", "Examination", "Catholic"),
-#'         pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+#'         pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' \dontrun{
 #' sjt.glm(fitOR1, fitOR2, fitOR3,
 #'         labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
 #'         labelPredictors=c("Education", "Examination", "Catholic"),
 #'         CSS=list(css.table="border: 2px solid;",
 #'                  css.tdata="border: 1px solid;",
-#'                  css.depvarhead="color:#003399;"))}
+#'                  css.depvarhead="color:#003399;"))
 #' 
 #' # ---------------------------------------------------------------- 
 #' # Compare models with different link functions, but same
@@ -180,13 +183,12 @@
 #' # load efc sample data
 #' data(efc)
 #' # dichtomozize service usage by "service usage yes/no"
-#' efc$services <- sju.dicho(efc$tot_sc_e, "v", 0)
+#' efc$services <- sju.dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
 #' # fit 3 models with different link-functions
 #' fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="logit"))
 #' fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="probit"))
 #' fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=poisson(link="log"))
 #' # compare models
-#' \dontrun{
 #' sjt.glm(fit1, fit2, fit3, showAIC=TRUE, showFamily=TRUE, showPseudoR=FALSE)}
 #' 
 #' @export
@@ -223,10 +225,14 @@ sjt.glm <- function (...,
                      showChi2=FALSE,
                      showFamily=FALSE,
                      cellSpacing=0.2,
-                     encoding="UTF-8",
+                     encoding=NULL,
                      CSS=NULL,
                      useViewer=TRUE,
                      no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # -------------------------------------
   # init header
   # -------------------------------------
@@ -422,6 +428,29 @@ sjt.glm <- function (...,
   # set default predictor labels
   # -------------------------------------
   if (is.null(labelPredictors)) {
+    fit <- input_list[[i]]
+    labelPredictors <- c()
+    # --------------------------------------------------------
+    # auto-retrieve value labels
+    # --------------------------------------------------------
+    # iterate coefficients (1 is intercept or response)
+    for (i in 2 : ncol(fit$model)) {
+      # check if we hav label
+      lab <- autoSetVariableLabels(fit$model[, i])
+      # if not, use coefficient name
+      if (is.null(lab)) {
+        lab <- row.names(coeffs)[-1][i]
+      }
+      labelPredictors <- c(labelPredictors, lab)
+    }
+    # labelPredictors <- row.names(coeffs)[-1]
+  }
+  # --------------------------------------------------------
+  # auto-retrieving variable labels does not work when we
+  # have factors with different levels, which appear as 
+  # "multiple predictors", but are only one variable
+  # --------------------------------------------------------
+  if (is.null(labelPredictors) || length(labelPredictors) < length(row.names(coeffs)[-1])) {
     labelPredictors <- row.names(coeffs)[-1]
   }
   # -------------------------------------
@@ -655,33 +684,7 @@ sjt.glm <- function (...,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)
   # -------------------------------------
   # return results
   # -------------------------------------

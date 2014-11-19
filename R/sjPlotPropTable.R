@@ -3,12 +3,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 
 #' @title Plot contingency tables
 #' @name sjp.xtab
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjpxtab}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              }
 #' 
-#' @seealso \code{\link{sjt.xtab}}
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.xtab}{sjPlot manual: sjp.xtab}
+#'              \item \code{\link{sjt.xtab}}
+#'              }
 #' 
 #' @description Plot proportional crosstables (contingency tables) of two variables as ggplot diagram.
 #' 
@@ -41,16 +40,19 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #'          Use \code{"auto"} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
 #' @param axisLabels.x Labels for the x-axis breaks.
 #' @param legendLabels Labels for the guide/legend.
-#' @param axisLabelSize.x The size of category labels at the axes. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0.
-#' @param valueLabelSize The size of value labels in the diagram. Default is 4, recommended values range
-#'          between 2 and 8.
-#' @param axisLabelAngle.x Angle for axis-labels.
+#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{x}, or a specific color palette code (see below).
+#'          \itemize{
+#'            \item If not specified, the qualitative \code{"Paired"} color brewer palette will be used.
+#'            \item If \code{"gs"}, a greyscale will be used.
+#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'          }
+#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).
+#' @param geom.size size resp. width of the geoms (bar width).
+#' @param geom.spacing the spacing between geoms (i.e. bar spacing)
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -61,56 +63,23 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          displayed in one line and when a line break is inserted.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Valid values range from 0 to 1.
-#' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5.
-#' @param barSpace Spacing between bars. If unchanges, the grouped bars are sticked together and have no space
-#'          in between. Recommended values for this parameter are from 0 to 0.5.
-#' @param barColor User defined color for bars.
-#'          \itemize{
-#'          \item If not specified (\code{NULL}), the "Set1" color palette from \url{http://colorbrewer2.org} will be used for the bar charts.
-#'          \item If barColor is \code{"gs"}, a greyscale will be used.
-#'          \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'          \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
-#'          }
-#'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here.
-#'          All color brewer palettes supported by ggplot are accepted here.
-#' @param barAlpha Specify the transparancy (alpha value) of bars.
-#' @param lineType The linetype when using line diagrams. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param lineSize The size of lines in a line diagram. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param lineAlpha The alpha value of lines in a line diagram. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
 #' @param lineDotSize Size of dots. Only applies, when parameter \code{type}
 #'          is set to \code{"lines"}.
 #' @param smoothLines Prints a smooth line curve. Only applies, when parameter \code{type}
 #'          is set to \code{"lines"}.
-#' @param axisLabelColor.x User defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}
-#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
-#'          Default is 0.2
-#' @param majorGridColor specifies the color of the major grid lines of the diagram background
-#' @param minorGridColor specifies the color of the minor grid lines of the diagram background
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
 #' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 #'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
-#' @param valueLabelPosOnTop Whether value labels should be displayed on top of dodged bars or inside the bars. Default
-#'          is \code{TRUE}, i.e. the value labels are displayed on top of the bars. Only applies if parameter \code{barPosition}
-#'          is \code{dodge} (default).
+#' @param labelPos Positioning of value labels. If \code{barPosition} is \code{dodge} 
+#'          (default), use either \code{"inside"} or \code{"outside"} (default) to put labels in-
+#'          or outside the bars. You may specify initial letter only. Use \code{"center"} 
+#'          to center labels (useful if label angle is changes via \code{\link{sjp.setTheme}}).
 #' @param stringTotal The string for the legend label when a total-column is added. Only applies
 #'          if \code{showTotalColumn} is \code{TRUE}. Default is \code{"Total"}.
 #' @param showCategoryLabels Whether x axis text (category names) should be shown or not.
-#' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, Chi-square (see \code{\link{chisq.test}}),
 #'          df, Cramer's V or Phi-value and p-value is printed to the upper right corner of the diagram. If a cell contains expected 
 #'          values lower than five (or lower than 10 if df is 1),
@@ -121,39 +90,17 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          \code{"r"}, i.e. it's printed to the upper right corner. Use \code{"l"} for upper left corner.
 #' @param showTotalColumn if \code{tableIndex} is \code{"col"}, an additional bar chart with the sum within each category and
 #'          it's percentages will be added to each category.
-#' @param valueLabelColor The color of the value labels (numbers) inside the diagram.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
 #'          Use \code{"auto"} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
-#' @param axisTitleColor The color of the x and y axis labels. refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
-#' @param axisTitleSize The size of the x and y axis labels. refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df}).
-#' 
-#' @note Since package version 1.3, the parameters \code{axisLabels.x} and \code{legendLabels}, which represent the 
-#'         value labels, are retrieved automatically if a) the variables \code{x} and \code{y} come from a data frame
-#'         that was imported with the \code{\link{sji.SPSS}} function (because then value labels are
-#'         attached as attributes to the data) or b) when the variables are factors with named factor levels
-#'         (e.g., see column \code{group} in dataset \code{\link{PlantGrowth}}). However, you still
-#'         can use own parameters as axis- and legendlabels.
 #' 
 #' @examples
 #' # create 4-category-items
@@ -165,11 +112,27 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' sjp.xtab(y,x)
 #' 
 #' # plot "cross tablulation" of x and y, including labels
-#' sjp.xtab(y,x, axisLabels.x=c("low", "mid", "high"),
-#'          legendLabels=c("Grp 1", "Grp 2", "Grp 3", "Grp 4"))
+#' sjp.xtab(y, x, 
+#'          axisLabels.x = c("low", "mid", "high"),
+#'          legendLabels = c("Grp 1", "Grp 2", "Grp 3", "Grp 4"))
 #' 
-#' # plot "cross tablulation" of x and y as stacked proportional bars
-#' sjp.xtab(y,x, tableIndex="row", barPosition="stack", flipCoordinates=TRUE)
+#' # plot "cross tablulation" of x and y 
+#' # as stacked proportional bars
+#' sjp.xtab(y, x, 
+#'          tableIndex = "row", 
+#'          barPosition = "stack", 
+#'          coord.flip = TRUE)
+#' 
+#' # example with vertical labels
+#' data(efc)
+#' sjp.setTheme(geom.label.angle = 90)
+#' # hjust-aes needs adjustment for this
+#' library(ggplot2)
+#' update_geom_defaults('text', list(hjust = -0.1))
+#' sjp.xtab(efc$e42dep, 
+#'          efc$e16sex,
+#'          showTableSummary = FALSE,
+#'          labelPos = "center")
 #' 
 #' # grouped bars with EUROFAMCARE sample dataset
 #' # dataset was importet from an SPSS-file, using:
@@ -200,14 +163,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          legendLabels=efc.val[['e42dep']],
 #'          tableIndex="row",
 #'          barPosition="stack",
-#'          flipCoordinates=TRUE,
+#'          coord.flip=TRUE,
 #'          jitterValueLabels=TRUE)
 #'
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, efc.var)
-#' sjp.xtab(efc$e16sex, efc$e42dep, title="auto", axisTitle.x="auto")
+#' sjp.xtab(efc$e16sex, efc$e42dep)
 #'
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -216,9 +179,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @export
 sjp.xtab <- function(y,
                     x,
-                    title=NULL, 
-                    titleSize=1.3,
-                    titleColor="black",
+                    title="", 
                     legendTitle=NULL,
                     weightBy=NULL,
                     weightByTitleString=NULL,
@@ -228,68 +189,53 @@ sjp.xtab <- function(y,
                     maxYlim=TRUE, 
                     upperYlim=NULL, 
                     axisLabels.x=NULL, 
-                    axisLabelColor.x="darkgray", 
-                    axisLabelAngle.x=0, 
-                    axisLabelSize.x=1.1,
                     legendLabels=NULL,
-                    valueLabelSize=4,
-                    valueLabelColor="black",
-                    valueLabelPosOnTop=TRUE,
+                    labelPos="outside",
                     stringTotal="Total",
                     breakTitleAt=50, 
-                    breakLabelsAt=12, 
+                    breakLabelsAt=15, 
                     breakLegendTitleAt=20, 
                     breakLegendLabelsAt=20,
                     gridBreaksAt=0.2,
-                    barWidth=0.7, 
-                    barSpace=0.1,
+                    geom.size=0.7,
+                    geom.spacing=0.1,
+                    geom.colors="Paired",
                     barPosition="dodge",
-                    barColor=NULL,
-                    colorPalette="GnBu",
-                    barAlpha=1,
-                    lineType=1,
-                    lineSize=1,
-                    lineAlpha=1,
                     lineDotSize=3,
                     smoothLines=FALSE,
-                    borderColor=NULL, 
-                    axisColor=NULL, 
-                    barOutline=FALSE, 
-                    barOutlineSize=0.2,
-                    barOutlineColor="black", 
-                    majorGridColor=NULL,
-                    minorGridColor=NULL,
-                    hideGrid.x=FALSE,
-                    hideGrid.y=FALSE,
                     expand.grid=FALSE,
                     showValueLabels=TRUE,
                     jitterValueLabels=FALSE,
                     showCategoryLabels=TRUE,
-                    showTickMarks=TRUE,
                     showTableSummary=TRUE,
                     tableSummaryPos="r",
                     showTotalColumn=TRUE,
                     hideLegend=FALSE,
                     axisTitle.x=NULL,
                     axisTitle.y=NULL,
-                    axisTitleColor="black",
-                    axisTitleSize=1.3,
-                    theme=NULL,
-                    flipCoordinates=FALSE,
+                    coord.flip=FALSE,
                     printPlot=TRUE) {
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
   if (is.null(axisLabels.x)) axisLabels.x <- autoSetValueLabels(y)
   if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(x)
-  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(y)
-  if (!is.null(title) && title=="auto") {
+  if (is.null(axisTitle.x)) axisTitle.x <- autoSetVariableLabels(y)
+  if (is.null(legendTitle)) legendTitle <- autoSetVariableLabels(x)  
+  if (is.null(title)) {
     t1 <- autoSetVariableLabels(y)
     t2 <- autoSetVariableLabels(x)
     if (!is.null(t1) && !is.null(t2)) {
       title <- paste0(t1, " by ", t2)
     }
   }
+  # --------------------------------------------------------
+  # remove titles if empty
+  # --------------------------------------------------------
+  if (!is.null(legendTitle) && legendTitle=="") legendTitle <- NULL
+  if (!is.null(axisTitle.x) && axisTitle.x=="") axisTitle.x <- NULL
+  if (!is.null(axisTitle.y) && axisTitle.y=="") axisTitle.y <- NULL  
+  if (!is.null(title) && title=="") title <- NULL    
   # determine table index, i.e. if row-percentages, column-percentages
   # or cell-percentages should be displayed
   tindex <- ifelse (tableIndex=="row", 1, 2)
@@ -500,6 +446,9 @@ sjp.xtab <- function(y,
   if (showTableSummary) {
     modsum <- crosstabsum(ftab)
   }  
+  else {
+    modsum <- NULL
+  }
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
@@ -580,7 +529,7 @@ sjp.xtab <- function(y,
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
-  if (flipCoordinates) {
+  if (coord.flip) {
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- 0.35
@@ -588,7 +537,12 @@ sjp.xtab <- function(y,
   }
   else {
     hort <- waiver()
-    vpos <- ifelse(valueLabelPosOnTop==TRUE, -0.4, 1.2)
+    if (labelPos == "outside" || labelPos == "o")
+      vpos = -0.4
+    else if (labelPos == "inside" || labelPos == "i")
+      vpos = 1.2
+    else
+      vpos <- waiver()
     vert <- ifelse (barPosition=="dodge", vpos, waiver())
   }
   # check for jitter value labels
@@ -596,77 +550,9 @@ sjp.xtab <- function(y,
     vert <- jvert
   }
   # align dodged position of labels to bar positions
-  posdodge <- ifelse(type=="lines", 0, barWidth + barSpace)
-  # --------------------------------------------------------
-  # check whether bars should have an outline
-  # --------------------------------------------------------
-  if (!barOutline) {
-    barOutlineColor <- waiver()
-  }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Hide or show Tick Marks and Category Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
+  posdodge <- ifelse(type=="lines", 0, geom.size + geom.spacing)
   if (!showCategoryLabels) {
     axisLabels.x <- c("")
-  }
-  # --------------------------------------------------------
-  # Prepare fill colors
-  # --------------------------------------------------------
-  if (is.null(barColor)) {
-    # for lines, we have a different default colour palette because RYG is
-    # better to distinguish with thin lines. For bars, we take blue colours
-    # as default
-    fpal <- ifelse(type=="lines", "RdYlGn", "Set1")
-    scalecolors <- scale_fill_brewer(labels=legendLabels, palette=fpal)
-    scalecolorsline <- scale_colour_brewer(labels=legendLabels, palette="RdYlGn")
-  }
-  else if (barColor=="gs") {
-    scalecolors <- scale_fill_grey(labels=legendLabels)
-    scalecolorsline <- scale_colour_grey(labels=legendLabels)
-  }
-  else if (barColor=="brewer") {
-    # remember to specify the "colorPalette" if you use "brewer" as "barColor"
-    scalecolors <- scale_fill_brewer(palette=colorPalette, labels=legendLabels)
-    scalecolorsline <- scale_colour_brewer(palette=colorPalette, labels=legendLabels)
-  }
-  else if (barColor=="bw") {
-    barColor <- rep("white", length(legendLabels))
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-    scalecolorsline <- scale_colour_manual(values=barColor, labels=legendLabels)
-  }
-  else {
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-    scalecolorsline <- scale_colour_manual(values=barColor, labels=legendLabels)
   }
   # --------------------------------------------------------
   # Set value labels
@@ -674,38 +560,30 @@ sjp.xtab <- function(y,
   if (showValueLabels) {
     # if we have dodged bars or dots, we have to use a slightly dodged position for labels
     # as well, sofor better reading
-    if (flipCoordinates) {
+    if (coord.flip) {
       if (barPosition=="dodge") {
         ggvaluelabels <-  geom_text(aes(y=0, label=sprintf("%.01f%% (n=%i)", 100*Perc, Sum)),
-                                    size=valueLabelSize,
                                     position=position_dodge(posdodge),
                                     vjust=vert,
-                                    hjust=hort,
-                                    colour=valueLabelColor)
+                                    hjust=hort)
       }
       else {
         ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%% (n=%i)", 100*Perc, Sum)),
-                                    size=valueLabelSize,
                                     vjust=vert,
-                                    hjust=hort,
-                                    colour=valueLabelColor)
+                                    hjust=hort)
       }
     }
     else {
       if (barPosition=="dodge") {
         ggvaluelabels <-  geom_text(aes(y=Perc, label=sprintf("%.01f%%\n(n=%i)", 100*Perc, Sum)),
-                                    size=valueLabelSize,
                                     position=position_dodge(posdodge),
                                     vjust=vert,
-                                    hjust=hort,
-                                    colour=valueLabelColor)
+                                    hjust=hort)
       }
       else {
         ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%\n(n=%i)", 100*Perc, Sum)),
-                                    size=valueLabelSize,
                                     vjust=vert,
-                                    hjust=hort,
-                                    colour=valueLabelColor)
+                                    hjust=hort)
       }
     }
   }
@@ -721,19 +599,6 @@ sjp.xtab <- function(y,
   else {
     gridbreaks <- c(seq(0, upper_lim, by=gridBreaksAt))
   }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  # Print plot
   # ----------------------------------
   # construct final plot, base constructor
   # first, set x scale
@@ -744,10 +609,10 @@ sjp.xtab <- function(y,
   # ----------------------------------
   if (type=="bars") {
     if (barPosition=="dodge") {
-      geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position=position_dodge(geom.size+geom.spacing), width=geom.size)
     }
     else {
-      geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+      geob <- geom_bar(stat="identity", position="stack", width=geom.size)
     }
   }
   # check if we have lines
@@ -757,18 +622,18 @@ sjp.xtab <- function(y,
     if (reverseOrder) {
       # check whether lines should be smoothed or not
       if (smoothLines) {
-        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
+        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size, stat="smooth")
       }
       else {
-        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), linetype=lineType, alpha=lineAlpha, size=lineSize)
+        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size)
       }
     }
     else {
       if (smoothLines) {
-        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
+        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size, stat="smooth")
       }
       else {
-        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), linetype=lineType, alpha=lineAlpha, size=lineSize)
+        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size)
       }
     }
   }
@@ -788,26 +653,14 @@ sjp.xtab <- function(y,
   # if we have line diagram, print lines here
   if (type=="lines") {
     baseplot <- baseplot + 
-      geom_point(size=lineDotSize, alpha=lineAlpha, shape=21, show_guide=FALSE)
+      geom_point(size=lineDotSize, shape=21, show_guide=FALSE)
   }
+  # ------------------------------------------
   # check whether table summary should be printed
-  if (showTableSummary) {
-    # add annotations with table summary
-    # here we print out total N of cases, chi-square and significance of the table
-    if (tableSummaryPos=="r") {
-      baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, vjust=1.6, hjust=1.1)
-    }
-    else {
-      baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, vjust=1.6, hjust=-0.1)
-    }
-  }
-  # --------------------------------------------------------
-  # Hide or show Legend
-  # --------------------------------------------------------
-  if (hideLegend) {
-    # remove guide / legend
-    baseplot <- baseplot + guides(fill=FALSE)
-  }
+  # ------------------------------------------
+  baseplot <- print.table.summary(baseplot,
+                                  modsum,
+                                  tableSummaryPos)
   baseplot <- baseplot +
     # show absolute and percentage value of each bar.
     ggvaluelabels +
@@ -820,61 +673,16 @@ sjp.xtab <- function(y,
     # set Y-axis, depending on the calculated upper y-range.
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
-    scale_y_continuous(breaks=gridbreaks, limits=c(0, upper_lim), expand=expand.grid, labels=percent) +
-    scalecolors
-  # when we have lines, we additionally need to apply "scale_colour"...
-  if (type=="lines") {
-    baseplot <- baseplot + scalecolorsline
-  }
+    scale_y_continuous(breaks=gridbreaks, limits=c(0, upper_lim), expand=expand.grid, labels=percent)
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
-  if (flipCoordinates) {
+  if (coord.flip) {
     baseplot <- baseplot + coord_flip()
   }
-  # --------------------------------------------------------
-  # apply theme
-  # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
-    baseplot <- baseplot +
-      ggtheme +
-      # set font size for axes.
-      theme(axis.text = element_text(size=rel(axisLabelSize.x), colour=axisLabelColor.x), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      baseplot <- baseplot + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    baseplot <- baseplot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  baseplot <- sj.setGeomColors(baseplot, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------

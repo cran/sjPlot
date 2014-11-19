@@ -3,13 +3,11 @@
 #' 
 #' @description Shows (multiple) frequency tables as HTML file, or saves them as file.
 #' 
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjtfrq}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              }
-#' 
-#' @seealso \code{\link{sjp.frq}} \cr
-#'          \code{\link{sjt.xtab}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/sjt.frq/}{sjPlot manual: sjt.frq}
+#'            \item \code{\link{sjp.frq}}
+#'            \item \code{\link{sjt.xtab}}
+#'          }
 #' 
 #' @param data The variables which frequencies should be printed as table. Either use a single variable
 #'          (vector) or a data frame where each column represents a variable (see examples).
@@ -34,6 +32,10 @@
 #'          \code{groupsize="auto"} parameter. By default, the maximum group count is 30. However, if
 #'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built. Default value is \code{NULL},
 #'          i.e. auto-grouping is turned off.
+#' @param sort.frq Whether frequencies should be sorted or not. Use \code{"asc"} or \code{"ascending"}
+#'          to sort frequencies ascending, or \code{"decsc"} or \code{"desscending"} to sort
+#'          frequencies in descending order. By default, \code{sort.frq} is \code{NULL}, i.e.
+#'          frequencies are ordered by values.
 #' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
 #' @param stringValue String label for the very first table column containing the values (see
@@ -70,10 +72,11 @@
 #'          applies if \code{removeStringVectors} is \code{FALSE}.
 #' @param maxStringDist the allowed distance of string values in a character vector, which indicates
 #'          when two string values are merged because they are considered as close enough.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -87,7 +90,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -146,6 +149,11 @@
 #' efc <- sji.setVariableLabels(efc, variables)
 #' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
 #' 
+#' # -------------------------------
+#' # sort frequencies
+#' # -------------------------------
+#' sjt.frq(efc$e42dep, sort.frq="desc")
+#' 
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
@@ -165,6 +173,7 @@ sjt.frq <- function (data,
                      variableLabels=NULL,
                      valueLabels=NULL,
                      autoGroupAt=NULL,
+                     sort.frq=NULL,
                      alternateRowColors=FALSE,
                      stringValue="value",
                      stringCount="N",
@@ -183,10 +192,18 @@ sjt.frq <- function (data,
                      removeStringVectors=TRUE,
                      autoGroupStrings=TRUE,
                      maxStringDist=3,
-                     encoding="UTF-8",
+                     encoding=NULL,
                      CSS=NULL,
                      useViewer=TRUE,
                      no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
+  # -------------------------------------
+  # warning
+  # -------------------------------------
+  if (!is.null(sort.frq)) cat("Sorting may not work when data contains values with zero-counts.")
   # -------------------------------------
   # table init
   # -------------------------------------
@@ -386,7 +403,13 @@ sjt.frq <- function (data,
       }
       else {
         # check for auto-detection of labels
-        valueLabels <- c(valueLabels, list(autoSetValueLabels(dummy)))
+        avl <- autoSetValueLabels(dummy)
+        if (!is.null(avl)) {
+          valueLabels <- c(valueLabels, list(avl))
+        }
+        else {
+          valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
+        }
       }
       # and add label range to value labels list
       if (is.null(valueLabels)) valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
@@ -424,57 +447,21 @@ sjt.frq <- function (data,
       valueLabels[[cnt]] <- sju.groupVarLabels(var, groupsize="auto", autoGroupCount=agcnt)
       var <- sju.groupVar(var, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
     }
-    # create frequency table
-    if (is.null(weightBy)) {
-      # unweighted, including NA
-      ftab <- table(var)
-      ftab.NA <- table(var, useNA="always")
-      ftab.perc <- 100*round(prop.table(ftab.NA),6)
-      ftab.valid <- 100*round(prop.table(ftab),6)
-      # unweihted
-      weightedvar <- NULL
-      varsum <- var
-    }
-    else {
-      # weighted, including NA
-      ftab <- round(xtabs(weightBy ~ var, data=data.frame(cbind(weightBy=weightBy,var=var))))
-      ftab.NA <- round(xtabs(weightBy ~ var, data=data.frame(cbind(weightBy=weightBy,var=var)), exclude=NULL, na.action=na.pass),0)
-      ftab.perc <- 100*round(prop.table(ftab.NA),6)
-      ftab.valid <- 100*round(prop.table(ftab),6)
-      #---------------------------------------------------
-      # retrieve summary. we reproduce the variable from the table
-      # matrix here because we have weights included
-      #---------------------------------------------------
-      # init values
-      weightedvar <- c()
-      # iterate all table values
-      for (w in 1:length(ftab)) {
-        # retrieve count of each table cell
-        w_count <- ftab[[w]]
-        # retrieve "cell name" which is identical to the variable value
-        w_value <- as.numeric(names(ftab[w]))
-        # append variable value, repeating it "w_count" times.
-        weightedvar <- c(weightedvar, rep(w_value, w_count))
-      }
-      varsum <- weightedvar
-    }
     # retrieve summary
-    varsummary <- summary(varsum)
+    varsummary <- summary(var)
     # retrieve median
     var.median <- varsummary[[3]]
     # retrieve quartiles
     var.lowerq <- round(varsummary[[2]])
     var.upperq <- round(varsummary[[5]])
     #---------------------------------------------------
-    # new data frame from frequencies for current variable
+    # create frequency data frame
     #---------------------------------------------------
-    df <- as.data.frame(cbind(freq=c(ftab.NA), perc=c(ftab.perc), valid=c(ftab.valid,0)))
-    # add cumulative percentages
-    df$cumperc <- cumsum(df$valid)
+    df.frq <- create.frq.df(var, valueLabels[[cnt]], -1, sort.frq, weightBy = weightBy)
+    df <- df.frq$mydat
+    vallab <- df.frq$labels
     # rename "NA" row
     rownames(df)[nrow(df)] <- "NA"
-    # save rownames index numbers
-    rowindexnumbers <- as.numeric(c(rownames(df)))
     # -------------------------------------
     # start table tag
     # -------------------------------------
@@ -491,45 +478,11 @@ sjt.frq <- function (data,
     # header row with column labels
     # -------------------------------------
     page.content <- paste0(page.content, headerRow)
-    # -------------------------------------
-    # data rows with value labels
-    # -------------------------------------
-    # retrieve value labels
-    vallab <- valueLabels[[cnt]]
-    # determine value range
-    minval <- min(var, na.rm=TRUE)
-    maxval <- max(var, na.rm=TRUE)
-    # determine catcount, which is +1 if minval = 0
-    catcount <- ifelse(minval==0, maxval+1, maxval)
-    # check if value labels are NULL
-    if (is.null(vallab)) {
-      # set range as value labels
-      vallab <- as.character(c(minval:maxval))
-    }
-    # check whether value label length exceeds maximum value
-    # (i.e. missing in upper category)
-    if (catcount<length(vallab)) {
-      # correct maximum value
-      maxval <- length(vallab)
-    }
-    # set value range
-    valrange <- c(minval:maxval)
     # iterate all labels, each one in one row
-    for (j in 1:length(valrange)) {
-      # search row index. we may have a zero value here
-      # in case a certain category value is zero (zero counts)
-      ri <- which(rowindexnumbers==valrange[j])
-      # check for zero count
-      if (is.null(ri) || length(ri)==0 || ri==0) {
-        # create zero-count-row
-        datarow <- c(0,0,0)
-        zerorow <- TRUE
-      }
-      else {
-        # retrieve data row
-        datarow <- df[ri,]
-        zerorow <- FALSE
-      }
+    for (j in 1 : (nrow(df) - 1)) {
+      # retrieve data row
+      datarow <- df[j,]
+      zerorow <- (datarow[3] == 0)
       # -------------------------------------
       # check if to skip zero rows
       # -------------------------------------
@@ -549,13 +502,13 @@ sjt.frq <- function (data,
         if (alternateRowColors) rowstring <- ifelse(j %% 2 ==0, " arc", "")
         rowcss <- rowstring
         # check whether we have median row and whether it should be highlighted
-        if (highlightMedian && ((j+minval)==(var.median+1))) {
+        if (highlightMedian && ((j + df.frq$minval) == (var.median + 1))) {
           rowcss <- sprintf(" mdrow%s", rowstring)
         }
         # check whether we have lower quartile and whether it should be highlighted
         else {
           if (highlightQuartiles) {
-            if(((j+minval)==(var.lowerq+1)) || ((j+minval)==(var.upperq+1))) {
+            if(((j + df.frq$minval) == (var.lowerq + 1)) || ((j + df.frq$minval) == (var.upperq + 1))) {
               rowcss <- sprintf(" qrow%s", rowstring)
             }
           }
@@ -563,8 +516,8 @@ sjt.frq <- function (data,
         # value label
         page.content <- paste(page.content, sprintf("  <tr>\n     <td class=\"tdata leftalign firsttablecol%s\">%s</td>\n", rowcss, vallab[j]))
         # cell values, first value is integer
-        page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign%s\">%i</td>\n", rowcss, as.integer(c(datarow[1])[[1]])))
-        for (i in 2:4) {
+        page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign%s\">%i</td>\n", rowcss, as.integer(c(datarow[2])[[1]])))
+        for (i in 3:5) {
           # following values are float
           page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign%s\">%.2f</td>\n", rowcss, c(datarow[i])[[1]]))
         }
@@ -583,9 +536,9 @@ sjt.frq <- function (data,
     # value label
     page.content <- paste(page.content, sprintf("  <tr>\n     <td class=\"tdata leftalign lasttablerow firsttablecol\">%s</td>\n", stringMissingValue))
     # cell values, first value is integer
-    page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign lasttablerow\">%i</td>\n", as.integer(c(datarow[1])[[1]])))
+    page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign lasttablerow\">%i</td>\n", as.integer(c(datarow[2])[[1]])))
     # 2nd value is float. we don't need 3rd and 4th value as they are always 0 and 100
-    page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign lasttablerow\">%.2f</td>\n     <td class=\"tdata lasttablerow\"></td>\n     <td class=\"tdata lasttablerow\"></td>\n", c(datarow[2])[[1]]))
+    page.content <- paste(page.content, sprintf("    <td class=\"tdata centeralign lasttablerow\">%.2f</td>\n     <td class=\"tdata lasttablerow\"></td>\n     <td class=\"tdata lasttablerow\"></td>\n", c(datarow[3])[[1]]))
     # -------------------------------------
     # add info for mean, standard deviation
     # -------------------------------------
@@ -666,33 +619,7 @@ sjt.frq <- function (data,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)
   # -------------------------------------
   # return results
   # -------------------------------------

@@ -7,8 +7,12 @@
 #'                value labels. The result can be considered as "codeplan" of
 #'                the data frame.
 #'
-#' @seealso \code{\link{sji.SPSS}} \cr
-#'          \code{\link{sjt.df}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.SPSS}}
+#'            \item \code{\link{sjt.df}}
+#'          }
 #' 
 #' @param df An imported data frame, imported by \code{\link{sji.SPSS}} function.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
@@ -32,10 +36,11 @@
 #'          Default value is 50, use \code{NULL} to turn off word wrap.
 #' @param hideProgressBar If \code{TRUE}, the progress bar that is displayed when creating the
 #'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -49,7 +54,7 @@
 #'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
 #'            \item \code{css.summary='+color:blue;'} to add blue font color style to the summary row.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -66,25 +71,22 @@
 #'            for further use.
 #'
 #' @examples
+#' \dontrun{
 #' # init dataset
 #' data(efc)
 #' 
 #' # view variables
-#' \dontrun{
-#' sji.viewSPSS(efc)}
+#' sji.viewSPSS(efc)
 #' 
 #' # view variables w/o values and value labels
-#' \dontrun{
-#' sji.viewSPSS(efc, showValues=FALSE, showValueLabels=FALSE)}
+#' sji.viewSPSS(efc, showValues=FALSE, showValueLabels=FALSE)
 #' 
 #' # view variables including variable typed, orderd by name
-#' \dontrun{
-#' sji.viewSPSS(efc, orderByName=TRUE, showType=TRUE)}
+#' sji.viewSPSS(efc, orderByName=TRUE, showType=TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' \dontrun{
 #' sji.viewSPSS(efc,
 #'              CSS=list(css.table="border: 2px solid;",
 #'                       css.tdata="border: 1px solid;",
@@ -102,11 +104,15 @@ sji.viewSPSS <- function (df,
                           showPerc=FALSE,
                           orderByName=FALSE,
                           breakVariableNamesAt=50,
-                          encoding="UTF-8",
+                          encoding=NULL,
                           hideProgressBar=FALSE,
                           CSS=NULL,
                           useViewer=TRUE,
                           no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # -------------------------------------
   # make data frame of single variable, so we have
   # unique handling for the data
@@ -312,33 +318,7 @@ sji.viewSPSS <- function (df,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)    
   # -------------------------------------
   # return results
   # -------------------------------------

@@ -5,143 +5,107 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 
 #' @title Plot odds ratios (forest plots)
 #' @name sjp.glm
-#' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/03/22/plotting-lm-and-glm-models-with-ggplot-rstats/}
-#'              \item \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+#'
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.glm/}{sjPlot manual: sjp.glm}
+#'              \item \code{\link{sjp.glmm}}
+#'              \item \code{\link{sjp.glm.ma}}
+#'              \item \code{\link{sjt.glm}}
 #'              }
-#' 
+#'
 #' @description Plot odds ratios (exponentiated coefficients) with confidence intervalls as bar chart or dot plot
-#' @seealso \code{\link{sjp.glm.ma}}
-#' 
-#' @note Based on the script from surefoss:
-#' \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
+#'
+#' @note Based on the script from \href{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}{surefoss}
 #'
 #' @param fit The fitted model of a logistic regression (or any other \code{\link{glm}}-object).
 #' @param sortOdds If \code{TRUE} (default), the odds ratios are ordered according their OR value from highest first
 #'          to lowest last. Use \code{FALSE} if you don't want to change the order of the predictors.
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels.y Labels of the predictor variables (independent vars, odds) that are used for labelling the
 #'          axis. Passed as vector of strings.
 #'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
 #'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
 #'          \code{list} object with label string. The labels may also be passed as list object. They will be unlisted and
 #'          converted to character vector automatically.
-#' @param axisLabelSize The size of value labels in the diagram. Default is 1.1, recommended values range
-#'          between 0.7 and 3.0
 #' @param showAxisLabels.y Whether odds names (predictor labels) should be shown or not.
-#' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param axisTitle.x A label ("title") for the x axis.
-#' @param axisTitleColor The color of the x axis label.
-#' @param axisTitleSize The size of the x axis label.
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
 #'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
-#' @param axisLabelAngle.x Angle for axis-labels where the odds ratios are printed. Note
-#'          that due to the coordinate flip, the acutal y-axis with odds ratio labels are appearing on the x-axis.
-#' @param axisLabelAngle.y Angle for axis-labels where the predictor labels (\code{axisLabels.y}) are printed. Note
-#'          that due to the coordinate flip, the acutal x-axis with predictor labels are appearing on the y-axis.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
+#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is 0.5
-#' @param transformTicks if \code{TRUE}, the grid bars have exponential distances, i.e. they
+#' @param transformTicks if \code{TRUE}, the grid bars have exponential distances (equidistant), i.e. they
 #'          visually have the same distance from one grid bar to the next. Default is \code{FALSE} which
 #'          means that grids are plotted on every \code{gridBreaksAt}'s position, thus the grid bars
 #'          become narrower with higher odds ratio values.
-#' @param type Indicates Whether the Odds Ratios should be plotted as \code{"dots"} (aka forest plots, default)
-#'          or as \code{"bars"}.
+#' @param type type of plot. Use one of following:
+#'          \itemize{
+#'            \item \code{"dots"} or \code{"or"} (default) for odds ratios (forest plot)
+#'            \item \code{"bars"} for odds ratios as bar plot
+#'            \item \code{"prob"} or \code{"pc"} to plot probability curves of coefficients (model terms). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.
+#'          }
+#' @param geom.colors User defined color palette for geoms. Must either be vector with two color values
+#'          or a specific color palette code (see below).
+#'          \itemize{
+#'            \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+#'            \item If \code{"gs"}, a greyscale will be used.
+#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'          }
+#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).
+#' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
 #' @param hideErrorBars If \code{TRUE}, the error bars that indicate the confidence intervals of the odds ratios are not
 #'          shown. Only applies if parameter \code{type} is \code{bars}. Default value is \code{FALSE}.
-#' @param pointSize The size of the points that indicate the beta-value. Default is 3.
-#' @param barColor A vector with colors for representing the odds values (i.e. points and error bars in case the
-#'          parameter \code{type} is \code{"dots"} or the bar charts in case of \code{"bars"}). The first color value indicates
-#'          odds ratio values larger than 1, the second color value indicates odds ratio values lower or equal to 1.
-#'          Default colors is a blue/red-scheme. You can also use:
-#'          \itemize{
-#'            \item \code{"bw"} or \code{"black"} for only one colouring in almost black
-#'            \item \code{"gray"}, \code{"grey"} or \code{"gs"} for a grayscale
-#'            \item \code{"brewer"} for colours from the color brewer palette.
-#'            }
-#'          If barColors is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}
-#'          Else specify your own color values as vector (e.g. \code{barColors=c("#f00000", "#00ff00")}).
-#' @param colorPalette If parameter \code{barColor} is \code{brewer}, specify a color palette from the \url{http://colorbrewer2.org} here.
-#'          All color brewer palettes supported by ggplot are accepted here.
-#' @param barWidth The width of the bars in bar charts. only applies if parameter \code{type} is \code{bars}. Default is 0.5
-#' @param barAlpha The alpha value of the bars in bar charts. only applies if parameter \code{type} is \code{bars}. Default is 1
-#' @param axisLabelColor Colour of the tick labels at the axis (variable names, odds names).
-#' @param valueLabelColor The colour of the odds values. These values are printed above the plots respectively beside the
-#'          bar charts. default color is \code{"black"}.
-#' @param valueLabelSize Size of the value labels. Drfault is 4.5. Recommended Values range from
-#'          2 to 8
-#' @param valueLabelAlpha The alpha level (transparancy) of the value labels. Default is 1, use
-#'          any value from 0 to 1.
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param barOutline If \code{TRUE}, each bar gets a colored outline. only applies if parameter \code{type} is \code{bars}.
-#'          Default is \code{FALSE}.
-#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
-#'          Default is black.
 #' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
 #' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
-#' @param errorBarWidth The width of the error bar ends. Default is \code{0}
-#' @param errorBarSize The size (thickness) of the error bars. Default is \code{0.8}
-#' @param errorBarLineType The linetype of error bars. Default is \code{1} (solid line).
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
+#' @param coord.flip If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param showIntercept If \code{TRUE}, the intercept of the fitted model is also plotted.
 #'          Default is \code{FALSE}. Please note that due to exp-transformation of
 #'          estimates, the intercept in some cases can not be calculated, thus the
 #'          function call is interrupted and no plot printed.
-#' @param showValueLabels Whether the beta and standardized beta values should be plotted 
+#' @param showValueLabels Whether the beta and standardized beta values should be plotted
 #'          to each dot or not.
 #' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
 #'          Default is 2, i.e. estimators have 2 digits after decimal point.
 #' @param showPValueLabels Whether the significance levels of each coefficient should be appended
 #'          to values or not.
-#' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with 
+#' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with
 #'          Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
 #'          of the diagram.
+#' @param show.se Use \code{TRUE} to plot (depending on \code{type}) the standard
+#'          error for probability curves.
+#' @param facet.grid \code{TRUE} when each plot should be plotted separately instead of
+#'          an integrated (faceted) single graph. Only applies, if \code{type="prob"}.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
-#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-#'           was used for setting up the ggplot-object (\code{df}).
-#'          
+#' @return (Invisibly) returns a structure with following elements:
+#'         \itemize{
+#'          \item \code{plot}: ggplot-object with the complete plot
+#'          \item \code{mydf}: data frame that was used for setting up the ggplot-object
+#'          \item \code{mydf.mp}: a list of data frames with the data for metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
+#'          \item \code{plot.mp}: a list of ggplot-objects with plots of metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
+#'         }
+#'
 #' @examples
 #' # prepare dichotomous dependent variable
 #' y <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
-#' 
+#'
 #' # fit model
 #' fitOR <- glm(y ~ swiss$Education + swiss$Examination + swiss$Infant.Mortality + swiss$Catholic,
 #'              family=binomial(link="logit"))
-#' 
+#'
 #' # print Odds Ratios as dots
 #' sjp.glm(fitOR)
-#' 
+#'
 #' # print Odds Ratios as bars
 #' sjp.glm(fitOR, type="bars")
-#' 
-#' 
+#'
+#'
 #' # -------------------------------
 #' # Predictors for negative impact
 #' # of care. Data from the EUROFAMCARE
@@ -151,99 +115,113 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' # retrieve predictor variable labels
 #' labs <- sji.getVariableLabels(efc)
 #' predlab <- c(labs[['c161sex']],
-#'              labs[['e42dep']],
+#'              paste0(labs[['e42dep']], " (slightly)"),
+#'              paste0(labs[['e42dep']], " (moderate)"),
+#'              paste0(labs[['e42dep']], " (severely)"),
+#'              labs[['barthtot']],
 #'              paste0(labs[['c172code']], " (mid)"),
 #'              paste0(labs[['c172code']], " (high)"))
 #' # create binary response
-#' y <- ifelse(efc$neg_c_7<median(na.omit(efc$neg_c_7)), 0, 1)
+#' y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
 #' # create dummy variables for educational status
-#' edu.mid <- ifelse(efc$c172code==2, 1, 0)
-#' edu.high <- ifelse(efc$c172code==3, 1, 0)
+#' edu.mid <- ifelse(efc$c172code == 2, 1, 0)
+#' edu.high <- ifelse(efc$c172code == 3, 1, 0)
 #' # create data frame for fitted model
-#' df <- na.omit(as.data.frame(cbind(y,
-#'                 as.factor(efc$c161sex),
-#'                 as.factor(efc$e42dep),
-#'                 as.factor(edu.mid),
-#'                 as.factor(edu.high))))
+#' mydf <- na.omit(data.frame(y = as.factor(y),
+#'                            sex = as.factor(efc$c161sex),
+#'                            dep = as.factor(efc$e42dep),
+#'                            barthel = as.numeric(efc$barthtot),
+#'                            edu.mid = as.factor(edu.mid),
+#'                            edu.hi = as.factor(edu.high)))
 #' # fit model
-#' fit <- glm(y ~., data=df, family=binomial(link="logit"))
+#' fit <- glm(y ~., data = mydf, family = binomial(link = "logit"))
 #' # plot odds
-#' sjp.glm(fit, title=labs[['neg_c_7']], axisLabels.y=predlab)
-#' 
+#' sjp.glm(fit,
+#'         title = labs[['neg_c_7']],
+#'         axisLabels.y = predlab)
+#'
+#' # plot probability curves of coefficients
+#' sjp.glm(fit,
+#'         title = labs[['neg_c_7']],
+#'         axisLabels.y = predlab,
+#'         type = "prob")
+#'
 #' @import ggplot2
+#' @importFrom reshape2 melt
 #' @export
-sjp.glm <- function(fit, 
+sjp.glm <- function(fit,
                     sortOdds=TRUE,
                     title=NULL,
-                    titleSize=1.3,
-                    titleColor="black",
-                    axisLabels.y=NULL, 
-                    axisLabelSize=1.1,
-                    axisLabelAngle.x=0, 
-                    axisLabelAngle.y=0, 
-                    axisLabelColor="gray30", 
+                    axisLabels.y=NULL,
                     axisTitle.x="Odds Ratios",
-                    axisTitleSize=1.2,
-                    axisTitleColor=c("#444444"),
                     axisLimits=NULL,
-                    breakTitleAt=50, 
-                    breakLabelsAt=12, 
+                    breakTitleAt=50,
+                    breakLabelsAt=25,
                     gridBreaksAt=0.5,
                     transformTicks=FALSE,
                     type="dots",
+                    geom.size=3,
+                    geom.colors="Set1",
                     hideErrorBars=FALSE,
-                    errorBarWidth=0,
-                    errorBarSize=0.8,
-                    errorBarLineType=1,
-                    pointSize=3,
-                    colorPalette="Paired",
-                    barColor=NULL,
-                    barWidth=0.3,
-                    barAlpha=1,
-                    valueLabelColor="black",
-                    valueLabelSize=4.5,
-                    valueLabelAlpha=1,
-                    axisColor=NULL, 
-                    borderColor=NULL, 
-                    barOutline=FALSE, 
-                    barOutlineColor="black", 
                     interceptLineType=2,
                     interceptLineColor="grey70",
-                    majorGridColor=NULL,
-                    minorGridColor=NULL,
-                    hideGrid.x=FALSE,
-                    hideGrid.y=FALSE,
-                    theme=NULL,
-                    flipCoordinates=TRUE,
+                    coord.flip=TRUE,
                     showIntercept=FALSE,
                     showAxisLabels.y=TRUE,
-                    showTickMarks=TRUE,
-                    showValueLabels=TRUE, 
+                    showValueLabels=TRUE,
                     labelDigits=2,
                     showPValueLabels=TRUE,
                     showModelSummary=TRUE,
+                    facet.grid = TRUE,
+                    show.se = FALSE,
                     printPlot=TRUE) {
+  # --------------------------------------------------------
+  # check type
+  # --------------------------------------------------------
+  if (type == "prob" || type == "pc") {
+    return(invisible(sjp.glm.pc(fit,
+                                show.se,
+                                facet.grid,
+                                printPlot)))
+  }
+  if (type == "or") type <- "dots"
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
   }
+  # --------------------------------------------------------
+  # auto-retrieve value labels
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- c()
+    # iterate coefficients (1 is intercept or response)
+    for (i in 2 : ncol(fit$model)) {
+      # check if we hav label
+      lab <- autoSetVariableLabels(fit$model[, i])
+      # if not, use coefficient name
+      if (is.null(lab)) {
+        lab <- attr(fit$coefficients[i], "names")
+      }
+      axisLabels.y <- c(axisLabels.y, lab)
+    }
+  }
   # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- sju.wordwrap(title, breakTitleAt)    
+    title <- sju.wordwrap(title, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)    
+    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
-    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)    
+    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
   }
   # create data frame for ggplot
   tmp <- data.frame(cbind(exp(coef(fit)), exp(confint(fit))))
@@ -288,7 +266,7 @@ sjp.glm <- function(fit,
       else {
         ps[i] <- paste(ps[i], "***")
       }
-    }  
+    }
   }
   # ----------------------------
   # remove intercept
@@ -304,7 +282,11 @@ sjp.glm <- function(fit,
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
   # ----------------------------
-  if (is.null(axisLabels.y)) {
+  # auto-retrieving variable labels does not work when we
+  # have factors with different levels, which appear as
+  # "multiple predictors", but are only one variable
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y) || length(axisLabels.y) < length(row.names(odds))) {
     axisLabels.y <- row.names(odds)
   }
   # ----------------------------
@@ -384,15 +366,7 @@ sjp.glm <- function(fit,
   # Define axis ticks, i.e. at which position we have grid
   # bars.
   # --------------------------------------------------------
-  ticks<-c(seq(lower_lim, upper_lim, by=gridBreaksAt))
-  # since the odds are plotted on a log-scale, the grid bars'
-  # distance shrinks with higher odds values. to provide a visual
-  # proportional distance of the grid bars, we can apply the
-  # exponential-function on the tick marks
-  if (transformTicks) {
-    ticks <- exp(ticks)-1
-    ticks <- round(ticks[which(ticks<=upper_lim)],1)
-  }
+  ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
@@ -415,105 +389,11 @@ sjp.glm <- function(fit,
             Chisquare.glm(fit),
             fit$aic))
   }
-  # --------------------------------------------------------
-  # define bar / line colors
-  # --------------------------------------------------------
-  # if we have no odds lower than one, swicth fill colours
-  # so we have the correct colour for odds > 1
-  switchcolors <- ifelse (length(which(ov<1))==0, TRUE, FALSE)
-  # check whether barColor is defined
-  if (is.null(barColor)) {
-    # define default colours
-    if (switchcolors) barcols <- c("#3399cc", "#cc5544") else barcols <- c("#cc5544", "#3399cc")
-  }
   else {
-    # if we have b/w colors, i.e. no differentiation between odds > 1 and < 1,
-    # we simply set both colors for ORs lower and greater than 1 to the same color-value
-    if (barColor=="bw" || barColor=="black") {
-      barcols <- c("#333333", "#333333")
-    }
-    # grey-scale colors
-    else if (barColor=="gray" || barColor=="grey" || barColor=="gs") {
-      if (switchcolors) barcols <- c("#555555", "#999999") else barcols <- c("#999999", "#555555")
-    }
-    else {
-      # else, use user-colors
-      barcols <- barColor
-    }
-  }
-  # check whether we have brewer color scale
-  if (!is.null(barColor) && barColor=="brewer") {
-    # remember to specify the "colorPalette" if you use "brewer" as "oddsColorss"
-    if (type=="dots") {
-      # plots need scale_colour
-      scalecolors <- scale_colour_brewer(palette=colorPalette, guide=FALSE)
-    }
-    else {
-      # bars need scale_fill
-      scalecolors <- scale_fill_brewer(palette=colorPalette, guide=FALSE)
-    }
-  }
-  else {
-    if (type=="dots") {
-      scalecolors <- scale_colour_manual(values=barcols, guide=FALSE)
-    }
-    else {
-      scalecolors <- scale_fill_manual(values=barcols, guide=FALSE)
-    }
-  }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  # --------------------------------------------------------
-  # Set up visibility oftick marks
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
+    modsum <- NULL
   }
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
-  }
-  # --------------------------------------------------------
-  # check whether bars should have an outline
-  # --------------------------------------------------------
-  if (!barOutline) {
-    barOutlineColor <- waiver()
   }
   # --------------------------------------------------------
   # Order odds according to beta-coefficients
@@ -533,15 +413,9 @@ sjp.glm <- function(fit,
   # --------------------------------------------------------
   # body of plot, i.e. this is the same in both bar and dot plots
   # --------------------------------------------------------
-  if (type=="dots") {
-    # plot as dots
-    plotHeader <- ggplot(odds, aes(y=OR, x=vars))
-  }
-  else {
-    # plot as bars, fill bars according to
-    # OR-value greater / lower than 1
-    plotHeader <- ggplot(odds, aes(y=OR, x=vars))
-  }
+  # plot as bars, fill bars according to
+  # OR-value greater / lower than 1
+  plotHeader <- ggplot(odds, aes(y=OR, x=vars))
   # --------------------------------------------------------
   # start with dot-plotting here
   # --------------------------------------------------------
@@ -549,11 +423,11 @@ sjp.glm <- function(fit,
     plotHeader <- plotHeader +
       # Order odds according to beta-coefficients, colour points and lines according to
       # OR-value greater / lower than 1
-      geom_point(size=pointSize, aes(colour=(OR>1))) +
+      geom_point(size=geom.size, aes(colour=(OR>1))) +
       # print confidence intervalls (error bars)
-      geom_errorbar(aes(ymin=lower, ymax=upper, colour=(OR>1)), width=errorBarWidth, size=errorBarSize, linetype=errorBarLineType) +
+      geom_errorbar(aes(ymin=lower, ymax=upper, colour=(OR>1)), width=0) +
       # print value labels and p-values
-      geom_text(aes(label=p, y=OR), vjust=-0.7, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha)
+      geom_text(aes(label=p, y=OR), vjust=-0.7)
   }
   # --------------------------------------------------------
   # start with bar plots here
@@ -565,101 +439,210 @@ sjp.glm <- function(fit,
       # stat-parameter indicates statistics
       # stat="bin": y-axis relates to count of variable
       # stat="identity": y-axis relates to value of variable
-      geom_bar(aes(fill=(OR>1)), stat="identity", position="identity", width=barWidth, colour=barOutlineColor, alpha=barAlpha) +
+      geom_bar(aes(fill=(OR>1)), stat="identity", position="identity", width=geom.size) +
       # print value labels and p-values
-      geom_text(aes(label=p, y=1), vjust=-1, hjust=odds$labhjust, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha)
+      geom_text(aes(label=p, y=1), vjust=-1, hjust=odds$labhjust)
     if (hideErrorBars==FALSE) {
       plotHeader <- plotHeader +
         # print confidence intervalls (error bars)
-      geom_errorbar(aes(ymin=lower, ymax=upper), colour="black", width=errorBarWidth, size=errorBarSize, linetype=errorBarLineType)
+      geom_errorbar(aes(ymin=lower, ymax=upper), colour="black", width=0)
     }
   }
-  # check whether modelsummary should be printed
-  if (showModelSummary) {
-    # add annotations with model summary
-    # here we print out the log-lik-ratio "lambda" and the chi-square significance of the model
-    # compared to the null-model
-    plotHeader <- plotHeader + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha, vjust=-0.5, hjust=1.1)
-  }
+  # ------------------------------------------
+  # add annotations with model summary
+  # here we print out the log-lik-ratio "lambda" and the chi-square significance of the model
+  # compared to the null-model
+  # ------------------------------------------
+  plotHeader <- print.table.summary(plotHeader,
+                                    modsum)
   plotHeader <- plotHeader +
     # Intercept-line
-    geom_hline(yintercept=1, linetype=interceptLineType, color=interceptLineColor) +
-    labs(title=title, x=NULL, y=axisTitle.x) +
-    scale_x_discrete(labels=axisLabels.y) +
-    # logarithmic scale for odds
-    scale_y_log10(limits=c(lower_lim, upper_lim), breaks=ticks, labels=ticks) +
-    scalecolors
+    geom_hline(yintercept = 1,
+               linetype = interceptLineType,
+               color = interceptLineColor) +
+    labs(title = title,
+         x = NULL,
+         y = axisTitle.x) +
+    scale_x_discrete(labels = axisLabels.y)
   # --------------------------------------------------------
-  # apply theme
+  # create pretty breaks for log-scale
   # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
+  if (transformTicks) {
+    # since the odds are plotted on a log-scale, the grid bars'
+    # distance shrinks with higher odds values. to provide a visual
+    # proportional distance of the grid bars, we can apply the
+    # exponential-function on the tick marks
     plotHeader <- plotHeader +
-      ggtheme +
-      # set axes text and 
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            axis.text.y = element_text(angle=axisLabelAngle.y),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
+      scale_y_continuous(trans = "log10",
+                         limits = c(lower_lim, upper_lim),
+                         breaks = base_breaks(upper_lim),
+                         labels = prettyNum)
+  }
+  else {
+    plotHeader <- plotHeader +
+      # logarithmic scale for odds
+      scale_y_log10(limits = c(lower_lim, upper_lim),
+                    breaks = ticks,
+                    labels = ticks)
   }
   # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
-  if (flipCoordinates)  {
+  if (coord.flip)  {
     plotHeader <- plotHeader +
       coord_flip()
   }
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      plotHeader <- plotHeader + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    plotHeader <- plotHeader + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    plotHeader <- plotHeader + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    plotHeader <- plotHeader + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    plotHeader <- plotHeader + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    plotHeader <- plotHeader + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  plotHeader <- sj.setGeomColors(plotHeader, geom.colors, 2, FALSE)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (printPlot) print(plotHeader)
+  if (printPlot) {
+    # print base plot
+    print(plotHeader)
+  }
   # -------------------------------------
   # return results
   # -------------------------------------
   invisible (structure(class = "sjpglm",
                        list(plot = plotHeader,
-                            df = odds)))
+                            mydf = odds)))
+}
+
+
+sjp.glm.pc <- function(fit,
+                       show.se,
+                       facet.grid,
+                       printPlot) {
+  # ----------------------------
+  # prepare additional plots, when metric
+  # predictors should also be plotted
+  # ----------------------------
+  # init lists with all additional data frames and plots
+  mydf.metricpred <- list()
+  plot.metricpred <- list()
+  axisLabels.mp <- c()
+  plot.facet <- NULL
+  mydf.facet <- NULL
+  # retrieve data classes of model terms to check whether
+  # we have any numeric terms in fitted model
+  fit.data.classes <- unname(attr(fit$terms, "dataClasses"))
+  # retrieve term names, so we find the estimates in the
+  # coefficients list
+  fit.term.names <- names(attr(fit$terms, "dataClasses"))[-1]
+  # ----------------------------
+  # loop through all coefficients
+  # ----------------------------
+  for (i in 1 : length(fit.term.names)) {
+    # get values from coefficient
+    coef.column <- which(colnames(fit$model) == fit.term.names[i])
+    # check if we have found the coefficient
+    if (length(coef.column) > 0) {
+      # get values from numeric term
+      vals <- fit$model[, coef.column]
+      # sort values, for x axis
+      vals.unique <- sort(vals)
+      # melt variable
+      mydf.vals <- data.frame(melt(vals.unique))
+      # set colnames
+      colnames(mydf.vals) <- c("value")
+      # convert factor to numeric
+      if (is.factor(mydf.vals$value)) mydf.vals$value <- sji.convertToValue(mydf.vals$value, 0)
+      # retrieve names of coefficients
+      coef.names <- names(coef(fit))
+      # check if we have a factor, then we may have reference levels
+      if (is.factor(vals)) {
+        # add reference level to coefficient name
+        ll <- levels(vals)
+        fit.fac.name <- paste0(fit.term.names[i], ll[length(ll)])
+      }
+      else {
+        fit.fac.name <- fit.term.names[i]
+      }
+      # find coef-position
+      coef.pos <- which(coef.names == fit.fac.name)
+      # calculate x-beta by multiplying original values with estimate of that term
+      mydf.vals$xbeta <- mydf.vals$value * (coef(fit)[coef.pos])
+      # calculate probability (y) via cdf-function
+      mydf.vals$y <- odds.to.prob(coef(fit)[1] + mydf.vals$xbeta)
+      # assign group
+      mydf.vals$grp = coef.names[coef.pos]
+      # add mydf to list
+      mydf.metricpred[[length(mydf.metricpred) + 1]] <- mydf.vals
+      # save predictor name
+      axisLabels.mp <- c(axisLabels.mp, fit.term.names[i])
+    }
+  }
+  # ---------------------------------------------------------
+  # Prepare metric plots
+  # ---------------------------------------------------------
+  if (length(mydf.metricpred)>0) {
+    # create mydf for integrated plot
+    mydf.ges <- data.frame()
+    for (i in 1:length(mydf.metricpred)) {
+      # "melt" all single mydf's to one
+      mydf.ges <- rbind(mydf.ges, mydf.metricpred[[i]])
+      # create single plots for each numeric predictor
+      mp <- ggplot(mydf.metricpred[[i]], aes(x = value, y = y)) +
+        labs(x = axisLabels.mp[i], y = "Probability") +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
+        coord_cartesian(ylim = c(0, 1))
+      # add plot to list
+      plot.metricpred[[length(plot.metricpred)+1]] <- mp
+    }
+    # if we have more than one numeric var, also create integrated plot
+    if (length(mydf.metricpred) > 1) {
+      mp <- ggplot(mydf.ges, aes(x = value,
+                                 y = y,
+                                 colour = grp)) +
+        labs(x = NULL,
+             y = "Probability",
+             colour = "Term",
+             title = "Probability of coefficients") +
+        scale_colour_manual(values = brewer_pal(palette = "Set1")(length(axisLabels.mp)),
+                            labels = axisLabels.mp) +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
+        coord_cartesian(ylim = c(0, 1)) +
+        facet_wrap( ~ grp,
+                    ncol = round(sqrt(length(mydf.metricpred))),
+                    scales = "free_x") +
+        guides(colour = FALSE)
+      # add integrated plot to plot list
+      plot.facet <- mp
+      # add integrated data frame to plot list
+      mydf.facet <- mydf.ges
+    }
+  }
+  # --------------------------
+  # plot plots
+  # --------------------------
+  if (printPlot) {
+    if (facet.grid && !is.null(plot.facet)) {
+      print(plot.facet)
+    }
+    else {
+      for (i in 1 : length(plot.metricpred)) {
+        print(plot.metricpred[[i]])
+      }
+    }
+  }
+
+  invisible (structure(class = "sjpglm.pc",
+                       list(mydf.mp = mydf.metricpred,
+                            plot.mp = plot.metricpred,
+                            mydf.facet = mydf.facet,
+                            plot.facet = plot.facet)))
 }
 
 
 #' @title Plot model assumptions of glm's
 #' @name sjp.glm.ma
-#' 
+#'
 #' @description Plots model assumptions of generalized linear models
 #'              to verify if generalized linear regression is applicable
-#' 
+#'
 #' @seealso \code{\link{sjp.glm}}
 
 #' @param logreg a fitted \code{\link{glm}}-model
@@ -667,18 +650,18 @@ sjp.glm <- function(fit,
 #'   \code{logreg} are plotted. if \code{FALSE}, the model assumptions of an updated model where outliers
 #'   are automatically excluded are also plotted.
 #' @return an updated fitted generalized linear model where outliers are dropped out.
-#' 
+#'
 #' @examples
 #' # prepare dichotomous dependent variable
 #' y <- ifelse(swiss$Fertility<median(swiss$Fertility), 0, 1)
-#' 
+#'
 #' # fit model
 #' fitOR <- glm(y ~ swiss$Education + swiss$Examination + swiss$Infant.Mortality + swiss$Catholic,
 #'              family=binomial(link="logit"))
-#' 
+#'
 #' # plot model assumptions
 #' sjp.glm.ma(fitOR)
-#' 
+#'
 #' @importFrom car outlierTest influencePlot
 #' @export
 sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
@@ -725,12 +708,12 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # ---------------------------------
   # print steps from original to updated model
   # ---------------------------------
-  cat(sprintf(("\nRemoved %i cases during %i step(s).\nAIC-value of original model: %.2f\nAIC-value of updated model: %.2f\n\n"), 
+  cat(sprintf(("\nRemoved %i cases during %i step(s).\nAIC-value of original model: %.2f\nAIC-value of updated model: %.2f\n\n"),
               removedcases,
-              maxloops-(maxcnt+1), 
-              logreg$aic, 
+              maxloops-(maxcnt+1),
+              logreg$aic,
               model$aic))
-  
+
   modelOptmized <- ifelse(removedcases>0, TRUE, FALSE)
   if (showOriginalModelOnly) modelOptmized <- FALSE
   # ---------------------------------
@@ -740,9 +723,9 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   if (modelOptmized) sjp.vif(model)
   # ------------------------------------------------------
   # Overdispersion
-  # Sometimes we can get a deviance that is much larger than expected 
-  # if the model was correct. It can be due to the presence of outliers, 
-  # sparse data or clustering of data. A half-normal plot of the residuals 
+  # Sometimes we can get a deviance that is much larger than expected
+  # if the model was correct. It can be due to the presence of outliers,
+  # sparse data or clustering of data. A half-normal plot of the residuals
   # can help checking for outliers:
   # ------------------------------------------------------
   halfnorm <- function (x, nlab=2, labs=as.character(1:length(x)), ylab="Sorted Data", ...) {
@@ -788,7 +771,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   }
   # -------------------------------------
   # Anova-Test
-  # We can see that all terms were highly significant when they were 
+  # We can see that all terms were highly significant when they were
   # introduced into the model.
   # -------------------------------------
   cat(paste("\n--------------------\nCheck significance of terms when they entered the model...\n"))

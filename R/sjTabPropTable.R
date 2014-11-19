@@ -3,14 +3,12 @@
 #' 
 #' @description Shows contingency tables as HTML file in browser or viewer pane, or saves them as file.
 #' 
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjtxtab}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              }
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/sjt.xtab}{sjPlot manual: sjt.xtab}
+#'            \item \code{\link{sjp.xtab}}
+#'            \item \code{\link{sjs.table.values}}
+#'          }
 #'              
-#' @seealso \code{\link{sjp.xtab}} \cr
-#'          \code{\link{sjs.table.values}}
-#' 
 #' @param var.row Variable that should be displayed in the table rows.
 #' @param var.col Variable that should be displayed in the table columns.
 #' @param var.grp An optional grouping variable that splits the data into several groups,
@@ -66,10 +64,11 @@
 #'          the percentage value.
 #' @param hundret Default value that indicates the 100-percent column-sums (since rounding values
 #'          may lead to non-exact results). Default is \code{"100.0"}.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -83,7 +82,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.summary='+color:blue;'} to add blue font color style to the summary row.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -197,10 +196,14 @@ sjt.xtab <- function (var.row,
                       highlightColor="#f8f8f8",
                       percSign="&nbsp;&#37;",
                       hundret="100.0",
-                      encoding="UTF-8",
+                      encoding=NULL,
                       CSS=NULL,
                       useViewer=TRUE,
                       no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -285,22 +288,22 @@ sjt.xtab <- function (var.row,
     if (is.null(weightBy)) {
       # check if we have groupings or not
       if (is.null(var.grp)) {
-        tab <- ftable(xtabs(~ addNA(var.row) + addNA(var.col)))
+        tab <- ftable(xtabs(~ addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
         coladd <- 3
       }
       else {
-        tab <- ftable(xtabs(~ addNA(var.grp) + addNA(var.row) + addNA(var.col)))
+        tab <- ftable(xtabs(~ addNA(var.grp) + addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
         coladd <- 4
       }
     }
     else {
       # check if we have groupings or not
       if (is.null(var.grp)) {
-        tab <- ftable(xtabs(weightBy ~ addNA(var.row) + addNA(var.col)))
+        tab <- ftable(xtabs(weightBy ~ addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
         coladd <- 3
       }
       else {
-        tab <- ftable(xtabs(weightBy ~ addNA(var.grp) + addNA(var.row) + addNA(var.col)))
+        tab <- ftable(xtabs(weightBy ~ addNA(var.grp) + addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
         coladd <- 4
       }
     }
@@ -313,26 +316,51 @@ sjt.xtab <- function (var.row,
     if (is.null(weightBy)) {
       # check if we have groupings or not
       if (is.null(var.grp)) {
-        tab <- ftable(xtabs(~ var.row + var.col))
+        tab <- ftable(xtabs(~ as.factor(var.row) + as.factor(var.col)))
         coladd <- 2
       }
       else {
-        tab <- ftable(xtabs(~ var.grp + var.row + var.col))
+        tab <- ftable(xtabs(~ var.grp + as.factor(var.row) + as.factor(var.col)))
         coladd <- 3
       }
     }
     else {
       # check if we have groupings or not
       if (is.null(var.grp)) {
-        tab <- ftable(xtabs(weightBy ~ var.row + var.col))
+        tab <- ftable(xtabs(weightBy ~ as.factor(var.row) + as.factor(var.col)))
         coladd <- 2
       }
       else {
-        tab <- ftable(xtabs(weightBy ~ var.grp + var.row + var.col))
+        tab <- ftable(xtabs(weightBy ~ var.grp + as.factor(var.row) + as.factor(var.col)))
         coladd <- 3
       }
     }
   }
+  #   # -------------------------------------
+  #   # complete empty table columns
+  #   # -------------------------------------
+  #   # estimate amount of columns
+  #   colcount <- ifelse (length(valueLabels[[2]])>ncol(tab), length(valueLabels[[2]]), ncol(tab))
+  #   # determin index of start and end column index
+  #   colstart <- ifelse (min(var.col, na.rm=T)<1, 0, 1)
+  #   colend <- ifelse (colstart==0, colcount-1, colcount)
+  #   # create data frame so we can insert columns
+  #   tabdf <- as.data.frame(tab)
+  #   for (frc in colstart:colend) {
+  #     # check if column index appears in column-index
+  #     if (!any(tabdf$var.col==frc)) {
+  #       # if not, insert empty row(s)
+  #       startrow <- match(frc+1, tabdf$var.col) - 1
+  #       # insert empty rows
+  #       tabdf <- rbind(tabdf[1:startrow,], data.frame(var.row=c(1:nrow(tab)), var.col=as.factor(rep(frc, nrow(tab))), Freq=rep(0, nrow(tab))), tabdf[(startrow+1):nrow(tabdf),])
+  #     }
+  #   }
+  #   # -------------------------------------
+  #   # check if we have new rows
+  #   # -------------------------------------
+  #   if (length(unique(tabdf$var.col))>ncol(tab)) {
+  #     tab <- as.table(matrix(tabdf$Freq, nrow=nrow(tab)))
+  #   }
   # -------------------------------------
   # compute table percentages
   # -------------------------------------
@@ -741,33 +769,7 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)   
   # -------------------------------------
   # return results
   # -------------------------------------

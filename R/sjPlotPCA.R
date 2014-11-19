@@ -1,7 +1,5 @@
 #' @title Plot PCA results
 #' @name sjp.pca
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/07/08/plotting-principal-component-analysis-with-ggplot-rstats/}
 #' 
 #' @description Performes a principle component analysis on a data frame or matrix and plots 
 #'                the factor solution as ellipses or tiles. \cr \cr In case a data frame is used as 
@@ -9,10 +7,13 @@
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
-#' @seealso \code{\link{sjt.pca}} \cr
-#'          \code{\link{sjs.reliability}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjs.cronbach}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/sjp.pca/}{sjPlot manual: sjp.pca}
+#'            \item \code{\link{sjt.pca}}
+#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{sjt.itemanalysis}}
+#'            \item \code{\link{sjs.cronbach}}
+#'            }
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
@@ -29,65 +30,27 @@
 #'          Kaiser criteria is plotted to determine the number of factors.
 #' @param digits The amount of decimals used. Default is 2.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels.y The item labels that are printed on the y-axis. If no item labels are
 #'          provided (default), the data frame's column names are used. Item labels must
-#'          be a string vector, e.g.: \code{axisLabels.y=c("Var 1", "Var 2", "Var 3")}.
+#'          be a string vector, e.g.: \code{axisLabels.y = c("Var 1", "Var 2", "Var 3")}.
 #' @param type Indicates whether \code{"circle"} (default) or \code{"tile"} geoms
 #'          should be used for plotting.
-#' @param geomAlpha Specify the transparancy (alpha value) of geom objects (circles or tiles).
-#'          Default is 0.8.
-#' @param valueLabelColor The color of the value labels (numbers) inside the diagram.
-#'          Default is \code{"black"}.
-#' @param valueLabelSize The size of value labels in the diagram. Default is 4.5, recommended values range
-#'          between 2 and 8.
-#' @param valueLabelAlpha Specify the transparancy (alpha value) of value labels.
-#'          Default is 0.8
-#' @param circleSize Specifies the circle size factor. The circle size depends on the correlation
+#' @param geom.colors A color palette for fillng the geoms. If not specified, the diverging \code{"RdBl"} color palette
+#'          from the color brewer palettes is used, resulting in red colors for negative and blue colors
+#'          for positive factor loadings, that become lighter the weaker the loadings are. Use any
+#'          color palette that is suitbale for the \code{scale_fill_gradientn} parameter of ggplot2.
+#' @param geom.size Specifies the circle size factor. The circle size depends on the correlation
 #'          value multiplicated with this factor. Default is 10.
-#' @param outlineColor Defines the outline color of geoms (circles or tiles). Default is \code{"black"}.
-#' @param outlineSize Defines the outline size of geoms (circles or tiles). Default is 1.
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisLabelSize The size of variable labels at the axes. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0.
-#' @param axisLabelColor User defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels.
-#' @param axisLabelAngle.x Angle for x-axis-labels.
-#' @param axisLabelAngle.y Angle for y-axis-labels.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title. Default is 50.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted. Default is 12.
-#' @param hideLegend Show or hide the legend. The legend indicates the strength of correlations
-#'          by gradient colour fill. Default is \code{TRUE}, hence the legend is hidden.
-#' @param legendTitle The legend title, provided as string, e.g. \code{legendTitle=c("Factor loading")}.
-#'          Default is \code{NULL}, hence no legend title is used.
 #' @param showValueLabels Whether factor loading values should be plotted to each geom.
 #'          Default is \code{TRUE}.
-#' @param showTickMarks Whether tick marks should be plotted or not. Default is \code{FALSE}.
 #' @param showCronbachsAlpha If \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 #'          i.e. all variables with the highest loading for a factor are taken for the
 #'          reliability test. The result is an alpha value for each factor dimension.
 #'          Only applies when \code{data} is a data frame and no \code{\link{prcomp}} object.
-#' @param fillColor A color palette for fillng the geoms. If not specified, the 5th diverging color palette
-#'          from the color brewer palettes (RdBu) is used, resulting in red colors for negative and blue colors
-#'          for positive factor loadings, that become lighter the weaker the loadings are. Use any
-#'          color palette that is suitbale for the \code{scale_fill_gradientn} parameter of ggplot2.
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Invisibly) returns a \code{\link{structure}} with
@@ -103,13 +66,13 @@
 #' 
 #' @examples
 #' # randomly create data frame with 7 items, each consisting of 4 categories
-#' likert_4 <- data.frame(sample(1:4, 500, replace=TRUE, prob=c(0.2,0.3,0.1,0.4)),
-#'                        sample(1:4, 500, replace=TRUE, prob=c(0.5,0.25,0.15,0.1)),
-#'                        sample(1:4, 500, replace=TRUE, prob=c(0.4,0.15,0.25,0.2)),
-#'                        sample(1:4, 500, replace=TRUE, prob=c(0.25,0.1,0.4,0.25)),
-#'                        sample(1:4, 500, replace=TRUE, prob=c(0.1,0.4,0.4,0.1)),
-#'                        sample(1:4, 500, replace=TRUE),
-#'                        sample(1:4, 500, replace=TRUE, prob=c(0.35,0.25,0.15,0.25)))
+#' likert_4 <- data.frame(sample(1:4, 500, replace = TRUE, prob = c(0.2,0.3,0.1,0.4)),
+#'                        sample(1:4, 500, replace = TRUE, prob = c(0.5,0.25,0.15,0.1)),
+#'                        sample(1:4, 500, replace = TRUE, prob = c(0.4,0.15,0.25,0.2)),
+#'                        sample(1:4, 500, replace = TRUE, prob = c(0.25,0.1,0.4,0.25)),
+#'                        sample(1:4, 500, replace = TRUE, prob = c(0.1,0.4,0.4,0.1)),
+#'                        sample(1:4, 500, replace = TRUE),
+#'                        sample(1:4, 500, replace = TRUE, prob = c(0.35,0.25,0.15,0.25)))
 #'
 #' # Create variable labels
 #' colnames(likert_4) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7")
@@ -118,10 +81,10 @@
 #' sjp.pca(likert_4)
 #' 
 #' # manually compute PCA
-#' pca <- prcomp(na.omit(likert_4), retx=TRUE, center=TRUE, scale.=TRUE)
+#' pca <- prcomp(na.omit(likert_4), retx = TRUE, center = TRUE, scale. = TRUE)
 #' # plot results from PCA as circles, including Eigenvalue-diagnostic.
 #' # note that this plot does not compute the Cronbach's Alpha
-#' sjp.pca(pca, plotEigenvalues=TRUE, type="circle")
+#' sjp.pca(pca, plotEigenvalues = TRUE, type = "circle")
 #' 
 #' 
 #' # -------------------------------
@@ -133,9 +96,9 @@
 #' varlabs <- sji.getVariableLabels(efc)
 #' 
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
+#' start <- which(colnames(efc) == "c82cop1")
 #' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
+#' end <- which(colnames(efc) == "c90cop9")
 #'  
 #' # create data frame with COPE-index scale
 #' df <- as.data.frame(efc[,c(start:end)])
@@ -147,12 +110,12 @@
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, varlabs)
-#' sjp.pca(efc[,c(start:end)])
+#' sjp.pca(efc[, c(start:end)])
 #' 
 #' 
 #' @import ggplot2
+#' @importFrom scales brewer_pal grey_pal
 #' @importFrom reshape2 melt
-#' @importFrom scales brewer_pal
 #' @export
 sjp.pca <- function(data,
                     numberOfFactors=NULL,
@@ -160,34 +123,14 @@ sjp.pca <- function(data,
                     plotEigenvalues=FALSE,
                     digits=2,
                     title=NULL,
-                    titleSize=1.3,
-                    titleColor="black",
                     axisLabels.y=NULL,
                     type="tile",
-                    geomAlpha=0.8,
-                    valueLabelColor="black",
-                    valueLabelSize=4.5,
-                    valueLabelAlpha=1,
-                    circleSize=10,
-                    outlineColor="black",
-                    outlineSize=0.2,
-                    axisColor=NULL, 
-                    borderColor=NULL, 
-                    axisLabelSize=1.1,
-                    axisLabelColor="gray30",
-                    axisLabelAngle.x=0, 
-                    axisLabelAngle.y=0, 
+                    geom.size=10,
+                    geom.colors="RdBu",                    
                     breakTitleAt=50, 
                     breakLabelsAt=20, 
-                    hideLegend=TRUE,
-                    legendTitle=NULL,
                     showValueLabels=TRUE,
-                    showTickMarks=FALSE,
                     showCronbachsAlpha=TRUE,
-                    fillColor=NULL,
-                    majorGridColor=NULL,
-                    minorGridColor=NULL,
-                    theme=NULL,
                     printPlot=TRUE) {
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
@@ -196,7 +139,7 @@ sjp.pca <- function(data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(data[,i])
+      vn <- autoSetVariableLabels(data[, i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         axisLabels.y <- c(axisLabels.y, vn)
@@ -209,15 +152,24 @@ sjp.pca <- function(data,
     }
   }
   # ----------------------------
+  # set color palette
+  # ----------------------------  
+  if (is.brewer.pal(geom.colors[1])) {
+    geom.colors <- brewer_pal(palette=geom.colors[1])(5)
+  }
+  else if (geom.colors[1] == "gs") {
+    geom.colors <- grey_pal()(5)
+  }
+  # ----------------------------
   # check if user has passed a data frame
   # or a pca object
   # ----------------------------
-  if (class(data)=="prcomp") {
+  if (class(data) == "prcomp") {
     pcadata <- data
     dataframeparam <- FALSE
   }
   else {
-    pcadata <- prcomp(na.omit(data), retx=TRUE, center=TRUE, scale.=TRUE)
+    pcadata <- prcomp(na.omit(data), retx = TRUE, center = TRUE, scale. = TRUE)
     dataframeparam <- TRUE
   }
   # --------------------------------------------------------
@@ -234,23 +186,23 @@ sjp.pca <- function(data,
   # retrieve best amount of factors according
   # to Kaiser-critearia, i.e. factors with eigen value > 1
   # ----------------------------
-  pcadata.kaiser <- which(pcadata.eigenval<1)[1]-1
+  pcadata.kaiser <- which(pcadata.eigenval < 1)[1] - 1
   # ----------------------------
   # plot eigenvalues
   # ----------------------------
   if (plotEigenvalues) {
     # create data frame with eigen values
-    mydat <- as.data.frame(cbind(xpos=1:length(pcadata.eigenval), eigen=pcadata.eigenval))
+    mydat <- as.data.frame(cbind(xpos = 1:length(pcadata.eigenval), eigen = pcadata.eigenval))
     # plot eigenvalues as line curve
     eigenplot <- 
       # indicate eigen vlaues > 1
-      ggplot(mydat, aes(x=xpos, y=eigen, colour=eigen>1)) +
+      ggplot(mydat, aes(x = xpos, y = eigen, colour = eigen > 1)) +
         geom_line() + geom_point() +
-        geom_hline(y=1, linetype=2, colour="grey50") +
+        geom_hline(y = 1, linetype = 2, colour = "grey50") +
         # print best number of factors according to eigen value
-        annotate("text", label=sprintf("Factors: %i", pcadata.kaiser), x=Inf, y=Inf, vjust=2, hjust=1.2) +
-        scale_x_continuous(breaks=c(seq(1,nrow(mydat), by=2))) +
-        labs(title=NULL, y="Eigenvalue", x="Number of factors")
+        annotate("text", label = sprintf("Factors: %i", pcadata.kaiser), x = Inf, y = Inf, vjust = 2, hjust = 1.2) +
+        scale_x_continuous(breaks = c(seq(1, nrow(mydat), by = 2))) +
+        labs(title = NULL, y = "Eigenvalue", x = "Number of factors")
     plot(eigenplot)
     # print statistics
     cat("\n--------------------------------------------\n")
@@ -266,11 +218,11 @@ sjp.pca <- function(data,
   if (!is.null(numberOfFactors) && is.numeric(numberOfFactors)) {
     pcadata.kaiser <- numberOfFactors
   }
-  pcadata.varim = varimaxrota(pcadata, pcadata.kaiser)
+  pcadata.varim <- varimaxrota(pcadata, pcadata.kaiser)
   # pcadata.varim = varimax(loadings(pcadata))
   # create data frame with factor loadings
-  df <- as.data.frame(pcadata.varim$loadings[,1:ncol(pcadata.varim$loadings)])
-  # df <- as.data.frame(pcadata.varim$rotmat[,1:pcadata.kaiser])
+  df <- as.data.frame(pcadata.varim$loadings[, 1:ncol(pcadata.varim$loadings)])
+  # df <- as.data.frame(pcadata.varim$rotmat[, 1:pcadata.kaiser])
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -301,13 +253,13 @@ sjp.pca <- function(data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- as.numeric(abs(df[i,]))
+      rowval <- as.numeric(abs(df[i, ]))
       # retrieve highest loading
       maxload <- max(rowval)
       # retrieve 2. highest loading
       max2load <- sort(rowval, TRUE)[2]
       # check difference between both
-      if (abs(maxload-max2load)<factorLoadingTolerance) {
+      if (abs(maxload-max2load) < factorLoadingTolerance) {
         # if difference is below the tolerance,
         # remeber row-ID so we can remove that items
         # for further PCA with updated data frame
@@ -331,9 +283,9 @@ sjp.pca <- function(data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- abs(df[i,])
+      rowval <- abs(df[i, ])
       # retrieve highest loading and remeber that column
-      itemloading <- c(itemloading, which(rowval==max(rowval)))
+      itemloading <- c(itemloading, which(rowval == max(rowval)))
     }
     # return a vector with index numbers indicating which items
     # loads the highest on which factor
@@ -352,7 +304,7 @@ sjp.pca <- function(data,
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- as.data.frame(rbind(cbv, cbind(nr=n, sjs.cronbach(na.omit(dataframe[,which(itemloadings==n)])))))
+      cbv <- as.data.frame(rbind(cbv, cbind(nr = n, sjs.cronbach(na.omit(dataframe[, which(itemloadings == n)])))))
     }
     # just for vertical position adjustment when we print the alpha values
     vpos <- rep(c(-0.25, -1), nrow(cbv))
@@ -384,51 +336,9 @@ sjp.pca <- function(data,
   # convert to long data
   df <- melt(df)
   # we need new columns for y-positions and point sizes
-  df <- cbind(df, ypos=c(1:nrow(pcadata.varim$loadings)), psize=c(exp(abs(df$value))*circleSize))
+  df <- cbind(df, ypos = c(1:nrow(pcadata.varim$loadings)), psize = c(exp(abs(df$value)) * geom.size))
   # rename first column for more intuitive name
   colnames(df)[1] <- c("xpos")
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  # --------------------------------------------------------
-  # Set up visibility oftick marks
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
   if (!showValueLabels) {
     valueLabels <- c("")
   }
@@ -438,106 +348,37 @@ sjp.pca <- function(data,
   # --------------------------------------------------------
   # start with base plot object here
   # --------------------------------------------------------
-  heatmap <- ggplot(data=df, aes(x=xpos, y=ypos, fill=value))
+  heatmap <- ggplot(data = df, aes(x = xpos, y = ypos, fill = value))
   # --------------------------------------------------------
   # determine the geom type, either points when "type" is "circles"
   # --------------------------------------------------------
-  if (type=="circle") {
-    # check whether we have an outline color
-    if (is.null(outlineColor)) {
-      geo <- geom_point(shape=21, size=df$psize, alpha=geomAlpha)
-    }
-    # ... and apply colour-attribute
-    else {
-      geo <- geom_point(shape=21, size=df$psize, alpha=geomAlpha, colour=outlineColor)
-    }
+  if (type == "circle") {
+    geo <- geom_point(shape = 21, size = df$psize)
   }
   # --------------------------------------------------------
   # or boxes / tiles when "type" is "tile"
   # --------------------------------------------------------
   else {
-    # check whether we have an outline color
-    if (is.null(outlineColor)) {
-      geo <- geom_tile()
-    }
-    # ... and apply colour-attribute
-    else {
-      geo <- geom_tile(size=outlineSize, colour=outlineColor)
-    }
+    geo <- geom_tile()
   }
   heatmap <- heatmap +
     geo +
-    scale_y_reverse(breaks=c(seq(1, length(axisLabels.y), by=1)), labels=axisLabels.y)
-  # --------------------------------------------------------
-  # fill gradient colour from distinct color brewer palette. negative correlations are dark
-  # red, positive corr. are dark blue, and they become lighter the closer they are to a
-  # correlation coefficient of zero
-  # --------------------------------------------------------
-  if (is.null(fillColor)) {
-    heatmap <- heatmap +
-      # set limits to (-1,1) to make sure the whole color palette is used
-      scale_fill_gradientn(colours=brewer_pal("div",5)(5), limits=c(-1,1))
-      # scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0)
-  }
-  else {
-    heatmap <- heatmap +
-      # set limits to (-1,1) to make sure the whole color palette is used
-      scale_fill_gradientn(colours=fillColor, limits=c(-1,1))
-      # scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0)
-  }
-  heatmap <- heatmap +
-    geom_text(label=valueLabels, colour=valueLabelColor, alpha=valueLabelAlpha, size=valueLabelSize) +
-    labs(title=title, x=NULL, y=NULL, fill=legendTitle)
-  # --------------------------------------------------------
-  # apply theme
-  # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
-    heatmap <- heatmap +      
-      ggtheme +
-      # set font size for axes.
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            axis.text.y = element_text(angle=axisLabelAngle.y),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
+    scale_y_reverse(breaks = c(seq(1, length(axisLabels.y), by = 1)), labels = axisLabels.y) +
+    # --------------------------------------------------------
+    # fill gradient colour from distinct color brewer palette. negative correlations are dark
+    # red, positive corr. are dark blue, and they become lighter the closer they are to a
+    # correlation coefficient of zero
+    # --------------------------------------------------------
+    scale_fill_gradientn(colours = geom.colors, limits = c(-1,1)) +
+    geom_text(label = valueLabels) +
+    labs(title = title, x = NULL, y = NULL, fill = NULL) +
+    guides(fill = FALSE)
   # --------------------------------------------------------
   # show cronbach's alpha value for each scale 
   # --------------------------------------------------------
   if (showCronbachsAlpha) {
     heatmap <- heatmap +
-      # annotate("text", x=alphaValues$nr, y=Inf, parse=TRUE, label=sprintf("alpha == %.2f", alphaValues$alpha), size=0.9*valueLabelSize, colour=axisLabelColor, vjust=alphaValues$vpos)
-      annotate("text", x=alphaValues$nr, y=Inf, parse=TRUE, label=sprintf("alpha == %.*f", digits, alphaValues$alpha), size=0.9*valueLabelSize, colour=axisLabelColor, vjust=-0.5)
-  }
-  # --------------------------------------------------------
-  # the panel-border-property can only be applied to the bw-theme
-  # --------------------------------------------------------
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      heatmap <- heatmap + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  # --------------------------------------------------------
-  # apply theme properties like axis and grid colors
-  # --------------------------------------------------------
-  if (!is.null(axisColor)) {
-    heatmap <- heatmap + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    heatmap <- heatmap + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    heatmap <- heatmap + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideLegend) {
-    heatmap <- heatmap + 
-      guides(fill=FALSE)
+      annotate("text", x = alphaValues$nr, y = Inf, parse = TRUE, label = sprintf("alpha == %.*f", digits, alphaValues$alpha), vjust = -0.5)
   }
   # --------------------------------------------------------
   # print plot
@@ -551,7 +392,7 @@ sjp.pca <- function(data,
   # in order to get more clearly factor loadings
   # --------------------------------------------------------
   remdf <- NULL
-  if (class(data)=="data.frame") {
+  if (class(data) == "data.frame") {
     cat("\nFollowing items have been removed:\n")
     if (!is.null(removableItems)) {
       print(colnames(data)[removableItems])

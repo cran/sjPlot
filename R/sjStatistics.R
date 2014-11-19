@@ -1,9 +1,77 @@
+#' @title Retrieve eta squared of fitted anova
+#' @name sjs.etasq
+#' @description Returns the eta squared value for 1-way-anovas.
+#' 
+#' @seealso \code{\link{sjp.aov1}}
+#'         
+#' @param ... A fitted one-way-anova model or a dependent and grouping variable (see examples).
+#' @return The eta squared value.
+#' 
+#' @note Interpret eta^2 as for r2 or R2; a rule of thumb (Cohen):
+#'         \itemize{
+#'          \item .02 ~ small
+#'          \item .13 ~ medium
+#'          \item .26 ~ large
+#'         }
+#' 
+#' @references \itemize{
+#'               \item \href{http://stats.stackexchange.com/questions/78808/}{stack exchange 1}
+#'               \item \href{http://stats.stackexchange.com/questions/15958/}{stack exchange 2}
+#'               \item \href{http://en.wikiversity.org/wiki/Eta-squared}{Wikipedia: Eta-squared}
+#'               \item Levine TR, Hullett CR (2002): Eta Squared, Partial Eta Squared, and Misreporting of Effect Size in Communication Research (\href{https://www.msu.edu/~levinet/eta\%20squared\%20hcr.pdf}{pdf})
+#'             }
+#' 
+#' @examples
+#' # load sample data
+#' data(efc)
+#' 
+#' # fit linear model
+#' fit <- aov(c12hour ~ as.factor(e42dep), data = efc)
+#' 
+#' # print eta sqaured
+#' sjs.etasq(fit)
+#' 
+#' # grouping variable will be converted to factor autoamtically
+#' sjs.etasq(efc$c12hour, efc$e42dep)
+#' 
+#' @export
+sjs.etasq <- function(...) {
+  # --------------------------------------------------------
+  # retrieve list of parameters
+  # --------------------------------------------------------
+  input_list <- list(...)
+  # --------------------------------------------------------
+  # check if fitted anova
+  # --------------------------------------------------------
+  if (length(input_list) == 1 && any(class(input_list[[1]]) == "aov")) {
+    # retrieve model
+    fit <- input_list[[1]]
+  }
+  else if (length(input_list) == 2) {
+    # retrieve variables
+    depVar <- input_list[[1]]
+    grpVar <- input_list[[2]]
+    # convert to factor
+    if (!is.factor(grpVar)) {
+      grpVar <- as.factor(grpVar)
+    }
+    # fit anova
+    fit  <- aov(depVar ~ grpVar)
+  }
+  # return eta squared
+  return (summary.lm(fit)$r.squared)
+  # return (1 - var(fit$residuals, na.rm = T) / var(fit$model[,1], na.rm = T))
+}
+
+
 #' @title Retrieve std. beta coefficients of lm
 #' @name sjs.betaCoef
 #' @description Returns the standardized beta coefficients of a fitted linear model.
 #' 
-#' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjt.lm}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjp.lm}}
+#'            \item \code{\link{sjt.lm}}
+#'            }
 #'         
 #' @param fit A fitted linear model.
 #' @return The standardiized beta coefficients of the fitted linear model.
@@ -15,7 +83,7 @@
 #'         in different units of measurement (for example, income measured in dollars and family size 
 #'         measured in number of individuals)." (Source: Wikipedia)
 #' 
-#' @references \url{http://en.wikipedia.org/wiki/Standardized_coefficient}
+#' @references \href{http://en.wikipedia.org/wiki/Standardized_coefficient}{Wikipedia: Standardized coefficient}
 #' 
 #' @examples
 #' # fit linear model
@@ -36,17 +104,18 @@ sjs.betaCoef <- function(fit) {
 #' @title Performs a Mann-Whitney-U-Test
 #' @name sjs.mwu
 #' @description This function performs a Mann-Whitney-U-Test (or \code{Wilcoxon rank sum test},
-#'                see \code{\link{wilcox.test}} and \code{wilcox_test}) for the variable \code{var}, which is
+#'                see \code{\link{wilcox.test}} and \code{wilcox_test} (\code{coin}-package)) for the variable \code{var}, which is
 #'                divided into groups indicated by \code{grp} (so the formula \code{var ~ grp}
 #'                is used). If \code{grp} has more than two categories, a comparison between each 
 #'                two groups is performed. \cr \cr 
-#'                The function reports U, p and Z-values as well as effect size r and group-rank-means.
+#'                The function reports U, p and Z-values as well as effect size r 
+#'                and group-rank-means.
 #' 
 #' @param var A numeric vector / variable, where the Mann-Whitney-U-Test should be applied to.
 #' @param grp The grouping variable indicating the groups that should be used for comparison.
 #' @param distribution indicates how the null distribution of the test statistic should be computed. Mey be one of
 #'          \code{exact}, \code{approximate} or \code{asymptotic} (default).
-#'          See \code{wilcox_test} for details.
+#'          See \code{wilcox_test} (\code{coin}-package) for details.
 #' @param weights defining integer valued weights for the observations. By default,
 #'          this is \code{NULL}.
 #' @return (Invisibly) returns a data frame with U, p and Z-values for each group-comparison
@@ -62,8 +131,10 @@ sjs.betaCoef <- function(fit) {
 #'          \item large effect >= 0.5
 #'        }
 #' 
-#' @seealso \code{\link{sjs.chi2.gof}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
-#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}
+#' @seealso \code{\link{sjs.chi2.gof}}, \code{\link{sjs.aov1.levene}}, 
+#'          \code{\link{wilcox.test}}, \code{\link{ks.test}}, 
+#'          \code{\link{kruskal.test}}, \code{\link{t.test}}, 
+#'          \code{\link{chisq.test}} and \code{\link{fisher.test}}
 #' 
 #' @examples
 #' \dontrun{
@@ -152,8 +223,9 @@ sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
 #' 
 #' @note This function is a convenient function for \code{\link{chisq.test}}, performing goodness-of-fit test.
 #' 
-#' @seealso \code{\link{sjs.mwu}}, \code{\link{sju.aov1.levene}} and \code{\link{wilcox.test}}, \code{\link{ks.test}}, \code{\link{kruskal.test}}, 
-#'          \code{\link{t.test}}, \code{\link{chisq.test}}, \code{\link{fisher.test}}, \code{\link{ks.test}}
+#' @seealso \code{\link{sjs.mwu}}, \code{\link{sjs.aov1.levene}}, \code{\link{wilcox.test}}, 
+#'          \code{\link{ks.test}}, \code{\link{kruskal.test}}, \code{\link{t.test}}, 
+#'          \code{\link{chisq.test}}, \code{\link{fisher.test}}, \code{\link{ks.test}}
 #' 
 #' @examples
 #' data(efc)
@@ -178,15 +250,17 @@ sjs.chi2.gof <- function(var, prob, weights=NULL) {
 #' @description This function calculates the Cronbach's alpha value for each column
 #'                of a data frame or matrix.
 #'
-#' @seealso \code{\link{sjs.reliability}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{sjt.itemanalysis}}
+#'            \item \code{\link{sjp.pca}}
+#'            \item \code{\link{sjt.pca}}
+#'            }
 #'
 #' @param df A data frame or matrix with more than 2 columns.
 #' @return The Cronbach's alpha value for \code{df}.
 #' 
-#' @note For use case, see \code{\link{sjp.pca}} and \code{\link{sjt.pca}}.
+#' @note See examples from \code{\link{sjp.pca}} and \code{\link{sjt.pca}}.
 #' 
 #' @export
 sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 2 columns
@@ -206,12 +280,14 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #'                the Cronbach's alpha for each item, if it was deleted from the 
 #'                scale.
 #'
-#' @seealso \code{\link{sjs.cronbach}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjs.mic}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}} \cr
-#'          \code{\link{sjt.df}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjs.cronbach}}
+#'            \item \code{\link{sjt.itemanalysis}}
+#'            \item \code{\link{sjs.mic}}
+#'            \item \code{\link{sjp.pca}}
+#'            \item \code{\link{sjt.pca}}
+#'            \item \code{\link{sjt.df}}
+#'            }
 #'          
 #' @param df A data frame with items (from a scale)
 #' @param scaleItems If \code{TRUE}, the data frame's vectors will be scaled. Recommended,
@@ -236,19 +312,20 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' varlabs <- sji.getVariableLabels(efc)
 #' 
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
+#' start <- which(colnames(efc) == "c82cop1")
 #' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
+#' end <- which(colnames(efc) == "c90cop9")
 #'  
 #' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[,c(start:end)])
+#' df <- as.data.frame(efc[, c(start:end)])
 #' colnames(df) <- varlabs[c(start:end)]
 #' 
 #' \dontrun{
 #' sjt.df(sjs.reliability(df), 
-#'        describe=FALSE,
-#'        showCommentRow=TRUE, 
-#'        commentString=sprintf("Cronbach's &alpha;=%.2f", sjs.cronbach(df)))}
+#'        describe = FALSE,
+#'        showCommentRow = TRUE, 
+#'        commentString = sprintf("Cronbach's &alpha;=%.2f", 
+#'                                sjs.cronbach(df)))}
 #' 
 #' # ---------------------------------------
 #' # Compute PCA on Cope-Index, and perform a
@@ -258,15 +335,15 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' factors <- sjt.pca(df)$factor.index
 #' findex <- sort(unique(factors))
 #' for (i in 1:length(findex)) {
-#'  rel.df <- subset(df, select=which(factors==findex[i]))
-#'  if (ncol(rel.df)>=3) {
+#'  rel.df <- subset(df, select = which(factors == findex[i]))
+#'  if (ncol(rel.df) >= 3) {
 #'    sjt.df(sjs.reliability(rel.df),
-#'           describe=FALSE,
-#'           showCommentRow=TRUE,
-#'           useViewer=FALSE,
-#'           title="Item-Total-Statistic",
-#'           commentString=sprintf("Scale's overall Cronbach's &alpha;=%.2f", 
-#'                                 sjs.cronbach(rel.df)))
+#'           describe = FALSE,
+#'           showCommentRow = TRUE,
+#'           useViewer = FALSE,
+#'           title = "Item-Total-Statistic",
+#'           commentString = sprintf("Scale's overall Cronbach's &alpha;=%.2f", 
+#'                                   sjs.cronbach(rel.df)))
 #'    }
 #'  }}
 #'  
@@ -346,11 +423,13 @@ sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
 #'                of all added item's correlation values is returned.
 #'                Requires either a data frame or a computed \code{\link{cor}}-object.
 #'
-#' @seealso \code{\link{sjs.cronbach}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjs.reliability}} \cr
-#'          \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjt.pca}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjs.cronbach}}
+#'            \item \code{\link{sjt.itemanalysis}}
+#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{sjp.pca}}
+#'            \item \code{\link{sjt.pca}}
+#'            }
 #'          
 #' @param data A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
 #'          which correlations should be calculated.
@@ -496,3 +575,17 @@ sjs.cramer <- function(tab) {
   cramer <- sqrt(phi^2/min(dim(tab)-1))
   return (cramer)
 }
+
+
+#' @title Compute standard error for variables
+#' @name sjs.se
+#' @description Compute standard error for variables
+#'
+#' @param x a (numeric) vector / variable.
+#' @return The standard error of variable \code{x}.
+#' 
+#' @examples
+#' sjs.se(rnorm(n = 100, mean = 3))
+#' 
+#' @export
+sjs.se <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))

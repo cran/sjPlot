@@ -1,18 +1,17 @@
 #' @title Plot stacked proportional bars
 #' @name sjp.stackfrq
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjpstackfrq}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#' 
+#' @seealso \itemize{
+#'              \item \code{\link{sjp.likert}}
+#'              \item \code{\link{sjt.stackfrq}}
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.stackfrq/}{sjPlot manual: sjp.stackfrq}
 #'              }
-#'             
-#' @seealso \code{\link{sjp.likert}} \cr
-#'          \code{\link{sjt.stackfrq}}
 #' 
 #' @description Plot items (variables) of a scale as stacked proportional bars. This
 #'                function is useful when several items with identical scale/categoroies
 #'                should be plotted to compare the distribution of answers.
 #' 
-#' @note Thanks to Forrest Stevens (\url{http://www.clas.ufl.edu/users/forrest/}) for bug fixes
+#' @note Thanks to \href{http://www.clas.ufl.edu/users/forrest/}{Forrest Stevens} for bug fixes.
 #' 
 #' @param items A data frame with each column representing one likert-item.
 #' @param legendLabels A list or vector of strings that indicate the likert-scale-categories and which
@@ -30,22 +29,21 @@
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
 #' @param reverseOrder If \code{TRUE}, the item order on the x-axis is reversed.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
 #' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
+#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code (see below).
+#'          \itemize{
+#'            \item If not specified, the sequential \code{"Blues"} color brewer palette will be used.
+#'            \item If \code{"gs"}, a greyscale will be used.
+#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'          }
+#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).
+#' @param geom.size size resp. width of the geoms (bar width)
 #' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
 #'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
 #'          Axis labels will automatically be detected, when they have
 #'          a \code{"variable.lable"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
-#' @param axisLabelSize The size of category labels at the axes. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0
-#' @param axisLabelAngle.x Angle for axis-labels.
-#' @param axisLabelColor User defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels.
-#' @param valueLabelSize The size of value labels in the diagram. Default is 4, recommended values range
-#'          between 2 and 8
-#' @param valueLabelColor The color of value labels in the diagram. Default is black.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -58,60 +56,20 @@
 #'          grid is being printed. Valid values range from 0 to 1.
 #' @param expand.grid If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
 #'          to the diagram's boundaries.
-#' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
-#' @param barColor User defined color for bars.
-#'          If not specified (\code{NULL}), a default blue color palette will be used 
-#'          for the bar charts. You can use pre-defined color-sets that are independent from the amount of categories:
-#'          If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the color brewer
-#'          Else specify your own color values as vector (e.g. \code{barColor=c("darkred", "red", "green", "darkgreen")})
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the color brewer here. All color brewer 
-#'          palettes supported by ggplot are accepted here.
-#' @param barAlpha Specify the transparancy (alpha value) of bars.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
-#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
-#'          Default is 0.2
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
 #' @param axisTitle.x A label for the x axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
 #' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
-#' @param axisTitleColor The color of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
-#' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
 #' @param showPercentageAxis If \code{TRUE} (default), the percentage values at the x-axis are shown.
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
 #' @param showItemLabels Whether x axis text (category names) should be shown or not.
-#' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showSeparatorLine If \code{TRUE}, a line is drawn to visually "separate" each bar in the diagram.
 #' @param separatorLineColor The color of the separator line. only applies, if \code{showSeparatorLine} is \code{TRUE}.
 #' @param separatorLineSize The size of the separator line. only applies, if \code{showSeparatorLine} is \code{TRUE}.
-#' @param legendPos The position of the legend. Default is \code{"right"}. Use one of the following values:
-#'          \code{"right"}, \code{"left"}, \code{"bottom"}, \code{"top"}.
-#' @param legendSize The size of the legend.
-#' @param legendBorderColor The border color of the legend.
-#' @param legendBackColor The background color of the legend.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
@@ -182,41 +140,19 @@ sjp.stackfrq <- function(items,
                         hideLegend=FALSE,
                         reverseOrder=TRUE,
                         title=NULL,
-                        titleSize=1.3,
-                        titleColor="black",
                         legendTitle=NULL,
                         includeN=TRUE,
                         axisLabels.y=NULL,
-                        axisLabelSize=1.1,
-                        axisLabelAngle.x=0, 
-                        axisLabelColor="gray30", 
-                        valueLabelSize=4,
-                        valueLabelColor="black",
                         breakTitleAt=50, 
                         breakLabelsAt=30, 
                         breakLegendTitleAt=30, 
                         breakLegendLabelsAt=28,
                         gridBreaksAt=0.2,
                         expand.grid=FALSE,
-                        barWidth=0.5, 
-                        barColor=NULL,
-                        colorPalette="GnBu",
-                        barAlpha=1,
-                        borderColor=NULL, 
-                        axisColor=NULL, 
-                        barOutline=FALSE, 
-                        barOutlineSize=0.2,
-                        barOutlineColor="black", 
-                        majorGridColor=NULL,
-                        minorGridColor=NULL,
-                        hideGrid.x=FALSE,
-                        hideGrid.y=FALSE,
+                        geom.size=0.5, 
+                        geom.colors="Blues",
                         axisTitle.x=NULL,
                         axisTitle.y=NULL,
-                        axisTitleColor="black",
-                        axisTitleSize=1.3,
-                        theme=NULL,
-                        showTickMarks=FALSE,
                         showValueLabels=TRUE,
                         showPercentageAxis=TRUE,
                         jitterValueLabels=FALSE,
@@ -224,11 +160,7 @@ sjp.stackfrq <- function(items,
                         showSeparatorLine=FALSE,
                         separatorLineColor="grey80",
                         separatorLineSize=0.3,
-                        legendPos="right",
-                        legendSize=1,
-                        legendBorderColor="white",
-                        legendBackColor="white",
-                        flipCoordinates=TRUE,
+                        coord.flip=TRUE,
                         printPlot=TRUE) {
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
@@ -422,46 +354,13 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
-  if (flipCoordinates) {
+  if (coord.flip) {
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- 0.35
   }
   else {
     vert <- waiver()
-  }
-  # --------------------------------------------------------
-  # check whether bars should have an outline
-  # --------------------------------------------------------
-  if (!barOutline) {
-    barOutlineColor <- waiver()
-  }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
   }
   # --------------------------------------------------------
   # set diagram margins
@@ -473,51 +372,16 @@ sjp.stackfrq <- function(items,
     expgrid <- c(0,0)
   }
   # --------------------------------------------------------
-  # Hide or show Tick Marks and Category Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
-  if (!showItemLabels) {
-    axisLabels.y <- c("")
-  }
-  # --------------------------------------------------------
-  # Prepare fill colors
-  # --------------------------------------------------------
-  if (is.null(barColor)) {
-    scalecolors <- scale_fill_brewer(labels=legendLabels, palette="PuBu")
-  }
-  else if (barColor=="gs") {
-    scalecolors <- scale_fill_grey(labels=legendLabels)
-  }
-  else if (barColor=="brewer") {
-    # remember to specify the "colorPalette" if you use "brewer" as "barColor"
-    scalecolors <- scale_fill_brewer(palette=colorPalette, labels=legendLabels)
-  }
-  else if (barColor=="bw") {
-    barColor <- rep("white", length(legendLabels))
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-  }
-  else {
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-  }
-  # --------------------------------------------------------
   # Set value labels
   # --------------------------------------------------------
   if (showValueLabels) {
     if (jitterValueLabels) {
       ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
-                                  size=valueLabelSize,
-                                  vjust=jvert,
-                                  # hjust=hort,
-                                  colour=valueLabelColor)
+                                  vjust=jvert)
     }
     else {
       ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
-                                  size=valueLabelSize,
-                                  vjust=vert,
-                                  # hjust=hort,
-                                  colour=valueLabelColor)
+                                  vjust=vert)
     }
   }
   else {
@@ -533,18 +397,6 @@ sjp.stackfrq <- function(items,
     gridbreaks <- c(seq(0, 1, by=gridBreaksAt))
   }
   # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  # --------------------------------------------------------
   # check if category-oder on x-axis should be reversed
   # change x axis order then
   # --------------------------------------------------------
@@ -556,7 +408,7 @@ sjp.stackfrq <- function(items,
   }  
   baseplot <- baseplot +
     # plot bar chart
-    geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
+    geom_bar(stat="identity", position="stack", width=geom.size)
   # --------------------------------------------------------
   # check whether bars should be visually separated by an 
   # additional separator line
@@ -564,13 +416,6 @@ sjp.stackfrq <- function(items,
   if (showSeparatorLine) {
     baseplot <- baseplot +
       geom_vline(x=c(seq(1.5, length(items), by=1)), size=separatorLineSize, colour=separatorLineColor)
-  }
-  # --------------------------------------------------------
-  # Hide or show Legend
-  # --------------------------------------------------------
-  if (hideLegend) {
-    # remove guide / legend
-    baseplot <- baseplot + guides(fill=FALSE)
   }
   # -----------------
   # show/hide percentage values on x axis
@@ -588,66 +433,16 @@ sjp.stackfrq <- function(items,
     # set Y-axis, depending on the calculated upper y-range.
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
-    scale_y_continuous(breaks=gridbreaks, limits=c(0, 1), expand=expgrid, labels=percent) +
-    scalecolors
+    scale_y_continuous(breaks=gridbreaks, limits=c(0, 1), expand=expgrid, labels=percent)
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
-  if (flipCoordinates) {
+  if (coord.flip) {
     baseplot <- baseplot + coord_flip()
   }
-  # --------------------------------------------------------
-  # apply theme
-  # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
-    baseplot <- baseplot + 
-      ggtheme +
-      # set font size for axes.
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # --------------------------------------
-  # set position and size of legend
-  # --------------------------------------
-  if (!hideLegend) {
-    baseplot <- baseplot + 
-      theme(legend.position = legendPos,
-            legend.text = element_text(size=rel(legendSize)),
-            legend.background = element_rect(colour=legendBorderColor, fill=legendBackColor))
-  }
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      baseplot <- baseplot + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    baseplot <- baseplot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  baseplot <- sj.setGeomColors(baseplot, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------

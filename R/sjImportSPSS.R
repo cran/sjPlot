@@ -1,15 +1,17 @@
 #' @title Import SPSS dataset as data frame into R
 #' @name sji.SPSS
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr \cr
-#'             \url{http://strengejacke.wordpress.com/2013/02/24/simplify-your-r-workflow-with-functions-rstats/}
 #' 
 #' @description Import data from SPSS, including NA's, value and variable labels.
 #' 
-#' @seealso \code{\link{sji.getValueLabels}} \cr
-#'          \code{\link{sji.getVariableLabels}} \cr
-#'          \code{\link{sji.convertToLabel}} \cr
-#'          \code{\link{sji.convertToValue}} \cr
-#'          \code{\link{sji.viewSPSS}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.viewSPSS}}
+#'            }
 #'          
 #' @param path The file path to the SPSS dataset.
 #' @param enc The file encoding of the SPSS dataset.
@@ -48,21 +50,27 @@ sji.SPSS <- function(path, enc=NA, autoAttachVarLabels=FALSE) {
 }
 
 
-#' @title Retrieve value labels of an SPSS-imported data frame
+#' @title Retrieve value labels of a variable or an SPSS-imported data frame
 #' @name sji.getValueLabels
 #' @description This function retrieves the value labels of an imported
-#' SPSS data set and returns the result as list.
+#'                SPSS data set and returns the result as list or of a variable and returns
+#'                the label as string.
 #' 
-#' @references \url{http://rpubs.com/sjPlot/datainit}
-#' 
-#' @seealso \link{sji.SPSS} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.convertToLabel} \cr
-#'          \link{sji.convertToValue} \cr
-#'          \link{sji.setValueLabels}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.SPSS}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.setValueLabels}}
+#'            }
 #'
-#' @param dat a data frame containing imported SPSS data
-#' @return a list with all value labels from the SPSS dataset
+#' @param x a data frame with variables that have attached value labels (e.g.
+#'          from an imported SPSS data (see \code{\link{sji.SPSS}})) or a variable
+#'          with attached value labels.
+#' @return Either a list with all value labels from the data frame's variables,
+#'           or a string with the value labels, if \code{x} is a variable.
 #' 
 #' @examples
 #' # import SPSS data set
@@ -74,13 +82,22 @@ sji.SPSS <- function(path, enc=NA, autoAttachVarLabels=FALSE) {
 #' # retrieve value labels
 #' # mydat.val <- sji.getValueLabels(mydat)
 #' 
+#' data(efc)
+#' sji.getValueLabels(efc$e42dep)
+#' 
 #' @export
-sji.getValueLabels <- function(dat) {
-  a <- lapply(dat, FUN = getValLabels)
+sji.getValueLabels <- function(x) {
+  if (is.data.frame(x) || is.matrix(x)) {
+    a <- lapply(x, FUN = sji.getValueLabel)
+  }
+  else {
+    a <- sji.getValueLabel(x)
+  }
+  
   return (a)
 }
-getValLabels <- function(x){
-  rev(names(attr(x, "value.labels")))
+sji.getValueLabel <- function(x) {
+  return (rev(names(attr(x, "value.labels"))))
 }
 
 
@@ -92,14 +109,16 @@ getValLabels <- function(x){
 #'                by most of this package's functions, in order to automatically set values
 #'                or legend labels.
 #'                
-#' @references \url{http://rpubs.com/sjPlot/datainit}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.SPSS}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            }
 #' 
-#' @seealso \link{sji.SPSS} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.convertToLabel} \cr
-#'          \link{sji.convertToValue} \cr
-#'          \link{sji.getValueLabels}
-#'
 #' @param x a variable (vector) or a data frame where labels should be attached. Replaces former value labels.
 #' @param labels a character vector of labels that will be attached to \code{"x"} by setting
 #'          the \code{"value.labels"} attribute. The length of this character vector must equal
@@ -174,22 +193,28 @@ sji.setValueLabels.vector <- function(var, labels) {
 }
 
 
-#' @title Retrieve variable labels of an SPSS-imported data frame
+#' @title Retrieve variable labels of (an SPSS-imported) data frame or of a specific variable
 #' @name sji.getVariableLabels
+#' 
 #' @description This function retrieves the variable labels of an imported
-#' SPSS data set and returns the result as list.
+#'                SPSS data set and returns the result as list or the variable 
+#'                label of a specific vector / variable and returns it as string.
 #' 
-#' @references \url{http://rpubs.com/sjPlot/datainit}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.SPSS}}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.setValueLabels}}
+#'            }
 #' 
-#' @seealso \link{sji.getValueLabels} \cr
-#'          \link{sji.setValueLabels} \cr
-#'          \link{sji.setVariableLabels} \cr
-#'          \link{sji.SPSS} \cr
-#'          \link{sji.convertToLabel} \cr
-#'          \link{sji.convertToValue}
+#' @param x A data frame (containing imported SPSS data or with attached variable labels) or
+#'          a vector with \code{"variable.label"} attribute.
 #' 
-#' @param dat A data frame containing imported SPSS data.
-#' @return A list with all variable labels from the SPSS dataset.
+#' @return A list with all variable labels from the SPSS dataset,
+#'           or a string with the variable label, if \code{x} is a variable.
 #' 
 #' @examples
 #' # import SPSS data set
@@ -201,9 +226,17 @@ sji.setValueLabels.vector <- function(var, labels) {
 #' # retrieve value labels
 #' # mydat.val <- sji.getValueLabels(mydat)
 #' 
+#' data(efc)
+#' sji.getVariableLabels(efc$e42dep)
+#' 
 #' @export
-sji.getVariableLabels <- function(dat) {
-  return(attr(dat, "variable.labels"))
+sji.getVariableLabels <- function(x) {
+  if (is.data.frame(x) || is.matrix(x)) {
+    return(attr(x, "variable.labels"))
+  }
+  else {
+    return(attr(x, "variable.label"))
+  }
 }
 
 
@@ -215,14 +248,16 @@ sji.getVariableLabels <- function(dat) {
 #'                name is attached. Most of this package's functions can automatically
 #'                retrieve the variable name to use it as axis labels or plot title.
 #' 
-#' @references \url{http://rpubs.com/sjPlot/datainit}
-#' 
-#' @seealso \link{sji.getValueLabels} \cr
-#'          \link{sji.setValueLabels} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.SPSS} \cr
-#'          \link{sji.convertToLabel} \cr
-#'          \link{sji.convertToValue}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{sji.SPSS}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            \item \code{\link{sji.setValueLabels}}
+#'            }
 #' 
 #' @param x A single variable (vector) or data frame with variables.
 #' @param lab If \code{x} is a vector (single variable), use a single character string with 
@@ -273,6 +308,10 @@ sji.setVariableLabels <- function(x, lab) {
         }
         close(pb)
       }
+      # attach also all labels to df
+      attr(x, "variable.labels") <- lab
+      # and name attribute
+      attr(attr(x, "variable.labels"), "names") <- colnames(x)
     }
     else {
       attr(x, "variable.label") <- lab
@@ -283,16 +322,19 @@ sji.setVariableLabels <- function(x, lab) {
 
 #' @title Replaces variable values with their associated value labels
 #' @name sji.convertToLabel
+#' 
 #' @description This function converts (replaces) variable values (of factors) with their
 #' associated value labels. Might be helpful for factor variables.
 #' For instance, if you have a Gender variable with 0/1, and associated
 #' labels are male/female, this function would convert all 0 to male and
 #' all 1 to female in the data frame.
 #' 
-#' @seealso \link{sji.convertToValue} \cr
-#'          \link{sji.getValueLabels} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.SPSS}
+#' @seealso \itemize{
+#'            \item \code{\link{sji.convertToValue}}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.SPSS}}
+#'            }
 #' 
 #' @param variable A (factor) variable.
 #' @return A factor variable containing with the replaced value labels.
@@ -321,15 +363,18 @@ sji.convertToLabel <- function(variable) {
 
 #' @title Converts factors to numeric variables
 #' @name sji.convertToValue
+#' 
 #' @description This function converts (replaces) factor values with the
 #' related factor level index number, thus the factor is converted to 
 #' a numeric variable.
 #' 
-#' @seealso \link{sji.convertToLabel} \cr
-#'          \link{sji.getValueLabels} \cr
-#'          \link{sji.getVariableLabels} \cr
-#'          \link{sji.SPSS}
-#' 
+#' @seealso \itemize{
+#'            \item \code{\link{sji.convertToLabel}}
+#'            \item \code{\link{sji.getValueLabels}}
+#'            \item \code{\link{sji.getVariableLabels}}
+#'            \item \code{\link{sji.SPSS}}
+#'            }
+#'            
 #' @param fac A (factor) variable.
 #' @param startAt the starting index, i.e. numeric value of the variable.
 #' @return A numeric variable with values ranging from \code{startAt} to

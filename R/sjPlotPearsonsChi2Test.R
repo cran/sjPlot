@@ -4,35 +4,19 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Row", "Column", "p.value
 
 #' @title Plot Pearson's Chi2-Test of multiple contingency tables
 #' @name sjp.chi2
-#' @references \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr
-#'             \url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
+#' 
+#' @seealso \href{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}{Tales of R}.
 #' 
 #' @description Plot Pearson's Chi2-Test of multiple contingency tables as ellipses or tiles. 
 #'                Requires a data frame with dichotomous (dummy) variables.
-#'                Calculation of Chi2-matrix taken from following blog-posting:
-#'                \url{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}
+#'                Calculation of Chi2-matrix taken from 
+#'                \href{http://talesofr.wordpress.com/2013/05/05/ridiculously-photogenic-factors-heatmap-with-p-values/}{Tales of R}.
 #' 
 #' @param df a data frame of (dichotomous) factor variables.
 #' @param title Title of the diagram, plotted above the whole diagram panel
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels Labels for the x- andy y-axis
 #'          axisLabels are detected automatically if each variable has
 #'          a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
-#' @param valueLabelColor the color of the value labels (numbers) inside the diagram
-#' @param valueLabelSize The size of value labels in the diagram. Default is 4.5, recommended values range
-#'          between 2 and 8
-#' @param valueLabelAlpha specify the transparancy (alpha value) of value labels
-#' @param outlineColor defines the outline color of geoms (circles or tiles). Default is black.
-#' @param outlineSize defines the outline size of geoms (circles or tiles). Default is 1.
-#' @param axisColor user defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border)
-#' @param axisLabelSize The size of variable labels at the axes. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0
-#' @param axisLabelColor user defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels
-#' @param axisLabelAngle.x angle for x-axis-labels
-#' @param axisLabelAngle.y angle for y-axis-labels
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -64,21 +48,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Row", "Column", "p.value
 #' @export
 sjp.chi2 <- function(df,
                      title="Pearson's Chi2-Test of Independence",
-                     titleSize=1.3,
-                     titleColor="black",
                      axisLabels=NULL,
-                     valueLabelColor="black",
-                     valueLabelSize=4.5,
-                     valueLabelAlpha=1,
-                     outlineColor="black",
-                     outlineSize=0.5,
-                     axisColor=NULL, 
-                     axisLabelSize=1.1,
-                     axisLabelColor="gray30",
-                     axisLabelAngle.x=0, 
-                     axisLabelAngle.y=0, 
                      breakTitleAt=50, 
-                     breakLabelsAt=12, 
+                     breakLabelsAt=20, 
                      hideLegend=TRUE,
                      legendTitle=NULL,
                      printPlot=TRUE) {
@@ -146,37 +118,13 @@ sjp.chi2 <- function(df,
   # --------------------------------------------------------
   # start with base plot object here
   # --------------------------------------------------------
-  chiPlot <- ggplot(data=m, aes(x=Row, y=Column, fill=p.value, label=p.value))
-  # --------------------------------------------------------
-  # determine the geom type, either points when "type" is "circles"
-  # --------------------------------------------------------
-  # check whether we have an outline color
-  if (is.null(outlineColor)) {
-    geot <- geom_tile()
-  }
-  # ... and apply colour-attribute
-  else {
-    geot <- geom_tile(size=outlineSize, colour=outlineColor)
-  }
-  chiPlot <- chiPlot +
-    geot +
+  chiPlot <- ggplot(data=m, aes(x=Row, y=Column, fill=p.value, label=p.value)) +
+    geom_tile() +
     scale_x_discrete(labels=axisLabels) +
     scale_y_discrete(labels=axisLabels) +
     scale_fill_gradient2(low=rgb(128,205,193, maxColorValue=255), mid="white", high=rgb(5,113,176, maxColorValue=255), midpoint=0.05) +
-    geom_text(label=sprintf("%.3f", m$p.value), colour=valueLabelColor, alpha=valueLabelAlpha, size=valueLabelSize) +
-    labs(title=title, x=NULL, y=NULL, fill=legendTitle) +
-    theme_minimal() +
-    theme(axis.ticks = element_blank(),
-          axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-          axis.text.x = element_text(angle=axisLabelAngle.x),
-          axis.text.y = element_text(angle=axisLabelAngle.y),
-          panel.grid.minor = element_line(colour="white"),
-          panel.grid.minor = element_line(colour="white"),
-          plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  if (!is.null(axisColor)) {
-    chiPlot <- chiPlot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
+    geom_text(label=sprintf("%.3f", m$p.value)) +
+    labs(title=title, x=NULL, y=NULL, fill=legendTitle)
   if (hideLegend) {
     chiPlot <- chiPlot + 
       guides(fill=FALSE)

@@ -4,29 +4,23 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 
 #' @title Plot beta coefficients of lm
 #' @name sjp.lm
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjplm}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#' 
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+#'              \item \code{\link{sjp.lm.ma}}
+#'              \item \code{\link{sjp.reglin}}
+#'              \item \code{\link{sjp.lm.int}}
+#'              \item \code{\link{sjp.scatter}}
+#'              \item  \code{\link{sjs.betaCoef}}
 #'             }
 #' 
-#' @description Plot beta coefficients of linear regressions with confidence intervalls as dot plot
+#' @description Plot beta coefficients (estimates) of linear regressions with confidence intervalls as dot plot
 #'                (forest plot). Additionally, the standardized beta values are plotted
 #'                as red dots.
 #'                
-#' @seealso \code{\link{sjp.lm.ma}} \cr
-#'          \code{\link{sjp.reglin}} \cr
-#'          \code{\link{sjp.lm.int}} \cr
-#'          \code{\link{sjp.scatter}} \cr
-#'          \code{\link{sjs.betaCoef}}
-#' 
-#' @note Based on an an idea from surefoss:
-#' \url{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}
-#'
 #' @param fit The model of the linear regression (lm-Object).
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param sort Determines whether the predictors are sorted by beta-values (default, or use \code{"beta"} as
 #'          parameter) or by standardized beta values (use \code{"std"}).
 #' @param axisLabels.y Labels of the predictor variables (independent vars) that are used for labelling the
@@ -37,38 +31,19 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #'          converted to character vector automatically.
 #' @param showAxisLabels.y Whether x axis text (category names, predictor labels) should be shown (use \code{TRUE})
 #'          or not. Default is \code{TRUE}
-#' @param axisLabelSize The size of value labels in the diagram. Default is 4, recommended values range
-#'          between 2 and 8.
-#' @param axisLabelColor The color of the category labels (predictor labels). Default is a dark grey (grey30).
 #' @param axisTitle.x A label for the x axis. Default is \code{"Estimates"}.
-#' @param axisTitleColor The color of the x axis label. Default is a dark grey.
-#' @param axisTitleSize The size of the x axis label. Default is 1.4.
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
 #'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
-#' @param valueLabelColor Colour of the values (significant beta coefficients) inside the diagrams. Only applies, when parameter
-#'          \code{showValueLabels} is set to \code{TRUE}. Use any valid colour value, e.g. \code{valueLabelColor="grey50"} or
-#'          \code{valueLabelColor=c("#cc3366")}.
-#' @param valueLabelColorNS Colour of the non significant values (non significant beta coefficients) inside the diagrams.
-#'          Only applies, when parameter \code{showValueLabels} is set to \code{TRUE}. Use any valid colour value, e.g. 
-#'          \code{valueLabelColor="grey50"} or \code{valueLabelColor=c("#cc3366")}.
-#' @param valueLabelSize Size of the value labels. Default is 4.5. Recommended Values range from
-#'          2 to 8
-#' @param valueLabelAlpha The alpha level (transparancy) of the value labels. Default is 0.8, use
-#'          any value from 0 to 1.
-#' @param axisLabelAngle.x Angle for axis-labels where the estimates are printed. Note
-#'          that due to the coordinate flip, the acutal y-axis with estimates labels are appearing on the x-axis.
-#' @param axisLabelAngle.y Angle for axis-labels, passed as numeric value.
-#' @param errorBarColor The color of the error bars that indicate the confidence intervalls
-#'          of the beta-coefficients
-#' @param errorBarWidth The width of the error bar ends. Default is 0
-#' @param errorBarSize The size of the error bar. Default is 0.8
-#' @param pointColor The colour of the points that indicate the beta-value.
-#' @param pointSize The size of the points that indicate the beta-value. Default is 3.
-#' @param pointColorStdBeta The colour of the points that indicate the standardized 
-#'          beta-value.
-#' @param pointSizeStdBeta The size of the points that indicate the 
-#'          standardized beta-value. Default is 3.
+#' @param geom.colors User defined color palette for geoms. Must either be vector with two color values 
+#'          or a specific color palette code (see below).
+#'          \itemize{
+#'            \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+#'            \item If \code{"gs"}, a greyscale will be used.
+#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'          }
+#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).
+#' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
 #' @param stdBetaLineType The standardized beta-value dots are connected by a thin line
 #'          for a better overview. With this parameter you can specify the line type.
 #' @param stdBetaLineAlpha The alpha-value for the line that connects the
@@ -81,26 +56,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #'          one line and when a line break is inserted
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{pointColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param flipCoordinates If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
+#' @param coord.flip If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param showValueLabels Whether the beta and standardized beta values should be plotted 
 #'          to each dot or not.
 #' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
@@ -135,45 +92,20 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 sjp.lm <- function(fit,
                     sort="beta",
                     title=NULL,
-                    titleSize=1.3,
-                    titleColor="black",
                     axisLabels.y=NULL, 
                     showAxisLabels.y=TRUE,
-                    axisLabelSize=1.1,
-                    axisLabelColor="gray30",
                     axisTitle.x="Estimates",
-                    axisTitleSize=1.4,
-                    axisTitleColor=c("#444444"),
                     axisLimits=NULL,
-                    valueLabelColor="grey20",
-                    valueLabelColorNS="grey50",
-                    valueLabelSize=4.5,
-                    valueLabelAlpha=0.8,
-                    axisLabelAngle.x=0,
-                    axisLabelAngle.y=0, 
-                    errorBarColor="#3366a0",
-                    errorBarWidth=0,
-                    errorBarSize=0.8,
-                    pointColor="#3366a0",
-                    pointSize=3,
-                    pointColorStdBeta="#cc5533",
-                    pointSizeStdBeta=3,
+                    geom.colors="Set1",
+                    geom.size=3,
                     stdBetaLineType=2,
                     stdBetaLineAlpha=0.3,
                     interceptLineType=2,
                     interceptLineColor="grey70",
                     breakTitleAt=50, 
-                    breakLabelsAt=12, 
+                    breakLabelsAt=25, 
                     gridBreaksAt=NULL,
-                    borderColor=NULL, 
-                    axisColor=NULL, 
-                    theme=NULL,
-                    flipCoordinates=TRUE,
-                    majorGridColor=NULL,
-                    minorGridColor=NULL,
-                    hideGrid.x=FALSE,
-                    hideGrid.y=FALSE,
-                    showTickMarks=TRUE,
+                    coord.flip=TRUE,
                     showValueLabels=TRUE, 
                     labelDigits=2,
                     showPValueLabels=TRUE,
@@ -186,6 +118,22 @@ sjp.lm <- function(fit,
   # --------------------------------------------------------
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
     axisLabels.y <- unlistlabels(axisLabels.y)
+  }
+  # --------------------------------------------------------
+  # auto-retrieve value labels
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- c()
+    # iterate coefficients (1 is intercept or response)
+    for (i in 2 : ncol(fit$model)) {
+      # check if we hav label
+      lab <- autoSetVariableLabels(fit$model[, i])
+      # if not, use coefficient name
+      if (is.null(lab)) {
+        lab <- attr(fit$coefficients[i], "names")
+      }
+      axisLabels.y <- c(axisLabels.y, lab)
+    }
   }
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
@@ -208,6 +156,9 @@ sjp.lm <- function(fit,
   # ----------------------------
   if (showModelSummary) {
     modsum <- sju.modsum.lm(fit)
+  }
+  else {
+    modsum <- NULL
   }
   # ----------------------------
   # print beta- and p-values in bar charts
@@ -284,7 +235,11 @@ sjp.lm <- function(fit,
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
   # --------------------------------------------------------
-  if (is.null(axisLabels.y)) {
+  # auto-retrieving variable labels does not work when we
+  # have factors with different levels, which appear as 
+  # "multiple predictors", but are only one variable
+  # --------------------------------------------------------
+  if (is.null(axisLabels.y) || length(axisLabels.y) < length(row.names(betas))) {
     axisLabels.y <- row.names(betas)
   }
   # --------------------------------------------------------
@@ -333,147 +288,57 @@ sjp.lm <- function(fit,
   else {
     ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
   }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  # --------------------------------------------------------
-  # Set up visibility of tick marks
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
   if (!showAxisLabels.y) {
     axisLabels.y <- c("")
   }
   # --------------------------------------------------------
   # Start plot here!
   # --------------------------------------------------------
-  betaplot <- ggplot(betas, aes(y=Beta, x=xv)) +
-    # print point
-    geom_point(size=pointSize, colour=pointColor) +
-    # and error bar
-    geom_errorbar(aes(ymin=lower, ymax=upper), size=errorBarSize, width=errorBarWidth, colour=errorBarColor)
   # show points for standard beta values
   if (showStandardBeta) {
-    # first, add points that indicate standardized beta values to get an impression of
-    # the effect strength of predictors
-    betaplot <- betaplot +
-      geom_point(aes(y=stdbeta, x=xv), colour=pointColorStdBeta, size=pointSizeStdBeta) +
+    betaplot <- ggplot(betas, aes(y=stdbeta, x=xv, colour=Beta>=0)) +
       # Print std.beta-values. With vertical adjustment, so they don't overlap with the errorbars
-      geom_text(aes(label=pstdbv, y=stdbeta, colour=pv>0.05), vjust=1.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE)
+      geom_text(aes(label=pstdbv, y=stdbeta), vjust=1.8, show_guide=FALSE)
       # to better distinguish betas and stand. betas, the stand. beta points can be connected with a line
     if (showStandardBetaLine) {
       # print line for standardized beta values
       betaplot <- betaplot +
-        geom_line(aes(y=stdbeta, x=xv), colour=pointColorStdBeta, linetype=stdBetaLineType, alpha=stdBetaLineAlpha)
+        geom_line()
     }
   }
+  else {
+    betaplot <- ggplot(betas, aes(y=Beta, x=xv, colour=Beta>=0)) +
+      # and error bar
+      geom_errorbar(aes(ymin=lower, ymax=upper), width=0) +
+      # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
+      geom_text(aes(label=p, y=Beta), vjust=-0.8, show_guide=FALSE)
+  }
   betaplot <- betaplot +
+    # print point
+    geom_point(size=geom.size) +
     # Intercept-line
     geom_hline(yintercept=0, linetype=interceptLineType, color=interceptLineColor) +
-    # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
-    geom_text(aes(label=p, y=Beta, colour=pv>0.05), vjust=-0.8, size=valueLabelSize, alpha=valueLabelAlpha, show_guide=FALSE) +
-    # give value labels different colours depending on significance level
-    scale_colour_manual(values=c(valueLabelColor, valueLabelColorNS)) +
     # set y-scale-limits, breaks and tick labels
     scale_y_continuous(limits=c(lower_lim,upper_lim), breaks=ticks, labels=ticks) +
     # set value labels to x-axis
     scale_x_discrete(labels=axisLabels.y, limits=c(1:nrow(betas))) +
     labs(title=title, x=NULL, y=axisTitle.x)
   # --------------------------------------------------------
-  # apply theme
-  # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
-    betaplot <- betaplot +
-      ggtheme +
-      # set axes text and 
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            axis.text.y = element_text(angle=axisLabelAngle.y),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
-  if (flipCoordinates)  {
+  if (coord.flip)  {
     betaplot <- betaplot +
       coord_flip()
   }
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      betaplot <- betaplot + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    betaplot <- betaplot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    betaplot <- betaplot + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    betaplot <- betaplot + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    betaplot <- betaplot + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    betaplot <- betaplot + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
-  # check whether modelsummary should be printed
-  if (showModelSummary) {
-    # add annotations with model summary
-    # annotations include intercept-value and model's r-square
-    betaplot <- betaplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=valueLabelColor, size=valueLabelSize, alpha=valueLabelAlpha, vjust=-0.5, hjust=1.1)
-  }
+  # ------------------------------------------
+  # check whether table summary should be printed
+  # ------------------------------------------
+  betaplot <- print.table.summary(betaplot,
+                                  modsum)
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  betaplot <- sj.setGeomColors(betaplot, geom.colors, 2, FALSE)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
@@ -501,15 +366,19 @@ sjp.lm <- function(fit,
 #'                Furthermore, a scatter plot of response and predictor values
 #'                is plotted.
 #'                
-#' @references \url{http://rpubs.com/sjPlot/sjplm}
-#'                
-#' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjp.scatter}} \cr
-#'          \code{\link{sjp.lm.ma}} \cr
-#'          \code{\link{sjp.lm.int}}
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+#'              \item \code{\link{sjp.lm}}
+#'              \item \code{\link{sjp.lm.ma}}
+#'              \item \code{\link{sjp.lm.int}}
+#'              \item \code{\link{sjp.scatter}}
+#'             }
 #'          
 #' @param fit The model of the linear regression (lm-Object).
-#' @param data The data/dataset/dataframe used in the fitted model.
+#' @param title Diagram's title as string. By default \code{NULL}, i.e. no
+#'          title is shown. Example: \code{title=c("my title")}
+#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
+#'          one line and when a line break is inserted into the title
 #' @param lineColor The color of the regression line. Default is \code{"blue"}.
 #' @param showCI If \code{TRUE} (default), a confidence region for the regression line
 #'          will be plotted. Use \code{ciLevel} to specifiy the confidence level.
@@ -529,6 +398,9 @@ sjp.lm <- function(fit,
 #'          Only applies, if \code{showLoess} is \code{TRUE}.
 #' @param loessCiLevel The confidence level of the loess-line's confidence region.
 #'          Only applies, if \code{showLoessCI} is \code{TRUE}. Default is 0.95.
+#' @param useResiduals If \code{TRUE}, the residuals (instead of response) are plotted 
+#'          against each predictor. May be used for model diagnostics
+#'          (see \url{https://www.otexts.org/fpp/5/4}).
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list}) 
@@ -539,18 +411,19 @@ sjp.lm <- function(fit,
 #' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
 #' 
 #' # reression line and scatter plot
-#' sjp.reglin(fit, efc)
+#' sjp.reglin(fit)
 #'            
 #' # reression line w/o scatter plot
-#' sjp.reglin(fit, efc, showScatterPlot=FALSE)
+#' sjp.reglin(fit, showScatterPlot=FALSE)
 #' 
 #' # reression line w/o CI
-#' sjp.reglin(fit, efc, showCI=FALSE)
+#' sjp.reglin(fit, showCI=FALSE)
 #' 
 #' @import ggplot2
 #' @export
 sjp.reglin <- function(fit,
-                       data,
+                       title=NULL,
+                       breakTitleAt=50,
                        lineColor="blue",
                        showCI=TRUE,
                        ciLevel=0.95,
@@ -561,32 +434,35 @@ sjp.reglin <- function(fit,
                        loessLineColor="red",
                        showLoessCI=FALSE,
                        loessCiLevel=0.95,
+                       useResiduals=FALSE,
                        printPlot=TRUE) {
   # -----------------------------------------------------------
   # retrieve amount of predictor variables
   # -----------------------------------------------------------
   listpv <- attr(fit$terms,"predvars")
-  predvars <- c()
-  # -----------------------------------------------------------
-  # remove first two elements (including dependent variable)
-  # -----------------------------------------------------------
-  for (i in 3:length(listpv)) {
-    predvars <- c(predvars, listpv[[i]])
-  }
+  predvars <- attr(attr(fit$terms, "dataClasses"), "names")[-1]
+  depvar.label <- attr(attr(fit$terms, "dataClasses"), "names")[1]
   # remember length of predictor variables
   predvars.length <- length(predvars)
   # -----------------------------------------------------------
   # retrieve name of dependent variable
   # -----------------------------------------------------------
-  response <- as.character(attr(fit$terms, "predvars")[[2]])
+  response <- ifelse(useResiduals==TRUE, "residuals", depvar.label)
   # -----------------------------------------------------------
   # retrieve column names of dataset so we can identify in which
   # column the data for each predictor is.
   # -----------------------------------------------------------
-  cn <- colnames(data)
+  cn <- colnames(fit$model)
   # init return var
   plotlist <- list()
   dflist <- list()
+  # -----------------------------------------------------------
+  # check length of diagram title and split longer string at into new lines
+  # every 50 chars
+  # -----------------------------------------------------------
+  if (!is.null(title)) {
+    title <- sju.wordwrap(title, breakTitleAt)
+  }
   # -----------------------------------------------------------
   # iterate all predictors
   # -----------------------------------------------------------
@@ -599,12 +475,19 @@ sjp.reglin <- function(fit,
     # create dummy-data frame with response and predictor
     # as data columns, used for the ggplot
     # -----------------------------------------------------------
-    mydat <- as.data.frame(cbind(data[,which(cn==xval)],
-                                 data[,which(cn==response)]))
+    if (useResiduals) {
+      mydat <- as.data.frame(cbind(fit$model[,which(cn==xval)],
+                                   fit$residuals))
+    }
+    else {
+      mydat <- as.data.frame(cbind(fit$model[,which(cn==xval)],
+                                   fit$model[,which(cn==response)]))
+    }
     # -----------------------------------------------------------
     # plot regression line and confidence intervall
     # -----------------------------------------------------------
-    reglinplot <- ggplot(mydat, aes(x=V1, y=V2))
+    reglinplot <- ggplot(mydat, aes(x=V1, y=V2)) +
+      stat_smooth(method="lm", se=showCI, level=ciLevel, colour=lineColor)
     # -----------------------------------------------------------
     # plot jittered values if requested
     # -----------------------------------------------------------
@@ -612,37 +495,17 @@ sjp.reglin <- function(fit,
       reglinplot <- reglinplot + geom_jitter(alpha=pointAlpha, colour=pointColor)
     }
     # -----------------------------------------------------------
-    # check whether confidence region should be plotted
-    # -----------------------------------------------------------
-    if (showCI) {
-      reglinplot <- reglinplot + 
-        stat_smooth(method="lm", level=ciLevel, colour=lineColor)
-    }
-    else {
-      reglinplot <- reglinplot + 
-        stat_smooth(method="lm", se=FALSE, colour=lineColor)
-    }
-    # -----------------------------------------------------------
     # check whether additional loess-line should be plotted
     # -----------------------------------------------------------
     if (showLoess) {
-      # plot loess with CI
-      if (showLoessCI) {
-        reglinplot <- reglinplot + 
-          stat_smooth(method="loess", level=loessCiLevel, colour=loessLineColor)
-      }
-      # plot loess w/o CI
-      else {
-        reglinplot <- reglinplot + 
-          stat_smooth(method="loess", se=FALSE, colour=loessLineColor)
-      }
+      reglinplot <- reglinplot + 
+        stat_smooth(method="loess", se=showLoessCI, level=loessCiLevel, colour=loessLineColor)
     }
     # -----------------------------------------------------------
     # set plot labs
     # -----------------------------------------------------------
     reglinplot <- reglinplot + 
-      labs(x=colnames(data)[which(cn==xval)],
-      y=colnames(data)[which(cn==response)])
+      labs(title=title, x=xval, y=response)
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
@@ -666,11 +529,14 @@ sjp.reglin <- function(fit,
 #' 
 #' @description Plots model assumptions of linear models to verify if linear regression is applicable
 #' 
-#' @references \url{http://rpubs.com/sjPlot/sjplm}
+#' @references \url{https://www.otexts.org/fpp/5/4}
 #' 
-#' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjp.reglin}} \cr
-#'          \code{\link{sjp.lm.int}}
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+#'              \item \code{\link{sjp.lm}}
+#'              \item \code{\link{sjp.reglin}}
+#'              \item \code{\link{sjp.lm.int}}
+#'             }
 #'          
 #' @param linreg a fitted lm-model
 #' @param showOriginalModelOnly if \code{TRUE} (default), only the model assumptions of the fitted model
@@ -683,7 +549,11 @@ sjp.reglin <- function(fit,
 #' \dontrun{
 #' # fit linear model
 #' fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Solar.R)
-#' fit.updated <- sjp.lm.ma(fit)}
+#' fit.updated <- sjp.lm.ma(fit)
+#' 
+#' data(efc)
+#' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
+#' fit.updated <- sjp.lm.ma(fit, completeDiagnostic = TRUE)}
 #' 
 #' @importFrom car outlierTest crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot
 #' @export
@@ -825,6 +695,11 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   if (modelOptmized) sjp.lm(model, title="Updated model")
   if (completeDiagnostic) {
     # ---------------------------------
+    # Plot residuals against predictors
+    # ---------------------------------
+    sjp.reglin(linreg, title="Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
+    if (modelOptmized) sjp.reglin(model, title="Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
+    # ---------------------------------
     # Non-linearity
     # ---------------------------------
     plot(crPlots(linreg))
@@ -861,16 +736,17 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #'                Furthermore, a scatter plot of response and predictor values
 #'                is plotted.
 #'                
-#' @seealso \code{\link{sjp.lm}} \cr
-#'          \code{\link{sjp.reglin}} \cr
-#'          \code{\link{sjp.scatter}}
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+#'              \item \code{\link{sjp.lm}}
+#'              \item \code{\link{sjp.reglin}}
+#'              \item \code{\link{sjp.scatter}}
+#'             }
 #'          
 #' @param fit The model of the linear regression (lm-Object).
 #' @param data The data/dataset/dataframe used to fit the model
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title
 #' @param axisLabel.x Labels of the predictor (independent variable) that is used for labelling the
@@ -887,16 +763,7 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #'          \code{axisLabel.y=sji.getVariableLabels(efc)['neg_c_7']}
 #' @param breakLabelsAt Wordwrap for axis labels. Determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted
-#' @param axisLabelSize The size of axis tick marks Default is 1.1.
-#' @param axisLabelColor The color of the axis tick marks. Default is a dark grey (grey30).
-#' @param axisTitleColor The color of the axis labels (response and predictor label). Default is a dark grey.
-#' @param axisTitleSize The size of the axis label (response and predictor label). Default is 1.4.
 #' @param lineColor The color of the regression line. Default is \code{"blue"}.
-#' @param modsumLabelColor Colour of the model summary inside the diagrams. Only applies, when parameter
-#'          \code{showModelSummary} is set to \code{TRUE}. Use any valid colour value, e.g. \code{modsumLabelColor="grey50"} or
-#'          \code{valueLabelColor=c("#cc3366")}.
-#' @param modsumLabelSize Size of the model summary text. Default is 4.5. Recommended Values range from
-#'          2 to 8
 #' @param showCI If \code{TRUE} (default), a confidence region for the regression line
 #'          will be plotted. Use \code{ciLevel} to specifiy the confidence level.
 #' @param ciLevel The confidence level of the confidence region. Only applies when
@@ -918,24 +785,6 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 #' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with 
 #'          Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
 #'          of the diagram.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default if \code{FALSE}.
-#' @param showTickMarks Whether tick marks of axes should be shown or not
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
@@ -960,19 +809,11 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
 sjp.lm1 <- function(fit,
                    data,
                    title=NULL,
-                   titleSize=1.3,
-                   titleColor="black",
                    breakTitleAt=50, 
                    axisLabel.x=NULL,
                    axisLabel.y=NULL,
-                   breakLabelsAt=12,
-                   axisLabelSize=1.1,
-                   axisLabelColor="gray30",
-                   axisTitleSize=1.4,
-                   axisTitleColor=c("#444444"),
+                   breakLabelsAt=20,
                    lineColor="blue",
-                   modsumLabelColor="grey20",
-                   modsumLabelSize=4.5,
                    showCI=TRUE,
                    ciLevel=0.95,
                    pointAlpha=0.2,
@@ -983,14 +824,6 @@ sjp.lm1 <- function(fit,
                    showLoessCI=FALSE,
                    loessCiLevel=0.95,
                    showModelSummary=TRUE,
-                   borderColor=NULL, 
-                   axisColor=NULL, 
-                   theme=NULL,
-                   majorGridColor=NULL,
-                   minorGridColor=NULL,
-                   hideGrid.x=FALSE,
-                   hideGrid.y=FALSE,
-                   showTickMarks=TRUE,
                    printPlot=TRUE) {
   # -----------------------------------------------------------
   # retrieve amount of predictor variables
@@ -1047,6 +880,9 @@ sjp.lm1 <- function(fit,
   if (showModelSummary) {
     modsum <- sju.modsum.lm(fit)
   }
+  else {
+    modsum <- NULL
+  }
   # ----------------------------
   # prepare axis labels
   # ----------------------------
@@ -1060,55 +896,11 @@ sjp.lm1 <- function(fit,
   # every 10 chars, so labels don't overlap
   axisLabel.x <- sju.wordwrap(axisLabel.x, breakLabelsAt)    
   axisLabel.y <- sju.wordwrap(axisLabel.y, breakLabelsAt)    
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  # --------------------------------------------------------
-  # Set up visibility of tick marks
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
   # -----------------------------------------------------------
   # plot regression line and confidence intervall
   # -----------------------------------------------------------
-  reglinplot <- ggplot(mydat, aes(x=V1, y=V2))
+  reglinplot <- ggplot(mydat, aes(x=V1, y=V2)) +
+    stat_smooth(method="lm", se=showCI, level=ciLevel, colour=lineColor)
   # -----------------------------------------------------------
   # plot jittered values if requested
   # -----------------------------------------------------------
@@ -1116,92 +908,25 @@ sjp.lm1 <- function(fit,
     reglinplot <- reglinplot + geom_jitter(alpha=pointAlpha, colour=pointColor)
   }
   # -----------------------------------------------------------
-  # check whether confidence region should be plotted
-  # -----------------------------------------------------------
-  if (showCI) {
-    reglinplot <- reglinplot + 
-      stat_smooth(method="lm", level=ciLevel, colour=lineColor)
-  }
-  else {
-    reglinplot <- reglinplot + 
-      stat_smooth(method="lm", se=FALSE, colour=lineColor)
-  }
-  # -----------------------------------------------------------
   # check whether additional loess-line should be plotted
   # -----------------------------------------------------------
   if (showLoess) {
-    # plot loess with CI
-    if (showLoessCI) {
-      reglinplot <- reglinplot + 
-        stat_smooth(method="loess", level=loessCiLevel, colour=loessLineColor)
-    }
-    # plot loess w/o CI
-    else {
-      reglinplot <- reglinplot + 
-        stat_smooth(method="loess", se=FALSE, colour=loessLineColor)
-    }
+    reglinplot <- reglinplot + 
+      stat_smooth(method="loess", se=showLoessCI, level=loessCiLevel, colour=loessLineColor)
   }
   # -----------------------------------------------------------
   # set plot labs
   # -----------------------------------------------------------
   reglinplot <- reglinplot + 
-    labs(title=title,
-         x=axisLabel.x,
-         y=axisLabel.y)
-  # --------------------------------------------------------
-  # apply theme
-  # --------------------------------------------------------
-  if (!is.null(ggtheme)) {
-    reglinplot <- reglinplot + 
-      ggtheme +
-      # set axes text and title
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # -----------------------------------------------------------
-  # prepare border and grid colors
-  # -----------------------------------------------------------
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      reglinplot <- reglinplot + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    reglinplot <- reglinplot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    reglinplot <- reglinplot + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    reglinplot <- reglinplot + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    reglinplot <- reglinplot + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    reglinplot <- reglinplot + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
+    labs(title=title, x=axisLabel.x, y=axisLabel.y)
   # -----------------------------------------------------------
   # check whether modelsummary should be printed
   # -----------------------------------------------------------
-  if (showModelSummary) {
-    # add annotations with model summary
-    # annotations include intercept-value and model's r-square
-    reglinplot <- reglinplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=modsumLabelColor, size=modsumLabelSize, hjust=-0.05, vjust=1.5)
-  }
+  # ------------------------------------------
+  # check whether table summary should be printed
+  # ------------------------------------------
+  reglinplot <- print.table.summary(reglinplot,
+                                    modsum)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------

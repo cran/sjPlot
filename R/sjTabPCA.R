@@ -1,9 +1,5 @@
 #' @title Show principal component analysis as HTML table
 #' @name sjt.pca
-#' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
-#'              }
 #' 
 #' @description Performes a principle component analysis on a data frame or matrix and
 #'                displays the factor solution as HTML table, or saves them as file. 
@@ -12,10 +8,13 @@
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
 #' 
-#' @seealso \code{\link{sjp.pca}} \cr
-#'          \code{\link{sjs.reliability}} \cr
-#'          \code{\link{sjt.itemanalysis}} \cr
-#'          \code{\link{sjs.cronbach}}
+#' @seealso \itemize{
+#'            \item \href{http://www.strengejacke.de/sjPlot/sjt.pca/}{sjPlot manual: sjt.pca}
+#'            \item \code{\link{sjp.pca}}
+#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{sjt.itemanalysis}}
+#'            \item \code{\link{sjs.cronbach}}
+#'          }
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
@@ -54,10 +53,11 @@
 #'          \code{"Proportion of Variance"} will be used.
 #' @param stringCpov The string for the table row that contains the cumulative variances. By default, 
 #'          \code{"Cumulative Proportion"} will be used.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -71,7 +71,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.cronbach='+color:green;'} to add green color formatting to the Cronbach's Alpha value.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -155,10 +155,14 @@ sjt.pca <- function (data,
                      alternateRowColors=FALSE,
                      stringPov="Proportion of Variance",
                      stringCpov="Cumulative Proportion",
-                     encoding="UTF-8",
+                     encoding=NULL,
                      CSS=NULL,
                      useViewer=TRUE,
                      no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -567,33 +571,7 @@ sjt.pca <- function (data,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer) 
   # -------------------------------------
   # return results
   # -------------------------------------

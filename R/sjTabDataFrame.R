@@ -1,11 +1,10 @@
 #' @title Show (description of) data frame as HTML table
 #' @name sjt.df
 #' 
-#' @seealso \code{\link{sji.viewSPSS}}
-#' 
-#' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2014/03/04/beautiful-table-outputs-in-r-part-2-rstats-sjplot/}
+#' @seealso \itemize{
+#'                \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
+#'                \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'                \item \code{\link{sji.viewSPSS}}
 #'              }
 #'              
 #' @description Shows description or the content of data frame (rows and columns) as HTML table,
@@ -44,10 +43,11 @@
 #'          applies, if \code{showCommentRow} is \code{TRUE}.
 #' @param hideProgressBar If \code{TRUE}, the progress bar that is displayed when creating the
 #'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -61,7 +61,7 @@
 #'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
 #'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and the \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -79,36 +79,31 @@
 #'            for further use.
 #'
 #' @examples
+#' \dontrun{
 #' # init dataset
 #' data(efc)
 #' 
 #' # plot efc-data frame summary
-#' \dontrun{
-#' sjt.df(efc, alternateRowColors=TRUE)}
+#' sjt.df(efc, alternateRowColors=TRUE)
 #' 
 #' # plot content, first 50 rows of first 5 columns of example data set
-#' \dontrun{
-#' sjt.df(efc[1:50,1:5], describe=FALSE, stringVariable="Observation")}
+#' sjt.df(efc[1:50,1:5], describe=FALSE, stringVariable="Observation")
 #' 
 #' # plot efc-data frame summary, ordered descending by mean-column
-#' \dontrun{
-#' sjt.df(efc, orderColumn="mean", orderAscending=FALSE)}
+#' sjt.df(efc, orderColumn="mean", orderAscending=FALSE)
 #' 
 #' # plot first 20 rows of first 5 columns of example data set,
 #' # ordered by column "e42dep" with alternating row colors
-#' \dontrun{
 #' sjt.df(efc[1:20,1:5], alternateRowColors=TRUE, 
-#'        orderColumn="e42dep", describe=FALSE)}
+#'        orderColumn="e42dep", describe=FALSE)
 #' 
 #' # plot first 20 rows of first 5 columns of example data set,
 #' # ordered by 4th column in descending order.
-#' \dontrun{
-#' sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE, describe=FALSE)}
+#' sjt.df(efc[1:20,1:5], orderColumn=4, orderAscending=FALSE, describe=FALSE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' \dontrun{
 #' sjt.df(efc,
 #'        alternateRowColor=TRUE,
 #'        CSS=list(css.table="border: 2px solid #999999;",
@@ -130,14 +125,17 @@ sjt.df <- function (df,
                     showCommentRow=FALSE,
                     commentString="No comment...",
                     hideProgressBar=FALSE,
-                    encoding="UTF-8",
+                    encoding=NULL,
                     CSS=NULL,
                     useViewer=TRUE,
                     no.output=FALSE) {
+  # check encoding
+  encoding <- get.encoding(encoding)
   # -------------------------------------
   # make data frame of single variable, so we have
   # unique handling for the data
   # -------------------------------------
+  encoding <- get.encoding(encoding)
   if (!is.data.frame(df)) {
     stop("Parameter needs to be a data frame!", call.=FALSE)
   }
@@ -356,30 +354,7 @@ sjt.df <- function (df,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)
   # -------------------------------------
   # return results
   # -------------------------------------

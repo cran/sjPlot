@@ -1,15 +1,14 @@
 #' @title Show correlations as HTML table
 #' @name sjt.corr
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjtcorr}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              }
+#' 
+#' @seealso \itemize{
+#'           \item \href{http://www.strengejacke.de/sjPlot/sjt.corr}{sjPlot manual: sjt.corr}
+#'           \item \code{\link{sjp.corr}}
+#'          }
 #' 
 #' @description Shows the results of a computed correlation as HTML table. Requires either 
 #'                a data frame or a computed \code{\link{cor}}-object.
 #'                
-#' @seealso \code{\link{sjp.corr}}
-#' 
 #' @param data A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
 #'          which correlations should be calculated.
 #' @param missingDeletion Indicates how missing values are treated. May be either
@@ -50,10 +49,11 @@
 #'          correlated items) that can be used to display content in the diagonal cells
 #'          where row and column item are identical (i.e. the "self-correlation"). By defauilt,
 #'          this parameter is \code{NULL} and the diagnal cells are empty.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -67,7 +67,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.summary='+color:blue;'} adds blue font color to summary row.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -159,10 +159,14 @@ sjt.corr <- function (data,
                       triangle="both",
                       val.rm=NULL,
                       stringDiagonal=NULL,
-                      encoding="UTF-8",
+                      encoding=NULL,
                       CSS=NULL,
                       useViewer=TRUE,
                       no.output=FALSE) {
+  # --------------------------------------------------------
+  # check encoding
+  # --------------------------------------------------------
+  encoding <- get.encoding(encoding)
   # --------------------------------------------------------
   # parameter check
   # --------------------------------------------------------
@@ -493,33 +497,7 @@ sjt.corr <- function (data,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)
   # -------------------------------------
   # return results
   # -------------------------------------

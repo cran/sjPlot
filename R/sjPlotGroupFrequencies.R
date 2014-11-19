@@ -4,9 +4,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 
 #' @title Plot grouped or stacked frequencies
 #' @name sjp.grpfrq
-#' @references \itemize{
-#'              \item \url{http://rpubs.com/sjPlot/sjpgrpfrq}
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
+#' 
+#' @seealso \itemize{
+#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.grpfrq/}{sjPlot manual: sjp.grpfrq}
 #'              }
 #'             
 #' @description Plot grouped or stacked frequencies of variables 
@@ -29,7 +29,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          parameter) or stacked (use \code{"stack"} as parameter).
 #'          If \code{type} is \code{"histogram"}, you can use either \code{"dodge"} (default value), which displays the bars side-by-side,
 #'          or \code{"identity"}, which results in overlaying bars. In the latter case, it's recommended to adjust the 
-#'          \code{barAlpha} value.
+#'          alpha value (see \code{\link{sjp.setTheme}}).
 #' @param type The plot type. May be one of the following:
 #'          \itemize{
 #'            \item \code{"b"}, \code{"bar"}, \code{"bars"} (default) for bar charts
@@ -39,7 +39,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            \item \code{"box"}, \code{"boxplot"}, \code{"boxplots"} for box plots
 #'            \item \code{"v"}, \code{"violin"} for violin box plots
 #'            }
-#' @param dotSize Size of dots. Applies only when \code{type} is set to \code{"dots"}.
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
 #' @param maxYlim Indicates how to calculate the maximum limit of the y-axis.
 #'          If \code{TRUE}, the upper y-limit corresponds to the amount of cases,
@@ -48,14 +47,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          variable's answer category. In this case, the y-axis breaks may change,
 #'          depending on the variable.
 #' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
-#' @param useFacetGrid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
+#' @param facet.grid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
 #'          bar charts. Ideal for larger amount of groups. This parameter wraps a single panel into 
 #'          \code{varGroup} amount of panels, i.e. each group is represented within a new panel.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #'          Use \code{"auto"} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param legendTitle Title of the diagram's legend.
 #' @param axisLabels.x Labels for the x-axis breaks. Passed as vector of strings. \emph{Note:} This parameter
 #'          is not necessary when data was either imported with \code{\link{sji.SPSS}} or has named factor levels 
@@ -70,11 +67,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          Example: See \code{axisLabels.x}.
 #' @param legendLabels Labels for the guide/legend.
 #'          Example: See \code{axisLabels.x}.
-#' @param axisLabelSize The size of axis labels of both x and y axis. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0
-#' @param valueLabelSize The size of value labels in the diagram. Default is 4, recommended values range
-#'          between 2 and 8
-#' @param axisLabelAngle.x Angle for axis-labels.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -85,44 +77,22 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          displayed in one line and when a line break is inserted.
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed.
-#' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
 #' @param innerBoxPlotWidth The width of the inner box plot that is plotted inside of violin plots. Only applies 
 #'          if \code{type} is \code{"violin"}. Default value is 0.15
-#' @param innerBoxPlotDotSize Size of mean dot insie a violin plot. Applies only when \code{type} is set to \code{"violin"}.
-#' @param barSpace Spacing between bars. Default value is 0.1. If 0 is used, the grouped bars are sticked together and have no space
-#'          in between. Recommended values for this parameter are from 0 to 0.5
-#' @param barColor User defined color for bars.
+#' @param innerBoxPlotDotSize Size of mean dot insie a violin or box plot. Applies only when \code{type} is set to 
+#'          \code{"violin"} or \code{"box"}.
+#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{varGroup}, or a specific color palette code (see below).
 #'          \itemize{
-#'            \item If not specified (\code{NULL}), a default red-green-yellow color palette will be used for the bar charts.
-#'            \item If barColor is \code{"gs"}, a greyscale will be used.
-#'            \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
+#'            \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+#'            \item If \code{"gs"}, a greyscale will be used.
+#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
 #'          }
-#'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here. All color brewer 
-#'          palettes supported by ggplot are accepted here.
-#' @param barAlpha Specify the transparancy (alpha value) of bars.
-#' @param lineType The linetype when using line diagrams. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param lineSize The size of lines in a line diagram. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param lineAlpha The alpha value of lines in a line diagram. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
+#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).
+#' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
+#' @param geom.spacing the spacing between geoms (i.e. bar spacing)
 #' @param smoothLines Prints a smooth line curve. Only applies, when parameter \code{type}
 #'          is set to \code{"lines"}.
-#' @param axisLabelColor User defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
-#' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
-#'          Default is 0.2
-#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default is \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.
 #' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 #'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar. Default
@@ -133,7 +103,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          percentage-values are removed.
 #' @param showAxisLabels.x Whether x axis labels (category names) should be shown or not.
 #' @param showAxisLabels.y Whether y axis labels (count values) should be shown or not.
-#' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showPlotAnnotation If \code{TRUE}, the groups of dots in a dot-plot are highlighted with a shaded rectangle.
 #' @param showMeanIntercept if \code{TRUE}, a vertical line in histograms is drawn to indicate the mean value of the count
 #'          variables. Only applies to histogram-charts.
@@ -148,7 +117,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
 #'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
 #'          Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is either \code{"bars"} or \code{"dots"}.
-#' @param summaryLabelColor The color of the table summary labels.
 #' @param showGroupCount if \code{TRUE}, the count within each group is added to the category labels (e.g. \code{"Cat 1 (n=87)"}).
 #'          Default value is \code{FALSE}.
 #' @param tableSummaryPos Position of the model summary which is printed when \code{showTableSummary} is \code{TRUE}. Default is
@@ -157,17 +125,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          \code{showMeanIntercept} is \code{TRUE}.
 #' @param meanInterceptLineSize The size of the mean intercept line. Only applies to histogram-charts and when
 #'          \code{showMeanIntercept} is \code{TRUE}.
-#' @param valueLabelColor The color of the value labels (numbers) inside the diagram.
 #' @param axisTitle.x A label for the x axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
 #'          Use \code{"auto"} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
-#' @param axisTitleColor The color of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
-#' @param axisTitleSize The size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y},
-#'          not to the tick mark or category labels.
 #' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
 #'          is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). If \code{varCount} has large 
 #'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
@@ -179,28 +142,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'          to \code{"auto"}, i.e. the value range on the x axis starts with the lowest value of \code{varCount}.
 #'          If you set \code{startAxisAt} to 1, you may have zero counts if the lowest value of \code{varCount}
 #'          is larger than 1 and hence no bars plotted for these values in such cases.
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
-#'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. Right
-#'          positioning is default.
-#' @param legendSize The text size of the legend. Default is 1. Relative size, so recommended values are from 0.3 to
-#'          2.5
-#' @param legendBorderColor Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
-#' @param legendBackColor Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
-#' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
-#' @param labelPos If \code{flipCoordinates} is \code{TRUE}, use this parameter to specify value label position.
-#'          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
-#'          initial letter only. If \code{flipCoordinates} is \code{FALSE}, this parameter will
-#'          be ignored.
+#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
+#' @param labelPos Positioning of value labels. If \code{coord.flip} is \code{TRUE}, use 
+#'          either \code{"inside"} or \code{"outside"} (default) to place labels inside or
+#'          outside of bars. You may specify initial letter only. If \code{coord.flip} is \code{FALSE}, 
+#'          use \code{"center"} to center labels (useful if label angle is changes via \code{\link{sjp.setTheme}}).
 #' @param na.rm If \code{TRUE}, missings are not included in the frequency calculation and diagram plot.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -214,14 +160,16 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' efc.var <- sji.getVariableLabels(efc)
 #' sjp.grpfrq(efc$e17age,
 #'            efc$e16sex,
-#'            title=efc.var['e17age'],
-#'            legendTitle=efc.var['e16sex'],
-#'            type="hist",
-#'            showValueLabels=FALSE,
-#'            showMeanIntercept=TRUE)
+#'            title = efc.var['e17age'],
+#'            legendTitle = efc.var['e16sex'],
+#'            type = "hist",
+#'            showValueLabels = FALSE,
+#'            showMeanIntercept = TRUE)
 #' 
 #' # boxplot
-#' sjp.grpfrq(efc$e17age, efc$e42dep, type="box")
+#' sjp.grpfrq(efc$e17age, 
+#'            efc$e42dep, 
+#'            type = "box")
 #' 
 #' # -------------------------------------------------
 #' # auto-detection of value labels and variable names
@@ -229,32 +177,43 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' efc.var <- sji.getVariableLabels(efc)
 #' efc <- sji.setVariableLabels(efc, efc.var)
 #' # grouped bars using necessary y-limit            
-#' sjp.grpfrq(efc$e42dep, efc$e16sex, title="auto")
+#' sjp.grpfrq(efc$e42dep, 
+#'            efc$e16sex, 
+#'            title = NULL)
 #'
 #' # grouped bars using the maximum y-limit            
 #' sjp.grpfrq(efc$e42dep,
 #'            efc$e16sex,
-#'            title=efc.var['e42dep'],
-#'            axisLabels.x=efc.val[['e42dep']], # not needed for SPSS-data sets
-#'            legendTitle=efc.var['e16sex'],
-#'            legendLabels=efc.val[['e16sex']], # not needed for SPSS-data sets
-#'            maxYlim=TRUE)
+#'            title = efc.var['e42dep'],
+#'            axisLabels.x = efc.val[['e42dep']], # not needed for SPSS-data sets
+#'            legendTitle = efc.var['e16sex'],
+#'            legendLabels = efc.val[['e16sex']], # not needed for SPSS-data sets
+#'            maxYlim = TRUE)
 #'            
 #' # box plots with interaction variable            
 #' sjp.grpfrq(efc$e17age,
 #'            efc$e42dep,
-#'            interactionVar=efc$e16sex,
-#'            title=paste(efc.var['e17age'], "by", efc.var['e42dep'], "and", efc.var['e16sex']),
-#'            axisLabels.x=efc.val[['e17age']],
-#'            interactionVarLabels=efc.val[['e16sex']],
-#'            legendTitle=efc.var['e42dep'],
-#'            legendLabels=efc.val[['e42dep']],
-#'            type="box")
+#'            interactionVar = efc$e16sex,
+#'            title = paste(efc.var['e17age'], 
+#'                          "by", 
+#'                          efc.var['e42dep'], 
+#'                          "and", 
+#'                          efc.var['e16sex']),
+#'            axisLabels.x = efc.val[['e17age']],
+#'            interactionVarLabels = efc.val[['e16sex']],
+#'            legendTitle = efc.var['e42dep'],
+#'            legendLabels = efc.val[['e42dep']],
+#'            type = "box")
 #' 
 #' # Grouped bar plot ranging from 1 to 28 (though scale starts with 7)
-#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE, startAxisAt=1)
+#' sjp.grpfrq(efc$neg_c_7, 
+#'            efc$e42dep, 
+#'            showValueLabels = FALSE, 
+#'            startAxisAt = 1)
 #' # Same grouped bar plot ranging from 7 to 28
-#' sjp.grpfrq(efc$neg_c_7, efc$e42dep, showValueLabels=FALSE)
+#' sjp.grpfrq(efc$neg_c_7, 
+#'            efc$e42dep, 
+#'            showValueLabels = FALSE)
 #' 
 #' @import ggplot2
 #' @importFrom plyr ddply
@@ -266,78 +225,47 @@ sjp.grpfrq <- function(varCount,
                        weightByTitleString=NULL,
                        interactionVar=NULL,
                        type="bars",
-                       dotSize=4,
+                       geom.size=0.6,
+                       geom.spacing=0.4,
+                       geom.colors="Paired",
                        hideLegend=FALSE,
                        maxYlim=FALSE, 
                        upperYlim=NULL, 
-                       useFacetGrid=FALSE,
-                       title=NULL, 
-                       titleSize=1.3,
-                       titleColor="black",
+                       facet.grid=FALSE,
+                       title="", 
                        legendTitle=NULL,
                        axisLabels.x=NULL, 
-                       axisLabelSize=1.1,
-                       axisLabelColor="gray30", 
-                       axisLabelAngle.x=0, 
                        interactionVarLabels=NULL,
                        legendLabels=NULL,
-                       valueLabelSize=4,
-                       valueLabelColor="black",
                        breakTitleAt=50, 
-                       breakLabelsAt=12, 
+                       breakLabelsAt=15, 
                        breakLegendTitleAt=20, 
                        breakLegendLabelsAt=20,
                        gridBreaksAt=NULL,
                        barPosition="dodge",
-                       barWidth=0.6,
-                       barSpace=0.1,
-                       barColor=NULL,
-                       barAlpha=1,
                        innerBoxPlotWidth=0.15,
                        innerBoxPlotDotSize=3,
-                       colorPalette="GnBu",
-                       lineType=1,
-                       lineSize=1,
-                       lineAlpha=1,
                        smoothLines=FALSE,
-                       borderColor=NULL, 
-                       axisColor=NULL, 
-                       barOutline=FALSE, 
-                       barOutlineSize=0.2,
-                       barOutlineColor="black", 
-                       majorGridColor=NULL,
-                       minorGridColor=NULL,
-                       hideGrid.x=FALSE,
-                       hideGrid.y=FALSE,
                        expand.grid=FALSE,
                        showValueLabels=TRUE,
                        showCountValues=TRUE,
                        showPercentageValues=TRUE,
                        showAxisLabels.x=TRUE,
                        showAxisLabels.y=TRUE,
-                       showTickMarks=TRUE,
                        showPlotAnnotation=TRUE,
                        showMeanIntercept=FALSE,
                        showMeanValue=TRUE,
                        showStandardDeviation=FALSE,
                        showTableSummary=TRUE,
-                       summaryLabelColor="black",
                        showGroupCount=FALSE,
                        tableSummaryPos="r",
                        meanInterceptLineType=2,
                        meanInterceptLineSize=0.5,
                        axisTitle.x=NULL,
                        axisTitle.y=NULL,
-                       axisTitleColor="black",
-                       axisTitleSize=1.3,
                        autoGroupAt=NULL,
                        startAxisAt="auto",
-                       theme=NULL,
-                       legendPos="right",
-                       legendSize=1,
-                       legendBorderColor="white",
-                       legendBackColor="white",
-                       flipCoordinates=FALSE,
+                       coord.flip=FALSE,
                        labelPos="outside",
                        na.rm=TRUE,
                        printPlot=TRUE) {
@@ -385,8 +313,9 @@ sjp.grpfrq <- function(varCount,
   }
   if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(varGroup)
   if (is.null(interactionVarLabels) && !is.null(interactionVar)) interactionVarLabels <- autoSetValueLabels(interactionVar)
-  if (!is.null(axisTitle.x) && axisTitle.x=="auto") axisTitle.x <- autoSetVariableLabels(varCount)
-  if (!is.null(title) && title=="auto") {
+  if (is.null(axisTitle.x)) axisTitle.x <- autoSetVariableLabels(varCount)
+  if (is.null(legendTitle)) legendTitle <- autoSetVariableLabels(varGroup)  
+  if (is.null(title)) {
     t1 <- autoSetVariableLabels(varCount)
     t2 <- autoSetVariableLabels(varGroup)
     if (!is.null(t1) && !is.null(t2)) {
@@ -394,14 +323,17 @@ sjp.grpfrq <- function(varCount,
     }
   }
   # --------------------------------------------------------
+  # remove titles if empty
+  # --------------------------------------------------------
+  if (!is.null(legendTitle) && legendTitle=="") legendTitle <- NULL
+  if (!is.null(axisTitle.x) && axisTitle.x=="") axisTitle.x <- NULL
+  if (!is.null(axisTitle.y) && axisTitle.y=="") axisTitle.y <- NULL  
+  if (!is.null(title) && title=="") title <- NULL    
+  # --------------------------------------------------------
   # count variable may not be a factor!
   # --------------------------------------------------------
-  if (is.factor(varCount)) {
-    varCount <- as.numeric(varCount)
-  }
-  if (is.factor(varGroup)) {
-    varGroup <- as.numeric(varGroup)
-  }
+  varCount <- as.numeric(varCount)
+  varGroup <- as.numeric(varGroup)
   #---------------------------------------------------
   # check whether variable should be auto-grouped
   #---------------------------------------------------
@@ -582,7 +514,7 @@ sjp.grpfrq <- function(varCount,
   for (k in 1: length(prz)) {
     # if we have facet grids, calculate percentage
     # within each group
-    if (useFacetGrid) {
+    if (facet.grid) {
       # get frequency value of each row and divide it by the sum of frequencies of
       # all frequencies of the current row's group
       prz[k] <- c(round(100*mydat[k,3]/sum(mydat$frq[mydat$group==mydat[k,2]]),2))
@@ -605,12 +537,7 @@ sjp.grpfrq <- function(varCount,
   # If we have boxplots, use different data frame structure
   # --------------------------------------------------------
   if (type=="boxplots" || type=="violin") {
-    if (is.null(weightBy)) {
-      w <- 1
-    }
-    else {
-      w <- weightBy
-    }
+    w <- ifelse(is.null(weightBy), 1, weightBy)
     if (is.null(interactionVar)) {
       mydat <- na.omit(data.frame(cbind(group=varGroup, frq=varCount, wb=w)))
     }
@@ -624,7 +551,7 @@ sjp.grpfrq <- function(varCount,
   # create expression with model summarys. used
   # for plotting in the diagram later
   # ----------------------------
-  mannwhitneyu <-function(count, grp) {
+  mannwhitneyu <- function(count, grp) {
     if (min(grp, na.rm=TRUE)==0) {
       grp <- grp+1
     }
@@ -655,6 +582,7 @@ sjp.grpfrq <- function(varCount,
   # -----------------------------------------------------------
   # Check whether table summary should be printed
   # -----------------------------------------------------------
+  modsum <- NULL
   if (showTableSummary) {
     if (type=="boxplots" || type=="violin") {
       modsum <- mannwhitneyu(varCount, varGroup)
@@ -833,7 +761,7 @@ sjp.grpfrq <- function(varCount,
   # define bar colors
   # --------------------------------------------------------
   # define vertical position for labels
-  if (flipCoordinates) {
+  if (coord.flip) {
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- ifelse(type == "dots", 0.45, 0.35)
@@ -846,7 +774,10 @@ sjp.grpfrq <- function(varCount,
   }
   else {
     hort <- waiver()
-    if (barPosition=="stack") {
+    if (labelPos=="inside" || labelPos=="i") {
+      vert <- 1.1
+    }
+    else if (barPosition=="stack" || labelPos == "center" || labelPos == "c") {
       vert <- waiver()
     }
     else if (showPercentageValues && showCountValues) {
@@ -859,248 +790,152 @@ sjp.grpfrq <- function(varCount,
     }
   }
   # align dodged position of labels to bar positions
-  posdodge <- ifelse(type=="lines", 0, barWidth + barSpace)
-  # --------------------------------------------------------
-  # check whether bars should have an outline
-  # --------------------------------------------------------
-  if (!barOutline) {
-    barOutlineColor <- waiver()
-  }
+  posdodge <- ifelse(type=="lines", 0, geom.size + geom.spacing)
   # init shaded rectangles for plot
   ganno <- NULL
   # check whether we have dots or bars
-  if (type=="dots") {
+  if (type=="dots" || type=="dotlines") {
     # position_dodge displays dots in a dodged position so we avoid overlay here. This may lead
     # to a more difficult distinction of group belongings, since the dots are "horizontally spread"
     # over the digram. For a better overview, we can add a "PlotAnnotation" (see "showPlotAnnotation) here.
-    geob <- geom_point(position=position_dodge(0.8), size=dotSize, shape=21)
+    geob <- geom_point(position=position_dodge(0.8), size=geom.size, shape=21)
+    # connect dots with lines?
+    if (type=="dotlines") {
+      geob <- geom_point(position=position_dodge(0.8), size=geom.size, shape=21) + geom_line()
+      type  <- "dots"
+    }
     # create shaded rectangle, so we know which dots belong to the same category
     if (showPlotAnnotation) {
       ganno <- annotate("rect", xmin=mydat$layer-0.4, xmax=mydat$layer+0.4, ymin=0, ymax=c(upper_lim), fill="grey80", alpha=0.1)
     }
   }
   else if (type=="bars") {
-    if (!is.null(theme) && theme=="themr") {
-      if (barPosition=="dodge") {
-        geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace))
-      }
-      else {
-        geob <- geom_bar(stat="identity", position="stack")
-      }
+    if (barPosition=="dodge") {
+      geob <- geom_bar(stat="identity", position=position_dodge(geom.size+geom.spacing))
     }
     else {
-      if (barPosition=="dodge") {
-        geob <- geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
-      }
-      else {
-        geob <- geom_bar(stat="identity", position="stack", colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha)
-      }
+      geob <- geom_bar(stat="identity", position="stack")
     }
   }
   else if (type=="lines") {
     if (smoothLines) {
-      geob <- geom_line(linetype=lineType, alpha=lineAlpha, size=lineSize, stat="smooth")
+      geob <- geom_line(size=geom.size, stat="smooth")
     }
     else {
-      geob <- geom_line(linetype=lineType, alpha=lineAlpha, size=lineSize)
+      geob <- geom_line(size=geom.size)
     }
   }
   else if (type=="boxplots") {
-    if (!is.null(theme) && theme=="themr") {
-      geob <- geom_boxplot()
-    }
-    else {
-      geob <- geom_boxplot(colour=barOutlineColor, width=barWidth, alpha=barAlpha)
-    }
+    geob <- geom_boxplot(width=geom.size)
   }
   else if (type=="violin") {
-    if (!is.null(theme) && theme=="themr") {
-      geob <- geom_violin(trim=trimViolin)
-    }
-    else {
-      geob <- geom_violin(colour=barOutlineColor, width=barWidth, alpha=barAlpha, trim=trimViolin)
-    }
+    geob <- geom_violin(trim=trimViolin, width=geom.size)
   }
   else {
-    if (!is.null(theme) && theme=="themr") {
-      geob <- geom_histogram(stat="identity", position=barPosition)
-    }
-    else {
-      geob <- geom_histogram(stat="identity", binwidth=barWidth, colour=barOutlineColor, size=barOutlineSize, position=barPosition, alpha=barAlpha)
-    }
-  }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Hide or show Tick Marks and Category Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
+    geob <- geom_histogram(stat="identity", position=barPosition, binwidth=geom.size)
   }
   if (!showAxisLabels.x) {
     axisLabels.x <- c("")
   }
   # --------------------------------------------------------
-  # Hide or show Legend
-  # --------------------------------------------------------
-  if (hideLegend) {
-    # remove guide / legend
-    gguide <- guides(fill=FALSE)
-  }
-  else {
-    # show guide with group fill colors
-    gguide <- guides(fill=mydat$grp)  
-  }
-  # --------------------------------------------------------
-  # Prepare fill colors
-  # --------------------------------------------------------
-  if (is.null(barColor)) {
-    scalecolors <- scale_fill_brewer(labels=legendLabels, palette="Set1")
-    scalecolorsline <- scale_colour_brewer(labels=legendLabels, palette="Set1")
-    scalecolorvline <- scale_colour_brewer(palette="Set1")
-  }
-  else if (barColor=="gs") {
-    scalecolors <- scale_fill_grey(labels=legendLabels)
-    scalecolorsline <- scale_colour_grey(labels=legendLabels)
-    scalecolorvline <- scale_colour_grey()
-  }
-  else if (barColor=="brewer") {
-    # remember to specify the "colorPalette" if you use "brewer" as "barColor"
-    scalecolors <- scale_fill_brewer(palette=colorPalette, labels=legendLabels)
-    scalecolorsline <- scale_colour_brewer(palette=colorPalette, labels=legendLabels)
-    scalecolorvline <- scale_colour_brewer(palette=colorPalette)
-  }
-  else if (barColor=="bw") {
-    barColor <- rep("white", length(legendLabels))
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-    scalecolorsline <- scale_colour_manual(values=barColor, labels=legendLabels)
-    scalecolorvline <- scale_colour_manual(values=barColor)
-  }
-  else {
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-    scalecolorsline <- scale_colour_manual(values=barColor, labels=legendLabels)
-    scalecolorvline <- scale_colour_manual(values=barColor)
-  }
-  # --------------------------------------------------------
   # Set value labels
   # --------------------------------------------------------
   # don't display value labels when we have boxplots or violin plots
-  if (type=="boxplots" || type=="violin") {
-    showValueLabels <- FALSE
-  }
+  if (type == "boxplots" || type == "violin") showValueLabels <- FALSE
   if (showValueLabels) {
+    # ---------------------------------------------------------
     # if we have facet grids, we have different x and y positions for the value labels
     # so we need to take this into account here
-    if (useFacetGrid) {
+    # ---------------------------------------------------------
+    if (facet.grid) {
+      # ---------------------------------------------------------
       # if we want percentage values, we have different sprintf-parameters
+      # ---------------------------------------------------------
       if (showPercentageValues && showCountValues) {
-        ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%i\n(%.01f%%)", frq, prz), group=group),
-                                    size=valueLabelSize,
-                                    vjust=vert,
-                                    colour=valueLabelColor)
+        ggvaluelabels <-  geom_text(aes(x = count, 
+                                        y = frq, 
+                                        label = sprintf("%i\n(%.01f%%)", frq, prz), 
+                                        group = group),
+                                    vjust = vert)
       }
       else if (showCountValues) {
-        ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%i", frq), group=group),
-                                    size=valueLabelSize,
-                                    vjust=vert,
-                                    colour=valueLabelColor)
+        ggvaluelabels <-  geom_text(aes(x = count, 
+                                        y = frq, 
+                                        label = sprintf("%i", frq), 
+                                        group = group),
+                                    vjust = vert)
       }
       else if (showPercentageValues) {
-        ggvaluelabels <-  geom_text(aes(x=count, y=frq, label=sprintf("%.01f%%", prz), group=group),
-                                    size=valueLabelSize,
-                                    vjust=vert,
-                                    colour=valueLabelColor)
+        ggvaluelabels <-  geom_text(aes(x = count, 
+                                        y = frq, 
+                                        label = sprintf("%.01f%%", prz), 
+                                        group = group),
+                                    vjust=vert)
       }
       else {
         ggvaluelabels <-  geom_text(label="")
       }
     }
     else {
-      # if we have stacked bars, we need to apply this stacked y-position to the labels as well
+      # ---------------------------------------------------------
+      # if we have stacked bars, we need to apply 
+      # this stacked y-position to the labels as well
+      # ---------------------------------------------------------
       if (barPosition=="stack") {
         if (showPercentageValues && showCountValues) {
-          ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%i\n(%.01f%%)", frq, prz)),
-                                      size=valueLabelSize,
-                                      vjust=vert,
-                                      colour=valueLabelColor)
+          ggvaluelabels <-  geom_text(aes(y = ypos, 
+                                          label = sprintf("%i\n(%.01f%%)", frq, prz)),
+                                      vjust = vert)
         }
         if (showCountValues) {
-          ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%i", frq)),
-                                      size=valueLabelSize,
-                                      vjust=vert,
-                                      colour=valueLabelColor)
+          ggvaluelabels <-  geom_text(aes(y = ypos, 
+                                          label = sprintf("%i", frq)),
+                                      vjust = vert)
         }
         if (showPercentageValues) {
-          ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", prz)),
-                                      size=valueLabelSize,
-                                      vjust=vert,
-                                      colour=valueLabelColor)
+          ggvaluelabels <-  geom_text(aes(y = ypos, 
+                                          label = sprintf("%.01f%%", prz)),
+                                      vjust = vert)
         }
         else {
           ggvaluelabels <-  geom_text(label="")
         }
       }
       else {
-        # if we have dodged bars or dots, we have to use a slightly dodged position for labels
+        # ---------------------------------------------------------
+        # if we have dodged bars or dots, we have to use a slightly 
+        # dodged position for labels
         # as well, sofor better reading
+        # ---------------------------------------------------------
         if (showPercentageValues && showCountValues) {
-          if (flipCoordinates) {
-            ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%i (%.01f%%)", frq, prz)),
-                                        size=valueLabelSize,
-                                        position=position_dodge(posdodge),
-                                        vjust=vert,
-                                        hjust=hort,
-                                        colour=valueLabelColor)
+          if (coord.flip) {
+            ggvaluelabels <-  geom_text(aes(y = frq, 
+                                            label = sprintf("%i (%.01f%%)", frq, prz)),
+                                        position = position_dodge(posdodge),
+                                        vjust = vert,
+                                        hjust = hort)
           }
           else {
-            ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%i\n(%.01f%%)", frq, prz)),
-                                        size=valueLabelSize,
-                                        position=position_dodge(posdodge),
-                                        vjust=vert,
-                                        hjust=hort,
-                                        colour=valueLabelColor)
+            ggvaluelabels <-  geom_text(aes(y = frq, 
+                                            label = sprintf("%i\n(%.01f%%)", frq, prz)),
+                                        position = position_dodge(posdodge),
+                                        vjust = vert,
+                                        hjust = hort)
           }
         }
         else if (showCountValues) {
-          ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%i", frq)),
-                                      position=position_dodge(posdodge),
-                                      size=valueLabelSize,
-                                      hjust=hort,
-                                      vjust=vert,
-                                      colour=valueLabelColor)
+          ggvaluelabels <-  geom_text(aes(y = frq, 
+                                          label = sprintf("%i", frq)),
+                                      position = position_dodge(posdodge),
+                                      hjust = hort,
+                                      vjust = vert)
         }
         else if (showPercentageValues) {
-          ggvaluelabels <-  geom_text(aes(y=frq, label=sprintf("%.01f%%", prz)),
-                                      position=position_dodge(posdodge),
-                                      size=valueLabelSize,
-                                      hjust=hort,
-                                      vjust=vert,
-                                      colour=valueLabelColor)
+          ggvaluelabels <-  geom_text(aes(y = frq, 
+                                          label = sprintf("%.01f%%", prz)),
+                                      position = position_dodge(posdodge),
+                                      hjust = hort,
+                                      vjust = vert)
         }
         else {
           ggvaluelabels <-  geom_text(label="")
@@ -1120,132 +955,192 @@ sjp.grpfrq <- function(varCount,
   else {
     gridbreaks <- c(seq(0, upper_lim, by=gridBreaksAt))
   }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
-  #
+  # ----------------------------------
   # Print plot
   # ----------------------------------
-  # construct final plot, base constructor
+  # plot object for histogram style
   # ----------------------------------
-  if (type=="histogram" || type=="dots") {
+  if (type=="histogram" || type=="lines") {
     mydat$count <- as.numeric(as.character(mydat$count))
-    baseplot <- ggplot(mydat, aes(x=count, y=frq, fill=group))
-    scalex <- scale_x_continuous(limits=c(catmin, catcount))
+    if (type=="histogram") {
+      # histrogram need fill aes
+      baseplot <- ggplot(mydat, aes(x=count, y=frq, fill=group)) + geob
+    }
+    else {
+      # lines need colour aes
+      baseplot <- ggplot(mydat, aes(x = count, y=frq, colour=group)) + geob
+    }
+    scalex <- scale_x_continuous(limits = c(catmin, catcount))
+    # -----------------------------------------
+    # show mean line for histograms
+    # -----------------------------------------
+    if (showMeanIntercept) {
+      # -----------------------------------------
+      # vertical lines indicating the mean
+      # -----------------------------------------
+      baseplot <- baseplot + 
+        geom_vline(data = vldat, 
+                   aes(xintercept = mw, 
+                       colour = group), 
+                   linetype = meanInterceptLineType, 
+                   size = meanInterceptLineSize)
+      # -----------------------------------------
+      # check whether meanvalue should be shown.
+      # -----------------------------------------
+      if (showMeanValue) {
+        # -----------------------------------------
+        # use annotation instead of geomtext, because we 
+        # need mean value only printed once
+        # -----------------------------------------
+        baseplot <- baseplot + 
+          annotate("text", 
+                   x = vldat$mw, 
+                   y = upper_lim, 
+                   parse = TRUE, 
+                   label = sprintf("italic(bar(x)[%i]) == %.2f", 
+                                   vldat$yfactor, 
+                                   vldat$mw), 
+                   hjust = 1.05, 
+                   vjust = vldat$yfactor * 2)
+      }
+      # -----------------------------------------
+      # check whether the user wants to plot standard deviation area
+      # -----------------------------------------
+      if (showStandardDeviation) {
+        baseplot <- baseplot +
+          # -----------------------------------------
+          # first draw shaded rectangle. these are by default 
+          # in grey colour with very high transparancy
+          # -----------------------------------------
+          annotate("rect", 
+                   xmin = vldat$mw - vldat$stddev, 
+                   xmax = vldat$mw+vldat$stddev, 
+                   fill = "grey50", 
+                   ymin = 0, 
+                   ymax = c(upper_lim), 
+                   alpha = 0.1) +
+          # -----------------------------------------
+          # draw border-lines for shaded rectangles 
+          # in the related group colours.
+          # -----------------------------------------
+          geom_vline(data = vldat, 
+                     aes(xintercept = mw - stddev, 
+                         colour = group), 
+                     linetype = 3, 
+                     size = meanInterceptLineSize, 
+                     alpha = 0.7) +
+          geom_vline(data = vldat, 
+                     aes(xintercept = mw + stddev, 
+                         colour = group), 
+                     linetype = 3, 
+                     size = meanInterceptLineSize, 
+                     alpha = 0.7)
+        # -----------------------------------------
+        # if mean values are plotted, plot standard 
+        # deviation values as well
+        # -----------------------------------------
+        if (showMeanValue) {
+          baseplot <- baseplot + 
+            # -----------------------------------------
+            # use annotation instead of geomtext, because we 
+            # need standard deviations only printed once
+            # -----------------------------------------
+            annotate("text", 
+                     x = vldat$mw + vldat$stddev, 
+                     y = upper_lim, 
+                     parse = TRUE, 
+                     label = sprintf("italic(s[%i]) == %.2f", 
+                                     vldat$yfactor, 
+                                     round(vldat$stddev, 1)), 
+                     hjust = 1.1, 
+                     vjust = vldat$yfactor * 2)
+        }
+      }
+    }
   }
   else if (type=="boxplots" || type=="violin") {
     if (is.null(interactionVar)) {
-      baseplot <- ggplot(mydat, aes(x=group, y=frq, fill=group, weight=wb))
-      scalex <- scale_x_discrete(labels=axisLabels.x)
+      baseplot <- ggplot(mydat, 
+                         aes(x = group, 
+                             y = frq, 
+                             fill = group, 
+                             weight = wb)) + geob
+      scalex <- scale_x_discrete(labels = axisLabels.x)
     }
     else {
-      baseplot <- ggplot(mydat, aes(x=interaction(ia, group), y=frq, fill=group, weight=wb))
+      baseplot <- ggplot(mydat, 
+                         aes(x = interaction(ia, group), 
+                             y = frq, 
+                             fill = group, 
+                             weight = wb)) + geob
       scalex <- scale_x_discrete(labels=interactionVarLabels)
     }
-  }
-  else if (type=="lines") {
-    baseplot <- ggplot(mydat, aes(x=as.numeric(count), y=frq, colour=group))
-    scalex <- scale_x_continuous(limits=c(catmin, catcount))
+    # if we have a violin plot, add an additional boxplot inside to show
+    # more information
+    if (type=="violin") {
+      baseplot <- baseplot +
+        geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
+    }
+    # ---------------------------------------------------------
+    # if we have boxplots or violon plots, also add a point that indicates
+    # the mean value
+    # different fill colours, because violin boxplots have white background
+    # ---------------------------------------------------------
+    fcsp <- ifelse(type=="boxplots", "white", "black")
+    baseplot <- baseplot +
+      stat_summary(fun.y = "mean", 
+                   geom = "point", 
+                   shape = 21, 
+                   size = innerBoxPlotDotSize, 
+                   fill = fcsp)
   }
   else {
-    baseplot <- ggplot(mydat, aes(x=factor(count), y=frq, fill=group))
+    baseplot <- ggplot(mydat, 
+                       aes(x = factor(count), 
+                           y = frq, 
+                           fill = group))
+    # ---------------------------------------------------------
+    # check whether we have dots plotted, and if so, use annotation
+    # We have to use annotation first, because the diagram's layers are plotted
+    # in the order as they're passed to the ggplot-command. Since we don't want the
+    # shaded rectangles to overlay the dots, we add them first
+    # ---------------------------------------------------------
+    if (!is.null(ganno) && !facet.grid) {
+      baseplot <- baseplot + ganno
+    }
+    # add geom
+    baseplot <- baseplot + geob
     if (startAxisAt>1) {
-      scalex <- scale_x_discrete(labels=axisLabels.x, limits=as.factor(seq(from=startAxisAt,to=catcount,by=1)))
+      scalex <- scale_x_discrete(labels = axisLabels.x, 
+                                 limits = as.factor(seq(from = startAxisAt,
+                                                        to = catcount,
+                                                        by = 1)))
     }
     else {
       scalex <- scale_x_discrete(labels=axisLabels.x)
     }
   }
-  # check whether we have dots plotted, and if so, use annotation
-  # We have to use annotation first, because the diagram's layers are plotted
-  # in the order as they're passed to the ggplot-command. Since we don't want the
-  # shaded rectangles to overlay the dots, we add them first
-  if (!is.null(ganno) && !useFacetGrid) {
-    baseplot <- baseplot + ganno
-  }
-  baseplot <- baseplot +
-    # plot bar chart
-    geob
-  # if we have line diagram, print lines here
-#   if (type=="lines") {
-#     baseplot <- baseplot + 
-#       geom_point(size=dotSize, alpha=lineAlpha, shape=21, show_guide=FALSE)
-#   }
-  # if we have a histogram, add mean-lines
-  if (type=="histogram" && showMeanIntercept) {
-    baseplot <- baseplot + 
-      # vertical lines indicating the mean
-      geom_vline(data=vldat, aes(xintercept=mw, colour=group), linetype=meanInterceptLineType, size=meanInterceptLineSize) +
-      # we need scale_colour instead of scale_fill for the lines
-      scalecolorvline
-    # check whether meanvalue should be shown.
-    if (showMeanValue) {
-      baseplot <- baseplot + 
-        # use annotation instead of geomtext, because we need mean value only printed once
-        annotate("text", x=vldat$mw, y=upper_lim, parse=TRUE, label=sprintf("italic(bar(x)[%i]) == %.2f", vldat$yfactor, vldat$mw), size=valueLabelSize, colour=valueLabelColor, hjust=1.05, vjust=vldat$yfactor*2)
-    }
-    # check whether the user wants to plot standard deviation area
-    if (showStandardDeviation) {
-      baseplot <- baseplot +
-        # first draw shaded rectangle. these are by default in grey colour with very high transparancy
-        annotate("rect", xmin=vldat$mw-vldat$stddev, xmax=vldat$mw+vldat$stddev, fill="grey50", ymin=0, ymax=c(upper_lim), alpha=0.1) +
-        # draw border-lines for shaded rectangles in the related group colours.
-        geom_vline(data=vldat, aes(xintercept=mw-stddev, colour=group), linetype=3, size=meanInterceptLineSize, alpha=0.7) +
-        geom_vline(data=vldat, aes(xintercept=mw+stddev, colour=group), linetype=3, size=meanInterceptLineSize, alpha=0.7)
-      # if mean values are plotted, plot standard deviation values as well
-      if (showMeanValue) {
-        baseplot <- baseplot + 
-          # use annotation instead of geomtext, because we need standard deviations only printed once
-          annotate("text", x=vldat$mw+vldat$stddev, y=upper_lim, parse=TRUE, label=sprintf("italic(s[%i]) == %.2f", vldat$yfactor, round(vldat$stddev,1)), size=valueLabelSize, colour=valueLabelColor, hjust=1.1, vjust=vldat$yfactor*2)
-      }
-    }
-  }
-  # if we have a violin plot, add an additional boxplot inside to show
-  # more information
-  if (type=="violin") {
-    baseplot <- baseplot +
-      geom_boxplot(width=innerBoxPlotWidth, fill="white", outlier.colour=NA)
-  }
-  # if we have boxplots or violon plots, also add a point that indicates
-  # the mean value
-  if (type=="boxplots" || type=="violin") {
-    # different fill colours, because violin boxplots have white background
-    fcsp <- ifelse(type=="boxplots", "white", "black")
-    baseplot <- baseplot +
-      stat_summary(fun.y="mean", geom="point", shape=21, size=innerBoxPlotDotSize, fill=fcsp)
-  }
-  # If we have bars or dot plots, we show Pearson's chi-square test results
-  if (type=="bars" || type=="dots" || type=="lines" || type=="boxplots" || type=="violin") {
-    # check whether table summary should be printed
-    if (showTableSummary) {
-      # add annotations with table summary
-      # here we print out total N of cases, chi-square and significance of the table
-      if (tableSummaryPos=="r") {
-        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=Inf, y=Inf, colour=summaryLabelColor, size=valueLabelSize, vjust=1.6, hjust=1.1)
-      }
-      else {
-        baseplot <- baseplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, colour=summaryLabelColor, size=valueLabelSize, vjust=1.6, hjust=-0.1)
-      }
-    }
-  }
+  # ------------------------------------------
+  # If we have bars or dot plots, we show 
+  # Pearson's chi-square test results
+  # ------------------------------------------
+  baseplot <- print.table.summary(baseplot,
+                                  modsum,
+                                  tableSummaryPos)
   # ------------------------------
   # prepare y-axis and
   # show or hide y-axis-labels
   # ------------------------------
   if (showAxisLabels.y) {
-    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=expand.grid)
+    y_scale <- scale_y_continuous(breaks = gridbreaks, 
+                                  limits = c(lower_lim, upper_lim), 
+                                  expand = expand.grid)
   }
   else {
-    y_scale <- scale_y_continuous(breaks=gridbreaks, limits=c(lower_lim, upper_lim), expand=expand.grid, labels=NULL)
+    y_scale <- scale_y_continuous(breaks = gridbreaks, 
+                                  limits = c(lower_lim, upper_lim), 
+                                  expand = expand.grid, 
+                                  labels = NULL)
   }
   # ------------------------------
   # continue with plot objects...
@@ -1256,8 +1151,6 @@ sjp.grpfrq <- function(varCount,
     # (length of var) or to the highest count of var's categories.
     # coord_cartesian(ylim=c(0, upper_lim)) +
     y_scale +
-    # guide / legend
-    gguide +
     # show absolute and percentage value of each bar.
     ggvaluelabels +
     # no additional labels for the x- and y-axis, only diagram title
@@ -1266,71 +1159,12 @@ sjp.grpfrq <- function(varCount,
     # If parameter "axisLabels.x" is NULL, the category numbers (1 to ...) 
     # appear on the x-axis
     scalex
-  # when we have lines, we additionally need to apply "scale_colour"...
-  if (type=="lines") {
-    baseplot <- baseplot + scalecolorsline
-  }
-  if (!is.null(theme) && theme!="themr") {
-    baseplot <- baseplot + 
-      scalecolors
-  }
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
-  if (flipCoordinates) {
+  if (coord.flip) {
     baseplot <- baseplot + coord_flip()
   }
-  # set font size for axes.
-  # apply theme
-  if (!is.null(ggtheme)) {
-    baseplot <- baseplot + 
-      ggtheme +
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # --------------------------------------
-  # set position and size of legend
-  # --------------------------------------
-  if (!hideLegend) {
-    baseplot <- baseplot + 
-      theme(legend.position = legendPos,
-            legend.text = element_text(size=rel(legendSize)),
-            legend.background = element_rect(colour=legendBorderColor, fill=legendBackColor))
-  }
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      baseplot <- baseplot + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    baseplot <- baseplot + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  if (!is.null(minorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    baseplot <- baseplot + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
-  }
-  if (useFacetGrid) {
+  if (facet.grid) {
     # --------------------------------------------------
     # Here we start when we have a faces grid instead of
     # a grouped bar plot.
@@ -1340,6 +1174,10 @@ sjp.grpfrq <- function(varCount,
       theme(strip.text = element_text(face="bold",size=rel(1.2))) +
       facet_wrap( ~ group)
   }
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  baseplot <- sj.setGeomColors(baseplot, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)
   # ----------------------------------
   # Plot integrated bar chart here
   # ----------------------------------

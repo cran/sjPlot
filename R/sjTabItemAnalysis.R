@@ -73,10 +73,11 @@
 #' @param file The destination file, which will be in html-format. If no filepath is specified (default),
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -90,7 +91,7 @@
 #'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
 #'            \item \code{css.arc='+font-style:italic;'} to add italic formatting to each 2nd row.
 #'          }
-#'          See further examples at \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples at \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -120,10 +121,10 @@
 #'        }
 #' 
 #' @references \itemize{
-#'              \item Jorion N, Self B, James K, Schroeder L, DiBello L, Pellegrino J (2013) Classical Test Theory Analysis of the Dynamics Concept Inventory. (\url{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory})
-#'              \item Briggs SR, Cheek JM (1986) The role of factor analysis in the development and evaluation of personality scales. Journal of Personality, 54(1), 106-148 (\url{http://onlinelibrary.wiley.com/doi/10.1111/j.1467-6494.1986.tb00391.x/abstract})
+#'              \item Jorion N, Self B, James K, Schroeder L, DiBello L, Pellegrino J (2013) Classical Test Theory Analysis of the Dynamics Concept Inventory. (\href{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory}{web})
+#'              \item Briggs SR, Cheek JM (1986) The role of factor analysis in the development and evaluation of personality scales. Journal of Personality, 54(1), 106-148 (\href{http://onlinelibrary.wiley.com/doi/10.1111/j.1467-6494.1986.tb00391.x/abstract}{web})
 #'              \item McLean S et al. (2013) Stigmatizing attitudes and beliefs about bulimia nervosa: Gender, age, education and income variability in a community sample. International Journal of Eating Disorders, doi: 10.1002/eat.22227.
-#'              \item Trochim WMK (2008) Types of Reliability. \url{http://www.socialresearchmethods.net/kb/reltypes.php}
+#'              \item Trochim WMK (2008) Types of Reliability. (\href{http://www.socialresearchmethods.net/kb/reltypes.php}{web})
 #'             }
 #' 
 #' @examples
@@ -145,20 +146,18 @@
 #' colnames(df) <- varlabs[c(start:end)]
 #' 
 #' \dontrun{
-#' sjt.itemanalysis(df)}
+#' sjt.itemanalysis(df)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- sji.setVariableLabels(efc, varlabs)
-#' \dontrun{
-#' sjt.itemanalysis(efc[,c(start:end)])}
+#' sjt.itemanalysis(efc[,c(start:end)])
 #'   
 #' # ---------------------------------------
 #' # Compute PCA on Cope-Index, and perform a
 #' # item analysis for each extracted factor.
 #' # ---------------------------------------
-#' \dontrun{
 #' factor.groups <- sjt.pca(df, no.output=TRUE)$factor.index
 #' sjt.itemanalysis(df, factor.groups)}
 #'  
@@ -176,10 +175,14 @@ sjt.itemanalysis <- function(df,
                              showKurtosis=FALSE,
                              showCompCorrMat=TRUE,
                              file=NULL,
-                             encoding="UTF-8",
+                             encoding=NULL,
                              CSS=NULL,
                              useViewer=TRUE,
                              no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # -----------------------------------
   # auto-detect variable labels
   # -----------------------------------
@@ -399,33 +402,7 @@ sjt.itemanalysis <- function(df,
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(complete.page, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, complete.page, useViewer)  
   invisible (list(class="sjtitemanalysis",
                   df.list=df.ia,
                   index.scores=index.scores,

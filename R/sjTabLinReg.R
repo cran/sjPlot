@@ -1,16 +1,14 @@
 #' @title Show linear regression as HTML table
 #' @name sjt.lm
-#' @references \itemize{
-#'              \item \url{http://strengejacke.wordpress.com/sjplot-r-package/}
-#'              \item \url{http://strengejacke.wordpress.com/2013/08/20/print-glm-output-to-html-table-rstats/}
-#'              }
 #' 
 #' @description Shows (multiple) fitted linear models (beta coefficients, std. beta values etc.)
 #'                as HTML table, or saves them as file. The fitted lm's should have the same predictor variables and
 #'                differ only in their response (dependent variable).
 #'                
-#' @seealso \code{\link{sjt.glm}} \cr
-#'          \code{\link{sjp.lm}}
+#' @seealso \itemize{
+#'            \item \code{\link{sjt.glm}}
+#'            \item \code{\link{sjp.lm}}
+#'            }
 #' 
 #' @param ... One or more fitted lm-objects.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
@@ -69,10 +67,11 @@
 #'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 #'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 #'          cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{"UTF-8"}. Change
-#'          encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the official CSS syntax (see
-#'          \url{http://www.w3.org/Style/CSS/}). See return value \code{page.style} for details
+#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
+#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
+#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
 #'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
 #'          \enumerate{
 #'            \item the class-names with \code{"css."}-prefix as parameter name and
@@ -86,7 +85,7 @@
 #'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
 #'            \item \code{css.colnames='+color:green'} to add green color formatting to column names.
 #'          }
-#'          See further examples below and \url{http://rpubs.com/sjPlot/sjtbasics}.
+#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -119,28 +118,52 @@
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser
 #' \dontrun{
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"))}
+#' sjt.lm(fit1, 
+#'        fit2, 
+#'        labelDependentVariables = c("Barthel-Index",
+#'                                    "Negative Impact"),
+#'        labelPredictors = c("Carer's Age", 
+#'                            "Hours of Care", 
+#'                            "Carer's Sex", 
+#'                            "Educational Status"))
 #' 
 #' # show HTML-table, indicating p-values as numbers
-#' \dontrun{
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        showStdBeta=TRUE, pvaluesAsNumbers=TRUE)}
+#' sjt.lm(fit1, 
+#'        fit2, 
+#'        labelDependentVariables = c("Barthel-Index", 
+#'                                    "Negative Impact"),
+#'        labelPredictors = c("Carer's Age", 
+#'                            "Hours of Care", 
+#'                            "Carer's Sex", 
+#'                            "Educational Status"),
+#'        showStdBeta = TRUE, 
+#'        pvaluesAsNumbers = TRUE)
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser,
 #' # printing CI in a separate column
-#' \dontrun{
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        separateConfColumn=TRUE)}
+#' sjt.lm(fit1, 
+#'        fit2, 
+#'        labelDependentVariables = c("Barthel-Index", 
+#'                                    "Negative Impact"),
+#'        labelPredictors = c("Carer's Age", 
+#'                            "Hours of Care", 
+#'                            "Carer's Sex", 
+#'                            "Educational Status"),
+#'        separateConfColumn = TRUE)
 #' 
 #' # show HTML-table, indicating p-values as numbers
 #' # and printing CI in a separate column
-#' \dontrun{
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        showStdBeta=TRUE, pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)}
+#' sjt.lm(fit1, 
+#'        fit2, 
+#'        labelDependentVariables = c("Barthel-Index", 
+#'                                    "Negative Impact"),
+#'        labelPredictors = c("Carer's Age", 
+#'                            "Hours of Care", 
+#'                            "Carer's Sex", 
+#'                            "Educational Status"),
+#'        showStdBeta = TRUE, 
+#'        pvaluesAsNumbers = TRUE, 
+#'        separateConfColumn = TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # connecting two html-tables
@@ -148,32 +171,48 @@
 #' # fit two more models
 #' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
 #' fit4 <- lm(e42dep ~ c160age + c12hour + c161sex + c172code, data=efc)
-#' \dontrun{
+#' 
 #' # create and save first HTML-table
-#' part1 <- sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'                 labelPredictors=c("Carer's Age", "Hours of Care",
-#'                                   "Carer's Sex", "Educational Status"))
+#' part1 <- sjt.lm(fit1, 
+#'                 fit2, 
+#'                 labelDependentVariables = c("Barthel-Index", 
+#'                                             "Negative Impact"),
+#'                 labelPredictors = c("Carer's Age", 
+#'                                     "Hours of Care",
+#'                                     "Carer's Sex", 
+#'                                     "Educational Status"))
 #' # create and save second HTML-table
-#' part2 <- sjt.lm(fit3, fit4, labelDependentVariables=c("Service Usage", "Elder's Dependency"),
-#'                 labelPredictors=c("Carer's Age", "Hours of Care",
-#'                                   "Carer's Sex", "Educational Status"))
+#' part2 <- sjt.lm(fit3, 
+#'                 fit4, 
+#'                 labelDependentVariables = c("Service Usage", 
+#'                                             "Elder's Dependency"),
+#'                 labelPredictors = c("Carer's Age", 
+#'                                     "Hours of Care",
+#'                                     "Carer's Sex", 
+#'                                     "Educational Status"))
 #' # browse temporary file
 #' htmlFile <- tempfile(fileext=".html")
 #' write(sprintf("<html><head>%s</head><body>%s<p></p>%s</body></html>",
-#'               part1$page.style, part1$page.content, part2$page.content),
-#'               file=htmlFile)
+#'               part1$page.style, 
+#'               part1$page.content, 
+#'               part2$page.content),
+#'       file = htmlFile)
 #' viewer <- getOption("viewer")
-#' if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)}
+#' if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' \dontrun{
-#' sjt.lm(fit1, fit2, labelDependentVariables=c("Barthel-Index", "Negative Impact"),
-#'        labelPredictors=c("Carer's Age", "Hours of Care", "Carer's Sex", "Educational Status"),
-#'        CSS=list(css.table="border: 2px solid;",
-#'                 css.tdata="border: 1px solid;",
-#'                 css.depvarhead="color:#003399;"))}
+#' sjt.lm(fit1, 
+#'        fit2, 
+#'        labelDependentVariables = c("Barthel-Index", "Negative Impact"),
+#'        labelPredictors = c("Carer's Age", 
+#'                            "Hours of Care", 
+#'                            "Carer's Sex", 
+#'                            "Educational Status"),
+#'        CSS = list(css.table = "border: 2px solid;",
+#'                   css.tdata = "border: 1px solid;",
+#'                   css.depvarhead = "color:#003399;"))}
 #'        
 #' @export
 sjt.lm <- function (..., 
@@ -209,10 +248,14 @@ sjt.lm <- function (...,
                     showFStat=FALSE,
                     showAIC=FALSE,
                     cellSpacing=0.2,
-                    encoding="UTF-8",
+                    encoding=NULL,
                     CSS=NULL,
                     useViewer=TRUE,
                     no.output=FALSE) {
+  # -------------------------------------
+  # check encoding
+  # -------------------------------------
+  encoding <- get.encoding(encoding)
   # ------------------------
   # set page encoding
   # ------------------------
@@ -405,6 +448,29 @@ sjt.lm <- function (...,
   # set default predictor labels
   # -------------------------------------
   if (is.null(labelPredictors)) {
+    fit <- input_list[[i]]
+    labelPredictors <- c()
+    # --------------------------------------------------------
+    # auto-retrieve value labels
+    # --------------------------------------------------------
+    # iterate coefficients (1 is intercept or response)
+    for (i in 2 : ncol(fit$model)) {
+      # check if we hav label
+      lab <- autoSetVariableLabels(fit$model[, i])
+      # if not, use coefficient name
+      if (is.null(lab)) {
+        lab <- row.names(coeffs)[-1][i]
+      }
+      labelPredictors <- c(labelPredictors, lab)
+    }
+    # labelPredictors <- row.names(coeffs)[-1]
+  }
+  # --------------------------------------------------------
+  # auto-retrieving variable labels does not work when we
+  # have factors with different levels, which appear as 
+  # "multiple predictors", but are only one variable
+  # --------------------------------------------------------
+  if (is.null(labelPredictors) || length(labelPredictors) < length(row.names(coeffs)[-1])) {
     labelPredictors <- row.names(coeffs)[-1]
   }
   # -------------------------------------
@@ -545,7 +611,7 @@ sjt.lm <- function (...,
   }
   page.content <- paste0(page.content, sprintf("\n  <tr>\n    <td class=\"tdata summary leftalign firstsumrow\">%s</td>\n", stringObservations))
   for (i in 1:length(input_list)) {
-    page.content <- paste(page.content, sprintf("   %s%i</td>\n", colspanstringfirstrow, summary(input_list[[i]])$df[2]))
+    page.content <- paste(page.content, sprintf("   %s%i</td>\n", colspanstringfirstrow, nobs(input_list[[i]])))
   }
   page.content <- paste0(page.content, "  </tr>\n")
   # -------------------------------------
@@ -637,33 +703,7 @@ sjt.lm <- function (...,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file=file)
-    }
-    # -------------------------------------
-    # else open in viewer pane
-    # -------------------------------------
-    else {
-      # else create and browse temporary file
-      htmlFile <- tempfile(fileext=".html")
-      write(toWrite, file=htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      }
-      else {
-        utils::browseURL(htmlFile)    
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
+  out.html.table(no.output, file, knitr, toWrite, useViewer)  
   # -------------------------------------
   # return results
   # -------------------------------------

@@ -3,9 +3,7 @@
 \alias{sjPlot-package}
 \alias{sjPlot}
 \docType{package}
-\title{
-sjPlot - data visualization for statistics in social science
-}
+\title{Data Visualization for Statistics in Social Science}
 \description{
   Collection of plotting and table output functions for data visualization. Results of various 
   statistical analyses (that are commonly used in social sciences) can be visualized using this package, 
@@ -50,7 +48,7 @@ sjPlot - data visualization for statistics in social science
     \item \code{sji} - data import functions
     \item \code{sjp} - plotting functions
     \item \code{sjt} - (HTML) table output functions
-    \item \code{sjs} - statistical tests functions
+    \item \code{sjs} - statistical (tests) functions
     \item \code{sju} - utility and recode functions
   }
 }
@@ -58,8 +56,8 @@ sjPlot - data visualization for statistics in social science
 \tabular{ll}{
 Package: \tab sjPlot\cr
 Type: \tab Package\cr
-Version: \tab 1.5\cr
-Date: \tab 2014-09-10\cr
+Version: \tab 1.6\cr
+Date: \tab 2014-11-19\cr
 License: \tab GPL-3\cr
 }
 }
@@ -67,7 +65,7 @@ License: \tab GPL-3\cr
 Daniel Lüdecke \email{d.luedecke@uke.de}
 }
 \references{
-RPubs: \url{http://rpubs.com/sjPlot} \cr
+Documentation: \url{http://www.strengejacke.de/sjPlot} \cr
 Weblog: \url{http://strengejacke.wordpress.com/sjplot-r-package/} \cr
 Github: \url{https://github.com/sjPlot/devel} \cr
 Bug reports: \url{https://github.com/sjPlot/devel/issues}

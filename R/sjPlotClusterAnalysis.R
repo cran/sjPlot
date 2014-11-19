@@ -8,18 +8,21 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'                as graph.
 #'                \enumerate{
 #'                \item If \code{method} is \code{kmeans}, this function first determines the optimal group count via gap statistics (unless parameter \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
-#'                \item Than a cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
-#'                \item After that, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
-#'                \item These results are shown in a graph.
+#'                \item A cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
+#'                \item Then, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
+#'                \item These results are plotted as graph.
 #'                }
 #'                This method can also be used to plot existing cluster solution as graph witouth computing
 #'                a new cluster analysis. See parameter \code{groups} for more details.
 #'                
-#' @seealso \code{\link{sjc.cluster}} \cr
-#'          \code{\link{sjc.kgap}} \cr
-#'          \code{\link{sjc.elbow}} \cr
-#'          \code{\link{sjc.grpdisc}} \cr
-#'          Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
+#' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
+#' 
+#' @seealso \itemize{
+#'            \item \code{\link{sjc.cluster}}
+#'            \item \code{\link{sjc.kgap}}
+#'            \item \code{\link{sjc.elbow}}
+#'            \item \code{\link{sjc.grpdisc}}
+#'            }
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
@@ -59,26 +62,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          bar graph indicating the goodness of classification for each group.
 #' @param title Title of diagram as string.
 #'          Example: \code{title=c("my title")}
-#' @param titleSize The size of the plot title. Default is 1.3.
-#' @param titleColor The color of the plot title. Default is \code{"black"}.
 #' @param axisLabels.x Labels for the x-axis breaks.
 #'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
 #'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be unlisted and
 #'          converted to character vector automatically.
-#' @param axisLabelAngle.x Angle for axis-labels.
-#' @param axisLabelSize The size of axis labels of both x and y axis. Default is 1.1, recommended values range
-#'          between 0.5 and 3.0.
-#' @param axisLabelColor User defined color for axis labels. If not specified, a default dark gray
-#'          color palette will be used for the labels.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
-#' @param axisTitleColor The color of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y}, not to the tick mark 
-#'          or category labels.
-#' @param axisTitleSize the size of the x and y axis labels. Refers to \code{axisTitle.x} and \code{axisTitle.y}, not to the tick mark 
-#'          or category labels. Default is 1.3.
 #' @param breakTitleAt Determines how many chars of the title are displayed in 
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Determines how many chars of the labels are displayed in 
@@ -89,39 +81,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          one line and when a line break is inserted into the axis labels.
 #' @param facetCluster If \code{TRUE}, each cluster group will be represented by an own panel.
 #'          Default is \code{FALSE}, thus all cluster groups are plotted in a single graph.
-#' @param barColor User defined color for bars.
-#'          \itemize{
-#'            \item If not specified (\code{NULL}), a default color palette will be used for the bar charts.
-#'            \item If barColor is \code{"gs"}, a greyscale will be used.
-#'            \item If barColor is \code{"bw"}, a monochrome white filling will be used.
-#'            \item If barColor is \code{"brewer"}, use the \code{colorPalette} parameter to specify a palette of the \url{http://colorbrewer2.org}.
-#'            }
-#'          Else specify your own color values as vector (e.g. \code{barColor=c("#f00000", "#00ff00", "#0080ff")}).
-#' @param barAlpha Specify the transparancy (alpha value) of bars.
-#' @param colorPalette If \code{barColor} is \code{"brewer"}, specify a color palette from the \url{http://colorbrewer2.org} here. All color brewer 
-#'          palettes supported by ggplot are accepted here.
-#' @param barWidth Width of bars. Recommended values for this parameter are from 0.4 to 1.5
-#' @param barSpace Spacing between bars. Default value is 0.1. If 0 is used, the grouped bars are sticked together and have no space
+#' @param geom.colors User defined color for bars.
+#' @param geom.size Width of bars. Recommended values for this parameter are from 0.4 to 1.5
+#' @param geom.spacing Spacing between bars. Default value is 0.1. If 0 is used, the grouped bars are sticked together and have no space
 #'          in between. Recommended values for this parameter are from 0 to 0.5
-#' @param barOutline If \code{TRUE}, each bar gets a colored outline. Default is \code{FALSE}.
-#' @param barOutlineColor The color of the bar outline. Only applies, if \code{barOutline} is set to \code{TRUE}.
-#' @param barOutlineSize The size of the bar outlines. Only applies if \code{barOutline} is \code{TRUE}.
-#'          Default is 0.2
-#' @param theme Specifies the diagram's background theme. Default (parameter \code{NULL}) is a gray 
-#'          background with white grids.
-#'          \itemize{
-#'          \item Use \code{"bw"} for a white background with gray grids
-#'          \item \code{"classic"} for a classic theme (black border, no grids)
-#'          \item \code{"minimal"} for a minimalistic theme (no border,gray grids)
-#'          \item \code{"none"} for no borders, grids and ticks or
-#'          \item \code{"themr"} if you are using the \code{ggthemr} package (in such cases, you may use the \code{ggthemr::swatch} function to retrieve theme-colors for the \code{barColor} parameter)
-#'          }
-#'          See \url{http://rpubs.com/sjPlot/custplot} for details and examples.
-#' @param borderColor User defined color of whole diagram border (panel border).
-#' @param axisColor User defined color of axis border (y- and x-axis, in case the axes should have different colors than
-#'          the diagram border).
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param showTickMarks Whether tick marks of axes should be shown or not.
 #' @param showAxisLabels.x Whether x axis labels (cluster variables) should be shown or not.
 #' @param showAxisLabels.y Whether y axis labels (z scores) should be shown or not.
 #' @param showGroupCount if \code{TRUE} (default), the count within each cluster group is added to the 
@@ -131,18 +95,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' @param legendTitle Title of the diagram's legend.
 #' @param legendLabels Labels for the guide/legend. Example: See \code{axisLabels.x}. If \code{legendLabels}
 #'          is \code{NULL} (default), the standard string \code{"Group <nr>"} will be used.
-#' @param legendPos The position of the legend, if a legend is drawn. Use \code{"bottom"}, \code{"top"}, \code{"left"}
-#'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. Right
-#'          positioning is default.
-#' @param legendSize The text size of the legend. Default is 1. Relative size, so recommended values are from 0.3 to
-#'          2.5
-#' @param legendBorderColor Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
-#' @param legendBackColor Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
-#' @param majorGridColor Specifies the color of the major grid lines of the diagram background.
-#' @param minorGridColor Specifies the color of the minor grid lines of the diagram background.
-#' @param hideGrid.x If \code{TRUE}, the x-axis-gridlines are hidden. Default is \code{FALSE}.
-#' @param hideGrid.y If \code{TRUE}, the y-axis-gridlines are hidden. Default is \code{FALSE}.
-#' @param flipCoordinates If \code{TRUE}, the x and y axis are swapped.
+#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
 #' @param reverseAxis.x if \code{TRUE}, the values on the x-axis are reversed.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -169,12 +122,25 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #' 
 #' @examples
 #' \dontrun{
-#' # K-means clustering of mtcars-dataset
+#' # k-means clustering of mtcars-dataset
 #' sjc.qclus(mtcars)
 #' 
-#' # K-means clustering of mtcars-dataset with 4 pre-defined
+#' # k-means clustering of mtcars-dataset with 4 pre-defined
 #' # groups in a faceted panel
-#' sjc.qclus(airquality, groupcount=4, facetCluster=TRUE)}
+#' sjc.qclus(airquality, 
+#'           groupcount = 4, 
+#'           facetCluster = TRUE)}
+#'           
+#' # k-means clustering of airquality data
+#' # and saving the results. most likely, 3 cluster
+#' # groups have been found (see below).
+#' airgrp <- sjc.qclus(airquality)
+#' 
+#' # "re-plot" cluster groups, without computing
+#' # new k-means cluster analysis.
+#' sjc.qclus(airquality,
+#'           groupcount = 3,
+#'           groups = airgrp$classification)
 #' 
 #' @import ggplot2
 #' @export
@@ -188,49 +154,25 @@ sjc.qclus <- function(data,
                       algorithm="Hartigan-Wong",
                       showAccuracy=FALSE,
                       title=NULL,
-                      titleSize=1.3,
-                      titleColor="black",
                       axisLabels.x=NULL,
-                      axisLabelAngle.x=0, 
-                      axisLabelSize=1.1,
-                      axisLabelColor="gray30", 
                       axisTitle.x="Cluster group characteristics",
                       axisTitle.y="Mean of z-scores",
-                      axisTitleColor="black",
-                      axisTitleSize=1.3,
                       breakTitleAt=40,
-                      breakLabelsAt=12,
+                      breakLabelsAt=20,
                       breakLegendTitleAt=20, 
                       breakLegendLabelsAt=20,
                       facetCluster=FALSE,
-                      barColor=NULL,
-                      barAlpha=1,
-                      colorPalette="GnBu",
-                      barWidth=0.5,
-                      barSpace=0.1,
-                      barOutline=FALSE, 
-                      barOutlineSize=0.2,
-                      barOutlineColor="black", 
-                      theme=NULL,
-                      borderColor=NULL, 
-                      axisColor=NULL, 
+                      geom.colors="Paired",
+                      geom.size=0.5,
+                      geom.spacing=0.1,
                       hideLegend=FALSE,
-                      showTickMarks=TRUE,
                       showAxisLabels.x=TRUE,
                       showAxisLabels.y=TRUE,
                       showGroupCount=TRUE,
                       showAccuracyLabels=FALSE,
                       legendTitle=NULL,
                       legendLabels=NULL,
-                      legendPos="right",
-                      legendSize=1,
-                      legendBorderColor="white",
-                      legendBackColor="white",
-                      majorGridColor=NULL,
-                      minorGridColor=NULL,
-                      hideGrid.x=FALSE,
-                      hideGrid.y=FALSE,
-                      flipCoordinates=FALSE,
+                      coord.flip=FALSE,
                       reverseAxis.x=FALSE,
                       printPlot=TRUE) {
   # --------------------------------------------------------
@@ -379,79 +321,11 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   df$group <- as.factor(df$group)
   # --------------------------------------------------------
-  # Prepare fill colors
+  # Hide or show Axis Labels (x axis text) 
   # --------------------------------------------------------
-  if (is.null(barColor)) {
-    scalecolors <- scale_fill_discrete(labels=legendLabels)
-  }
-  else if (barColor=="gs") {
-    scalecolors <- scale_fill_grey(labels=legendLabels)
-  }
-  else if (barColor=="brewer") {
-    # remember to specify the "colorPalette" if you use "brewer" as "barColor"
-    scalecolors <- scale_fill_brewer(palette=colorPalette, labels=legendLabels)
-  }
-  else if (barColor=="bw") {
-    barColor <- rep("white", length(legendLabels))
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-  }
-  else {
-    scalecolors <- scale_fill_manual(values=barColor, labels=legendLabels)
-  }
-  # --------------------------------------------------------
-  # check whether bars should have an outline
-  # --------------------------------------------------------
-  if (!barOutline) {
-    barOutlineColor <- waiver()
-  }
-  # --------------------------------------------------------
-  # Set theme and default grid colours. grid colours
-  # might be adjusted later
-  # --------------------------------------------------------
-  hideGridColor <- c("white")
-  if (is.null(theme)) {
-    ggtheme <- theme_gray()
-    hideGridColor <- c("gray90")
-  }
-  else if (theme=="themr") {
-    ggtheme <- NULL
-  }
-  else if (theme=="bw") {
-    ggtheme <- theme_bw()
-  }
-  else if (theme=="classic") {
-    ggtheme <- theme_classic()
-  }
-  else if (theme=="minimal") {
-    ggtheme <- theme_minimal()
-  }
-  else if (theme=="none") {
-    ggtheme <- theme_minimal()
-    majorGridColor <- c("white")
-    minorGridColor <- c("white")
-    showTickMarks <-FALSE
-  }
-  # --------------------------------------------------------
-  # Hide or show Tick Marks and Axis Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showTickMarks && !is.null(ggtheme)) {
-    ggtheme <- ggtheme + theme(axis.ticks = element_blank())
-  }
   if (!showAxisLabels.x) {
     axisLabels.x <- NULL
   }
-  # --------------------------------------------------------
-  # Set up grid colours
-  # --------------------------------------------------------
-  majorgrid <- NULL
-  minorgrid <- NULL
-  if (!is.null(majorGridColor)) {
-    majorgrid <- element_line(colour=majorGridColor)
-  }
-  if (!is.null(minorGridColor)) {
-    minorgrid <- element_line(colour=minorGridColor)
-  }
-  hidegrid <- element_line(colour=hideGridColor)
   # --------------------------------------------------------
   # create plot
   # --------------------------------------------------------
@@ -463,9 +337,8 @@ sjc.qclus <- function(data,
     gp <- ggplot(df, aes(x=x, y=y, fill=group))
   }
   gp <- gp +
-    geom_bar(stat="identity", position=position_dodge(barWidth+barSpace), colour=barOutlineColor, size=barOutlineSize, width=barWidth, alpha=barAlpha) +
+    geom_bar(stat="identity", position=position_dodge(geom.size+geom.spacing), width=geom.size) +
     scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
-    scalecolors +
     labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)
   # --------------------------------------------------------
   # hide y-axis labels
@@ -474,76 +347,11 @@ sjc.qclus <- function(data,
     gp <- gp + scale_y_continuous(labels=NULL)    
   } 
   # --------------------------------------------------------
-  # set axis label sizes and colors
-  # --------------------------------------------------------
-  # apply theme
-  if (!is.null(ggtheme)) {
-    gp <- gp +
-      ggtheme +
-      theme(axis.text = element_text(size=rel(axisLabelSize), colour=axisLabelColor), 
-            axis.text.x = element_text(angle=axisLabelAngle.x),
-            axis.title = element_text(size=rel(axisTitleSize), colour=axisTitleColor),
-            plot.title = element_text(size=rel(titleSize), colour=titleColor))
-  }
-  # --------------------------------------
-  # set position and size of legend
-  # --------------------------------------
-  if (!hideLegend) {
-    gp <- gp +
-      theme(legend.position = legendPos,
-            legend.text = element_text(size=rel(legendSize)),
-            legend.background = element_rect(colour=legendBorderColor, fill=legendBackColor))
-  }
-  else {
-    # --------------------------------------------------------
-    # Hide Legend
-    # --------------------------------------------------------
-    gp <- gp + guides(fill=FALSE)
-  }
-  # --------------------------------------------------------
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   # --------------------------------------------------------
-  if (flipCoordinates) {
+  if (coord.flip) {
     gp <- gp + coord_flip()
-  }
-  # --------------------------------------------------------
-  # border/axis color
-  # --------------------------------------------------------
-  # the panel-border-property can only be applied to the bw-theme
-  if (!is.null(borderColor)) {
-    if (!is.null(theme) && theme=="bw") {
-      gp <- gp + 
-        theme(panel.border = element_rect(colour=borderColor))
-    }
-    else {
-      cat("\nParameter 'borderColor' can only be applied to 'bw' theme.\n")
-    }
-  }
-  if (!is.null(axisColor)) {
-    gp <- gp + 
-      theme(axis.line = element_line(colour=axisColor))
-  }
-  # --------------------------------------------------------
-  # grid color/style
-  # --------------------------------------------------------
-  if (!is.null(minorgrid)) {
-    gp <- gp + 
-      theme(panel.grid.minor = minorgrid)
-  }
-  if (!is.null(majorgrid)) {
-    gp <- gp + 
-      theme(panel.grid.major = majorgrid)
-  }
-  if (hideGrid.x) {
-    gp <- gp + 
-      theme(panel.grid.major.x = hidegrid,
-            panel.grid.minor.x = hidegrid)
-  }
-  if (hideGrid.y) {
-    gp <- gp + 
-      theme(panel.grid.major.y = hidegrid,
-            panel.grid.minor.y = hidegrid)
   }
   # --------------------------------------------------------
   # use facets
@@ -551,6 +359,10 @@ sjc.qclus <- function(data,
   if (facetCluster) {
     gp <- gp + facet_wrap(~group)
   }
+  # ---------------------------------------------------------
+  # set geom colors
+  # ---------------------------------------------------------
+  gp <- sj.setGeomColors(gp, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)  
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
@@ -571,13 +383,17 @@ sjc.qclus <- function(data,
 #' @name sjc.cluster
 #' @description Compute hierarchical or kmeans cluster analysis and returns the group
 #'                association for each observation as vector.
-#' @seealso \code{\link{sjc.qclus}} \cr
-#'          \code{\link{sjc.dend}} \cr
-#'          \code{\link{sjc.grpdisc}} \cr
-#'          \code{\link{sjc.elbow}} \cr
-#'          \code{\link{kmeans}} \cr
-#'          \code{\link{hclust}} \cr
-#'          Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
+#'                
+#' @seealso \itemize{
+#'            \item \code{\link{sjc.qclus}}
+#'            \item \code{\link{sjc.dend}}
+#'            \item \code{\link{sjc.grpdisc}}
+#'            \item \code{\link{sjc.elbow}}
+#'            \item \code{\link{kmeans}}
+#'            \item \code{\link{hclust}}
+#'            }
+#'          
+#' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
@@ -782,6 +598,7 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
 #' @description Computes linear discriminant analysis on classified cluster groups.
 #'                This function plots a bar graph indicating the goodness of classification
 #'                for each group.
+#'                
 #' @seealso \code{\link{sjc.dend}} \cr
 #'          \code{\link{sjc.cluster}} \cr
 #'          \code{\link{sjc.elbow}}
@@ -890,7 +707,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
     # give chart and X-axis a title
     labs(title="Accuracy of cluster group classification (in %)", x="cluster groups", y=NULL) +
     # print value labels into bar chart
-    geom_text(aes(label=cprc, y=cprc), vjust=1.2, colour="white", size=4.5) +
+    geom_text(aes(label=cprc, y=cprc), vjust=1.2, colour="white") +
     # larger font size for axes
     theme(axis.line = element_line(colour="gray"), 
           axis.text = element_text(size=rel(1.2)), 
@@ -977,7 +794,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
   plot(ggplot(dfElbowValues, aes(x=xpos, y=wssround, label=wssround)) + 
     geom_line(colour=lcol) + 
     geom_point(colour=lcol, size=3) +
-    geom_text(hjust=-0.3, size=4) +
+    geom_text(hjust=-0.3) +
     labs(title="Elbow criterion (sum of squares)", x="Number of clusters", y="elbow value"))
   # --------------------------------------------------
   # Plot diagram with differences between each step
@@ -988,7 +805,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
     plot(ggplot(dfElbowDiff, aes(x=Var2, y=value, label=value)) + 
            geom_line(colour=lcol) + 
            geom_point(colour=lcol, size=3) +
-           geom_text(hjust=-0.3, size=4) +
+           geom_text(hjust=-0.3) +
            labs(title="Elbow criterion (differences between sum of squares)", x="difference to previews cluster", y="delta"))
   }
 }
@@ -999,7 +816,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
 #' @description An implementation of the gap statistic algorithm from Tibshirani, Walther, and Hastie's
 #'                "Estimating the number of clusters in a data set via the gap statistic".
 #'                This function calls the \code{clusGap} function of the
-#'                cluster-package (\url{http://cran.r-project.org/web/packages/cluster/index.html})
+#'                \href{http://cran.r-project.org/web/packages/cluster/index.html}{cluster-package}
 #'                to calculate the data for the plot.
 #'                
 #' @seealso \code{\link{sjc.elbow}}
@@ -1031,7 +848,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
 #' 
 #' @references \itemize{
 #'              \item Tibshirani R, Walther G, Hastie T (2001) Estimating the number of clusters in a data set via gap statistic. J. R. Statist. Soc. B, 63, Part 2, pp. 411-423
-#'              \item Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4. (\url{http://cran.r-project.org/web/packages/cluster/index.html})
+#'              \item Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4. (\href{http://cran.r-project.org/web/packages/cluster/index.html}{web})
 #'             }
 #' 
 #' @examples
