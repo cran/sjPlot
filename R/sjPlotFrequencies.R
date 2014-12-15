@@ -19,7 +19,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #' 
 #' @param varCount The variable which frequencies should be plotted.
 #' @param title Title of diagram as string. Example: \code{title=c("my title")}.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{varCount}.
 #'          default is \code{NULL}, so no weights are used.
@@ -29,13 +29,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #' @param interactionVar An interaction variable which can be used for box plots. Divides the observations in 
 #'          \code{varCount} into the factors (sub groups) of \code{interactionVar}. Only applies when parameter \code{"type"}
 #'          is \code{"box"} or \code{"violin"} (resp. their alternative strings like \code{"boxplot"}, \code{"boxplots"} or \code{"v"}).
-#' @param maxYlim Indicates how to calculate the maximum limit of the y-axis.
-#'          If \code{TRUE}, the upper y-limit corresponds to the amount of cases,
-#'          i.e. y-axis for each plot of a data base are the same.
-#'          If \code{FALSE} (default), the maximum y-axis depends on the highest count of a
-#'          variable's answer category. In this case, the y-axis breaks may change,
-#'          depending on the variable.
-#' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
 #' @param sort.frq Determines whether categories on x-axis should be order according to the frequencies or not. 
 #'          Default is \code{"none"}, so categories are not ordered by frequency. Use \code{"asc"} or
 #'          \code{"desc"} for sorting categories ascending or descending in relation to the frequencies.
@@ -62,6 +55,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #'          These labels replace the \code{axisLabels.x}. Only applies, when using box or violin plots
 #'          (i.e. \code{"type"} is \code{"box"} or \code{"violin"}) and \code{interactionVar} is not \code{NULL}.
 #'          Example: See \code{axisLabels.x}.
+#' @param axisLimits.y A numeric vector of length two, defining lower and upper axis limits
+#'          of the y scale. By default, this parameter is set to \code{NULL}, i.e. the 
+#'          y-axis ranges from 0 to required maximum.
 #' @param breakTitleAt Determines how many chars of the title are displayed in 
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Determines how many chars of the labels are displayed in 
@@ -108,11 +104,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #' @param normalCurveAlpha Specify the transparancy (alpha value) of the normal curve. Only
 #'          applies if \code{showNormalCurve} is \code{TRUE}.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the x axis.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          are assigned to the x axis. By default, \code{""} is used, i.e. no title
+#'          is printed.
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the y axis.
+#'          are assigned to the y axis. By default, \code{""} is used, i.e. no title
+#'          is printed.
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param hist.skipZeros If \code{TRUE}, zero counts (categories with no answer) in \code{varCount} are omitted
 #'          when drawing histrograms, and the mapping is changed to \code{\link{stat_bin}}. Only applies to 
 #'          histograms (see \code{type}). Use this parameter to get identical results to the default
@@ -165,7 +165,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #' # bar plot
 #' # ---------------
 #' sjp.frq(ChickWeight$Diet)
-#' sjp.frq(ChickWeight$Diet, maxYlim=TRUE)
 #' 
 #' # ---------------
 #' # bar plot with EUROFAMCARE sample dataset
@@ -216,7 +215,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("frq", "grp", "ia", "..de
 #' # Simulate ggplot-default histogram, using "hist.skipZeros"
 #' # and adjusted "geom.size".
 #' # -------------------------------------------------
-#' sjp.frq(efc$c160age, type="h", hist.skipZeros=TRUE, geom.size=1)
+#' sjp.frq(efc$c160age, 
+#'         type = "h", 
+#'         hist.skipZeros = TRUE, 
+#'         geom.size = 1)
 #' 
 #'   
 #' @import ggplot2
@@ -226,14 +228,13 @@ sjp.frq <- function(varCount,
                     weightBy=NULL,
                     weightByTitleString=NULL,
                     interactionVar=NULL,
-                    maxYlim=FALSE, 
-                    upperYlim=NULL,
                     sort.frq="none",
                     type="bars",
                     geom.size=0.7,
                     geom.colors=NULL,
                     axisLabels.x=NULL, 
                     interactionVarLabels=NULL,
+                    axisLimits.y = NULL,
                     breakTitleAt=50, 
                     breakLabelsAt=20, 
                     gridBreaksAt=NULL,
@@ -328,7 +329,7 @@ sjp.frq <- function(varCount,
   # check whether variable should be auto-grouped
   #---------------------------------------------------
   if (!is.null(autoGroupAt) && length(unique(varCount))>=autoGroupAt) {
-    cat(sprintf("\nVariable has %i unique values and was grouped...\n", length(unique(varCount))))
+    message(sprintf("Variable has %i unique values and was grouped...", length(unique(varCount))))
     agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
     axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
     varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
@@ -349,7 +350,6 @@ sjp.frq <- function(varCount,
   mydat <- df.frq$mydat
   axisLabels.x <- df.frq$labels
   catmin <- df.frq$catmin
-  lower_lim <- 0
   # --------------------------------------------------------
   # Trim labels and title to appropriate size
   # --------------------------------------------------------
@@ -412,10 +412,12 @@ sjp.frq <- function(varCount,
   # Prepare bar charts
   # --------------------------------------------------------
   trimViolin <- FALSE
+  lower_lim <- 0
   # calculate upper y-axis-range
   # if we have a fixed value, use this one here
-  if (!is.null(upperYlim)) {
-    upper_lim <- upperYlim
+  if (!is.null(axisLimits.y) && length(axisLimits.y) == 2) {
+    lower_lim <- axisLimits.y[1]
+    upper_lim <- axisLimits.y[2]
   }
   else {
     # in case we have a histrogram, calculate
@@ -440,14 +442,8 @@ sjp.frq <- function(varCount,
     }
     else {
       # else calculate upper y-axis-range depending
-      # on the amount of cases...
-      if (maxYlim) {
-        upper_lim <- basisYlim(length(varCount))
-      }
-      else {
-        # ... or the amount of max. answers per category
-        upper_lim <- freqYlim(mydat$frq)
-      }
+      # the amount of max. answers per category
+      upper_lim <- freqYlim(mydat$frq)
     }
   }
   # --------------------------------------------------------
@@ -663,7 +659,7 @@ sjp.frq <- function(varCount,
       # base constructor
       if (hist.skipZeros) {
         x <- na.omit(varCount)
-        if (geom.size<round(diff(range(x))/50)) cat("Using very small binwidth. Consider adjusting \"geom.size\"-parameter.\n")
+        if (geom.size<round(diff(range(x))/50)) message("Using very small binwidth. Consider adjusting \"geom.size\"-parameter.")
         hist.dat <- data.frame(x)
         baseplot <- ggplot(mydat)
         basehist <- geom_histogram(data = hist.dat, aes(x = x), binwidth = geom.size, fill = geom.colors)
@@ -757,29 +753,6 @@ sjp.frq <- function(varCount,
 
 
 # Berechnet die aufgerundete Obergrenze der y-Achse anhand
-# der maximal möglichen Fallzahl einer Antwortmöglichkeit
-# Dadurch werden Balkendiagramme eines Datensatzes immer im
-# gleichen Vergältnis dargestellt, da die y-Achse nie variiert,
-# sondern immer von 0 bis (Anzahl der Fälle) geht.
-#
-# Parameter:
-# - len: die Anzahl an max. möglichen Fällen
-basisYlim <- function(len) {
-  anzahl <- 1
-  while (len>=(10*anzahl)) {
-    anzahl <- anzahl * 10
-  }
-  
-  while(len>=anzahl) {
-    anzahl <- anzahl + round(anzahl/10,0)
-  }
-  
-#  retval <- (ceiling(len/anzahl)*anzahl)
-#  return (retval)
-  return (anzahl)
-}
-
-# Berechnet die aufgerundete Obergrenze der y-Achse anhand
 # des höchsten Datenwertes einer Antwortmöglichkeit.
 # Dadurch werden Balkendiagramme eines Datensatzes immer unterschiedlich
 # dargestellt, je nach Anzahl der häufigsten Antworten. Die y-Achse
@@ -830,3 +803,4 @@ insertRowToDF<-function(X,index_after,vector_to_insert){
   row.names(X)<-1:nrow(X)
   return (X)
 }
+

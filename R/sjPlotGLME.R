@@ -1,5 +1,5 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "pred", "prob"))
+if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "pred", "prob", "p"))
 
 
 #' @title Plot odds ratios (forest plots) of generalized linear mixed effects models
@@ -28,6 +28,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #'            \item \code{"fe.pc"} or \code{"fe.prob"} to plot probability curves of all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.
 #'            \item \code{"ri.pc"} or \code{"ri.prob"} to plot probability curves of random intercept variances for all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.
 #'          }
+#' @param ri.nr Numeric value. If \code{type = "re"} and fitted model has more than one random
+#'          intercept, \code{ri.nr} indicates which random effects of which random intercept (or:
+#'          which list element of \code{lme4::ranef}) will be plotted. Default is \code{1},
+#'          so the first (or only) random intercept will be plotted.
 #' @param show.se Use \code{TRUE} to plot (depending on \code{type}) the standard
 #'          error for probability curves.
 #' @param title a character vector with one or more labels that are used as plot title. If
@@ -44,6 +48,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #' @param hideErrorBars If \code{TRUE}, the error bars that indicate the confidence intervals of the odds ratios are not
 #'          shown.
 #' @param showIntercept if \code{TRUE}, the intercept is included when plotting random or fixed effects.
+#' @param stringIntercept string of intercept estimate on the y axis. Only applies, if \code{showIntercept}
+#'          is \code{TRUE} and \code{pred.labels} is not \code{NULL}.
 #' @param sort.coef indicates which coefficient should be used for sorting odds ratios
 #'          \itemize{
 #'            \item If \code{NULL} (default), no sorting is done and odds ratios are sorted in order of model coefficients.
@@ -56,8 +62,17 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #' @param pred.labels a character vector with labels for the predictors / covariates / groups. Should either be vector
 #'          of fixed effects variable labels (if \code{type = "fe"}) or a vector of group (value)
 #'          labels from the random intercept's categories (if \code{type = "re"}).
+#' @param axisTitle.x A label (title) for the x axis. If not specified, a default labelling depending
+#'          on the plot type is chosen.
+#' @param axisTitle.y A label (title) for the y axis. If not specified, a default labelling depending
+#'          on the plot type is chosen.
 #' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
 #' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
+#' @param showValueLabels Whether odds ratio values should be plotted to each dot or not.
+#' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
+#'          Default is 2, i.e. estimators have 2 digits after decimal point.
+#' @param showPValueLabels Whether the significance levels of each coefficient should be appended
+#'          to values or not.
 #' @param facet.grid \code{TRUE} when each plot should be plotted separately instead of
 #'          an integrated (faceted) single graph.
 #' @param free.scale If \code{TRUE} and \code{facet.grid=TRUE}, each facet grid gets its own fitted scale. If
@@ -71,7 +86,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #'            \item a data frame \code{mydf} with the data used to build the ggplot-object(s).
 #'            }
 #'
-#' @note Thanks to Robert Reijntjes from Leiden University Medical Center for sharing 
+#' @note Thanks to Robert Reijntjes from Leiden University Medical Center for sharing
 #'         R code that is used to compute fixed effects correlation matrices and
 #'         qq-plots of random effects.
 #'
@@ -113,73 +128,87 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #' fit <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + (1|grp),
 #'              data = mydf,
 #'              family = binomial("logit"))
-#' 
+#'
 #' # plot random effects
 #' sjp.glmer(fit)
-#' 
+#'
 #' # plot fixed effects
 #' sjp.glmer(fit, type = "fe")
-#' 
+#'
 #' # plot and sort fixed effects
 #' sjp.glmer(fit,
 #'           type = "fe",
 #'           sort.coef = TRUE)
-#' 
+#'
 #' # plot fixed effects correlations
 #' sjp.glmer(fit, type = "fe.cor")
-#' 
+#'
 #' # qq-plot of random effects
 #' sjp.glmer(fit, type = "re.qq")
-#' 
+#'
 #' # plot probability curves for each covariate
 #' # grouped by random intercepts
-#' sjp.glmer(fit, 
-#'           type = "ri.pc", 
+#' sjp.glmer(fit,
+#'           type = "ri.pc",
 #'           show.se = TRUE)
-#' 
+#'
 #' # plot probability curves for each covariate
 #' # grouped by random intercepts in integrated plots
-#' sjp.glmer(fit, 
-#'           type = "ri.pc", 
+#' sjp.glmer(fit,
+#'           type = "ri.pc",
 #'           facet.grid = FALSE)
 #'
 #' # plot probability curve of fixed effects
 #' sjp.glmer(fit, type = "fe.pc")}
-#' 
+#'
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #' @export
 sjp.glmer <- function(fit,
                       type = "re",
+                      ri.nr = 1,
                       title = NULL,
                       geom.size = 3,
                       geom.colors = "Set1",
                       hideErrorBars = FALSE,
                       showIntercept = TRUE,
+                      stringIntercept = "(Intercept)",
                       sort.coef = NULL,
                       pred.labels = NULL,
+                      axisTitle.x = NULL,
+                      axisTitle.y = NULL,
                       facet.grid = TRUE,
                       free.scale = FALSE,
                       interceptLineType = 2,
                       interceptLineColor = "grey70",
+                      showValueLabels = TRUE, 
+                      labelDigits = 2,
+                      showPValueLabels = TRUE,
                       fade.ns = FALSE,
                       show.se = FALSE,
                       printPlot = TRUE) {
-  
+
   if (type == "fe.prob") type <- "fe.pc"
   if (type == "ri.prob") type <- "ri.pc"
-  
+
   sjp.lme4(fit,
            type,
+           ri.nr,
            title,
            geom.size,
            geom.colors,
            hideErrorBars,
            showIntercept,
+           stringIntercept,
            sort.coef,
            pred.labels,
+           axisTitle.x,
+           axisTitle.y,
            interceptLineType,
            interceptLineColor,
+           showValueLabels, 
+           labelDigits,
+           showPValueLabels,
            facet.grid,
            free.scale,
            fade.ns,
@@ -213,6 +242,10 @@ sjp.glmer <- function(fit,
 #'            \item \code{"fe.cor"} for correlation matrix of fixed effects
 #'            \item \code{"re.qq"} for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)
 #'          }
+#' @param ri.nr Numeric value. If \code{type = "re"} and fitted model has more than one random
+#'          intercept, \code{ri.nr} indicates which random effects of which random intercept (or:
+#'          which list element of \code{lme4::ranef}) will be plotted. Default is \code{1},
+#'          so the first (or only) random intercept will be plotted.
 #' @param title a character vector with one or more labels that are used as plot title. If
 #'          \code{type = "re"}, use the predictors' variable labels as titles.
 #' @param geom.colors User defined color palette for geoms. Must either be vector with two color values
@@ -227,6 +260,8 @@ sjp.glmer <- function(fit,
 #' @param hideErrorBars If \code{TRUE}, the error bars that indicate the confidence intervals of the estimates are not
 #'          shown.
 #' @param showIntercept if \code{TRUE}, the intercept is included when plotting random or fixed effects.
+#' @param stringIntercept string of intercept estimate on the y axis. Only applies, if \code{showIntercept}
+#'          is \code{TRUE} and \code{pred.labels} is not \code{NULL}.
 #' @param sort.coef indicates which coefficient should be used for sorting estimates.
 #'          \itemize{
 #'            \item If \code{NULL} (default), no sorting is done and estimates are sorted in order of model coefficients.
@@ -239,8 +274,18 @@ sjp.glmer <- function(fit,
 #' @param pred.labels a character vector with labels for the predictors / covariates / groups. Should either be vector
 #'          of fixed effects variable labels (if \code{type = "fe"}) or a vector of group (value)
 #'          labels from the random intercept's categories (if \code{type = "re"}).
+#' @param axisTitle.x A label (title) for the x axis. If not specified, a default labelling depending
+#'          on the plot type is chosen.
+#' @param axisTitle.y A label (title) for the y axis. If not specified, a default labelling depending
+#'          on the plot type is chosen.
 #' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
 #' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
+#' @param showValueLabels Whether the beta and standardized beta values should be plotted 
+#'          to each dot or not.
+#' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
+#'          Default is 2, i.e. estimators have 2 digits after decimal point.
+#' @param showPValueLabels Whether the significance levels of each coefficient should be appended
+#'          to values or not
 #' @param facet.grid \code{TRUE} when each plot should be plotted separately instead of
 #'          an integrated (faceted) single graph.
 #' @param free.scale If \code{TRUE} and \code{facet.grid=TRUE}, each facet grid gets its own fitted scale. If
@@ -279,8 +324,8 @@ sjp.glmer <- function(fit,
 #' sjp.lmer(fit,
 #'          type = "fe",
 #'          sort.coef = TRUE)
-#'          
-#'          
+#'
+#'
 #' library(lme4)
 #' data(efc)
 #' # prepare group variable
@@ -295,21 +340,21 @@ sjp.glmer <- function(fit,
 #' # fit glmer
 #' fit <- lmer(neg_c_7 ~ sex + c12hour + barthel + (1|grp),
 #'             data = mydf)
-#' 
+#'
 #' # plot random effects
 #' sjp.lmer(fit)
-#' 
+#'
 #' # plot fixed effects
 #' sjp.lmer(fit, type = "fe")
-#' 
+#'
 # plot and sort fixed effects
 #' sjp.lmer(fit,
 #'          type = "fe",
 #'          sort.coef = TRUE)
-#' 
+#'
 #' # plot fixed effects correlations
 #' sjp.lmer(fit, type = "fe.cor")
-#' 
+#'
 #' # qq-plot of random effects
 #' sjp.lmer(fit, type = "re.qq")}
 #'
@@ -317,30 +362,44 @@ sjp.glmer <- function(fit,
 #' @export
 sjp.lmer <- function(fit,
                      type = "re",
+                     ri.nr = 1,
                      title = NULL,
                      geom.size = 3,
                      geom.colors = "Set1",
                      hideErrorBars = FALSE,
                      showIntercept = TRUE,
+                     stringIntercept = "(Intercept)",
                      sort.coef = NULL,
                      pred.labels = NULL,
+                     axisTitle.x = NULL,
+                     axisTitle.y = NULL,
                      interceptLineType = 2,
                      interceptLineColor = "grey70",
+                     showValueLabels=TRUE, 
+                     labelDigits=2,
+                     showPValueLabels=TRUE,
                      facet.grid = TRUE,
                      free.scale = FALSE,
                      fade.ns = FALSE,
                      printPlot = TRUE) {
   sjp.lme4(fit,
            type,
+           ri.nr,
            title,
            geom.size,
            geom.colors,
            hideErrorBars,
            showIntercept,
+           stringIntercept,
            sort.coef,
            pred.labels,
+           axisTitle.x,
+           axisTitle.y,
            interceptLineType,
            interceptLineColor,
+           showValueLabels, 
+           labelDigits,
+           showPValueLabels,
            facet.grid,
            free.scale,
            fade.ns,
@@ -351,21 +410,37 @@ sjp.lmer <- function(fit,
 
 sjp.lme4  <- function(fit,
                       type,
+                      ri.nr,
                       title,
                       geom.size,
                       geom.colors,
                       hideErrorBars,
                       showIntercept,
+                      stringIntercept,
                       sort.coef,
                       pred.labels,
+                      axisTitle.x,
+                      axisTitle.y,
                       interceptLineType,
                       interceptLineColor,
+                      showValueLabels, 
+                      labelDigits,
+                      showPValueLabels,
                       facet.grid,
                       free.scale,
                       fade.ns,
                       show.se,
                       printPlot,
                       fun) {
+  # -------------------------------------
+  # check type
+  # -------------------------------------
+  if (type != "re" && type != "fe" && type != "fe.cor" &&
+      type != "re.qq" && type != "fe.pc" && type != "ri.pc" &&
+      type != "fe.prob" && type != "ri.prob") {
+    warning("'type' must be one of 're', 'fe', 'fe.cor', 're.qq', 'fe.pc', 'ri.pc', 'fe.prob' or 'ri.prob'. Defaulting to 'fe' now.")
+    type  <- "fe"
+  }
   # -------------------------------------
   # check if required package is available
   # -------------------------------------
@@ -388,13 +463,27 @@ sjp.lme4  <- function(fit,
   # ---------------------------------------
   if (type == "re") {
     # ---------------------------------------
+    # check amounnt of random intercepts
+    # ---------------------------------------
+    if (length(lme4::ranef(fit)) > ri.nr) ri.nr <- 1
+    # ---------------------------------------
     # copy estimates of random effects
     # ---------------------------------------
-    mydf.ef <- as.data.frame(lme4::ranef(fit)[[1]])
+    mydf.ef <- as.data.frame(lme4::ranef(fit)[[ri.nr]])
     # ---------------------------------------
     # copy rownames as axis labels, if not set
     # ---------------------------------------
-    if (is.null(pred.labels)) pred.labels <- rownames(mydf.ef)
+    if (is.null(pred.labels)) {
+      # use rownames, if pred.labels not available
+      pred.labels <- rownames(mydf.ef)
+      # check if intercept should be removed?
+      if (!showIntercept) pred.labels <- pred.labels[-1]
+    }
+    else {
+      # check if intercept should be added, in case
+      # pred.labels are passed
+      if (showIntercept) pred.labels <- c(stringIntercept, pred.labels)
+    }
     # ---------------------------------------
     # show intercept?
     # ---------------------------------------
@@ -406,7 +495,7 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # retrieve standard errors, for ci
       # ---------------------------------------
-      se.fit <- arm::se.ranef(fit)[[1]]
+      se.fit <- arm::se.ranef(fit)[[ri.nr]]
       # ---------------------------------------
       # create data frame
       # 1. col: odds ratios /estimates of re-estimates
@@ -447,7 +536,7 @@ sjp.lme4  <- function(fit,
             # (group levels / labels) have to be re-sorted for
             # each coefficient, which is not possible with facet.grids
             # ---------------------------------------
-            cat("Sorting each group of random intercept ('sort.all') is not possible when 'facet.grids = TRUE'.")
+            message("Sorting each group of random intercept ('sort.all') is not possible when 'facet.grid = TRUE'.")
           }
           else {
             # ---------------------------------------
@@ -474,6 +563,8 @@ sjp.lme4  <- function(fit,
       # axis labels can be sorted accordingly later
       # ---------------------------------------
       tmp$sorting <- reihe
+      # no p-values for random effects
+      tmp$p <- ""
       # ---------------------------------------
       # add to final data frame
       # ---------------------------------------
@@ -496,16 +587,73 @@ sjp.lme4  <- function(fit,
       mydf <- as.data.frame(cbind(OR = lme4::fixef(fit),
                                   lme4::confint.merMod(fit, method = "Wald")))
     }
+    # ----------------------------
+    # print p-values in bar charts
+    # ----------------------------
+    # retrieve sigificance level of independent variables (p-values)
+    cs <- coef(summary(fit))
+    # check if we have p-values in summary
+    if (ncol(cs) >= 4) {
+      pv <- cs[, 4]
+    }
+    else {
+      # if we don't have p-values in summary,
+      # don't show them
+      pv <- rep(1, nrow(cs))
+      showPValueLabels <- FALSE
+    }
+    # for better readability, convert p-values to asterisks
+    # with:
+    # p < 0.001 = ***
+    # p < 0.01 = **
+    # p < 0.05 = *
+    # retrieve odds ratios
+    if (fun == "glm") {
+      ov <- exp(lme4::fixef(fit))
+    }
+    else {
+      ov <- lme4::fixef(fit)
+    }
+    # init data column for p-values
+    ps <- rep("", length(ov))
+    # ----------------------------
+    # copy OR-values into data column
+    # ----------------------------
+    if (showValueLabels) {
+      for (i in 1:length(ov)) {
+        ps[i] <- sprintf("%.*f", labelDigits, ov[i])
+      }
+    }
+    # ----------------------------
+    # copy p-values into data column
+    # ----------------------------
+    if (showPValueLabels) {
+      for (i in 1:length(pv)) {
+        if (pv[i] >= 0.05) {
+        }
+        else if (pv[i] >= 0.01 && pv[i] < 0.05) {
+          ps[i] <- paste(ps[i], "*")
+        }
+        else if (pv[i] >= 0.001 && pv[i] < 0.01) {
+          ps[i] <- paste(ps[i], "**")
+        }
+        else {
+          ps[i] <- paste(ps[i], "***")
+        }
+      }
+    }
+    # bind p-values
+    mydf$p <- ps
     # ---------------------------------------
     # set proper column names
     # ---------------------------------------
-    colnames(mydf) <- c("OR", "lower.CI", "upper.CI")
+    colnames(mydf) <- c("OR", "lower.CI", "upper.CI", "p")
     # ---------------------------------------
     # just one group, so no faceting needed
     # ---------------------------------------
     mydf$grp <- c("1")
     facet.grid <- FALSE
-    if (is.null(title)) title <- ""
+    if (is.null(title)) title <- "Fixed effects"
     # ---------------------------------------
     # show intercept?
     # ---------------------------------------
@@ -513,7 +661,14 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     # copy rownames as axis labels, if not set
     # ---------------------------------------
-    if (is.null(pred.labels)) pred.labels <- rownames(mydf)
+    if (is.null(pred.labels)) {
+      pred.labels <- rownames(mydf)
+    }
+    else {
+      # check if intercept should be added, in case
+      # pred.labels are passed
+      if (showIntercept) pred.labels <- c(stringIntercept, pred.labels)
+    }
     # ---------------------------------------
     # sort data frame. init order
     # ---------------------------------------
@@ -577,7 +732,8 @@ sjp.lme4  <- function(fit,
   # odds ratios should be faded.
   # ---------------------------------------
   if (fade.ns == TRUE) {
-    mydf$fade <- (mydf$lower.CI < 1 & mydf$upper.CI > 1)
+    interc <- ifelse (fun == "glm", 1, 0)
+    mydf$fade <- (mydf$lower.CI < interc & mydf$upper.CI > interc)
   }
   else {
     mydf$fade <- FALSE
@@ -608,6 +764,9 @@ sjp.lme4  <- function(fit,
                  linetype = interceptLineType,
                  color = interceptLineColor) +
       geom_point(size = geom.size) +
+      # print value labels and p-values
+      geom_text(aes(label = p, y = OR), 
+                vjust = -0.7) +
       # ---------------------------------------
       # labels in sorted order
       # ---------------------------------------
@@ -639,18 +798,21 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     # axis titles
     # ---------------------------------------
-    if (type == "fe")
-      y.axis.text <- "Fixed effects"
-    else if (type == "re")
-      y.axis.text <- "Random effects"
-    x.axis.text <- "Levels"
+    if (type == "fe") {
+      if (is.null(axisTitle.x)) axisTitle.x <- ""
+      if (is.null(axisTitle.y)) axisTitle.y <- ""
+    }
+    else if (type == "re") {
+      if (is.null(axisTitle.x)) axisTitle.x <- "Group levels"
+      if (is.null(axisTitle.y)) axisTitle.y <- ""
+    }
     # ---------------------------------------
     # add facet grid here, faceting by group
     # (level) of random intercept
     # ---------------------------------------
     if (facet.grid) {
       gp <- gp +
-        labs(x = x.axis.text, y = y.axis.text)
+        labs(x = axisTitle.x, y = axisTitle.y)
       # check if user wants free scale for each facet
       if (free.scale)
         gp  <- gp + facet_wrap( ~ grp, scales = "free_y")
@@ -659,7 +821,7 @@ sjp.lme4  <- function(fit,
     }
     else {
       gp <- gp +
-        labs(x = x.axis.text, y = y.axis.text, title = title)
+        labs(x = axisTitle.x, y = axisTitle.y, title = title)
     }
     return (gp)
   }
@@ -667,6 +829,11 @@ sjp.lme4  <- function(fit,
   # facet grid means, just one plot
   # ---------------------------------------
   if (facet.grid) {
+    # ---------------------------------------
+    # for random effects, no title is displayed in facet. so
+    # tell user via message that random effects are plotted
+    # ---------------------------------------
+    if (type == "re") message("Plotting random effects...")
     me.plot <- plot.effe(mydf,
                          title,
                          facet.grid,
@@ -695,7 +862,7 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     # set title for plots (coefficient label)
     # ---------------------------------------
-    if (is.null(title)) title <- as.character(groups)
+    if (is.null(title)) title <- paste("Random effects of ", as.character(groups))
     me.plot.list <- list()
     # ---------------------------------------
     # iterate coefficients
@@ -788,17 +955,20 @@ sjp.lme.feprobcurv <- function(fit,
       }
       # find coef-position
       coef.pos <- which(coef.names == fit.fac.name)
-      # calculate x-beta by multiplying original values with estimate of that term
-      mydf.vals$xbeta <- mydf.vals$value * (lme4::fixef(fit)[coef.pos])
-      # calculate probability (y) via cdf-function
-      mydf.vals$y <- odds.to.prob(lme4::fixef(fit)[1] + mydf.vals$xbeta)
-      # save predictor name
-      pred.name <- fit.term.names[i]
-      axisLabels.mp <- c(axisLabels.mp, pred.name)
-      # assign group
-      mydf.vals$grp <- pred.name
-      # add mydf to list
-      mydf.metricpred[[length(mydf.metricpred) + 1]] <- mydf.vals
+      # check if we have found the coefficient
+      if (length(coef.pos) > 0) {
+        # calculate x-beta by multiplying original values with estimate of that term
+        mydf.vals$xbeta <- mydf.vals$value * (lme4::fixef(fit)[coef.pos])
+        # calculate probability (y) via cdf-function
+        mydf.vals$y <- odds.to.prob(lme4::fixef(fit)[1] + mydf.vals$xbeta)
+        # save predictor name
+        pred.name <- fit.term.names[i]
+        axisLabels.mp <- c(axisLabels.mp, pred.name)
+        # assign group
+        mydf.vals$grp <- pred.name
+        # add mydf to list
+        mydf.metricpred[[length(mydf.metricpred) + 1]] <- mydf.vals
+      }
     }
   }
   # ---------------------------------------------------------
@@ -884,6 +1054,8 @@ sjp.lme.reprobcurve <- function(fit,
   # retrieve term names, so we find the estimates in the
   # coefficients list
   # ----------------------------
+  plot.prob <- list()
+  mydf.prob <- list()
   fit.term.length <- length(names(lme4::fixef(fit))[-1])
   fit.term.names <- attr(attr(fit.df, "terms"), "term.labels")[1 : fit.term.length]
   response.name <- attr(attr(attr(fit.df, "terms"), "dataClasses"), "names")[1]
@@ -923,57 +1095,65 @@ sjp.lme.reprobcurve <- function(fit,
       }
       # find coef-position
       coef.pos <- which(coef.names == fit.fac.name)
-      # calculate x-beta by multiplying original values with estimate of that term
-      mydf.vals$xbeta <- mydf.vals$value * (lme4::fixef(fit)[coef.pos])
-      # save predictor name
-      pred.name <- fit.term.names[i]
-      # do this for each random intercept group
-      for (j in 1 : nrow(rand.ef)) {
-        # calculate probability for each random effect group
-        mydf.vals$y <- odds.to.prob(rand.ef[j, 1] + mydf.vals$xbeta)
-        # add to final data frame
-        final.df <- rbind(final.df, cbind(pred = mydf.vals$value,
-                                          prob = mydf.vals$y))
-        # need to add grp vector later to data frame,
-        # else "x" and "prob" would be coerced to factors
-        final.grp <- c(final.grp,
-                       rep(row.names(rand.ef)[j],
-                           times = length(mydf.vals$value)))
-      }
-      # add grp vector
-      final.df$grp <- final.grp
-      # ---------------------------------------------------------
-      # plot
-      # ---------------------------------------------------------
-      mp <- ggplot(final.df, aes(x = pred, y = prob, colour = grp)) +
-        stat_smooth(method = "glm",
-                    family = "binomial",
-                    se = show.se) +
-        # cartesian coord still plots range of se, even
-        # when se exceeds plot range.
-        coord_cartesian(ylim = c(0, 1)) +
-        labs(x = NULL,
-             y = "Probability",
-             title = sprintf("Probability of %s on %s", pred.name, response.name))
-      # wrap to facets
-      if (facet.grid) {
-        mp <- mp + facet_wrap( ~ grp,
-                               ncol = round(sqrt(nrow(rand.ef))),
-                               scales = "free_x") +
-          # no legend
-          guides(colour = FALSE)
-      }
-      # -------------------------------------
-      # check if metric plots should be plotted
-      # -------------------------------------
-      if (printPlot) {
-        print(mp)
+      # check if we have found the coefficient
+      if (length(coef.pos) > 0) {
+        # calculate x-beta by multiplying original values with estimate of that term
+        mydf.vals$xbeta <- mydf.vals$value * (lme4::fixef(fit)[coef.pos])
+        # save predictor name
+        pred.name <- fit.term.names[i]
+        # do this for each random intercept group
+        for (j in 1 : nrow(rand.ef)) {
+          # calculate probability for each random effect group
+          mydf.vals$y <- odds.to.prob(rand.ef[j, 1] + mydf.vals$xbeta)
+          # add to final data frame
+          final.df <- rbind(final.df, cbind(pred = mydf.vals$value,
+                                            prob = mydf.vals$y))
+          # need to add grp vector later to data frame,
+          # else "x" and "prob" would be coerced to factors
+          final.grp <- c(final.grp,
+                         rep(row.names(rand.ef)[j],
+                             times = length(mydf.vals$value)))
+        }
+        # add grp vector
+        final.df$grp <- final.grp
+        # ---------------------------------------------------------
+        # plot
+        # ---------------------------------------------------------
+        mp <- ggplot(final.df, aes(x = pred, y = prob, colour = grp)) +
+          stat_smooth(method = "glm",
+                      family = "binomial",
+                      se = show.se) +
+          # cartesian coord still plots range of se, even
+          # when se exceeds plot range.
+          coord_cartesian(ylim = c(0, 1)) +
+          labs(x = NULL,
+               y = "Probability",
+               title = sprintf("Probability of %s on %s", pred.name, response.name))
+        # wrap to facets
+        if (facet.grid) {
+          mp <- mp + facet_wrap( ~ grp,
+                                 ncol = round(sqrt(nrow(rand.ef))),
+                                 scales = "free_x") +
+            # no legend
+            guides(colour = FALSE)
+        }
+        # -------------------------------------
+        # add to plot and df list
+        # -------------------------------------
+        plot.prob[[length(plot.prob)+1]] <- mp
+        mydf.prob[[length(mydf.prob)+1]] <- final.df
+        # -------------------------------------
+        # check if metric plots should be plotted
+        # -------------------------------------
+        if (printPlot) {
+          print(mp)
+        }
       }
     }
   }
   invisible(structure(class = "sjpglmer.ripc",
-                      list(mydf = final.df,
-                           plot = mp)))
+                      list(mydf = mydf.prob,
+                           plot = plot.prob)))
 }
 
 
@@ -1031,7 +1211,7 @@ sjp.lme.reqq <- function(fit,
   # print plot?
   # ---------------------------------------------------------
   if (printPlot) {
-    print("Testing for normal distribution. Dots should be plotted along the line.")
+    message("Testing for normal distribution. Dots should be plotted along the line.")
     print(gp)
   }
   # -------------------------------------

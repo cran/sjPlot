@@ -1,5 +1,5 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "Group"))
+if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 
 #' @title Plot contingency tables
 #' @name sjp.xtab
@@ -31,14 +31,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param hideLegend Indicates whether legend (guide) should be shown or not. Default is \code{FALSE}, thus
 #'          the legend is shown.
 #' @param reverseOrder Whether the categories along the x-axis should apper in reversed order or not.
-#' @param maxYlim Indicates how to calculate the maximum limit of the y-axis.
-#'          If \code{TRUE}, the y-axes ranges from 0 to 100%.
-#'          If \code{FALSE}, the maximum y-axis depends on the highest percentage value of a
-#'          variable's answer category. In this case, the y-axis breaks may change,
-#'          depending on the variable.
-#' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
+#' @param axisLimits.y A numeric vector of length two, defining lower and upper axis limits
+#'          of the y scale. By default, this parameter is set to \code{NULL}, i.e. the 
+#'          y-axis ranges from 0 to required maximum. Note that the values are percentages, so valid
+#'          range is between 0 and 1.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param legendTitle Title of the diagram's legend.
 #' @param axisLabels.x Labels for the x-axis breaks.
@@ -70,10 +68,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 #'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar
+#' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
+#'          count values are removed.
+#' @param showPercentageValues If \code{TRUE} (default), percentage values are be plotted to each bar, if \code{FALSE},
+#'          percentage-values are removed.
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
-#' @param labelPos Positioning of value labels. If \code{barPosition} is \code{dodge} 
+#' @param labelPos Positioning of value labels. If \code{barPosition} is \code{"dodge"} 
 #'          (default), use either \code{"inside"} or \code{"outside"} (default) to put labels in-
 #'          or outside the bars. You may specify initial letter only. Use \code{"center"} 
 #'          to center labels (useful if label angle is changes via \code{\link{sjp.setTheme}}).
@@ -92,7 +94,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #'          it's percentages will be added to each category.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
@@ -100,7 +102,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-#'           was used for setting up the ggplot-object (\code{df}).
+#'           was used for setting up the ggplot-object (\code{mydf}).
 #' 
 #' @examples
 #' # create 4-category-items
@@ -186,8 +188,7 @@ sjp.xtab <- function(y,
                     type="bars",
                     tableIndex="col",
                     reverseOrder=FALSE,
-                    maxYlim=TRUE, 
-                    upperYlim=NULL, 
+                    axisLimits.y = NULL,
                     axisLabels.x=NULL, 
                     legendLabels=NULL,
                     labelPos="outside",
@@ -206,6 +207,8 @@ sjp.xtab <- function(y,
                     expand.grid=FALSE,
                     showValueLabels=TRUE,
                     jitterValueLabels=FALSE,
+                    showCountValues=TRUE,
+                    showPercentageValues=TRUE,
                     showCategoryLabels=TRUE,
                     showTableSummary=TRUE,
                     tableSummaryPos="r",
@@ -313,16 +316,16 @@ sjp.xtab <- function(y,
   # data frame)
   # -----------------------------------------------
   if (tableIndex=="cell") {
-    df <- as.data.frame(prop.table(ftab))
+    mydf <- as.data.frame(prop.table(ftab))
   }
   else {
-    df <- as.data.frame(prop.table(ftab,tindex))
+    mydf <- as.data.frame(prop.table(ftab,tindex))
   }
   # -----------------------------------------------
   # Bind N-values as extra column to the data frame
   # -----------------------------------------------
-  df <- cbind(df, as.data.frame(ftab)[,3])
-  names(df) <- c("Count", "Group", "Perc", "Sum")
+  mydf <- cbind(mydf, as.data.frame(ftab)[,3])
+  names(mydf) <- c("Count", "Group", "Perc", "Sum")
   # -----------------------------------------------
   # don't show bar with category sum score when we 
   # have column or cell percentages
@@ -344,7 +347,7 @@ sjp.xtab <- function(y,
     # "modify" resp. correct the Group-column
     dummy$Group <- as.factor(rep(max(x, na.rm=TRUE)+1))
     # bind data to data frame
-    df <- rbind(df, dummy)
+    mydf <- rbind(mydf, dummy)
   }
   # --------------------------------------------------------
   # Define amount of categories, include zero counts
@@ -367,26 +370,26 @@ sjp.xtab <- function(y,
     # if the maximum value of the group variable differs from the estimated
     # group length we probably have missing categoriesm, i.e. one group has no
     # cases. Then, we insert an empty row here
-    df$Group <- as.numeric(as.character(df$Group))
+    mydf$Group <- as.numeric(as.character(mydf$Group))
     # range of groups from lowest to highest group value
-    allgroups <- factor(c(min(df$Group):max(df$Group)))
+    allgroups <- factor(c(min(mydf$Group):max(mydf$Group)))
     # retrieve zero-counts, i.e. which group is missing in the data frame
-    miss <- as.numeric(as.character(allgroups[!allgroups %in% df$Group]))
+    miss <- as.numeric(as.character(allgroups[!allgroups %in% mydf$Group]))
     # retrieve subset of all rows where group is from lowest group-value to 
     # missing group
-    dummy1 <- df[apply(df, MARGIN=1, function(x) all(x[2]<miss)),]
+    dummy1 <- mydf[apply(mydf, MARGIN=1, function(x) all(x[2]<miss)),]
     # retrieve subset of all rows where group is from missing group to
     # highest group-value
-    dummy2 <- df[apply(df, MARGIN=1, function(x) all(x[2]>miss)),]
+    dummy2 <- mydf[apply(mydf, MARGIN=1, function(x) all(x[2]>miss)),]
     # create dummy-data frame that contains the missing row with zero-values
     emptyrows <- as.data.frame(cbind(Count=c(1:countlen), Group=miss, Perc=0.00, Sum=0))
     emptyrows$Count <- as.factor(as.character(emptyrows$Count))
     emptyrows$Group <- as.factor(as.character(emptyrows$Group))
     # bind all three subsets together to a complete data frame
-    df <- rbind(dummy1, emptyrows, dummy2)
+    mydf <- rbind(dummy1, emptyrows, dummy2)
   }
   # set group-variable as factor
-  df$Group <- as.factor(df$Group)
+  mydf$Group <- as.factor(mydf$Group)
   # -----------------------------------------------
   # Handle zero-counts in count-variable
   # only possible if we know the exact number of categories,
@@ -395,14 +398,14 @@ sjp.xtab <- function(y,
   if (countlen != catcount) {
     # separate data frame for grouping variable. we need this to
     # determine the number of groups
-    dfgrp <- as.data.frame(table(df$Group))
+    dfgrp <- as.data.frame(table(mydf$Group))
     # determine the number of groups
     gcnt <- nrow(dfgrp)
     mydat <- NULL
     # fill in possible zero counts in each group
     for (i in 1:gcnt) {
       # get subset of data frame with each group
-      subdf <- df[df$Group == dfgrp$Var1[i],]
+      subdf <- mydf[mydf$Group == dfgrp$Var1[i],]
       # convert factors to numeric (due to calculations they have
       # to be treated like that)
       subdf$Count <- as.numeric(as.character(subdf$Count))
@@ -424,21 +427,31 @@ sjp.xtab <- function(y,
       mydat <- as.data.frame(rbind(mydat, dummydat))
     }
     # copy final data frame
-    df <- mydat
+    mydf <- mydat
   }
   # ----------------------------
   # make sure group and count variable 
   # are factor values
   # ----------------------------
-  df$Count <- as.factor(df$Count)
-  df$Group <- as.factor(df$Group)
+  mydf$Count <- as.factor(mydf$Count)
+  mydf$Group <- as.factor(mydf$Group)
   # add half of Percentage values as new y-position for stacked bars
-  df = ddply(df, "Count", transform, ypos = cumsum(Perc) - 0.5*Perc)
+  mydf = ddply(mydf, "Count", transform, ypos = cumsum(Perc) - 0.5*Perc)
+  # add line-break char
+  if (showPercentageValues && showCountValues) {
+    mydf$line.break <- ifelse (coord.flip == TRUE, ' ', '\n')
+  }
+  else {
+    mydf$line.break <- ""
+  }
+  if (barPosition=="dodge") mydf$ypos <- mydf$Perc
+  #   if (barPosition=="dodge" && !coord.flip) mydf$ypos <- mydf$Perc
+  #   else if (barPosition=="dodge" && coord.flip) mydf$ypos <- 0
   # --------------------------------------------------------
   # Caculate vertical adjustment to avoid overlapping labels
   # --------------------------------------------------------
-  jvert <- rep(c(1.1,-0.1), length.out=length(unique(df$Group)))
-  jvert <- rep(jvert, length.out=nrow(df))
+  jvert <- rep(c(1.1,-0.1), length.out=length(unique(mydf$Group)))
+  jvert <- rep(jvert, length.out=nrow(mydf))
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
@@ -456,14 +469,14 @@ sjp.xtab <- function(y,
   if (is.null(legendLabels)) {
     # if not, use category text of group variable as legend text
     if (!showTotalColumn) {
-      legendLabels <- c(order(unique(df$Group)))
+      legendLabels <- c(order(unique(mydf$Group)))
     }
     else {
       # in case we have the total column added,
       # we need to remove the last group-label (which
       # indicates the total column), because the string for
       # the total column is added below
-      ll <- c(order(unique(df$Group)))
+      ll <- c(order(unique(mydf$Group)))
       legendLabels <- ll[-length(ll)]
     }
   }
@@ -509,21 +522,22 @@ sjp.xtab <- function(y,
   # --------------------------------------------------------
   # calculate upper y-axis-range
   # if we have a fixed value, use this one here
-  if (!is.null(upperYlim)) {
-    upper_lim <- upperYlim
+  lower_lim <- 0
+  # calculate upper y-axis-range
+  # if we have a fixed value, use this one here
+  if (!is.null(axisLimits.y) && length(axisLimits.y) == 2) {
+    lower_lim <- axisLimits.y[1]
+    upper_lim <- axisLimits.y[2]
+  }
+  else if (barPosition == "stack") {
+    upper_lim <- 1
   }
   else {
     # else calculate upper y-axis-range depending
-    # on the amount of cases...
-    if (maxYlim) {
+    # on the amount of max. answers per category
+    upper_lim <- max(((100*mydf$Perc)+10)/100)
+    if (upper_lim >1) {
       upper_lim <- 1
-    }
-    else {
-      # ... or the amount of max. answers per category
-      upper_lim <- max(((100*df$Perc)+10)/100)
-      if (upper_lim >1) {
-        upper_lim <- 1
-      }
     }
   }
   # --------------------------------------------------------
@@ -533,7 +547,13 @@ sjp.xtab <- function(y,
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- 0.35
-    hort <- ifelse (barPosition=="dodge", -0.2, waiver())
+    if (labelPos == "outside" || labelPos == "o")
+      hpos = -0.2
+    else if (labelPos == "inside" || labelPos == "i")
+      hpos = 1.2
+    else
+      hpos <- waiver()
+    hort <- ifelse (barPosition=="dodge", hpos, waiver())
   }
   else {
     hort <- waiver()
@@ -560,28 +580,39 @@ sjp.xtab <- function(y,
   if (showValueLabels) {
     # if we have dodged bars or dots, we have to use a slightly dodged position for labels
     # as well, sofor better reading
-    if (coord.flip) {
-      if (barPosition=="dodge") {
-        ggvaluelabels <-  geom_text(aes(y=0, label=sprintf("%.01f%% (n=%i)", 100*Perc, Sum)),
+    if (barPosition=="dodge") {
+      if (showPercentageValues && showCountValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%%s(n=%i)", 100*Perc, line.break, Sum)),
                                     position=position_dodge(posdodge),
                                     vjust=vert,
                                     hjust=hort)
       }
-      else {
-        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%% (n=%i)", 100*Perc, Sum)),
+      else if (showPercentageValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*Perc)),
+                                    position=position_dodge(posdodge),
+                                    vjust=vert,
+                                    hjust=hort)
+      }
+      else if (showCountValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("n=%i", Sum)),
+                                    position=position_dodge(posdodge),
                                     vjust=vert,
                                     hjust=hort)
       }
     }
     else {
-      if (barPosition=="dodge") {
-        ggvaluelabels <-  geom_text(aes(y=Perc, label=sprintf("%.01f%%\n(n=%i)", 100*Perc, Sum)),
-                                    position=position_dodge(posdodge),
+      if (showPercentageValues && showCountValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%%s(n=%i)", 100*Perc, line.break, Sum)),
                                     vjust=vert,
                                     hjust=hort)
       }
-      else {
-        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%\n(n=%i)", 100*Perc, Sum)),
+      else if (showPercentageValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*Perc)),
+                                    vjust=vert,
+                                    hjust=hort)
+      }
+      else if (showCountValues) {
+        ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("n=%i", Sum)),
                                     vjust=vert,
                                     hjust=hort)
       }
@@ -622,18 +653,18 @@ sjp.xtab <- function(y,
     if (reverseOrder) {
       # check whether lines should be smoothed or not
       if (smoothLines) {
-        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size, stat="smooth")
+        geob <- geom_line(data=mydf, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size, stat="smooth")
       }
       else {
-        geob <- geom_line(data=df, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size)
+        geob <- geom_line(data=mydf, aes(x=rev(as.numeric(Count)), y=Perc, colour=Group), size=geom.size)
       }
     }
     else {
       if (smoothLines) {
-        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size, stat="smooth")
+        geob <- geom_line(data=mydf, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size, stat="smooth")
       }
       else {
-        geob <- geom_line(data=df, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size)
+        geob <- geom_line(data=mydf, aes(x=as.numeric(Count), y=Perc, colour=Group), size=geom.size)
       }
     }
   }
@@ -642,10 +673,10 @@ sjp.xtab <- function(y,
   # change x axis order then
   # --------------------------------------------------------
   if (reverseOrder) {
-    baseplot <- ggplot(df, aes(x=rev(Count), y=Perc, fill=Group))
+    baseplot <- ggplot(mydf, aes(x=rev(Count), y=Perc, fill=Group))
   }
   else {
-    baseplot <- ggplot(df, aes(x=Count, y=Perc, fill=Group))
+    baseplot <- ggplot(mydf, aes(x=Count, y=Perc, fill=Group))
   }  
   baseplot <- baseplot +
     # plot bar chart
@@ -692,5 +723,5 @@ sjp.xtab <- function(y,
   # -------------------------------------
   invisible (structure(class = "sjpxtab",
                        list(plot = baseplot,
-                            df = df)))
+                            mydf = mydf)))
 }

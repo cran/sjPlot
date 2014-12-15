@@ -16,15 +16,15 @@
 #' @param grp A grouping variable. If not \code{NULL}, the scatter plot will be grouped. See
 #'          examples below. Default is \code{NULL}, i.e. not grouping is done.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param legendTitle Title of the diagram's legend.
 #' @param legendLabels Labels for the guide/legend.
 #' @param axisTitle.x A label (title) for the x axis.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label (title) for the y axis.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
@@ -171,7 +171,7 @@ sjp.scatter <- function(x,
     # check for valid range of jitter ratio
     if (jitterRatio<=0 || jitterRatio>=1) {
       # inform user
-      cat("\njitterRatio out of valid bounds. Using 0.15 for jitterRatio...\n")
+      warning("jitterRatio out of valid bounds. Using 0.15 for jitterRatio...")
       jitterRatio <- 0.15
     }
     # retrieve the highest amount of points lying
@@ -181,7 +181,7 @@ sjp.scatter <- function(x,
     if (overlap < (length(x)*jitterRatio)) {
       # use jittering now
       useJitter <- TRUE
-      cat("\nauto-jittering values...\n")
+      message("auto-jittering values...")
     }
   }
   # --------------------------------------------------------

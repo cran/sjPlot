@@ -257,7 +257,10 @@ sjt.df <- function (df,
     # check variable type
     vartype <- c("unknown type")
     if (is.character(df[,i])) vartype <- c("character")
-    else if (is.factor(df[,i])) vartype <- c("factor")
+    else if (is.ordered(df[,i])) vartype <- c("ordinal")
+    else if (is.factor(df[,i])) vartype <- c("categorical")
+    else if (is.integer(df[,i])) vartype <- c("numeric")
+    else if (is.double(df[,i])) vartype <- c("numeric-double")
     else if (is.numeric(df[,i])) vartype <- c("numeric")
     else if (is.atomic(df[,i])) vartype <- c("atomic")
     # column names and variable as table headline
@@ -301,7 +304,10 @@ sjt.df <- function (df,
       # check variable type
       vartype <- c("unknown type")
       if (is.character(df[,i])) vartype <- c("character")
-      else if (is.factor(df[,i])) vartype <- c("factor")
+      else if (is.ordered(df[,i])) vartype <- c("ordinal")
+      else if (is.factor(df[,i])) vartype <- c("categorical")
+      else if (is.integer(df[,i])) vartype <- c("numeric")
+      else if (is.double(df[,i])) vartype <- c("numeric-double")
       else if (is.numeric(df[,i])) vartype <- c("numeric")
       else if (is.atomic(df[,i])) vartype <- c("atomic")
       # column names and variable as table headline

@@ -8,20 +8,20 @@
   Collection of plotting and table output functions for data visualization. Results of various 
   statistical analyses (that are commonly used in social sciences) can be visualized using this package, 
   including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models 
-  (forest plots), PCA, correlations, cluster analyses, scatter plots etc.
+  (forest plots), mixed effects models, PCA, correlations, cluster analyses, scatter plots etc.
   
   Furthermore, this package contains some tools that are useful when carrying out data
-  analysis or interpreting data (especially intended for people coming from SPSS and who
-  are new to R). These tool functions help with (SPSS) data set import, 
+  analysis or interpreting data (especially intended for people coming from SPSS and/or who
+  are new to R). These tool functions support importing (SPSS) data, 
   variable recoding and weighting, statistical tests, determination of cluster groups, 
-  interpretation of interaction terms in linear models etc.
+  interpretation of interaction terms in regression models etc.
   
   \emph{What does this package do?}
   
   In short, the functions in this package mostly do two things:
   \enumerate{
     \item compute basic or advanced statistical analyses
-    \item either plot the results as ggplot-diagram or print them as html-table
+    \item either plot the results as ggplot-figure or print them as html-table
   }
   
   However, meanwhile the amount of functions has increased, hence you’ll also find 
@@ -32,8 +32,8 @@
   Basically, this package either helps those users who...
   \itemize{
     \item have difficulties using and/or understanding all possibilities that ggplot offers to create plots, simply by providing intuitive function parameters, which allow for manipulating the appearance of plots;
-    \item don’t want to set up complex ggplot-object each time from the scratch;
-    \item like quick inspections of (basic) statistics via (html-)tables that are shown in the IDE's viewer pane or default browser; or
+    \item don’t want to set up complex ggplot-objects each time from the scratch;
+    \item want quick inspections of (basic) statistics via (html-)tables that are shown in the IDE's viewer pane or default browser; or
     \item want easily create beautiful table outputs that can be imported in office applications.
   }
   
@@ -56,8 +56,8 @@
 \tabular{ll}{
 Package: \tab sjPlot\cr
 Type: \tab Package\cr
-Version: \tab 1.6\cr
-Date: \tab 2014-11-19\cr
+Version: \tab 1.6.5\cr
+Date: \tab 2014-12-15\cr
 License: \tab GPL-3\cr
 }
 }

@@ -40,18 +40,14 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            \item \code{"v"}, \code{"violin"} for violin box plots
 #'            }
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param maxYlim Indicates how to calculate the maximum limit of the y-axis.
-#'          If \code{TRUE}, the upper y-limit corresponds to the amount of cases,
-#'          i.e. y-axis for each plot of a data base are the same.
-#'          If \code{FALSE} (default), the maximum y-axis depends on the highest count of a
-#'          variable's answer category. In this case, the y-axis breaks may change,
-#'          depending on the variable.
-#' @param upperYlim Uses a pre-defined upper limit for the y-axis. Overrides the \code{maxYlim} parameter.
+#' @param axisLimits.y A numeric vector of length two, defining lower and upper axis limits
+#'          of the y scale. By default, this parameter is set to \code{NULL}, i.e. the 
+#'          y-axis ranges from 0 to required maximum.
 #' @param facet.grid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
 #'          bar charts. Ideal for larger amount of groups. This parameter wraps a single panel into 
 #'          \code{varGroup} amount of panels, i.e. each group is represented within a new panel.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param legendTitle Title of the diagram's legend.
 #' @param axisLabels.x Labels for the x-axis breaks. Passed as vector of strings. \emph{Note:} This parameter
@@ -126,11 +122,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #' @param meanInterceptLineSize The size of the mean intercept line. Only applies to histogram-charts and when
 #'          \code{showMeanIntercept} is \code{TRUE}.
 #' @param axisTitle.x A label for the x axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the x axis.
-#'          Use \code{"auto"} to automatically detect variable names that will be used as title
+#'          are assigned to the x axis. By default, \code{""} is used, i.e. no title
+#'          is printed.
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
 #'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the y axis.
+#'          are assigned to the y axis. By default, \code{""} is used, i.e. no title
+#'          is printed.
+#'          Use \code{NULL} to automatically detect variable names that will be used as title
+#'          (see \code{\link{sji.setVariableLabels}}) for details).
 #' @param autoGroupAt A value indicating at which length of unique values of \code{varCount} the variable
 #'          is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). If \code{varCount} has large 
 #'          numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended 
@@ -181,15 +181,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ypos", "wb", "ia", "mw",
 #'            efc$e16sex, 
 #'            title = NULL)
 #'
-#' # grouped bars using the maximum y-limit            
-#' sjp.grpfrq(efc$e42dep,
-#'            efc$e16sex,
-#'            title = efc.var['e42dep'],
-#'            axisLabels.x = efc.val[['e42dep']], # not needed for SPSS-data sets
-#'            legendTitle = efc.var['e16sex'],
-#'            legendLabels = efc.val[['e16sex']], # not needed for SPSS-data sets
-#'            maxYlim = TRUE)
-#'            
 #' # box plots with interaction variable            
 #' sjp.grpfrq(efc$e17age,
 #'            efc$e42dep,
@@ -229,14 +220,13 @@ sjp.grpfrq <- function(varCount,
                        geom.spacing=0.4,
                        geom.colors="Paired",
                        hideLegend=FALSE,
-                       maxYlim=FALSE, 
-                       upperYlim=NULL, 
                        facet.grid=FALSE,
                        title="", 
                        legendTitle=NULL,
                        axisLabels.x=NULL, 
                        interactionVarLabels=NULL,
                        legendLabels=NULL,
+                       axisLimits.y = NULL,
                        breakTitleAt=50, 
                        breakLabelsAt=15, 
                        breakLegendTitleAt=20, 
@@ -261,8 +251,8 @@ sjp.grpfrq <- function(varCount,
                        tableSummaryPos="r",
                        meanInterceptLineType=2,
                        meanInterceptLineSize=0.5,
-                       axisTitle.x=NULL,
-                       axisTitle.y=NULL,
+                       axisTitle.x="",
+                       axisTitle.y="",
                        autoGroupAt=NULL,
                        startAxisAt="auto",
                        coord.flip=FALSE,
@@ -338,7 +328,7 @@ sjp.grpfrq <- function(varCount,
   # check whether variable should be auto-grouped
   #---------------------------------------------------
   if (!is.null(autoGroupAt) && length(unique(varCount))>=autoGroupAt) {
-    cat(sprintf("\nVariable has %i unique values and was grouped...\n", length(unique(varCount))))
+    message(sprintf("Variable has %i unique values and was grouped...", length(unique(varCount))))
     agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
     axisLabels.x <- sju.groupVarLabels(varCount, groupsize="auto", autoGroupCount=agcnt)
     varCount <- sju.groupVar(varCount, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
@@ -394,7 +384,6 @@ sjp.grpfrq <- function(varCount,
     startAxisAt <- as.numeric(catmin)
     if (startAxisAt==0) startAxisAt <- 1
   }
-  lower_lim <- 0
   # get the highest answer category of "variable", so we know where the
   # range of the x-axis ends
   if (!is.null(axisLabels.x)) {
@@ -729,10 +718,12 @@ sjp.grpfrq <- function(varCount,
   # Prepare bar charts
   # --------------------------------------------------------
   trimViolin <- FALSE
+  lower_lim <- 0
   # calculate upper y-axis-range
   # if we have a fixed value, use this one here
-  if (!is.null(upperYlim)) {
-    upper_lim <- upperYlim
+  if (!is.null(axisLimits.y) && length(axisLimits.y) == 2) {
+    lower_lim <- axisLimits.y[1]
+    upper_lim <- axisLimits.y[2]
   }
   else {
     # if we have boxplots, we have different ranges, so we can adjust
@@ -749,7 +740,7 @@ sjp.grpfrq <- function(varCount,
     }
     # else calculate upper y-axis-range depending
     # on the amount of cases...
-    else if (maxYlim || barPosition=="stack") {
+    else if (barPosition=="stack") {
       upper_lim <- grpBasisYlim(length(varCount))
     }
     else {
@@ -806,15 +797,15 @@ sjp.grpfrq <- function(varCount,
     }
     # create shaded rectangle, so we know which dots belong to the same category
     if (showPlotAnnotation) {
-      ganno <- annotate("rect", xmin=mydat$layer-0.4, xmax=mydat$layer+0.4, ymin=0, ymax=c(upper_lim), fill="grey80", alpha=0.1)
+      ganno <- annotate("rect", xmin=mydat$layer-0.4, xmax=mydat$layer+0.4, ymin=lower_lim, ymax=upper_lim, fill="grey80", alpha=0.1)
     }
   }
   else if (type=="bars") {
     if (barPosition=="dodge") {
-      geob <- geom_bar(stat="identity", position=position_dodge(geom.size+geom.spacing))
+      geob <- geom_bar(stat="identity", width = geom.size, position=position_dodge(geom.size+geom.spacing))
     }
     else {
-      geob <- geom_bar(stat="identity", position="stack")
+      geob <- geom_bar(stat="identity", width = geom.size, position="stack")
     }
   }
   else if (type=="lines") {
@@ -953,7 +944,7 @@ sjp.grpfrq <- function(varCount,
     gridbreaks <- waiver()
   }
   else {
-    gridbreaks <- c(seq(0, upper_lim, by=gridBreaksAt))
+    gridbreaks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
   }
   # ----------------------------------
   # Print plot
@@ -1017,7 +1008,7 @@ sjp.grpfrq <- function(varCount,
                    xmax = vldat$mw+vldat$stddev, 
                    fill = "grey50", 
                    ymin = 0, 
-                   ymax = c(upper_lim), 
+                   ymax = upper_lim, 
                    alpha = 0.1) +
           # -----------------------------------------
           # draw border-lines for shaded rectangles 
@@ -1225,11 +1216,23 @@ grpBasisYlim <- function(len) {
 grpFreqYlim <- function(var) {
   # suche die Antwort mit den häufigsten Antworten,
   # also den höchsten Wert einer Variablenausprägung
-  len <- max(var)
+  len <- max(var, na.rm = T)
   
   anzahl <- 5
   while (len>=(10*anzahl)) {
-    anzahl <- anzahl +5
+    anzahl <- anzahl + 5
+  }
+  return (10*anzahl)
+}
+
+grpFreqBaseYlim <- function(var) {
+  # suche die Antwort mit den häufigsten Antworten,
+  # also den höchsten Wert einer Variablenausprägung
+  len <- min(var, na.rm = T)
+  
+  anzahl <- max(var, na.rm = T)
+  while (len>=(10*anzahl)) {
+    anzahl <- anzahl - 5
   }
   return (10*anzahl)
 }
