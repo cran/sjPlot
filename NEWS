@@ -1,3 +1,25 @@
+Version 1.6.8
+------------------------------------------------------------------------------
+Changes to functions:
+* Plotting standardized beta values in "sjp.lm" can be achieved via the "type" parameter (type = "std"). Furthermore, confidence intervals and p-values are shown in the standardized beta plot.
+* "sjt.lm" now also prints confidence intervals for standardized beta values.
+* "sjp.vif" and "sjp.glm.ma" were merged into "sjp.glm". Use the "type" parameter to select plot type.
+* "sjp.lm1", "sjp.reglin", "sjp.vif" and "sjp.lm.ma" were merged into "sjp.lm". Use the "type" parameter to select plot type.
+* Added parameter "vars" to "sjp.glmer" to plot probability curves only for selected variables.
+* Added type "fe.std" to "type" parameter of "sjp.lmer" to plot standardized coefficients of fixed effects.
+* Added type "fe.ri" to "type" parameter of "sjp.lmer" to plot fixed effects slopes for each random intercept (group level).
+* p-values less than 0.001 are indicated as "p < 0.001" instead of being rounded to "p = 0.000".
+* Added parameter "showTotalN" to "sjt.xtab" to show column and row sums even if parameter "showObserved" is FALSE.
+* Added parameter "digits.summary" to "sjt.grpmean" to use different digits for table values and summary statistics.
+* "sji.setValueLabels" now also accepts a vector for the parameter "labels" if "x" is a data frame. Using a vector will apply the labels to each variable of the data frame "x".
+* "sjt.frq" now by default automatically detects whether a variable has a certain proportion of zero-count values and does not print them by default then. Use "skipZeroRows = TRUE" or "skipZeroRows = FALSE" to explicitly show or remove zero-counts from the table.
+
+Bug fixes:
+* Fixed bug with type = "dots" in "sjp.grpfrq".
+* Fixed bug with predictor labelling in "sjp.lm" and "sjp.glm" when parameter "labelPredictors" was not used.
+* Fixed bug with custom color palettes and neutral categories in "sjp.likert".
+
+
 Version 1.6.5
 ------------------------------------------------------------------------------
 New functions:
@@ -8,7 +30,7 @@ Changes to functions:
 * "sjp.lm.int" was merged with function "sjp.int".
 * Added parameter "ri.nr" to "sjp.glmer" and "sjp.lmer" to select which random effects of which random intercept to plot, in case the model has multiple random intercepts.
 * Added parameters "showValueLabels", "labelDigits" and "showPValueLabels" to "sjp.glmer" and "sjp.lmer" to plot beta or odds ratio values and p-value-stars to fixed effects plots.
-* Added paramerter "title.align" to "sjp.setTheme" to change alignment of plot title.
+* Added parameter "title.align" to "sjp.setTheme" to change alignment of plot title.
 * "sjt.xtab" can now show/hide observed values in table cells with "showObserved" parameter.
 * "sjt.df" now distinguishes more variable / vector types (like ordinal and categorial, instead of factor only, or double, integer and numeric).
 * "sjp.lm1" no longer requires the data frame used to fit the model.

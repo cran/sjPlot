@@ -41,6 +41,7 @@
 #' @param showColPerc If \code{TRUE}, column percentage values are shown.
 #' @param showObserved If \code{TRUE}, observed values are shown.
 #' @param showExpected If \code{TRUE}, expected values are also shown.
+#' @param showTotalN If \code{TRUE}, column and row sums are also shown, even if \code{showObserved} is \code{FALSE}.
 #' @param showHorizontalLine If \code{TRUE}, data rows are separated with a horizontal line.
 #' @param showSummary If \code{TRUE} (default), a summary row with Chi-square statistics (see \code{\link{chisq.test}}),
 #'          Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
@@ -182,6 +183,7 @@ sjt.xtab <- function (var.row,
                       showRowPerc=FALSE,
                       showColPerc=FALSE,
                       showExpected=FALSE,
+                      showTotalN=FALSE,
                       showHorizontalLine=FALSE,
                       showSummary=TRUE,
                       showLegend=TRUE,
@@ -451,7 +453,7 @@ sjt.xtab <- function (var.row,
   css.tdata <- "padding:0.2cm;"
   css.firstcolborder <- "border-bottom:1px solid;"
   css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
-  css.leftalign <- "text-align:left; vertical-align:top;"
+  css.leftalign <- ifelse(showObserved & showTotalN, "text-align:left; vertical-align:top;", "text-align:left; vertical-align:middle;")
   css.centeralign <- "text-align:center;"
   css.lasttablerow <- ifelse(highlightTotal==TRUE, sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
   css.totcol <- ifelse(highlightTotal==TRUE, sprintf(" background-color:%s;", highlightColor), "")
@@ -617,7 +619,7 @@ sjt.xtab <- function (var.row,
     # -------------------------------------
     # first table cell data contains observed values
     # -------------------------------------
-    if (showObserved) {
+    if (showObserved || showTotalN) {
       cellstring <- sprintf("<span class=\"td_n\">%i</span>", rowSums(tab)[irow])
     }
     # if we have expected values, add them to table cell
@@ -665,7 +667,7 @@ sjt.xtab <- function (var.row,
     # -------------------------------------
     # add total row, first table cell data contains observed values
     # -------------------------------------
-    if (showObserved) {
+    if (showObserved || showTotalN) {
       cellstring <- sprintf("<span class=\"td_n\">%i</span>", colSums(tab)[icol])
     }
     # calculate total percentage value
@@ -700,7 +702,7 @@ sjt.xtab <- function (var.row,
   # -------------------------------------
   # add total row, first table cell data contains observed values
   # -------------------------------------
-  if (showObserved) cellstring <- sprintf("%s", sum(tab))
+  if (showObserved || showTotalN) cellstring <- sprintf("%s", sum(tab))
   if (showExpected) {
     if (nchar(cellstring) > 0) cellstring <- paste0(cellstring, "<br>")
     cellstring <- paste(cellstring, sprintf("%s", sum(tab.expected)), sep="")
@@ -745,10 +747,12 @@ sjt.xtab <- function (var.row,
     }
     # create summary row
     if (is.null(fish)) {
-      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; p=%.3f</td>", totalncol, chsq$statistic, chsq$parameter, kook, chsq$p.value), sep="")
+      pvalstring <- ifelse(chsq$p.value < 0.001, "p&lt;0.001", sprintf("p=%.3f", chsq$p.value))
+      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", totalncol, chsq$statistic, chsq$parameter, kook, pvalstring), sep="")
     }
     else {
-      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's p=%.3f &middot; df=%i &middot; %s</td>", totalncol, fish$p.value, chsq$parameter, kook), sep="")
+      pvalstring <- ifelse(fish$p.value < 0.001, "p&lt;0.001", sprintf("p=%.3f", fish$p.value))
+      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's %s &middot; df=%i &middot; %s</td>", totalncol, pvalstring, chsq$parameter, kook), sep="")
     }
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")

@@ -349,9 +349,11 @@ sjt.lm <- function (...,
   if (!showConfInt) {
     separateConfColumn <- FALSE
     showCIString <- stringB
+    showCIStringSB <- stringSB
   }
   else {
     showCIString <- sprintf("%s (%s)", stringB, stringCI)
+    showCIStringSB <- sprintf("%s (%s)", stringSB, stringCI)
   }
   # -------------------------------------
   # table headline
@@ -361,6 +363,7 @@ sjt.lm <- function (...,
   if (pvaluesAsNumbers) headerColSpanFactor <- headerColSpanFactor+1
   if (separateConfColumn) headerColSpanFactor <- headerColSpanFactor+1
   if (showStdBeta) headerColSpanFactor <- headerColSpanFactor+1
+  if (showStdBeta && separateConfColumn) headerColSpanFactor <- headerColSpanFactor+1
   if (showStdError) headerColSpanFactor <- headerColSpanFactor+1
   
   headerColSpan <- headerColSpanFactor * headerColSpan
@@ -426,19 +429,28 @@ sjt.lm <- function (...,
   pv <- c()
   se <- c()
   stdbv <- c()
+  stdbvci_lower <- c()
+  stdbvci_higher <- c()
   # -------------------------------------
   # retrieve data from fitted models
   # -------------------------------------
   for (i in 1:length(input_list)) {
+    # retirve model
     fit <- input_list[[i]]
+    # retrieve ci for model
+    confis <- confint(fit)
+    sbvals <- sjs.stdb(fit, include.ci = T)
+    # get coefficients
     coeffs <- rbind(coeffs, coef(fit))
-    confi_lower <- cbind(confi_lower, confint(fit)[,1])
-    confi_higher <- cbind(confi_higher, confint(fit)[,2])
+    confi_lower <- cbind(confi_lower, confis[,1])
+    confi_higher <- cbind(confi_higher, confis[,2])
     pv <- cbind(pv, round(summary(fit)$coefficients[,4], digits.p))
     # standard error
     se <- cbind(se, round(summary(fit)$coefficients[,2], digits.se))
-    # retrieve standardized betas
-    stdbv <- cbind(stdbv, sprintf("%.*f", digits.sb, sjs.stdb(fit)))
+    # retrieve standardized betas and CI
+    stdbv <- cbind(stdbv, sprintf("%.*f", digits.sb, sbvals[,1]))
+    stdbvci_lower <- cbind(stdbvci_lower, sbvals[,2])
+    stdbvci_higher <- cbind(stdbvci_higher, sbvals[,3])
   }
   # -------------------------------------
   # rotate coefficients
@@ -459,7 +471,7 @@ sjt.lm <- function (...,
       lab <- autoSetVariableLabels(fit$model[, i])
       # if not, use coefficient name
       if (is.null(lab)) {
-        lab <- row.names(coeffs)[-1][i]
+        lab <- row.names(coeffs)[i]
       }
       labelPredictors <- c(labelPredictors, lab)
     }
@@ -485,9 +497,23 @@ sjt.lm <- function (...,
     })
   }
   else {
+    if (boldpvalues) {
+      sb1 <- "<b>"
+      sb2 <- "</b>"
+    }
+    else {
+      sb1 <- sb2 <- ""
+    }
     pv <- apply(pv, c(1,2), function(x) {
-      if (x <0.05 && boldpvalues) {
-        x <- sprintf("<b>%.*f</b>", digits.p, x)      }
+      if (x <0.05) {
+        if (x < 0.001) {
+          x <- sprintf("%s&lt;&nbsp;0.001%s", sb1, sb2)
+        }
+        else {
+          x <- sprintf("%s%.*f%s", sb1, digits.p, x, sb2)
+        }
+        
+      }
       else {
         x <- sprintf("%.*f", digits.p, x) 
       }
@@ -512,7 +538,17 @@ sjt.lm <- function (...,
       # show std. error
       if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringSE))
       # show std. beta
-      if (showStdBeta) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringSB))
+      if (showStdBeta) {
+        # confidence interval in separate column
+        if (separateConfColumn) {
+          page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringSB))
+          if (showConfInt) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringCI))
+        }
+        else {
+          # confidence interval in Beta-column
+          page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign colnames\">%s</td>", showCIStringSB))
+        }
+      }
       # show p-values as numbers in separate column
       if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames\">%s</td>", stringP))
     }
@@ -555,6 +591,8 @@ sjt.lm <- function (...,
     if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign topcontentborder\">%.*f</td>", digits.se, se[1,i]))
     # show std. beta
     if (showStdBeta) page.content <- paste0(page.content, "<td class=\"tdata centeralign topcontentborder\"></td>")
+    # show std. beta
+    if (showStdBeta && showConfInt) page.content <- paste0(page.content, "<td class=\"tdata centeralign topcontentborder\"></td>")
     # show p-values as numbers in separate column
     if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign topcontentborder\">%s</td>", pv[1,i]))
   }
@@ -592,7 +630,26 @@ sjt.lm <- function (...,
       # show std. error
       if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%.*f</td>", digits.se, se[i+1,j]))
       # show std. beta
-      if (showStdBeta) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", stdbv[i,j]))
+      if (showStdBeta) {
+        if (separateConfColumn) {
+          # open table cell for Beta-coefficient
+          page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", stdbv[i,j]))
+          # if we have CI, start new table cell (CI in separate column)
+          if (showConfInt) {
+            page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign\">%.*f-%.*f</td>", digits.ci, stdbvci_lower[i,j], digits.ci, stdbvci_higher[i,j]))
+          }
+          else {
+            page.content <- paste0(page.content, "</td>")
+          }
+        }
+        else {
+          # open table cell for Beta-coefficient
+          page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s", stdbv[i,j]))
+          # confidence interval in Beta-column
+          if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%.*f-%.*f)", linebreakstring, digits.ci, stdbvci_lower[i,j], digits.ci, stdbvci_higher[i,j]))
+          page.content <- paste0(page.content, "</td>")
+        }
+      }
       # show p-values as numbers in separate column
       if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign\">%s</td>", pv[i+1,j]))
     }

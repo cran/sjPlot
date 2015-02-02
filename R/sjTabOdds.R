@@ -439,7 +439,7 @@ sjt.glm <- function (...,
       lab <- autoSetVariableLabels(fit$model[, i])
       # if not, use coefficient name
       if (is.null(lab)) {
-        lab <- row.names(coeffs)[-1][i]
+        lab <- row.names(coeffs)[i]
       }
       labelPredictors <- c(labelPredictors, lab)
     }
@@ -465,9 +465,23 @@ sjt.glm <- function (...,
     })
   }
   else {
+    if (boldpvalues) {
+      sb1 <- "<b>"
+      sb2 <- "</b>"
+    }
+    else {
+      sb1 <- sb2 <- ""
+    }
     pv <- apply(pv, c(1,2), function(x) {
-      if (x <0.05 && boldpvalues) {
-        x <- sprintf("<b>%.*f</b>", digits.p, x)      }
+      if (x <0.05) {
+        if (x < 0.001) {
+          x <- sprintf("%s&lt;&nbsp;0.001%s", sb1, sb2)
+        }
+        else {
+          x <- sprintf("%s%.*f%s", sb1, digits.p, x, sb2)
+        }
+        
+      }
       else {
         x <- sprintf("%.*f", digits.p, x) 
       }

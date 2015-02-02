@@ -274,6 +274,9 @@ sjt.corr <- function (data,
       }
     }
     cpvalues <- apply(cpvalues, c(1,2), fun.star)
+    if (pvaluesAsNumbers) {
+      cpvalues <- apply(cpvalues, c(1,2), function (x) if (x < 0.001) x <- "&lt;&nbsp;0.001" else x <- sprintf("%.*f", digits, x))
+    }
   }
   else {
     showPValues <- FALSE
@@ -412,7 +415,7 @@ sjt.corr <- function (data,
               # --------------------------------------------------------
               # if we have p-values as number, print them in new row
               # --------------------------------------------------------
-              cellval <- sprintf("%s<br><span class=\"pval\">(%.*f)</span>", cellval, digits, cpvalues[i,j])
+              cellval <- sprintf("%s<br><span class=\"pval\">(%s)</span>", cellval, cpvalues[i,j])
             }
             else {
               # --------------------------------------------------------

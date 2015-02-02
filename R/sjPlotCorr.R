@@ -272,7 +272,8 @@ sjp.corr <- function(data,
       }
     }
     else {
-      cpv <- sprintf("\n(%.*f)", decimals, cpvalues$value)
+      cpv <- cpvalues$value
+      cpv <- sapply(cpv, function (x) if (x < 0.001) x <- "\n(< 0.001)" else x <- sprintf("\n(%.*f)", decimals, x))
     }
   }
   else {

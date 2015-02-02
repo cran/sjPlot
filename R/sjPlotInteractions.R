@@ -8,7 +8,8 @@
 #'              \item Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
 #'              }
 #'
-#' @description Plot regression or probability lines of significant interaction terms to better understand effects
+#' @description Plot regression (predicted values) or probability lines (predicted probabilities) of 
+#'                significant interaction terms to better understand effects
 #'                of moderations in regression models. This function accepts following fitted model classes:
 #'                \itemize{
 #'                  \item linear models (\code{lm})
@@ -26,7 +27,6 @@
 #'
 #' @seealso \itemize{
 #'            \item \code{\link{sjp.emm.int}}
-#'            \item \code{\link{sjp.reglin}}
 #'            }
 #'
 #' @param fit the fitted (generalized) linear (mixed) model object, including interaction terms. Accepted model
@@ -221,7 +221,7 @@ sjp.int <- function(fit,
     fun <- "glmer"
   }
   if ((fun == "glm" || fun == "glmer") && is.null(axisTitle.y)) {
-    axisTitle.y <- "Probability"
+    axisTitle.y <- "Predicted Probability"
   }
   # -----------------------------------------------------------
   # parameter check

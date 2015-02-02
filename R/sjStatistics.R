@@ -1,3 +1,7 @@
+# bind global variables
+if(getRversion() >= "2.15.1") utils::globalVariables(c("fit"))
+
+
 #' @title Retrieve eta squared of fitted anova
 #' @name sjs.etasq
 #' @description Returns the eta squared value for 1-way-anovas.
@@ -64,9 +68,9 @@ sjs.etasq <- function(...) {
 }
 
 
-#' @title Retrieve std. beta coefficients of lm
+#' @title Retrieve std. beta coefficients and ci of lm
 #' @name sjs.stdb
-#' @description Returns the standardized beta coefficients of a fitted linear model.
+#' @description Returns the standardized beta coefficients and confidence intervals of a fitted linear model.
 #' 
 #' @seealso \itemize{
 #'            \item \code{\link{sjp.lm}}
@@ -74,7 +78,9 @@ sjs.etasq <- function(...) {
 #'            }
 #'         
 #' @param fit A fitted linear model.
-#' @return The standardiized beta coefficients of the fitted linear model.
+#' @param include.ci logical, if \code{TRUE}, a data frame with confidence intervals will be returned.
+#' @return A vector with standardiized beta coefficients of the fitted linear model, or a data frame
+#'           with standardiized confidence intervals, if \code{include.ci = TRUE}.
 #' 
 #' @note "Standardized coefficients refer to how many standard deviations a dependent variable will change, 
 #'         per standard deviation increase in the predictor variable. Standardization of the coefficient is 
@@ -91,13 +97,44 @@ sjs.etasq <- function(...) {
 #' # print std. beta coefficients
 #' sjs.stdb(fit)
 #' 
+#' # print std. beta coefficients and ci
+#' sjs.stdb(fit, include.ci = TRUE)
+#' 
 #' @export
-sjs.stdb <- function(fit) {
+sjs.stdb <- function(fit, include.ci = FALSE) {
   b <- summary(fit)$coef[-1, 1]
   sx <- sapply(fit$model[-1], sd)
   sy <- sapply(fit$model[1], sd)
   beta <- b * sx/sy
-  return(beta)
+  se <- summary(fit)$coefficients[-1, 2]
+  beta.se <- se * sx/sy
+  
+  if (include.ci) {
+    return (data.frame(beta = beta, ci.low = (beta - beta.se * 1.96), ci.hi = (beta + beta.se * 1.96)))
+  }
+  else {
+    return(beta)
+  }
+}
+
+
+sjs.stdmm <- function(object) {
+  # code from Ben Bolker, see
+  # http://stackoverflow.com/a/26206119/2094622
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("lme4", quietly = TRUE)) {
+    stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
+  }
+  sdy <- sd(lme4::getME(object,"y"))
+  sdx <- apply(lme4::getME(object,"X"), 2, sd)
+  sc <- lme4::fixef(object)*sdx/sdy
+  se.fixef <- coef(summary(object))[,"Std. Error"]
+  se <- se.fixef*sdx/sdy
+  mydf <- data.frame(stdcoef=sc, stdse=se)
+  rownames(mydf) <- names(lme4::fixef(fit))
+  return(mydf)
 }
 
 
@@ -193,7 +230,14 @@ sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
         else {
           cat(sprintf("Groups %i = %s (n = %i) | %i = %s (n = %i):\n", i, labels[i], length(xsub[which(ysub.n==i)]), j, labels[j], length(xsub[which(ysub.n==j)])))
         }
-        cat(sprintf("  U = %.3f, W = %.3f, p = %.3f, Z = %.3f\n  effect-size r = %.3f\n  rank-mean(%i) = %.2f\n  rank-mean(%i) = %.2f\n\n", u, w, p, z, r, i, rkm.i, j, rkm.j))
+        if (p < 0.001) {
+          p  <- 0.001
+          p.string <- "<"
+        }
+        else {
+          p.string <- "="
+        }
+        cat(sprintf("  U = %.3f, W = %.3f, p %s %.3f, Z = %.3f\n  effect-size r = %.3f\n  rank-mean(%i) = %.2f\n  rank-mean(%i) = %.2f\n\n", u, w, p.string, p, z, r, i, rkm.i, j, rkm.j))
         df <- rbind(df, cbind(grp1=i, grp2=j, u=u, w=w, p=p, z=z, r=r, rank.mean.grp1=rkm.i, rank.mean.grp2=rkm.j))
       }
     }
@@ -203,9 +247,17 @@ sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
     message("Performing Kruskal-Wallis-Test...")
     message("---------------------------------")
     kw <- kruskal.test(var, grp)
-    cat(sprintf("chi-squared = %.3f\n",kw$statistic ))
-    cat(sprintf("df = %i\n",kw$parameter ))
-    cat(sprintf("p = %.3f\n",kw$p.value ))
+    cat(sprintf("chi-squared = %.3f\n", kw$statistic))
+    cat(sprintf("df = %i\n", kw$parameter))
+    if (kw$p.value < 0.001) {
+      p  <- 0.001
+      p.string <- "<"
+    }
+    else {
+      p <- kw$p.value
+      p.string <- "="
+    }
+    cat(sprintf("p %s %.3f\n", p.string, p))
   }
   invisible(df)
 }
