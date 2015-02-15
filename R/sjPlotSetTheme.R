@@ -93,6 +93,7 @@
 #'        Furthermore, there are some theme-presets, which can be used:
 #'        \itemize{
 #'          \item \code{"blank"}: a theme with no grids and axes.
+#'          \item \code{"538"}: a theme inspired by \href{http://fivethirtyeight.com}{538-charts}, adapted from \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{minimaxir.com}.
 #'          \item \code{"forest"}: a theme for forest plots, with no grids.
 #'        }
 #' @param base Base theme where theme is built on. By default, all 
@@ -104,6 +105,11 @@
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/custplot/}{sjPlot manual: customize plot appearance}
 #'          }
+#' 
+#' @references \itemize{
+#'              \item \href{http://zevross.com/blog/2014/08/04/beautiful-plotting-in-r-a-ggplot2-cheatsheet-3/}{Beautiful plotting in R: A ggplot2 cheatsheet}
+#'              \item \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{An Introduction on How to Make Beautiful Charts With R and ggplot2}
+#'             }
 #' 
 #' @examples
 #' \dontrun{
@@ -140,10 +146,24 @@
 #' sjp.setTheme(base = theme_classic(),
 #'              axis.linecolor = "grey50",
 #'              axis.textcolor = "#6699cc")
-#' sjp.frq(efc$e42dep)}
+#' sjp.frq(efc$e42dep)
 #'
+#' # use theme pre-set, taken from tutorial
+#' # http://minimaxir.com/2015/02/ggplot-tutorial/
+#' sjp.setTheme(theme = "538",
+#'              geom.alpha = 0.8)
+#' library(ggplot2) # for custom base-line
+#' sjp.frq(efc$e42dep, 
+#'         geom.color = "#c0392b",
+#'         expand.grid = TRUE,
+#'         printPlot = FALSE)$plot + 
+#'   geom_hline(yintercept = 0, 
+#'              size = 0.5, 
+#'              colour = "black")}
+#' 
 #' @import ggplot2
 #' @importFrom grid unit
+#' @importFrom scales brewer_pal
 #' @export
 sjp.setTheme <- function(title.color="black",
                          title.size=1.3,
@@ -221,13 +241,28 @@ sjp.setTheme <- function(title.color="black",
     base <- theme_classic()
     axis.linecolor <- "white"
     axis.ticksol <- "white"
-    panel.backcol <- "white"
     panel.gridcol <- "white"
+    plot.col <- "white"
   }
   if (!is.null(theme) && theme=="forest") {
     base <- theme_bw()
     panel.gridcol <- "white"
     axis.tickslen <- 0
+  }  
+  if (!is.null(theme) && theme=="538") {
+    base <- theme_bw()
+    g.palette <- brewer_pal(palette = "Greys")(9)
+    panel.bordercol <- panel.backcol <- panel.col <- g.palette[2]
+    plot.backcol <- plot.bordercol <- plot.col <- g.palette[2]
+    panel.major.gridcol <- g.palette[4]
+    panel.minor.gridcol <- g.palette[2]
+    axis.linecolor.x  <- axis.linecolor.y <- axis.linecolor <- g.palette[2]
+    legend.backgroundcol <- legend.bordercol <- g.palette[2]
+    title.col <- g.palette[9]
+    axis.textcol <- g.palette[6]
+    axis.title.color <- g.palette[7]
+    axis.tickslen <- 0
+    message("Theme '538' looks better with panel margins. You may want to use parameter 'expand.grid = TRUE' in sjp-functions.")
   }  
   # ----------------------------------------  
   # set defaults for axis text angle
@@ -413,7 +448,8 @@ sjp.setTheme <- function(title.color="black",
     if (!is.null(panel.col)) {
       sjtheme <- sjtheme +
         theme(panel.background = element_rect(colour = panel.bordercol, 
-                                              fill = panel.backcol))
+                                              fill = panel.backcol),
+              panel.border = element_rect(colour = panel.bordercol))
     }
     # ----------------------------------------
     # set panel grids, if defined

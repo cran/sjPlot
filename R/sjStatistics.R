@@ -118,7 +118,7 @@ sjs.stdb <- function(fit, include.ci = FALSE) {
 }
 
 
-sjs.stdmm <- function(object) {
+sjs.stdmm <- function(fit) {
   # code from Ben Bolker, see
   # http://stackoverflow.com/a/26206119/2094622
   # ------------------------
@@ -127,10 +127,10 @@ sjs.stdmm <- function(object) {
   if (!requireNamespace("lme4", quietly = TRUE)) {
     stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
   }
-  sdy <- sd(lme4::getME(object,"y"))
-  sdx <- apply(lme4::getME(object,"X"), 2, sd)
-  sc <- lme4::fixef(object)*sdx/sdy
-  se.fixef <- coef(summary(object))[,"Std. Error"]
+  sdy <- sd(lme4::getME(fit,"y"))
+  sdx <- apply(lme4::getME(fit,"X"), 2, sd)
+  sc <- lme4::fixef(fit)*sdx/sdy
+  se.fixef <- coef(summary(fit))[,"Std. Error"]
   se <- se.fixef*sdx/sdy
   mydf <- data.frame(stdcoef=sc, stdse=se)
   rownames(mydf) <- names(lme4::fixef(fit))
@@ -641,3 +641,20 @@ sjs.cramer <- function(tab) {
 #' 
 #' @export
 sjs.se <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
+
+sjs.frqci <- function(x) {
+  ft <- as.numeric(unname(table(x)))
+  n <- sum(ft, na.rm = T)
+  rel_frq <- as.numeric(ft/n)
+  ci <- 1.96 * sqrt(rel_frq * (1 - rel_frq)/n)
+  ci.u <- n * (rel_frq + ci)
+  ci.l <- n * (rel_frq - ci)
+  rel.ci.u <- rel_frq + ci
+  rel.ci.l <- rel_frq - ci
+  mydat.frq <- data.frame(frq = ft, lower.ci = ci.l, upper.ci = ci.u)
+  mydat.rel <- data.frame(rel.frq = rel_frq, rel.lower.ci = rel.ci.l, rel.upper.ci = rel.ci.u)
+  
+  invisible (structure(class = "sjs.frqci",
+                       list(mydat.frq = mydat.frq,
+                            mydat.rel = mydat.rel)))
+}

@@ -34,27 +34,28 @@ install.packages("sjPlot")
 In case you want / have to cite my package, please use `citation('sjPlot')` for citation information. Since this package makes heavy use of the [ggplot-package](http://cran.r-project.org/web/packages/ggplot2/index.html), consider citing this package as well.
 
 
-### Changelog of current stable build 1.6.8
+### Changelog of current stable build 1.6.9
+
+#### New functions
+* Added new functions `sjd.norm`, `sjd.chisq`, `sjd.f` and `sjd.t` to plot distribution curves, optionally with shaded areas indicating the p-level area.
 
 #### Changes to functions
-* Plotting standardized beta values in `sjp.lm` can be achieved via the `type` parameter (`type = "std"`). Furthermore, confidence intervals and p-values are shown in the standardized beta plot.
-* `sjt.lm` now also prints confidence intervals for standardized beta values.
-* `sjp.vif` and `sjp.glm.ma` were merged into `sjp.glm`. Use the `type` parameter to select plot type.
-* `sjp.lm1`, `sjp.reglin`, `sjp.vif` and `sjp.lm.ma` were merged into `sjp.lm`. Use the `type` parameter to select plot type.
-* Added parameter `vars` to `sjp.glmer` to plot probability curves only for selected variables.
-* Added type `fe.ri` to `type` parameter of `sjp.lmer` to plot fixed effects slopes for each random intercept (group level).
-* Added type `fe.std` to `type` parameter of `sjp.lmer` to plot standardized coefficients of fixed effects.
-* p-values less than 0.001 are indicated as `p < 0.001` instead of being rounded to `p = 0.000`.
-* Added parameter `showTotalN` to `sjt.xtab` to show column and row sums even if parameter `showObserved` is `FALSE`.
-* Added parameter `digits.summary` to `sjt.grpmean` to use different digits for table values and summary statistics.
-* `sji.setValueLabels` now also accepts a vector for the parameter `labels` if `x` is a data frame. Using a vector will apply the labels to each variable of the data frame `x`.
-* `sjt.frq` now by default automatically detects whether a variable has a certain proportion of zero-count values and does not print them by default then. Use `skipZeroRows = TRUE` or `skipZeroRows = FALSE` to explicitly show or remove zero-counts from the table.
-
+* Plotting single predictors of linear models (`type = "pred"` in function `sjp.lm`) now also supports plotting interaction terms and factor levels. Needs parameter `x=TRUE` in `lm`-call to work.
+* Added parameter `showCI` to `sjp.frq` to show 95% confidence intervals. Use `error.bar.colors` to change colors of error bars when using bar charts. In case of dot plots, error bars have the same color as dots (see `geom.colors`).
+* Added parameter `remove.spaces` to all `sjt`-function to remove leading spaces (parantheses of html-tags), which may make tables less cluttered when importing them into office applications.
+* Added parameters `digits` and `digits.stats` to `sjt.stackfrq`, to specifiy digits after decimal point for percentage and statistic values.
+* Added parameter `atomic.to.fac` to `sji.SPSS`, so variables with nominal or ordinal scale imported from SPSS data sets are imported as `factors`, not as `atomic`.
+* `sjp.scatter` no longer needs both `x` and `y` to be specified, but at least one of them.
+* `sjt.grpmean` now shows p-values for each group (retrieved from anova table).
+* Added new theme-preset (`theme = "538"`) to `sjp.setTheme`.
 
 #### Bug fixes
-* Fixed bug with `type = "dots"` in `sjp.grpfrq`.
-* Fixed bug with predictor labelling in `sjp.lm` and `sjp.glm` when parameter `labelPredictors` was not used.
-* Fixed bug with custom color palettes and neutral categories in `sjp.likert`.
+* `sjt.grpmean` did not indicate p-values smaller than 0.001 as _p<0.001_, but still as _p=0.000_ - fixed.
+* Fixed bug in function `sjs.stdmm`, which was the cause for a bug with `type = "fe.std"` in `sjp.lmer`.
+* Fixed bug in `sjp.int` when fitted model does not contain p-values (e.g. when passing a merMod object from lme4).
+* `sji.setValueLabels` did not set labels properly when paramerer `labels` was a list - fixed.
+* Minor bug fix in `sjp.int`.
+* Minor bug fix in `sjp.setTheme`.
 
 
 ### Some ideas for future updates

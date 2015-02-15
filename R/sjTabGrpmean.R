@@ -39,6 +39,9 @@
 #'          the viewer pane and not even saved to file. This option is useful when the html output
 #'          should be used in \code{knitr} documents. The html output can be accessed via the return
 #'          value.
+#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
+#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
+#'          may look less pretty, but it may help when exporting html-tables to office tools.
 #' @return Invisibly returns a \code{\link{structure}} with
 #'          \itemize{
 #'            \item the data frame with the description information (\code{df}),
@@ -65,7 +68,8 @@ sjt.grpmean <- function(varCount,
                         encoding=NULL,
                         CSS=NULL,
                         useViewer=TRUE,
-                        no.output=FALSE) {
+                        no.output=FALSE,
+                        remove.spaces=TRUE) {
   # --------------------------------------
   # set value and row labels
   # --------------------------------------
@@ -82,6 +86,23 @@ sjt.grpmean <- function(varCount,
   # --------------------------------------
   varCount <- as.numeric(varCount)
   varGrp <- as.numeric(varGrp)
+  # --------------------------------------
+  # compute anova statistics for mean table
+  # see below
+  # --------------------------------------
+  fit <- aov(varCount ~ as.factor(varGrp))
+  # p-values of means
+  means.p <- summary.lm(fit)$coefficients[, 4]
+  pval <- c()
+  # convert means to apa style
+  for (i in 1:length(means.p)) {
+    if (means.p[i] < 0.001) {
+      pval <- c(pval, "&lt;0.001")
+    }
+    else {
+      pval <- c(pval, sprintf("%.*f", digits, means.p[i]))
+    }
+  } 
   # --------------------------------------
   # retrieve group indices
   # --------------------------------------
@@ -100,7 +121,8 @@ sjt.grpmean <- function(varCount,
                 cbind(mean = sprintf("%.*f", digits, mean(varCount[varGrp == indices[i]], na.rm = TRUE)),
                       N = length(na.omit(varCount[varGrp == indices[i]])),
                       sd = sprintf("%.*f", digits, sd(varCount[varGrp == indices[i]], na.rm = TRUE)),
-                      se = sprintf("%.*f", digits, sjs.se(varCount[varGrp == indices[i]]))))
+                      se = sprintf("%.*f", digits, sjs.se(varCount[varGrp == indices[i]])),
+                      p = pval[i]))
   }
   # --------------------------------------
   # finally, add total-row
@@ -109,7 +131,8 @@ sjt.grpmean <- function(varCount,
               cbind(mean = sprintf("%.*f", digits, mean(varCount, na.rm = TRUE)),
                     N = length(na.omit(varCount)),
                     sd = sprintf("%.*f", digits, sd(varCount, na.rm = TRUE)),
-                    se = sprintf("%.*f", digits, sjs.se(varCount))))
+                    se = sprintf("%.*f", digits, sjs.se(varCount)),
+                    p = ""))
   # --------------------------------------
   # fix row labels, if empty or NULL
   # --------------------------------------
@@ -118,13 +141,8 @@ sjt.grpmean <- function(varCount,
   }
   rownames(df) <- c(rowLabels, "Total")
   # --------------------------------------
-  # convert grp to factor for one-way-anova
+  # get anova statistics for mean table
   # --------------------------------------
-  varGrp <- as.factor(varGrp)
-  # --------------------------------------
-  # compute anova statistics for mean table
-  # --------------------------------------
-  fit <- aov(varCount ~ varGrp)
   # multiple r2
   r2 <- summary.lm(fit)$r.squared
   # adj. r2
@@ -133,6 +151,7 @@ sjt.grpmean <- function(varCount,
   fstat <- summary.lm(fit)$fstatistic[1]
   # p-value for F-test
   pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
+  pvalstring <- ifelse(pval < 0.001, "p&lt;0.001", sprintf("p=%.*f", digits.summary, pval))  
   # --------------------------------------
   # print data frame to html table
   # --------------------------------------
@@ -146,8 +165,9 @@ sjt.grpmean <- function(varCount,
                  CSS = CSS,
                  encoding = encoding,
                  hideProgressBar = TRUE,
-                 commentString = sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; F=%.*f &middot; p=%.*f",
-                                         digits.summary, r2, digits.summary, r2.adj, digits.summary, fstat, digits.summary, pval))
+                 commentString = sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; F=%.*f &middot; %s",
+                                         digits.summary, r2, digits.summary, r2.adj, digits.summary, fstat, pvalstring),
+                 remove.spaces = remove.spaces)
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------

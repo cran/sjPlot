@@ -18,6 +18,9 @@
 #' @param autoAttachVarLabels if \code{TRUE}, variable labels will automatically be
 #'          attached to each variable as \code{"variable.label"} attribute.
 #'          See \code{\link{sji.setVariableLabels}} for details.
+#' @param atomic.to.fac Logical, if \code{TRUE}, factor variables imported from
+#'          SPSS (which are imported as \code{\link{atomic}}) will be converted
+#'          to \code{\link{factor}}s.
 #' @return A data frame containing the SPSS data. retrieve value labels with \code{\link{sji.getValueLabels}}
 #'   and variable labels with \code{\link{sji.getVariableLabels}}.
 #'   
@@ -37,9 +40,46 @@
 #' 
 #' @importFrom foreign read.spss
 #' @export
-sji.SPSS <- function(path, enc=NA, autoAttachVarLabels=FALSE) {
+sji.SPSS <- function(path, 
+                     enc=NA, 
+                     autoAttachVarLabels=FALSE,
+                     atomic.to.fac=FALSE) {
   # import data as data frame
   data.spss <- read.spss(path, to.data.frame=TRUE, use.value.labels=FALSE, reencode=enc)
+  # convert atomic values to factors
+  if (atomic.to.fac) {
+    # -------------------------------------
+    # create progress bar
+    # -------------------------------------
+    pb <- txtProgressBar(min = 0, 
+                         max = ncol(data.spss), 
+                         style = 3)
+    # tell user...
+    message("Converting atomic to factors. Please wait...\n")
+    # iterate all columns
+    for (i in 1:ncol(data.spss)) {
+      # copy column to vector
+      x <- data.spss[, i]
+      # is atomic, which was factor in SPSS?
+      if (is.atomic(x) && !is.null(attr(x, "value.labels"))) {
+        # so we have value labels (only typical for factors, not
+        # continuous variables) and a variable of type "atomic" (SPSS
+        # continuous variables would be imported as numeric) - this
+        # indicates we have a factor variable. now we convert to 
+        # factor, but need to capture labels attribute first
+        labs <- attr(x, "value.labels")
+        # to factor
+        x <- as.factor(x)
+        # set back labels attribute
+        attr(x, "value.labels") <- labs
+        # copy vector back to data frame
+        data.spss[, i] <- x
+      }
+      # update progress bar
+      setTxtProgressBar(pb, i)
+    }
+    close(pb)
+  }
   # auto attach labels
   if (autoAttachVarLabels) {
     message("Attaching variable labels. Please wait...\n")
@@ -97,7 +137,14 @@ sji.getValueLabels <- function(x) {
   return (a)
 }
 sji.getValueLabel <- function(x) {
-  return (rev(names(attr(x, "value.labels"))))
+  # retrieve named labels
+  lab <- attr(x, "value.labels")
+  # retrieve order of value labels
+  reihenfolge <- order(as.numeric(unname(lab)))
+  # retrieve label values in correct order
+  labels <- names(lab)[reihenfolge]
+  # return them
+  return (labels)
 }
 
 
@@ -144,11 +191,11 @@ sji.setValueLabels <- function(x, labels) {
   }
   else if (is.data.frame(x) || is.matrix(x)) {
     for (i in 1:ncol(x)) {
-      if (is.vector(labels)) {
-        x[,i] <- sji.setValueLabels.vector(x[,i], labels)
-      }
-      else if (is.list(labels)) {
+      if (is.list(labels)) {
         x[,i] <- sji.setValueLabels.vector(x[,i], labels[[i]])
+      }
+      else if (is.vector(labels)) {
+        x[,i] <- sji.setValueLabels.vector(x[,i], labels)
       }
       else {
         warning("'labels' must be a list of same length as 'ncol(x)' or a vector.", call. = F)
@@ -250,7 +297,7 @@ sji.getVariableLabels <- function(x) {
 }
 
 
-#' @title Set variable label(s) to a single variable or data frame
+#' @title Attach variable label(s) to a single variable or data frame
 #' @name sji.setVariableLabels
 #' @description This function sets variable labels to a single variable or to
 #'                a set of variables in a data frame. To each variable, the

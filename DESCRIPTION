@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 1.6.8
-Date: 2015-02-02
+Version: 1.6.9
+Date: 2015-02-15
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of several plotting and table output functions for
@@ -14,6 +14,6 @@ Suggests: arm, cluster, coin, lme4, lsmeans, lmtest, Matrix, stringdist
 URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
 NeedsCompilation: no
-Packaged: 2015-02-02 12:16:40 UTC; Luedeke
+Packaged: 2015-02-15 07:41:16 UTC; Luedeke
 Repository: CRAN
-Date/Publication: 2015-02-02 15:29:12
+Date/Publication: 2015-02-15 09:59:07
