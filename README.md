@@ -1,8 +1,8 @@
 sjPlot - Data Visualization for Statistics in Social Science
 ------------------------------------------------------------------------------
-Collection of several plotting and table output functions for visualizing data. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models (forest plots), mixed effects models, PCA, correlations, cluster analyses, scatter plots etc.
+Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales etc.
 
-Furthermore, this package contains some tools that are useful when carrying out data analysis or interpreting data (especially intended for people coming from SPSS and/or who are new to R). These tool functions support importing (SPSS) data, variable recoding and weighting, statistical tests, determination of cluster groups, interpretation of interaction terms in regression models etc.
+Furthermore, this package contains some tools that are useful when carrying out data analysis or interpreting data (especially intended for people coming from SPSS and/or who are new to R). These tool functions support reading and writing data (SPSS, SAS and STATA), variable recoding and weighting, statistical tests, interpretation of interaction terms in regression models, reliability tests and constructing index or score variables and much more.
 
 
 ### Installation
@@ -23,9 +23,9 @@ To install the latest stable release from CRAN, type following command into the 
 install.packages("sjPlot")
 ```
 
-### References and documentation
+### References, documentation and exmaples
 
-- [Documentation](http://www.strengejacke.de/sjPlot/)
+- [Documentation and examples](http://www.strengejacke.de/sjPlot/)
 - [Weblog](http://strengejacke.wordpress.com/sjplot-r-package/)
 
 
@@ -33,30 +33,41 @@ install.packages("sjPlot")
 
 In case you want / have to cite my package, please use `citation('sjPlot')` for citation information. Since this package makes heavy use of the [ggplot-package](http://cran.r-project.org/web/packages/ggplot2/index.html), consider citing this package as well.
 
+### Changelog of current stable build 1.7
 
-### Changelog of current stable build 1.6.9
+#### General
+* Renamed `sjs`, `sju`, `sjd` and `sji`-functions into more intuitiv and shorter function names.
+* `autoSetValueLabels` and `autoSetVariableLabels` are now a global option. E.g., use `options(autoSetValueLabels = FALSE)` to turn off automatic value label detection in plotting and table functions, or `options(autoSetValueLabels = TRUE)` to turn on automatic label detection.
+* `p_zero` is now a global option. Use `options(p_zero = TRUE)` to show leading zero before period in p-value, r-quared and phi labels.
+* `read_spss` is now a global option. Use `options(read_spss = 'haven')` to set default package for readind spss data to haven, or `options(read_spss = 'foreign')` to make `read_spss` use the foreign package to read spss data.
+* `value_labels` is now a global option. Use `options(value_labels = 'haven')` to set default attribute assignment in haven format (`labels` and `label`), or `options(value_labels = 'foreign')` to to set default attribute assignment in foreign format (`value.labels` and `variable.label`). Affects functions like auto-detection of labels, `set_var_labels` or `set_val_labels` etc.
+* Removed `plyr` import and replaced with `dplyr` functions.
+* Removed `reshape2` import and replaced with `tidyr` functions.
+* Added two more sample datasets (`efc2` and `efc3`) to the package, which slightly differ in their structure.
 
 #### New functions
-* Added new functions `sjd.norm`, `sjd.chisq`, `sjd.f` and `sjd.t` to plot distribution curves, optionally with shaded areas indicating the p-level area.
+* `write_spss` to write data frames to SPSS sav-files, including value and variable labels.
+* `write_stata` to write data frames to STATA files, including value and variable labels.
+* `read_stata` to read STATA files, including value and variable labels.
+* `read_sas` to read SAS files, including value and variable labels.
+* `to_sjPlot` to convert data frames imported with the `haven` package ([see GitHub](https://github.com/hadley/haven)) to a more sjPlot-friendly format.
+* `to_fac` to convert (numeric or atomic) variables to factors, but keeps value and variable labels. Useful alternative to `as.factor`, when data has been imported from SPSS (e.g. with `read_spss`).
 
 #### Changes to functions
-* Plotting single predictors of linear models (`type = "pred"` in function `sjp.lm`) now also supports plotting interaction terms and factor levels. Needs parameter `x=TRUE` in `lm`-call to work.
-* Added parameter `showCI` to `sjp.frq` to show 95% confidence intervals. Use `error.bar.colors` to change colors of error bars when using bar charts. In case of dot plots, error bars have the same color as dots (see `geom.colors`).
-* Added parameter `remove.spaces` to all `sjt`-function to remove leading spaces (parantheses of html-tags), which may make tables less cluttered when importing them into office applications.
-* Added parameters `digits` and `digits.stats` to `sjt.stackfrq`, to specifiy digits after decimal point for percentage and statistic values.
-* Added parameter `atomic.to.fac` to `sji.SPSS`, so variables with nominal or ordinal scale imported from SPSS data sets are imported as `factors`, not as `atomic`.
-* `sjp.scatter` no longer needs both `x` and `y` to be specified, but at least one of them.
-* `sjt.grpmean` now shows p-values for each group (retrieved from anova table).
-* Added new theme-preset (`theme = "538"`) to `sjp.setTheme`.
+* `read_spss` (former `sji.SPSS`) now supports reading data via `haven`'s read-function (see parameter `option`).
+* `sjt.lm` and `sjt.glm` now also print multiple fitted models with different predictors in each model (e.g. when comparing stepwise regression). See examples in `?sjt.lm` and `?sjt.glm`.
+* Added parameter `remove.estimates` to `sjt.lm` and `sjt.glm`, so specific estimates can be removed from the table output.
+* Added parameter `group.pred` in `sjt.lm` and `sjt.glm` to automatically group table rows with factor levels of same factor.
+* Improved `set_var_labels`, `get_var_labels`, `set_val_labels` and `get_val_labels` to cope with `haven` package data structure.
+* Improved `view_spss` function (former `sji.viewSPSS`).
+* Improved automatic label extraction for `sjp.lm`, `sjt.lm`, `sjp.glm` and `sjt.glm`.
+* Improved pre-set theme `538` in `sjp.setTheme`.
+* Added further pre-set themes to `sjp.setTheme`.
+* Minor improvements in `sjp.lm` with `type="ma"`.
 
 #### Bug fixes
-* `sjt.grpmean` did not indicate p-values smaller than 0.001 as _p<0.001_, but still as _p=0.000_ - fixed.
-* Fixed bug in function `sjs.stdmm`, which was the cause for a bug with `type = "fe.std"` in `sjp.lmer`.
-* Fixed bug in `sjp.int` when fitted model does not contain p-values (e.g. when passing a merMod object from lme4).
-* `sji.setValueLabels` did not set labels properly when paramerer `labels` was a list - fixed.
-* Minor bug fix in `sjp.int`.
-* Minor bug fix in `sjp.setTheme`.
-
-
-### Some ideas for future updates
-* Printing tables of (generalized) linear models from models with different coefficients (e.g. to print stepwise regressions).
+* Fixed bug in `sjt.itemanalysis` [(#issue 8)](https://github.com/sjPlot/devel/issues/8).
+* Fixed bug in `sji.setValueLabels`.
+* Fixed bug in `sjt.frq` with string-variables that contained a larger amount of unique values including `NA`-values, when parameter `skipZeroRows` was set to `auto` (default).
+* Minor bug fixes in `sjp.lm` with `type="ma"`.
+* `weight` should now also include `NA`s.

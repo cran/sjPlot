@@ -3,7 +3,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("fit"))
 
 
 #' @title Retrieve eta squared of fitted anova
-#' @name sjs.etasq
+#' @name eta_sq
 #' @description Returns the eta squared value for 1-way-anovas.
 #' 
 #' @seealso \code{\link{sjp.aov1}}
@@ -33,13 +33,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("fit"))
 #' fit <- aov(c12hour ~ as.factor(e42dep), data = efc)
 #' 
 #' # print eta sqaured
-#' sjs.etasq(fit)
+#' eta_sq(fit)
 #' 
 #' # grouping variable will be converted to factor autoamtically
-#' sjs.etasq(efc$c12hour, efc$e42dep)
+#' eta_sq(efc$c12hour, efc$e42dep)
 #' 
 #' @export
-sjs.etasq <- function(...) {
+eta_sq <- function(...) {
   # --------------------------------------------------------
   # retrieve list of parameters
   # --------------------------------------------------------
@@ -68,19 +68,24 @@ sjs.etasq <- function(...) {
 }
 
 
-#' @title Retrieve std. beta coefficients and ci of lm
-#' @name sjs.stdb
-#' @description Returns the standardized beta coefficients and confidence intervals of a fitted linear model.
+#' @title Retrieve std. beta coefficients and ci of lm and mixed models
+#' @name std_beta
+#' @description Returns the standardized beta coefficients and confidence intervals 
+#'                of a fitted linear (mixed) models, i.e. \code{fit} must either
+#'                be of class \code{lm} or \code{lmerMod} (lme4-package).
 #' 
 #' @seealso \itemize{
 #'            \item \code{\link{sjp.lm}}
 #'            \item \code{\link{sjt.lm}}
 #'            }
 #'         
-#' @param fit A fitted linear model.
-#' @param include.ci logical, if \code{TRUE}, a data frame with confidence intervals will be returned.
+#' @param fit A fitted linear (mixed) model of class \code{lm} or \code{lmerMod} (lme4-package).
+#' @param include.ci logical, if \code{TRUE}, a data frame with confidence intervals will be returned,
+#'          when \code{fit} is of class \code{lm}. If \code{fit} is a \code{lmerMod} object (lme4-package),
+#'          always returns standard error instead of confidence intervals (hence, this paramezer will
+#'          be ignored when \code{fit} is a \code{lmerMod} object).
 #' @return A vector with standardiized beta coefficients of the fitted linear model, or a data frame
-#'           with standardiized confidence intervals, if \code{include.ci = TRUE}.
+#'           with standardized confidence intervals, if \code{include.ci = TRUE}.
 #' 
 #' @note "Standardized coefficients refer to how many standard deviations a dependent variable will change, 
 #'         per standard deviation increase in the predictor variable. Standardization of the coefficient is 
@@ -95,25 +100,30 @@ sjs.etasq <- function(...) {
 #' # fit linear model
 #' fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Solar.R)
 #' # print std. beta coefficients
-#' sjs.stdb(fit)
+#' std_beta(fit)
 #' 
 #' # print std. beta coefficients and ci
-#' sjs.stdb(fit, include.ci = TRUE)
+#' std_beta(fit, include.ci = TRUE)
 #' 
 #' @export
-sjs.stdb <- function(fit, include.ci = FALSE) {
-  b <- summary(fit)$coef[-1, 1]
-  sx <- sapply(fit$model[-1], sd)
-  sy <- sapply(fit$model[1], sd)
-  beta <- b * sx/sy
-  se <- summary(fit)$coefficients[-1, 2]
-  beta.se <- se * sx/sy
-  
-  if (include.ci) {
-    return (data.frame(beta = beta, ci.low = (beta - beta.se * 1.96), ci.hi = (beta + beta.se * 1.96)))
+std_beta <- function(fit, include.ci = FALSE) {
+  if (class(fit) == "lmerMod") {
+    return (sjs.stdmm(fit))
   }
   else {
-    return(beta)
+    b <- summary(fit)$coef[-1, 1]
+    sx <- sapply(fit$model[-1], sd)
+    sy <- sapply(fit$model[1], sd)
+    beta <- b * sx/sy
+    se <- summary(fit)$coefficients[-1, 2]
+    beta.se <- se * sx/sy
+    
+    if (include.ci) {
+      return (data.frame(beta = beta, ci.low = (beta - beta.se * 1.96), ci.hi = (beta + beta.se * 1.96)))
+    }
+    else {
+      return(beta)
+    }
   }
 }
 
@@ -139,7 +149,7 @@ sjs.stdmm <- function(fit) {
 
 
 #' @title Performs a Mann-Whitney-U-Test
-#' @name sjs.mwu
+#' @name mwu
 #' @description This function performs a Mann-Whitney-U-Test (or \code{Wilcoxon rank sum test},
 #'                see \code{\link{wilcox.test}} and \code{wilcox_test} (\code{coin}-package)) for the variable \code{var}, which is
 #'                divided into groups indicated by \code{grp} (so the formula \code{var ~ grp}
@@ -168,7 +178,7 @@ sjs.stdmm <- function(fit) {
 #'          \item large effect >= 0.5
 #'        }
 #' 
-#' @seealso \code{\link{sjs.chi2.gof}}, \code{\link{sjs.aov1.levene}}, 
+#' @seealso \code{\link{chisq_gof}}, \code{\link{levene_test}}, 
 #'          \code{\link{wilcox.test}}, \code{\link{ks.test}}, 
 #'          \code{\link{kruskal.test}}, \code{\link{t.test}}, 
 #'          \code{\link{chisq.test}} and \code{\link{fisher.test}}
@@ -177,10 +187,10 @@ sjs.stdmm <- function(fit) {
 #' \dontrun{
 #' data(efc)
 #' # Mann-Whitney-U-Tests for elder's age by elder's dependency.
-#' sjs.mwu(efc$e17age, efc$e42dep)}
+#' mwu(efc$e17age, efc$e42dep)}
 #' 
 #' @export
-sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
+mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
   # ------------------------
   # check if suggested package is available
   # ------------------------
@@ -264,7 +274,7 @@ sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
 
 
 #' @title Performs a Chi-square goodness-of-fit-test
-#' @name sjs.chi2.gof
+#' @name chisq_gof
 #'
 #' @param var a numeric vector / variable.
 #' @param prob a vector of probabilities (indicating the population probabilities) of the same length 
@@ -275,21 +285,21 @@ sjs.mwu <- function(var, grp, distribution="asymptotic", weights=NULL) {
 #' 
 #' @note This function is a convenient function for \code{\link{chisq.test}}, performing goodness-of-fit test.
 #' 
-#' @seealso \code{\link{sjs.mwu}}, \code{\link{sjs.aov1.levene}}, \code{\link{wilcox.test}}, 
+#' @seealso \code{\link{mwu}}, \code{\link{levene_test}}, \code{\link{wilcox.test}}, 
 #'          \code{\link{ks.test}}, \code{\link{kruskal.test}}, \code{\link{t.test}}, 
 #'          \code{\link{chisq.test}}, \code{\link{fisher.test}}, \code{\link{ks.test}}
 #' 
 #' @examples
 #' data(efc)
 #' # differing from population
-#' sjs.chi2.gof(efc$e42dep, c(0.3,0.2,0.22,0.28))
+#' chisq_gof(efc$e42dep, c(0.3,0.2,0.22,0.28))
 #' # equal to population
-#' sjs.chi2.gof(efc$e42dep, prop.table(table(efc$e42dep)))
+#' chisq_gof(efc$e42dep, prop.table(table(efc$e42dep)))
 #' 
 #' @export
-sjs.chi2.gof <- function(var, prob, weights=NULL) {
+chisq_gof <- function(var, prob, weights=NULL) {
   # performs a Chi-square goodnes-of-fit-test
-  if (!is.null(weights)) var <- sju.weight(var, weights)
+  if (!is.null(weights)) var <- weight(var, weights)
   dummy <- as.vector(table(var))
   chi2gof <- chisq.test(dummy, p=prob)
   print(chi2gof)
@@ -298,12 +308,12 @@ sjs.chi2.gof <- function(var, prob, weights=NULL) {
 
 
 #' @title Calculates Cronbach's Alpha for a matrix
-#' @name sjs.cronbach
+#' @name cronb
 #' @description This function calculates the Cronbach's alpha value for each column
 #'                of a data frame or matrix.
 #'
 #' @seealso \itemize{
-#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{reliab_test}}
 #'            \item \code{\link{sjt.itemanalysis}}
 #'            \item \code{\link{sjp.pca}}
 #'            \item \code{\link{sjt.pca}}
@@ -315,7 +325,7 @@ sjs.chi2.gof <- function(var, prob, weights=NULL) {
 #' @note See examples from \code{\link{sjp.pca}} and \code{\link{sjt.pca}}.
 #' 
 #' @export
-sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 2 columns
+cronb <- function(df) { # df must be matrix or data.frame with more than 2 columns
   df <- na.omit(df)
   if (is.null(ncol(df)) || ncol(df)<2) {
     cat("\nToo less columns in this factor to calculate alpha value!\n")
@@ -326,16 +336,16 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 
 
 #' @title Performs a reliability test on an item scale.
-#' @name sjs.reliability
+#' @name reliab_test
 #' @description This function calculates the item discriminations (corrected item-total 
 #'                correlations for each item of \code{df} with the remaining items) and
 #'                the Cronbach's alpha for each item, if it was deleted from the 
 #'                scale.
 #'
 #' @seealso \itemize{
-#'            \item \code{\link{sjs.cronbach}}
+#'            \item \code{\link{cronb}}
 #'            \item \code{\link{sjt.itemanalysis}}
-#'            \item \code{\link{sjs.mic}}
+#'            \item \code{\link{mic}}
 #'            \item \code{\link{sjp.pca}}
 #'            \item \code{\link{sjt.pca}}
 #'            \item \code{\link{sjt.df}}
@@ -361,7 +371,7 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
-#' varlabs <- sji.getVariableLabels(efc)
+#' varlabs <- get_var_labels(efc)
 #' 
 #' # recveive first item of COPE-index scale
 #' start <- which(colnames(efc) == "c82cop1")
@@ -373,11 +383,11 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' colnames(df) <- varlabs[c(start:end)]
 #' 
 #' \dontrun{
-#' sjt.df(sjs.reliability(df), 
+#' sjt.df(reliab_test(df), 
 #'        describe = FALSE,
 #'        showCommentRow = TRUE, 
 #'        commentString = sprintf("Cronbach's &alpha;=%.2f", 
-#'                                sjs.cronbach(df)))}
+#'                                cronb(df)))}
 #' 
 #' # ---------------------------------------
 #' # Compute PCA on Cope-Index, and perform a
@@ -389,18 +399,18 @@ sjs.cronbach <- function(df) { # df must be matrix or data.frame with more than 
 #' for (i in 1:length(findex)) {
 #'  rel.df <- subset(df, select = which(factors == findex[i]))
 #'  if (ncol(rel.df) >= 3) {
-#'    sjt.df(sjs.reliability(rel.df),
+#'    sjt.df(reliab_test(rel.df),
 #'           describe = FALSE,
 #'           showCommentRow = TRUE,
 #'           useViewer = FALSE,
 #'           title = "Item-Total-Statistic",
 #'           commentString = sprintf("Scale's overall Cronbach's &alpha;=%.2f", 
-#'                                   sjs.cronbach(rel.df)))
+#'                                   cronb(rel.df)))
 #'    }
 #'  }}
 #'  
 #' @export
-sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
+reliab_test <- function(df, scaleItems=FALSE, digits=3) {
   # -----------------------------------
   # remove missings, so correlation works
   # -----------------------------------
@@ -442,7 +452,7 @@ sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
       # -----------------------------------
       # calculate cronbach-if-deleted
       # -----------------------------------
-      cronbachDeleted <- c(cronbachDeleted, sjs.cronbach(sub.df))
+      cronbachDeleted <- c(cronbachDeleted, cronb(sub.df))
       # -----------------------------------
       # calculate corrected total-item correlation
       # -----------------------------------
@@ -468,7 +478,7 @@ sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
 
 
 #' @title Computes a mean inter-item-correlation.
-#' @name sjs.mic
+#' @name mic
 #' @description This function calculates a mean inter-item-correlation, i.e.
 #'                a correlation matrix of \code{data} will be computed (unless
 #'                \code{data} is already a \code{\link{cor}}-object) and the mean
@@ -476,9 +486,9 @@ sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
 #'                Requires either a data frame or a computed \code{\link{cor}}-object.
 #'
 #' @seealso \itemize{
-#'            \item \code{\link{sjs.cronbach}}
+#'            \item \code{\link{cronb}}
 #'            \item \code{\link{sjt.itemanalysis}}
-#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{reliab_test}}
 #'            \item \code{\link{sjp.pca}}
 #'            \item \code{\link{sjt.pca}}
 #'            }
@@ -501,10 +511,9 @@ sjs.reliability <- function(df, scaleItems=FALSE, digits=3) {
 #' # create data frame with COPE-index scale
 #' df <- as.data.frame(efc[,c(start:end)])
 #' 
-#' sjs.mic(df)
+#' mic(df)
 #' @export
-sjs.mic <- function(data,
-                    corMethod="pearson") {
+mic <- function(data, corMethod="pearson") {
   # -----------------------------------
   # Mean-interitem-corelation
   # -----------------------------------
@@ -536,13 +545,13 @@ sjs.mic <- function(data,
 }
 
 
-#' @title Compute table's values
-#' @name sjs.table.values
+#' @title Compute expected and relative table values
+#' @name table_values
 #' @description This function calculates a table's cell, row and column percentages as
 #'                well as expected values and returns all results as lists of tables.
 #'
-#' @seealso \code{\link{sjs.phi}} \cr
-#'          \code{\link{sjs.cramer}}
+#' @seealso \code{\link{phi}} \cr
+#'          \code{\link{cramer}}
 #'
 #' @param tab A simple \code{\link{table}} or \code{\link{ftable}} of which cell, row and column percentages 
 #'          as well as expected values are calculated. Tables of class \code{\link{xtabs}} and other will
@@ -559,12 +568,12 @@ sjs.mic <- function(data,
 #' @examples
 #' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
 #' # show expected values
-#' sjs.table.values(tab)$expected
+#' table_values(tab)$expected
 #' # show cell percentages
-#' sjs.table.values(tab)$cell
+#' table_values(tab)$cell
 #' 
 #' @export
-sjs.table.values <- function(tab, digits=2) {
+table_values <- function(tab, digits=2) {
   if (class(tab)!="ftable") tab <- ftable(tab)
   tab.cell <- round(100*prop.table(tab),digits)
   tab.row <- round(100*prop.table(tab,1),digits)
@@ -582,11 +591,11 @@ sjs.table.values <- function(tab, digits=2) {
 
 
 #' @title Phi value for a contingency table
-#' @name sjs.phi
+#' @name phi
 #' @description Compute Phi value for a contingency table.
 #'
-#' @seealso \code{\link{sjs.table.values}} \cr
-#'          \code{\link{sjs.cramer}}
+#' @seealso \code{\link{table_values}} \cr
+#'          \code{\link{cramer}}
 #'
 #' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
 #'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
@@ -594,23 +603,24 @@ sjs.table.values <- function(tab, digits=2) {
 #' 
 #' @examples
 #' tab <- table(sample(1:2, 30, TRUE), sample(1:2, 30, TRUE))
-#' sjs.phi(tab)
+#' phi(tab)
 #' 
+#' @importFrom MASS loglm
 #' @export
-sjs.phi <- function(tab) {
+phi <- function(tab) {
   if (class(tab)!="ftable") tab <- ftable(tab)
-  tb <- summary(loglm(~1+2, tab))$tests
-  phi <- sqrt(tb[2,1]/sum(tab))
-  return (phi)
+  tb <- summary(MASS::loglm(~1+2, tab))$tests
+  phi_val <- sqrt(tb[2,1]/sum(tab))
+  return (phi_val)
 }
 
 
 #' @title Cramer's V for a contingency table
-#' @name sjs.cramer
+#' @name cramer
 #' @description Compute Cramer's V for a table with more than 2x2 fields.
 #'
-#' @seealso \code{\link{sjs.table.values}} \cr
-#'          \code{\link{sjs.phi}}
+#' @seealso \code{\link{table_values}} \cr
+#'          \code{\link{phi}}
 #'
 #' @param tab A simple \code{\link{table}} or \code{\link{ftable}}. Tables of class 
 #'          \code{\link{xtabs}} and other will be coerced to \code{\link{ftable}} objects.
@@ -618,29 +628,29 @@ sjs.phi <- function(tab) {
 #' 
 #' @examples
 #' tab <- table(sample(1:2, 30, TRUE), sample(1:3, 30, TRUE))
-#' sjs.cramer(tab)
+#' cramer(tab)
 #' 
 #' @export
-sjs.cramer <- function(tab) {
+cramer <- function(tab) {
   if (class(tab)!="ftable") tab <- ftable(tab)
-  phi <- sjs.phi(tab)
-  cramer <- sqrt(phi^2/min(dim(tab)-1))
+  phi_val <- phi(tab)
+  cramer <- sqrt(phi_val^2/min(dim(tab)-1))
   return (cramer)
 }
 
 
 #' @title Compute standard error for variables
-#' @name sjs.se
+#' @name std_e
 #' @description Compute standard error for variables
 #'
 #' @param x a (numeric) vector / variable.
 #' @return The standard error of variable \code{x}.
 #' 
 #' @examples
-#' sjs.se(rnorm(n = 100, mean = 3))
+#' std_e(rnorm(n = 100, mean = 3))
 #' 
 #' @export
-sjs.se <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
+std_e <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
 
 sjs.frqci <- function(x) {
   ft <- as.numeric(unname(table(x)))

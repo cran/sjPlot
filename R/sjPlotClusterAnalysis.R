@@ -64,9 +64,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          Example: \code{title=c("my title")}
 #' @param axisLabels.x Labels for the x-axis breaks.
 #'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
-#'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
-#'          list object with label string. The labels may also be passed as list object. They will be unlisted and
-#'          converted to character vector automatically.
+#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          list object with label string. The labels may also be passed as list object. They will be coerced
+#'          to character vector automatically.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the x axis.
 #' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
@@ -202,27 +202,27 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- sju.wordwrap(title, breakTitleAt)    
+    title <- word_wrap(title, breakTitleAt)    
   }
   # check length of x-axis title and split longer string at into new lines
   if (!is.null(axisTitle.x)) {
-    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)    
+    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)    
   }
   # check length of y-axis title and split longer string at into new lines
   if (!is.null(axisTitle.y)) {
-    axisTitle.y <- sju.wordwrap(axisTitle.y, breakTitleAt)    
+    axisTitle.y <- word_wrap(axisTitle.y, breakTitleAt)    
   }
   # check length of legend title and split longer string at into new lines
   if (!is.null(legendTitle)) {
-    legendTitle <- sju.wordwrap(title, breakLegendTitleAt)    
+    legendTitle <- word_wrap(title, breakLegendTitleAt)    
   }
   # check length of y-axis title and split longer string at into new lines
   if (!is.null(legendLabels)) {
-    legendLabels <- sju.wordwrap(legendLabels, breakLegendLabelsAt)
+    legendLabels <- word_wrap(legendLabels, breakLegendLabelsAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  axisLabels.x <- sju.wordwrap(axisLabels.x, breakLabelsAt)
+  axisLabels.x <- word_wrap(axisLabels.x, breakLabelsAt)
   # ---------------------------------------------
   # check for auto-groupcount
   # ---------------------------------------------
@@ -564,7 +564,7 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
   gl <- length(groupcount)
   if (gl>1) {
     # retrieve different colors
-    color <- brewer_pal("qual", "Set1")(gl)
+    color <- scales::brewer_pal("qual", "Set1")(gl)
     # iterate all groupcounts
     for (cnt in 1:gl) {
       k <- groupcount[cnt]
@@ -645,7 +645,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
   # ---------------------------------------------------------------
   # compute discriminant analysis of groups on original data frame
   # ---------------------------------------------------------------
-  disc <- lda(groups ~ ., data=data, na.action="na.omit", CV=TRUE)
+  disc <- MASS::lda(groups ~ ., data=data, na.action="na.omit", CV=TRUE)
   # ---------------------------------------------------------------
   # Assess the accuracy of the prediction
   # percent correct for each category of groups
@@ -766,7 +766,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
 #' # plot elbow values of mtcars dataset
 #' sjc.elbow(mtcars)
 #' 
-#' @importFrom reshape2 melt
+#' @import tidyr
 #' @import ggplot2
 #' @export
 sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
@@ -785,7 +785,7 @@ sjc.elbow <- function (data, steps=15, showDiff=FALSE) {
   # calculate differences between each step
   diff <- c()
   for (i in 2:steps) diff <- cbind(diff,wssround[i-1]-wssround[i])
-  dfElbowDiff <- as.data.frame(melt(diff))
+  dfElbowDiff <- tidyr::gather(as.data.frame(diff), "Var2", "value", 1:ncol(diff))
   # --------------------------------------------------
   # Plot diagram with sum of squares
   # all pointes are connected with a line

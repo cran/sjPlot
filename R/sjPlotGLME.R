@@ -99,7 +99,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #' \dontrun{
 #' library(lme4)
 #' # create binary response
-#' sleepstudy$Reaction.dicho <- sju.dicho(sleepstudy$Reaction, dichBy = "md")
+#' sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dichBy = "md")
 #' # fit model
 #' fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
 #'              sleepstudy,
@@ -119,10 +119,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #' library(lme4)
 #' data(efc)
 #' # create binary response
-#' efc$hi_qol <- sju.dicho(efc$quol_5)
+#' efc$hi_qol <- dicho(efc$quol_5)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- sji.getValueLabels(efc$e15relat)
+#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
 #' # data frame for fitted model
 #' mydf <- na.omit(data.frame(hi_qol = as.factor(efc$hi_qol),
 #'                            sex = as.factor(efc$c161sex),
@@ -171,7 +171,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("nQQ", "ci", "fixef", "fa
 #'           vars = "neg_c_7")}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
 #' @export
 sjp.glmer <- function(fit,
                       type = "re",
@@ -347,7 +346,7 @@ sjp.glmer <- function(fit,
 #' data(efc)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- sji.getValueLabels(efc$e15relat)
+#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
 #' # data frame for fitted model
 #' mydf <- na.omit(data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
 #'                            sex = as.factor(efc$c161sex),
@@ -627,7 +626,7 @@ sjp.lme4  <- function(fit,
     }
     else {
       if (type == "fe.std") {
-        tmpdf <- sjs.stdmm(fit)
+        tmpdf <- std_beta(fit)
         mydf <- as.data.frame(cbind(OR = tmpdf$stdcoef,
                                     lower.CI = tmpdf$stdcoef - (1.96 * tmpdf$stdse),
                                     upper.CI = tmpdf$stdcoef + (1.96 * tmpdf$stdse)))
@@ -665,7 +664,7 @@ sjp.lme4  <- function(fit,
     }
     else {
       if (type == "fe.std") {
-        ov <- sjs.stdmm(fit)$stdcoef
+        ov <- std_beta(fit)$stdcoef
       }
       else {
         ov <- lme4::fixef(fit)
@@ -1036,11 +1035,9 @@ sjp.lme.feprobcurv <- function(fit,
       # find unique values, for x axis
       vals.unique <- sort(vals)
       # melt variable
-      mydf.vals <- data.frame(melt(vals.unique))
-      # set colnames
-      colnames(mydf.vals) <- c("value")
+      mydf.vals <- data.frame(value = vals.unique)
       # convert factor to numeric
-      if (is.factor(mydf.vals$value)) mydf.vals$value <- sji.convertToValue(mydf.vals$value, 0)
+      if (is.factor(mydf.vals$value)) mydf.vals$value <- to_value(mydf.vals$value, 0)
       # retrieve names of coefficients
       coef.names <- names(lme4::fixef(fit))
       # check if we have a factor, then we may have reference levels
@@ -1082,9 +1079,7 @@ sjp.lme.feprobcurv <- function(fit,
       # create single plots for each numeric predictor
       mp <- ggplot(mydf.metricpred[[i]], aes(x = value, y = y)) +
         labs(x = axisLabels.mp[i], y = "Predicted Probability") +
-        stat_smooth(method = "glm",
-                    family = "binomial",
-                    se = show.se) +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
         # cartesian coord still plots range of se, even
         # when se exceeds plot range.
         coord_cartesian(ylim = c(0, 1))
@@ -1103,9 +1098,7 @@ sjp.lme.feprobcurv <- function(fit,
              title = "Predicted Probabilities of coefficients") +
 #         scale_colour_manual(values = brewer_pal(palette = "Set1")(length(axisLabels.mp)),
 #                             labels = axisLabels.mp) +
-        stat_smooth(method = "glm",
-                    family = "binomial",
-                    se = show.se) +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
         # cartesian coord still plots range of se, even
         # when se exceeds plot range.
         coord_cartesian(ylim = c(0, 1)) +
@@ -1197,11 +1190,9 @@ sjp.lme.reprobcurve <- function(fit,
       # sort values, for x axis
       vals.unique <- sort(vals)
       # melt variable
-      mydf.vals <- data.frame(melt(vals.unique))
-      # set colnames
-      colnames(mydf.vals) <- c("value")
+      mydf.vals <- data.frame(value = vals.unique)
       # convert factor to numeric
-      if (is.factor(mydf.vals$value)) mydf.vals$value <- sji.convertToValue(mydf.vals$value, 0)
+      if (is.factor(mydf.vals$value)) mydf.vals$value <- to_value(mydf.vals$value, 0)
       # retrieve names of coefficients
       coef.names <- names(lme4::fixef(fit))
       # check if we have a factor, then we may have reference levels
@@ -1240,9 +1231,7 @@ sjp.lme.reprobcurve <- function(fit,
         # plot
         # ---------------------------------------------------------
         mp <- ggplot(final.df, aes(x = pred, y = prob, colour = grp)) +
-          stat_smooth(method = "glm",
-                      family = "binomial",
-                      se = show.se) +
+          stat_smooth(method = "glm", family = "binomial", se = show.se) +
           # cartesian coord still plots range of se, even
           # when se exceeds plot range.
           coord_cartesian(ylim = c(0, 1)) +
@@ -1527,10 +1516,8 @@ sjp.lme.fecondpred.onlynumeric <- function(fit,
       # find unique values, for x axis
       vals.unique <- sort(unique(vals))
       # melt variable
-      mydf.vals <- data.frame(melt(vals.unique))
-      mydf.vals <- cbind(seq(from = 1, to = nrow(mydf.vals), by = 1), mydf.vals)
-      # set colnames
-      colnames(mydf.vals) <- c("x", "value")
+      mydf.vals <- data.frame(value = vals.unique)
+      mydf.vals$x <- seq(from = 1, to = nrow(mydf.vals), by = 1)
       # retrieve names of coefficients
       coef.names <- names(lme4::fixef(fit))
       # find coef-position
@@ -1561,9 +1548,7 @@ sjp.lme.fecondpred.onlynumeric <- function(fit,
       mp <- ggplot(mydf.metricpred[[i]], aes(x = value, y = y)) +
         geom_point() +
         labs(x = axisLabels.mp[i], y = "Probability") +
-        stat_smooth(method = "glm",
-                    family = "binomial",
-                    se = show.se) +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
         # cartesian coord still plots range of se, even
         # when se exceeds plot range.
         coord_cartesian(ylim = c(0, 1))
@@ -1583,9 +1568,7 @@ sjp.lme.fecondpred.onlynumeric <- function(fit,
              title = "Probability of coefficients") +
         #         scale_colour_manual(values = brewer_pal(palette = "Set1")(length(axisLabels.mp)),
         #                             labels = axisLabels.mp) +
-        stat_smooth(method = "glm",
-                    family = "binomial",
-                    se = show.se) +
+        stat_smooth(method = "glm", family = "binomial", se = show.se) +
         # cartesian coord still plots range of se, even
         # when se exceeds plot range.
         coord_cartesian(ylim = c(0, 1)) +

@@ -12,11 +12,12 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   stringOR = "OR", stringCI = "CI", stringSE = "std. Error",
   stringP = "p", digits.est = 2, digits.p = 3, digits.ci = 2,
   digits.se = 2, digits.summary = 3, exp.coef = TRUE,
-  pvaluesAsNumbers = FALSE, boldpvalues = TRUE, showConfInt = TRUE,
-  showStdError = FALSE, separateConfColumn = FALSE, newLineConf = TRUE,
-  showAbbrHeadline = TRUE, showPseudoR = TRUE, showLogLik = FALSE,
-  showAIC = FALSE, showChi2 = FALSE, showFamily = FALSE,
-  cellSpacing = 0.2, encoding = NULL, CSS = NULL, useViewer = TRUE,
+  pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
+  showStdError = FALSE, separateConfColumn = TRUE, newLineConf = TRUE,
+  group.pred = TRUE, showAbbrHeadline = TRUE, showPseudoR = TRUE,
+  showLogLik = FALSE, showAIC = FALSE, showChi2 = FALSE,
+  showFamily = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
+  cellGroupIndent = 0.6, encoding = NULL, CSS = NULL, useViewer = TRUE,
   no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
@@ -69,8 +70,8 @@ default is \code{"Intercept"}.}
 \item{digits.summary}{Amount of decimals for values in model summary.}
 
 \item{exp.coef}{If \code{TRUE} (default), regression coefficients and confidence intervals are exponentiated
-(\code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if you want the non-exponentiated coefficients
-as they are provided by the \code{\link{summary}} function.}
+(odds ratios, \code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if you want the non-exponentiated coefficients
+(log-odds) as they are provided by the \code{\link{summary}} function.}
 
 \item{pvaluesAsNumbers}{If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
 p-values are indicated by asterisks.}
@@ -89,6 +90,11 @@ Default is \code{FALSE}.}
 \item{newLineConf}{If \code{TRUE} and \code{separateConfColumn} is \code{FALSE}, inserts a line break
 between OR and CI values. If \code{FALSE}, CI values are printed in the same
 line with OR values.}
+
+\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with
+factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
+be grouped, if the factor has more than two levels. Grouping means that a separate headline
+row is inserted to the table just before the predictor values.}
 
 \item{showAbbrHeadline}{If \code{TRUE} (default), the table data columns have a headline with
 abbreviations for odds ratios, confidence interval and p-values.}
@@ -112,10 +118,21 @@ and same predictors and response, to decide which model fits best. See \code{\li
 for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
 decision help for which model to choose.}
 
+\item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)})
+or character vector with coefficient names that indicate which estimates should be removed
+from the table output. The first estimate is the intercept, followed by the model predictors.
+\emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)}
+would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output.
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
+is \code{NULL}, i.e. all estimates are printed.}
+
 \item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (measure is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.}
+
+\item{cellGroupIndent}{Indent for table rows with grouped factor predictors. Only applies
+if \code{group.pred} is \code{TRUE}.}
 
 \item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
 will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
@@ -202,52 +219,116 @@ sjt.glm(fitOR1,
                             "Catholic"))
 
 # open HTML-table in RStudio Viewer Pane or web browser,
-# table indicating p-values as numbers
-sjt.glm(fitOR1,
-        fitOR2,
-        labelDependentVariables = c("Fertility",
-                                    "Infant Mortality"),
-        labelPredictors=c("Education", "Examination", "Catholic"),
-        pvaluesAsNumbers=TRUE)
-
-# open HTML-table in RStudio Viewer Pane or web browser,
-# printing CI in a separate column
+# integrate CI in OR column
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
-        labelPredictors=c("Education", "Examination", "Catholic"),
-        separateConfColumn=TRUE)
+        labelDependentVariables = c("Fertility",
+                                    "Infant Mortality",
+                                    "Agriculture"),
+        labelPredictors = c("Education", "Examination", "Catholic"),
+        separateConfColumn = FALSE)
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # indicating p-values as numbers and printing CI in a separate column
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
-        labelPredictors=c("Education", "Examination", "Catholic"),
-        pvaluesAsNumbers=TRUE, separateConfColumn=TRUE)
+        labelDependentVariables = c("Fertility",
+                                    "Infant Mortality",
+                                    "Agriculture"),
+        labelPredictors = c("Education", "Examination", "Catholic"))
 
-# ----------------------------------------------------------------
+
+# --------------------------------------------
 # User defined style sheet
-# ----------------------------------------------------------------
+# --------------------------------------------
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables=c("Fertility", "Infant Mortality", "Agriculture"),
-        labelPredictors=c("Education", "Examination", "Catholic"),
-        CSS=list(css.table="border: 2px solid;",
-                 css.tdata="border: 1px solid;",
-                 css.depvarhead="color:#003399;"))
+        labelDependentVariables = c("Fertility",
+                                    "Infant Mortality",
+                                    "Agriculture"),
+        labelPredictors = c("Education", "Examination", "Catholic"),
+        showHeaderStrings = TRUE,
+        CSS = list(css.table = "border: 2px solid;",
+                   css.tdata = "border: 1px solid;",
+                   css.depvarhead = "color:#003399;"))
 
-# ----------------------------------------------------------------
-# Compare models with different link functions, but same
-# predictors and response
-# ----------------------------------------------------------------
+
+# --------------------------------------------
+# Compare models with different link functions,
+# but same predictors and response
+# --------------------------------------------
 # load efc sample data
 data(efc)
 # dichtomozize service usage by "service usage yes/no"
-efc$services <- sju.dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
+efc$services <- dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
 # fit 3 models with different link-functions
-fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="logit"))
-fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=binomial(link="probit"))
-fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc, family=poisson(link="log"))
+fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep,
+            data=efc,
+            family=binomial(link="logit"))
+fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep,
+            data=efc,
+            family=binomial(link="probit"))
+fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep,
+            data=efc,
+            family=poisson(link="log"))
+
 # compare models
-sjt.glm(fit1, fit2, fit3, showAIC=TRUE, showFamily=TRUE, showPseudoR=FALSE)}
+sjt.glm(fit1, fit2, fit3,
+        showAIC = TRUE,
+        showFamily = TRUE,
+        showPseudoR = FALSE)
+
+
+# --------------------------------------------
+# Change style of p-values and CI-appearance
+# --------------------------------------------
+# open HTML-table in RStudio Viewer Pane or web browser,
+# table indicating p-values as stars
+sjt.glm(fit1, fit2, fit3,
+        pvaluesAsNumbers = FALSE,
+        showAIC = TRUE,
+        showFamily = TRUE,
+        showPseudoR = FALSE)
+
+# open HTML-table in RStudio Viewer Pane or web browser,
+# indicating p-values as stars and integrate CI in OR column
+sjt.glm(fit1, fit2, fit3,
+        pvaluesAsNumbers = FALSE,
+        separateConfColumn = FALSE,
+        showAIC = TRUE,
+        showFamily = TRUE,
+        showPseudoR = FALSE)
+
+# ----------------------------------
+# automatic grouping of predictors
+# ----------------------------------
+# load efc sample data
+data(efc)
+# set variable labels
+efc <- set_var_labels(efc, get_var_labels(efc))
+# dichtomozize service usage by "service usage yes/no"
+efc$services <- dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
+# make dependency categorical
+efc$e42dep <- to_fac(efc$e42dep)
+# fit model with "grouped" predictor
+fit <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc)
+
+# automatic grouping of categorical predictors
+sjt.glm(fit)
+
+
+# ----------------------------------
+# compare models with different predictors
+# ----------------------------------
+fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour, data=efc)
+fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour + c172code, data=efc)
+
+# print models with different predictors
+sjt.glm(fit, fit2, fit3)
+
+efc$c172code <- to_fac(efc$c172code)
+fit2 <- glm(services ~ neg_c_7 + c161sex + c12hour, data=efc)
+fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data=efc)
+
+# print models with different predictors
+sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 }
 \seealso{
 \itemize{

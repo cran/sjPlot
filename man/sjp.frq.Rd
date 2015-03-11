@@ -27,10 +27,10 @@ sjp.frq(varCount, title = "", weightBy = NULL, weightByTitleString = NULL,
 
 \item{title}{Title of diagram as string. Example: \code{title=c("my title")}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link{sji.setVariableLabels}}) for details).}
+(see \code{\link{set_var_labels}}) for details).}
 
 \item{weightBy}{A weight factor that will be applied to weight all cases from \code{varCount}.
-default is \code{NULL}, so no weights are used.}
+Must be a vector of same length as \code{varCount}. Default is \code{NULL}, so no weights are used.}
 
 \item{weightByTitleString}{If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
 may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
@@ -40,8 +40,8 @@ cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString="
 \code{varCount} into the factors (sub groups) of \code{interactionVar}. Only applies when parameter \code{"type"}
 is \code{"box"} or \code{"violin"} (resp. their alternative strings like \code{"boxplot"}, \code{"boxplots"} or \code{"v"}).}
 
-\item{sort.frq}{Determines whether categories on x-axis should be order according to the frequencies or not.
-Default is \code{"none"}, so categories are not ordered by frequency. Use \code{"asc"} or
+\item{sort.frq}{Determines whether categories on x-axis should be sorted according to the frequencies or not.
+Default is \code{"none"}, so categories are not sorted by frequency. Use \code{"asc"} or
 \code{"desc"} for sorting categories ascending or descending in relation to the frequencies.}
 
 \item{type}{Specifies the type of distribution plot that will be plotted.
@@ -63,9 +63,9 @@ bar and bin widths mostly need smaller values than dot sizes (i.e. if \code{type
 
 \item{axisLabels.x}{Labels for the x-axis breaks.
 Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
-Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
-list object with label string. The labels may also be passed as list object. They will be unlisted and
-converted to character vector automatically.}
+Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+list object with label string. The labels may also be passed as list object. They will be coerced
+to character vector automatically.}
 
 \item{interactionVarLabels}{Labels for the x-axis breaks when having interaction variables included.
 These labels replace the \code{axisLabels.x}. Only applies, when using box or violin plots
@@ -153,13 +153,13 @@ applies if \code{showNormalCurve} is \code{TRUE}.}
 are assigned to the x axis. By default, \code{""} is used, i.e. no title
 is printed.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link{sji.setVariableLabels}}) for details).}
+(see \code{\link{set_var_labels}}) for details).}
 
 \item{axisTitle.y}{A label for the y axis. useful when plotting histograms with metric scales where no category labels
 are assigned to the y axis. By default, \code{""} is used, i.e. no title
 is printed.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link{sji.setVariableLabels}}) for details).}
+(see \code{\link{set_var_labels}}) for details).}
 
 \item{startAxisAt}{Determines the first value on the x-axis. By default, this value is set
 to \code{"auto"}, i.e. the value range on the x axis starts with the lowest value of \code{varCount}.
@@ -174,10 +174,10 @@ to adjust the \code{geom.size} parameter for better visual results (which, by gg
 1/30 of the x-axis-range).}
 
 \item{autoGroupAt}{A value indicating at which length of unique values of \code{varCount} the variable
-is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). If \code{varCount} has large
+is automatically grouped into smaller units (see \code{\link{group_var}}). If \code{varCount} has large
 numbers of unique values, too many bars for the graph have to be plotted. Hence it's recommended
 to group such variables. For example, if \code{autoGroupAt} is 50, i.e. if \code{varCount} has 50 and more unique values
-it will be grouped using \code{\link{sju.groupVar}} with \code{groupsize="auto"} parameter. By default,
+it will be grouped using \code{\link{group_var}} with \code{groupsize="auto"} parameter. By default,
 the maximum group count is 30. However, if \code{autoGroupAt} is less than 30, \code{autoGroupAt}
 groups are built. Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.}
 
@@ -233,11 +233,11 @@ sjp.frq(ChickWeight$Diet)
 # ---------------
 # bar plot with EUROFAMCARE sample dataset
 # dataset was importet from an SPSS-file, using:
-# efc <- sji.SPSS("efc.sav", enc="UTF-8")
+# efc <- read_spss("efc.sav", enc="UTF-8")
 # ---------------
 data(efc)
-efc.val <- sji.getValueLabels(efc)
-efc.var <- sji.getVariableLabels(efc)
+efc.val <- get_val_labels(efc)
+efc.var <- get_var_labels(efc)
 # you may use sjp.setTheme here to change axis textangle
 sjp.frq(as.factor(efc$e15relat),
         title=efc.var[['e15relat']],
@@ -245,8 +245,8 @@ sjp.frq(as.factor(efc$e15relat),
 
 # bar plot with EUROFAMCARE sample dataset
 # grouped variable
-ageGrp <- sju.groupVar(efc$e17age)
-ageGrpLab <- sju.groupVarLabels(efc$e17age)
+ageGrp <- group_var(efc$e17age)
+ageGrpLab <- group_labels(efc$e17age)
 sjp.frq(ageGrp,
         title=efc.var[['e17age']],
         axisLabels.x=ageGrpLab)
@@ -265,7 +265,7 @@ sjp.frq(efc$e17age,
 # -------------------------------------------------
 # auto-detection of value labels and variable names
 # -------------------------------------------------
-efc <- sji.setVariableLabels(efc, sji.getVariableLabels(efc))
+efc <- set_var_labels(efc, get_var_labels(efc))
 
 # negative impact scale, ranging from 7-28, assuming that
 # variable scale (lowest value) starts with 1

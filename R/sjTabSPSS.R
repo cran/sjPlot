@@ -1,5 +1,5 @@
 #' @title View SPSS data set structure
-#' @name sji.viewSPSS
+#' @name view_spss
 #' 
 #' @description Save (or show) content of an imported SPSS data file as HTML table.
 #'                Similar to the SPSS variable view. This quick overview shows
@@ -9,12 +9,12 @@
 #'
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
-#'            \item \href{http://www.strengejacke.de/sjPlot/sji.viewSPSS/}{sjPlot manual: inspecting (SPSS imported) data frames}
-#'            \item \code{\link{sji.SPSS}}
+#'            \item \href{http://www.strengejacke.de/sjPlot/view_spss/}{sjPlot manual: inspecting (SPSS imported) data frames}
+#'            \item \code{\link{read_spss}}
 #'            \item \code{\link{sjt.df}}
 #'          }
 #' 
-#' @param df An imported data frame, imported by \code{\link{sji.SPSS}} function.
+#' @param df An imported data frame, imported by \code{\link{read_spss}} function.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the IDE's viewer pane or
 #'          in the default web browser.
@@ -79,40 +79,50 @@
 #' data(efc)
 #' 
 #' # view variables
-#' sji.viewSPSS(efc)
+#' view_spss(efc)
 #' 
 #' # view variables w/o values and value labels
-#' sji.viewSPSS(efc, showValues=FALSE, showValueLabels=FALSE)
+#' view_spss(efc, showValues=FALSE, showValueLabels=FALSE)
 #' 
 #' # view variables including variable typed, orderd by name
-#' sji.viewSPSS(efc, orderByName=TRUE, showType=TRUE)
+#' view_spss(efc, orderByName=TRUE, showType=TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' sji.viewSPSS(efc,
-#'              CSS=list(css.table="border: 2px solid;",
-#'                       css.tdata="border: 1px solid;",
-#'                       css.arc="color:blue;"))}
+#' view_spss(efc,
+#'           CSS=list(css.table = "border: 2px solid;",
+#'                    css.tdata = "border: 1px solid;",
+#'                    css.arc = "color:blue;"))}
 #' 
 #' @export
-sji.viewSPSS <- function (df,
-                          file=NULL,
-                          alternateRowColors=TRUE,
-                          showID=TRUE,
-                          showType=FALSE,
-                          showValues=TRUE,
-                          showValueLabels=TRUE,
-                          showFreq=FALSE,
-                          showPerc=FALSE,
-                          orderByName=FALSE,
-                          breakVariableNamesAt=50,
-                          encoding=NULL,
-                          hideProgressBar=FALSE,
-                          CSS=NULL,
-                          useViewer=TRUE,
-                          no.output=FALSE,
-                          remove.spaces=TRUE) {
+view_spss <- function (df,
+                       file=NULL,
+                       alternateRowColors=TRUE,
+                       showID=TRUE,
+                       showType=FALSE,
+                       showValues=TRUE,
+                       showValueLabels=TRUE,
+                       showFreq=FALSE,
+                       showPerc=FALSE,
+                       orderByName=FALSE,
+                       breakVariableNamesAt=50,
+                       encoding=NULL,
+                       hideProgressBar=FALSE,
+                       CSS=NULL,
+                       useViewer=TRUE,
+                       no.output=FALSE,
+                       remove.spaces=TRUE) {
+  # ----------------------------
+  # check value_labels option
+  # ----------------------------
+  opt <- getOption("value_labels")
+  if (!is.null(opt) && opt == "haven") {
+    attr.string <- "labels"
+  }
+  else {
+    attr.string <- "value.labels"
+  }
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -127,8 +137,8 @@ sji.viewSPSS <- function (df,
   # -------------------------------------
   # retrieve value and variable labels
   # -------------------------------------
-  df.var <- sji.getVariableLabels(df)
-  df.val <- sji.getValueLabels(df)
+  df.var <- get_var_labels(df)
+  df.val <- get_val_labels(df)
   # -------------------------------------
   # get row count and ID's
   # -------------------------------------
@@ -207,22 +217,22 @@ sji.viewSPSS <- function (df,
     # ID
     if (showID) page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
     # name
-    page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, names(df.var[index])))
+    page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, colnames(df)[index]))
     # type
     if (showType) {
       vartype <- c("unknown type")
-      if (is.character(df[,index])) vartype <- c("character")
-      else if (is.factor(df[,index])) vartype <- c("factor")
-      else if (is.numeric(df[,index])) vartype <- c("numeric")
-      else if (is.atomic(df[,index])) vartype <- c("atomic")
+      if (is.character(df[[index]])) vartype <- c("character")
+      else if (is.factor(df[[index]])) vartype <- c("factor")
+      else if (is.numeric(df[[index]])) vartype <- c("numeric")
+      else if (is.atomic(df[[index]])) vartype <- c("atomic")
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, vartype))
     }
     # label
-    if (index<=length(df.var)) {
+    if (index <= length(df.var)) {
       varlab <- df.var[index]
       if (!is.null(breakVariableNamesAt)) {
         # wrap long variable labels
-        varlab <- sju.wordwrap(varlab, breakVariableNamesAt, "<br>")
+        varlab <- word_wrap(varlab, breakVariableNamesAt, "<br>")
       }
     }
     else {
@@ -231,12 +241,12 @@ sji.viewSPSS <- function (df,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, varlab))
     # values
     if (showValues) {
-      if (index<=ncol(df)) {
-        vals <- rev(unname(attr(df[,index], "value.labels")))
+      if (index <= ncol(df)) {
+        vals <- sji.getValueLabelValues(df[[index]])
         valstring <- c("")
         for (i in 1:length(vals)) {
           valstring <- paste0(valstring, vals[i])
-          if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+          if (i < length(vals)) valstring <- paste0(valstring, "<br>")
         }
       }
       else {
@@ -262,8 +272,8 @@ sji.viewSPSS <- function (df,
     }
     # frequencies
     if (showFreq) {
-      if (index<=ncol(df) && !is.null(attr(df[,index], "value.labels"))) {
-        ftab <- as.numeric(table(df[,index]))
+      if (index <= ncol(df) && !is.null(attr(df[[index]], attr.string))) {
+        ftab <- as.numeric(table(df[[index]]))
         valstring <- c("")
         for (i in 1:length(ftab)) {
           valstring <- paste0(valstring, ftab[i])
@@ -277,8 +287,8 @@ sji.viewSPSS <- function (df,
     }
     # frequencies
     if (showPerc) {
-      if (index<=ncol(df) && !is.null(attr(df[,index], "value.labels"))) {
-        ftab <- 100*as.numeric(prop.table(table(df[,index])))
+      if (index <= ncol(df) && !is.null(attr(df[[index]], attr.string))) {
+        ftab <- 100*as.numeric(prop.table(table(df[[index]])))
         valstring <- c("")
         for (i in 1:length(ftab)) {
           valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))

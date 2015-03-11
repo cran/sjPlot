@@ -29,7 +29,7 @@
 #'          provided (default), the data frame's column names are used. Item labels must
 #'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
 #'          varlabels are detected automatically if \code{data} is a data frame where each variable has
-#'          a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
+#'          a \code{"variable.label"} attribute (see \code{\link{set_var_labels}}) for details).
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param digits The amount of digits used the values inside table cells.
@@ -92,12 +92,16 @@
 #'         default behaviour (i.e. \code{file=NULL}).
 #' 
 #' @examples
+#' \dontrun{
 #' # create data frame with 5 random variables
-#' df <- as.data.frame(cbind(rnorm(10), rnorm(10), rnorm(10), rnorm(10), rnorm(10)))
+#' df <- as.data.frame(cbind(rnorm(10), 
+#'                           rnorm(10), 
+#'                           rnorm(10), 
+#'                           rnorm(10), 
+#'                           rnorm(10)))
 #' 
 #' # plot correlation matrix using circles
-#' \dontrun{
-#' sjt.corr(df)}
+#' sjt.corr(df)
 #' 
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
@@ -105,47 +109,47 @@
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
-#' varlabs <- sji.getVariableLabels(efc)
+#' varlabs <- get_var_labels(efc)
 #' 
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c83cop2")
+#' start <- which(colnames(efc) == "c83cop2")
 #' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c88cop7")
+#' end <- which(colnames(efc) == "c88cop7")
 #'  
 #' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[,c(start:end)])
-#' colnames(df) <- varlabs[c(start:end)]
+#' df <- as.data.frame(efc[, c(start : end)])
+#' colnames(df) <- varlabs[c(start : end)]
 #'
 #' # we have high correlations here, because all items
 #' # belong to one factor. See example from "sjp.pca". 
-#' \dontrun{
-#' sjt.corr(df, pvaluesAsNumbers=TRUE)}
+#' sjt.corr(df, pvaluesAsNumbers = TRUE)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels, only lower triangle
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, varlabs)
-#' \dontrun{
-#' sjt.corr(efc[,c(start:end)], triangle="lower")}
+#' efc <- set_var_labels(efc, varlabs)
+#' sjt.corr(efc[, c(start : end)], triangle = "lower")
 #' 
 #' # -------------------------------
 #' # auto-detection of labels, only lower triangle,
 #' # all correlation values smaller than 0.3 are not
 #' # shown in the table
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, varlabs)
-#' \dontrun{
-#' sjt.corr(efc[,c(start:end)], triangle="lower", val.rm=0.3)}
+#' efc <- set_var_labels(efc, varlabs)
+#' sjt.corr(efc[, c(start : end)], 
+#'          triangle = "lower", 
+#'          val.rm = 0.3)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels, only lower triangle,
 #' # all correlation values smaller than 0.3 are printed
 #' # in blue
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, varlabs)
-#' \dontrun{
-#' sjt.corr(efc[,c(start:end)], triangle="lower",
-#'          val.rm=0.3, CSS=list(css.valueremove='color:blue;'))}
+#' efc <- set_var_labels(efc, varlabs)
+#' sjt.corr(efc[, c(start : end)], 
+#'          triangle = "lower",
+#'          val.rm = 0.3, 
+#'          CSS = list(css.valueremove = 'color:blue;'))}
 #' 
 #' @export
 sjt.corr <- function (data,
@@ -167,6 +171,16 @@ sjt.corr <- function (data,
                       useViewer=TRUE,
                       no.output=FALSE,
                       remove.spaces=TRUE) {
+  # --------------------------------------------------------
+  # check p-value-style option
+  # --------------------------------------------------------
+  opt <- getOption("p_zero")
+  if (is.null(opt) || opt == FALSE) {
+    p_zero <- ""
+  }
+  else {
+    p_zero <- "0"
+  }
   # --------------------------------------------------------
   # check encoding
   # --------------------------------------------------------
@@ -279,7 +293,7 @@ sjt.corr <- function (data,
     }
     cpvalues <- apply(cpvalues, c(1,2), fun.star)
     if (pvaluesAsNumbers) {
-      cpvalues <- apply(cpvalues, c(1,2), function (x) if (x < 0.001) x <- "&lt;&nbsp;0.001" else x <- sprintf("%.*f", digits, x))
+      cpvalues <- apply(cpvalues, c(1,2), function (x) if (x < 0.001) x <- sprintf("&lt;%s.001", p_zero) else x <- sub("0", p_zero, sprintf("%.*f", digits, x)))
     }
   }
   else {
@@ -293,7 +307,7 @@ sjt.corr <- function (data,
     varlabels <- row.names(corr)
   }
   # check length of x-axis-labels and split longer strings at into new lines
-  varlabels <- sju.wordwrap(varlabels, breakLabelsAt, "<br>")
+  varlabels <- word_wrap(varlabels, breakLabelsAt, "<br>")
   # -------------------------------------
   # init header
   # -------------------------------------

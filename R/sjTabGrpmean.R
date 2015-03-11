@@ -10,7 +10,7 @@
 #' @param varGrp a (numeric) vector with group indices, used to select sub-groups from \code{varCount}.
 #' @param rowLabels a character vector of same length as \code{varGrp} unqiue values. In short: the
 #'          value labels of \code{varGrp}. Used to name table rows. By default, row labels
-#'          are automatically detected if set by \code{sji.setValueLabels}.
+#'          are automatically detected if set by \code{set_val_labels}.
 #' @param digits amount of digits for table values.
 #' @param digits.summary amount of digits for summary statistics (Anova).
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
@@ -70,6 +70,16 @@ sjt.grpmean <- function(varCount,
                         useViewer=TRUE,
                         no.output=FALSE,
                         remove.spaces=TRUE) {
+  # --------------------------------------------------------
+  # check p-value-style option
+  # --------------------------------------------------------
+  opt <- getOption("p_zero")
+  if (is.null(opt) || opt == FALSE) {
+    p_zero <- ""
+  }
+  else {
+    p_zero <- "0"
+  }
   # --------------------------------------
   # set value and row labels
   # --------------------------------------
@@ -97,10 +107,10 @@ sjt.grpmean <- function(varCount,
   # convert means to apa style
   for (i in 1:length(means.p)) {
     if (means.p[i] < 0.001) {
-      pval <- c(pval, "&lt;0.001")
+      pval <- c(pval, sprintf("&lt;%s.001", p_zero))
     }
     else {
-      pval <- c(pval, sprintf("%.*f", digits, means.p[i]))
+      pval <- c(pval, sub("0", p_zero, sprintf("%.*f", digits, means.p[i])))
     }
   } 
   # --------------------------------------
@@ -121,7 +131,7 @@ sjt.grpmean <- function(varCount,
                 cbind(mean = sprintf("%.*f", digits, mean(varCount[varGrp == indices[i]], na.rm = TRUE)),
                       N = length(na.omit(varCount[varGrp == indices[i]])),
                       sd = sprintf("%.*f", digits, sd(varCount[varGrp == indices[i]], na.rm = TRUE)),
-                      se = sprintf("%.*f", digits, sjs.se(varCount[varGrp == indices[i]])),
+                      se = sprintf("%.*f", digits, std_e(varCount[varGrp == indices[i]])),
                       p = pval[i]))
   }
   # --------------------------------------
@@ -131,7 +141,7 @@ sjt.grpmean <- function(varCount,
               cbind(mean = sprintf("%.*f", digits, mean(varCount, na.rm = TRUE)),
                     N = length(na.omit(varCount)),
                     sd = sprintf("%.*f", digits, sd(varCount, na.rm = TRUE)),
-                    se = sprintf("%.*f", digits, sjs.se(varCount)),
+                    se = sprintf("%.*f", digits, std_e(varCount)),
                     p = ""))
   # --------------------------------------
   # fix row labels, if empty or NULL
@@ -151,7 +161,7 @@ sjt.grpmean <- function(varCount,
   fstat <- summary.lm(fit)$fstatistic[1]
   # p-value for F-test
   pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
-  pvalstring <- ifelse(pval < 0.001, "p&lt;0.001", sprintf("p=%.*f", digits.summary, pval))  
+  pvalstring <- ifelse(pval < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.*f", digits.summary, pval)))
   # --------------------------------------
   # print data frame to html table
   # --------------------------------------
@@ -165,8 +175,11 @@ sjt.grpmean <- function(varCount,
                  CSS = CSS,
                  encoding = encoding,
                  hideProgressBar = TRUE,
-                 commentString = sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; F=%.*f &middot; %s",
-                                         digits.summary, r2, digits.summary, r2.adj, digits.summary, fstat, pvalstring),
+                 commentString = gsub("0.", 
+                                      paste0(".", p_zero), 
+                                      sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; F=%.*f &middot; %s",
+                                              digits.summary, r2, digits.summary, r2.adj, digits.summary, fstat, pvalstring),
+                                      fixed = TRUE),
                  remove.spaces = remove.spaces)
   # -------------------------------------
   # check if html-content should be printed

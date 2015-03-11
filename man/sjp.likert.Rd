@@ -34,7 +34,8 @@ the index number for this category. Else, set \code{cat.neutral=NULL} (default).
 The frequencies of neutral categories are plotted as grey bars on the left side of
 the figure.}
 
-\item{weightBy}{A weight factor that will be applied to weight all cases from \code{items}.}
+\item{weightBy}{A weight factor that will be applied to weight all cases from \code{items}.
+Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.}
 
 \item{weightByTitleString}{If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
 may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
@@ -93,7 +94,7 @@ appear as legend text.}
 \item{axisLabels.y}{a character vector with labels for the y-axis (the labels of the
 \code{items}). Example: \code{axisLabels.y=c("Q1", "Q2", "Q3")}
 Axis labels will automatically be detected, when they have
-a \code{"variable.lable"} attribute (see \code{\link{sji.setVariableLabels}}) for details).}
+a \code{"variable.lable"} attribute (see \code{\link{set_var_labels}}) for details).}
 
 \item{breakTitleAt}{Wordwrap for diagram title. Determines how many chars of the title are displayed in
 one line and when a line break is inserted into the title.}

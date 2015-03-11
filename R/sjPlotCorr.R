@@ -19,7 +19,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #' @param axisLabels Labels for the x- andy y-axis.
 #'          axisLabels are detected automatically if \code{data} is a data frame where each variable has
-#'          a \code{"variable.label"} attribute (see \code{\link{sji.setVariableLabels}}) for details).
+#'          a \code{"variable.labels"} attribute (see \code{\link{set_var_labels}}) for details).
 #' @param type Indicates whether the geoms of correlation values should be plotted
 #'          as \code{"circle"} (default) or as \code{"tile"}.
 #' @param sortCorrelations If \code{TRUE} (default), the axis labels are sorted
@@ -75,7 +75,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #' data(efc)
 #'
 #' # retrieve variable and value labels
-#' varlabs <- sji.getVariableLabels(efc)
+#' varlabs <- get_var_labels(efc)
 #'
 #' # create data frame
 #' vars.index <- c(1, 4, 15, 19, 20, 21, 22, 24, 25)
@@ -88,15 +88,15 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("ordx", "ordy"))
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, varlabs)
+#' efc <- set_var_labels(efc, varlabs)
 #' # blank theme
 #' sjp.setTheme(theme = "blank", axis.angle.x = 90)
 #' sjp.corr(efc[, vars.index])
 #'
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
-#' @importFrom scales brewer_pal
+#' @import tidyr
+#' @importFrom scales brewer_pal grey_pal
 #' @export
 sjp.corr <- function(data,
                      title=NULL,
@@ -116,6 +116,16 @@ sjp.corr <- function(data,
                      showCorrelationPValues=TRUE,
                      pvaluesAsNumbers=FALSE,
                      printPlot=TRUE) {
+  # --------------------------------------------------------
+  # check p-value-style option
+  # --------------------------------------------------------
+  opt <- getOption("p_zero")
+  if (is.null(opt) || opt == FALSE) {
+    p_zero <- ""
+  }
+  else {
+    p_zero <- "0"
+  }
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -140,10 +150,10 @@ sjp.corr <- function(data,
   # set color palette
   # ----------------------------
   if (is.brewer.pal(geom.colors[1])) {
-    geom.colors <- brewer_pal(palette=geom.colors[1])(5)
+    geom.colors <- scales::brewer_pal(palette=geom.colors[1])(5)
   }
   else if (geom.colors[1] == "gs") {
-    geom.colors <- grey_pal()(5)
+    geom.colors <- scales::grey_pal()(5)
   }
   # ----------------------------
   # check for valid parameter
@@ -207,11 +217,11 @@ sjp.corr <- function(data,
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- sju.wordwrap(title, breakTitleAt)
+    title <- word_wrap(title, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels)) {
-    axisLabels <- sju.wordwrap(axisLabels, breakLabelsAt)
+    axisLabels <- word_wrap(axisLabels, breakLabelsAt)
   }
   # --------------------------------------------------------
   # order correlations from highest to lowest correlation coefficient
@@ -245,8 +255,10 @@ sjp.corr <- function(data,
   # --------------------------------------------------------
   # first, save original matrix for return value
   oricor <- orderedCorr
-  orderedCorr <- melt(orderedCorr)
-  if (!is.null(cpvalues)) cpvalues <- melt(cpvalues)
+  orderedCorr <- tidyr::gather(data.frame(orderedCorr), "var", "value", 1:ncol(orderedCorr))
+  # orderedCorr <- melt(orderedCorr)
+  if (!is.null(cpvalues)) cpvalues <- tidyr::gather(data.frame(cpvalues), "var", "value", 1:ncol(cpvalues))
+  # if (!is.null(cpvalues)) cpvalues <- melt(cpvalues)
   # bind additional information like order for x- and y-axis
   # as well as the size of plotted points
   orderedCorr <- cbind(orderedCorr, ordx=c(1:nrow(corr)), ordy=yo, psize=c(exp(abs(orderedCorr$value))*geom.size))
@@ -273,7 +285,7 @@ sjp.corr <- function(data,
     }
     else {
       cpv <- cpvalues$value
-      cpv <- sapply(cpv, function (x) if (x < 0.001) x <- "\n(< 0.001)" else x <- sprintf("\n(%.*f)", decimals, x))
+      cpv <- sapply(cpv, function (x) if (x < 0.001) x <- sprintf("\n(< %s.001)", p_zero) else x <- sub("0", p_zero, sprintf("\n(%.*f)", decimals, x)))
     }
   }
   else {

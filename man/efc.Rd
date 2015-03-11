@@ -7,6 +7,14 @@
 \description{
 Sample dataset from the EUROFAMCARE project
 }
+\note{
+There are two further datasets, \code{efc2} and \code{efc3}, which
+        slightly differ in their structure. \code{efc2} has already attached
+        variable label attributes to each variable. In \code{efc3}, categorical
+        variables have been converted to labelled factors, i.e. value labels
+        are set as factor levels. However, factors in \code{efc3} no longer
+        have variable label attributes.
+}
 \examples{
 # Attach EFC-data
 data(efc)
@@ -19,10 +27,10 @@ head(efc)
 
 # show variables
 \dontrun{
-sji.viewSPSS(efc)
+view_spss(efc)
 
 # show variable labels
-sji.getVariableLabels(efc)
+get_var_label(efc)
 
 # plot efc-data frame summary
 sjt.df(efc, alternateRowColor=TRUE)}
@@ -32,14 +40,13 @@ sjt.df(efc, alternateRowColor=TRUE)}
 }
 \seealso{
 \itemize{
-           \item \code{\link{sji.SPSS}}
-           \item \code{\link{sji.viewSPSS}}
-           \item \code{\link{sjt.df}}
-           \item \code{\link{sji.getValueLabels}}
-           \item \code{\link{sji.getVariableLabels}}
-           \item \code{\link{sji.convertToLabel}}
-           \item \code{\link{sjp.frq}}
            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data init}
+           \item \code{\link{read_spss}}
+           \item \code{\link{view_spss}}
+           \item \code{\link{get_val_labels}}
+           \item \code{\link{get_var_labels}}
+           \item \code{\link{to_label}}
+           \item \code{\link{sjt.df}}
          }
 }
 \keyword{data}

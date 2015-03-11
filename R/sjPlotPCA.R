@@ -10,9 +10,9 @@
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/sjp.pca/}{sjPlot manual: sjp.pca}
 #'            \item \code{\link{sjt.pca}}
-#'            \item \code{\link{sjs.reliability}}
+#'            \item \code{\link{reliab_test}}
 #'            \item \code{\link{sjt.itemanalysis}}
-#'            \item \code{\link{sjs.cronbach}}
+#'            \item \code{\link{cronb}}
 #'            }
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
@@ -93,7 +93,7 @@
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
-#' varlabs <- sji.getVariableLabels(efc)
+#' varlabs <- get_var_labels(efc)
 #' 
 #' # recveive first item of COPE-index scale
 #' start <- which(colnames(efc) == "c82cop1")
@@ -109,13 +109,13 @@
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, varlabs)
+#' efc <- set_var_labels(efc, varlabs)
 #' sjp.pca(efc[, c(start:end)])
 #' 
 #' 
 #' @import ggplot2
+#' @import tidyr
 #' @importFrom scales brewer_pal grey_pal
-#' @importFrom reshape2 melt
 #' @export
 sjp.pca <- function(data,
                     numberOfFactors=NULL,
@@ -155,10 +155,10 @@ sjp.pca <- function(data,
   # set color palette
   # ----------------------------  
   if (is.brewer.pal(geom.colors[1])) {
-    geom.colors <- brewer_pal(palette=geom.colors[1])(5)
+    geom.colors <- scales::brewer_pal(palette=geom.colors[1])(5)
   }
   else if (geom.colors[1] == "gs") {
-    geom.colors <- grey_pal()(5)
+    geom.colors <- scales::grey_pal()(5)
   }
   # ----------------------------
   # check if user has passed a data frame
@@ -235,11 +235,11 @@ sjp.pca <- function(data,
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- sju.wordwrap(title, breakTitleAt)
+    title <- word_wrap(title, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
-    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
+    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)
   }
   # --------------------------------------------------------
   # this function checks which items have unclear factor loadings,
@@ -304,7 +304,7 @@ sjp.pca <- function(data,
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- as.data.frame(rbind(cbv, cbind(nr = n, sjs.cronbach(na.omit(dataframe[, which(itemloadings == n)])))))
+      cbv <- as.data.frame(rbind(cbv, cbind(nr = n, cronb(na.omit(dataframe[, which(itemloadings == n)])))))
     }
     # just for vertical position adjustment when we print the alpha values
     vpos <- rep(c(-0.25, -1), nrow(cbv))
@@ -334,11 +334,9 @@ sjp.pca <- function(data,
   # rename columns, so we have numbers on x axis
   names(df) <- c(1:ncol(df))
   # convert to long data
-  df <- melt(df)
+  df <- tidyr::gather(df, "xpos", "value", 1:ncol(df))  
   # we need new columns for y-positions and point sizes
   df <- cbind(df, ypos = c(1:nrow(pcadata.varim$loadings)), psize = c(exp(abs(df$value)) * geom.size))
-  # rename first column for more intuitive name
-  colnames(df)[1] <- c("xpos")
   if (!showValueLabels) {
     valueLabels <- c("")
   }

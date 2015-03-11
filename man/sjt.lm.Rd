@@ -10,14 +10,15 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   showHeaderStrings = FALSE, stringIntercept = "(Intercept)",
   stringObservations = "Observations", stringB = "B",
   stringSB = "std. Beta", stringCI = "CI", stringSE = "std. Error",
-  stringP = "p", showConfInt = TRUE, showStdBeta = FALSE,
-  showStdError = FALSE, digits.est = 2, digits.p = 3, digits.ci = 2,
-  digits.se = 2, digits.sb = 2, digits.summary = 3,
-  pvaluesAsNumbers = FALSE, boldpvalues = TRUE,
-  separateConfColumn = FALSE, newLineConf = TRUE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, cellSpacing = 0.2,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+  stringP = "p", showEst = TRUE, showConfInt = TRUE,
+  showStdBeta = FALSE, showStdError = FALSE, digits.est = 2,
+  digits.p = 3, digits.ci = 2, digits.se = 2, digits.sb = 2,
+  digits.summary = 3, pvaluesAsNumbers = TRUE, boldpvalues = TRUE,
+  separateConfColumn = TRUE, newLineConf = TRUE, group.pred = TRUE,
+  showAbbrHeadline = TRUE, showR2 = TRUE, showFStat = FALSE,
+  showAIC = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
+  cellGroupIndent = 0.6, encoding = NULL, CSS = NULL, useViewer = TRUE,
+  no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{One or more fitted lm-objects.}
@@ -60,6 +61,8 @@ default is \code{"Intercept"}.}
 
 \item{stringP}{String used for the column heading of p values. Default is \code{"p"}.}
 
+\item{showEst}{If \code{TRUE} (default), the estimates are printed.}
+
 \item{showConfInt}{If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 \code{FALSE} to omit the CI in the table.}
 
@@ -93,6 +96,11 @@ Default is \code{FALSE}.}
 between B and CI values. If \code{FALSE}, CI values are printed in the same
 line with B values.}
 
+\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with
+factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
+be grouped, if the factor has more than two levels. Grouping means that a separate headline
+row is inserted to the table just before the predictor values.}
+
 \item{showAbbrHeadline}{If \code{TRUE} (default), the table data columns have a headline with
 abbreviations for beta- and std. beta-values, confidence interval and p-values.}
 
@@ -105,10 +113,21 @@ in the model summary. Default is \code{FALSE}.}
 \item{showAIC}{If \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
+\item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)})
+or character vector with coefficient names that indicate which estimates should be removed
+from the table output. The first estimate is the intercept, followed by the model predictors.
+\emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)}
+would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output.
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
+is \code{NULL}, i.e. all estimates are printed.}
+
 \item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (measure is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.}
+
+\item{cellGroupIndent}{Indent for table rows with grouped factor predictors. Only applies
+if \code{group.pred} is \code{TRUE}.}
 
 \item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
 will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
@@ -155,8 +174,8 @@ Invisibly returns a \code{\link{structure}} with
 }
 \description{
 Shows (multiple) fitted linear models (beta coefficients, std. beta values etc.)
-               as HTML table, or saves them as file. The fitted lm's should have the same predictor variables and
-               differ only in their response (dependent variable).
+               as HTML table, or saves them as file. The fitted models may hav different predictors,
+               e.g. when comparing different stepwise fitted models.
 }
 \note{
 The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
@@ -165,9 +184,15 @@ The HTML tables can either be saved as file and manually opened (specify paramet
         default behaviour (i.e. \code{file=NULL}).
 }
 \examples{
+\dontrun{
 # Now fit the models. Note that both models share the same predictors
-# and only differ in their dependent variable
+# and only differ in their dependent variable. See examples of stepwise
+# models below at the end.
 data(efc)
+
+# attach variable labels to each variable of the data
+# frame - useful for automatic label detection
+efc <- set_var_labels(efc, get_var_labels(efc))
 
 # fit first model
 fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
@@ -175,7 +200,12 @@ fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
 fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser
-\dontrun{
+# note that we don't need to specify labels for the predictors,
+# because these are automatically read
+sjt.lm(fit1, fit2)
+
+# create and open HTML-table in RStudio Viewer Pane or web browser
+# in the following examples, we set labels via parameter
 sjt.lm(fit1,
        fit2,
        labelDependentVariables = c("Barthel-Index",
@@ -185,7 +215,7 @@ sjt.lm(fit1,
                            "Carer's Sex",
                            "Educational Status"))
 
-# show HTML-table, indicating p-values as numbers
+# show HTML-table, indicating p-values as asterisks
 sjt.lm(fit1,
        fit2,
        labelDependentVariables = c("Barthel-Index",
@@ -195,10 +225,10 @@ sjt.lm(fit1,
                            "Carer's Sex",
                            "Educational Status"),
        showStdBeta = TRUE,
-       pvaluesAsNumbers = TRUE)
+       pvaluesAsNumbers = FALSE)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser,
-# printing CI in a separate column
+# integrate CI in estimate column
 sjt.lm(fit1,
        fit2,
        labelDependentVariables = c("Barthel-Index",
@@ -207,7 +237,7 @@ sjt.lm(fit1,
                            "Hours of Care",
                            "Carer's Sex",
                            "Educational Status"),
-       separateConfColumn = TRUE)
+       separateConfColumn = FALSE)
 
 # show HTML-table, indicating p-values as numbers
 # and printing CI in a separate column
@@ -219,13 +249,25 @@ sjt.lm(fit1,
                            "Hours of Care",
                            "Carer's Sex",
                            "Educational Status"),
-       showStdBeta = TRUE,
-       pvaluesAsNumbers = TRUE,
-       separateConfColumn = TRUE)
+       showStdBeta = TRUE)
 
-# ----------------------------------------------------------------
+# show HTML-table, indicating p-values as stars
+# and integrate CI in estimate column
+sjt.lm(fit1,
+       fit2,
+       labelDependentVariables = c("Barthel-Index",
+                                   "Negative Impact"),
+       labelPredictors = c("Carer's Age",
+                           "Hours of Care",
+                           "Carer's Sex",
+                           "Educational Status"),
+       showStdBeta = TRUE,
+       pvaluesAsNumbers = FALSE,
+       separateConfColumn = FALSE)
+
+# ----------------------------------
 # connecting two html-tables
-# ----------------------------------------------------------------
+# ----------------------------------
 # fit two more models
 fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
 fit4 <- lm(e42dep ~ c160age + c12hour + c161sex + c172code, data=efc)
@@ -258,9 +300,9 @@ write(sprintf("<html><head>\%s</head><body>\%s<p></p>\%s</body></html>",
 viewer <- getOption("viewer")
 if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)
 
-# ----------------------------------------------------------------
+# ----------------------------------
 # User defined style sheet
-# ----------------------------------------------------------------
+# ----------------------------------
 sjt.lm(fit1,
        fit2,
        labelDependentVariables = c("Barthel-Index", "Negative Impact"),
@@ -270,10 +312,102 @@ sjt.lm(fit1,
                            "Educational Status"),
        CSS = list(css.table = "border: 2px solid;",
                   css.tdata = "border: 1px solid;",
-                  css.depvarhead = "color:#003399;"))}
+                  css.depvarhead = "color:#003399;"))
+
+# ----------------------------------
+# automatic grouping of predictors
+# ----------------------------------
+data(efc)
+
+# attach variable labels to each variable of the data
+# frame - useful for automatic label detection
+efc <- set_var_labels(efc, get_var_labels(efc))
+
+# make education categorical
+efc$c172code <- to_fac(efc$c172code)
+
+# fit first model again (with c172code as factor)
+fit1 <- lm(barthtot ~ c160age + c12hour + c172code + c161sex, data=efc)
+# fit second model again (with c172code as factor)
+fit2 <- lm(neg_c_7 ~ c160age + c12hour + c172code + c161sex, data=efc)
+
+# plot models, but group by predictors
+sjt.lm(fit1,
+       fit2,
+       group.pred = TRUE)
+
+# ----------------------------------------
+# compare models with different predictors
+# ----------------------------------------
+data(efc)
+
+# attach variable labels to each variable of the data
+# frame - useful for automatic label detection
+efc <- set_var_labels(efc, get_var_labels(efc))
+
+# make education categorical
+efc$c172code <- to_fac(efc$c172code)
+# make education categorical
+efc$e42dep <- to_fac(efc$e42dep)
+
+# fit first model
+fit1 <- lm(neg_c_7 ~ c160age + c172code + c161sex, data=efc)
+# fit second model
+fit2 <- lm(neg_c_7 ~ c160age + c172code + c161sex + c12hour, data=efc)
+# fit second model
+fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data=efc)
+
+sjt.lm(fit1, fit2, fit3)
+
+
+# ----------------------------------------
+# compare models with different predictors
+# and grouping
+# ----------------------------------------
+
+# make cope-index categorical
+efc$c82cop1 <- to_fac(efc$c82cop1)
+# fit another model
+fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1, data=efc)
+
+sjt.lm(fit1, fit2, fit4, fit3)
+
+# show standardized beta only
+sjt.lm(fit1, fit2, fit4, fit3,
+       showEst = FALSE,
+       showStdBeta = TRUE,
+       showAIC = TRUE,
+       showFStat = TRUE)
+
+# -----------------------------------------------------------
+# color insanity. just to show that each column has an own
+# CSS-tag, so - depending on the stats and values you show -
+# you can define column spaces / margins, border etc. to
+# visually separate your models in the table
+# -----------------------------------------------------------
+sjt.lm(fit1, fit2, fit4, fit3,
+       showStdBeta = TRUE,
+       showAIC = TRUE,
+       showFStat = TRUE,
+       showStdError = TRUE,
+       CSS = list(css.modelcolumn1 = 'color:blue;',
+                  css.modelcolumn2 = 'color:red;',
+                  css.modelcolumn3 = 'color:green;',
+                  css.modelcolumn4 = 'color:#ffff00;',
+                  css.modelcolumn5 = 'color:#777777;',
+                  css.modelcolumn6 = 'color:#3399cc;'))
+
+sjt.lm(fit1, fit2, fit4, fit3,
+       showEst = FALSE,
+       showStdBeta = TRUE,
+       pvaluesAsNumbers = FALSE,
+       group.pred = FALSE,
+       CSS = list(css.modelcolumn4 = 'border-left:1px solid black;',
+                  css.modelcolumn5 = 'padding-right:50px;'))}
 }
 \seealso{
 \itemize{
+           \item \href{http://strengejacke.de/sjPlot/sjt.lm/}{sjPlot manual: sjt.lm}
            \item \code{\link{sjt.glm}}
            \item \code{\link{sjp.lm}}
            }

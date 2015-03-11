@@ -108,7 +108,7 @@ create.frq.df <- function(varCount,
   # weight variable
   #---------------------------------------------------
   if (!is.null(weightBy)) {
-    varCount <- sju.weight(varCount, weightBy)
+    varCount <- weight(varCount, weightBy)
   }
   #---------------------------------------------------
   # create frequency data frame
@@ -177,7 +177,7 @@ create.frq.df <- function(varCount,
   # caculate missings here
   missingcount <- length(which(is.na(varCount)))
   if (!is.null(labels)) {
-    labels <- sju.wordwrap(labels, breakLabelsAt)    
+    labels <- word_wrap(labels, breakLabelsAt)    
   }
   # If axisLabels.x were not defined, simply set numbers from 1 to
   # amount of categories (=number of rows) in dataframe instead
@@ -278,9 +278,19 @@ is.brewer.pal <- function(pal) {
 # Calculate statistics of cross tabs
 # -------------------------------------
 crosstabsum <- function(ftab) {
+  # --------------------------------------------------------
+  # check p-value-style option
+  # --------------------------------------------------------
+  opt <- getOption("p_zero")
+  if (is.null(opt) || opt == FALSE) {
+    p_zero <- ""
+  }
+  else {
+    p_zero <- "0"
+  }
   # calculate chi square value
   chsq <- chisq.test(ftab)
-  tab <- sjs.table.values(ftab)
+  tab <- table_values(ftab)
   fish <- NULL
   # check whether variables are dichotome or if they have more
   # than two categories. if they have more, use Cramer's V to calculate
@@ -293,38 +303,38 @@ crosstabsum <- function(ftab) {
       if (chsq$p.value < 0.001) {
         modsum <- as.character(as.expression(
           substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" < pva,
-                     list(tn=summary(ftab)$n.cases,
-                          c2=sprintf("%.2f", chsq$statistic),
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", sjs.cramer(ftab)),
-                          pva=0.001))))
+                     list(tn = summary(ftab)$n.cases,
+                          c2 = sprintf("%.2f", chsq$statistic),
+                          dft = c(chsq$parameter),
+                          kook = sprintf("%.2f", cramer(ftab)),
+                          pva = sprintf("%s.001", p_zero)))))
       }
       else {
         modsum <- as.character(as.expression(
           substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" == pva,
-                     list(tn=summary(ftab)$n.cases,
-                          c2=sprintf("%.2f", chsq$statistic),
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", sjs.cramer(ftab)),
-                          pva=sprintf("%.3f", chsq$p.value)))))
+                     list(tn = summary(ftab)$n.cases,
+                          c2 = sprintf("%.2f", chsq$statistic),
+                          dft = c(chsq$parameter),
+                          kook = sprintf("%.2f", cramer(ftab)),
+                          pva = sub("0", p_zero, sprintf("%.3f", chsq$p.value))))))
       }
     }
     else {
       if (fish$p.value < 0.001) {
         modsum <- as.character(as.expression(
           substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" < pva,
-                     list(tn=summary(ftab)$n.cases,
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", sjs.cramer(ftab)),
-                          pva=0.001))))
+                     list(tn = summary(ftab)$n.cases,
+                          dft = c(chsq$parameter),
+                          kook = sprintf("%.2f", cramer(ftab)),
+                          pva = sprintf("%s.001", p_zero)))))
       }
       else {
         modsum <- as.character(as.expression(
           substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" == pva,
-                     list(tn=summary(ftab)$n.cases,
-                          dft=c(chsq$parameter),
-                          kook=sprintf("%.2f", sjs.cramer(ftab)),
-                          pva=sprintf("%.3f", fish$p.value)))))
+                     list(tn = summary(ftab)$n.cases,
+                          dft = c(chsq$parameter),
+                          kook = sprintf("%.2f", cramer(ftab)),
+                          pva = sub("0", p_zero, sprintf("%.3f", fish$p.value))))))
       }
     }
   }
@@ -337,19 +347,19 @@ crosstabsum <- function(ftab) {
     if (is.null(fish)) {
       modsum <- as.character(as.expression(
         substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "p" == pva,
-                   list(tn=summary(ftab)$n.cases,
-                        c2=sprintf("%.2f", chsq$statistic),
-                        dft=c(chsq$parameter),
-                        kook=sprintf("%.2f", sjs.phi(ftab)),
-                        pva=sprintf("%.3f", chsq$p.value)))))
+                   list(tn = summary(ftab)$n.cases,
+                        c2 = sprintf("%.2f", chsq$statistic),
+                        dft = c(chsq$parameter),
+                        kook = sprintf("%.2f", phi(ftab)),
+                        pva = sub("0", p_zero, sprintf("%.3f", chsq$p.value))))))
     }
     else {
       modsum <- as.character(as.expression(
         substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "Fisher's p" == pva,
-                   list(tn=summary(ftab)$n.cases,
-                        dft=c(chsq$parameter),
-                        kook=sprintf("%.2f", sjs.phi(ftab)),
-                        pva=sprintf("%.3f", fish$p.value)))))
+                   list(tn = summary(ftab)$n.cases,
+                        dft = c(chsq$parameter),
+                        kook = sprintf("%.2f", phi(ftab)),
+                        pva = sub("0", p_zero, sprintf("%.3f", fish$p.value))))))
     }
   }  
   return (modsum)
@@ -361,23 +371,28 @@ crosstabsum <- function(ftab) {
 # if attributes are present
 # -------------------------------------
 autoSetValueLabels <- function(x) {
-  # check if we have value label attribut
-  vl <- sji.getValueLabel(x)
-  lv <- levels(x)
-  label <- NULL
-  # check  if we have value labels
-  if (!is.null(vl) && length(vl)>0) {
-    label <- vl
+  # do we have global options?
+  opt <- getOption("autoSetValueLabels")
+  if (is.null(opt) || opt == TRUE) {
+    # check if we have value label attribut
+    vl <- sji.getValueLabel(x)
+    lv <- levels(x)
+    label <- NULL
+    # check  if we have value labels
+    if (!is.null(vl) && length(vl)>0) {
+      label <- vl
+    }
+    # check  if we have factor levels
+    else if (!is.null(lv)) {
+      label <- lv
+    }
+    # if we have string values, copy them as labels
+    else if (is.character(x)) {
+      label <- unique(x)
+    }
+    return(label)
   }
-  # check  if we have factor levels
-  else if (!is.null(lv)) {
-    label <- lv
-  }
-  # if we have string values, copy them as labels
-  else if (is.character(x)) {
-    label <- unique(x)
-  }
-  return(label)
+  return (NULL)
 }
 
 
@@ -386,14 +401,183 @@ autoSetValueLabels <- function(x) {
 # if attributes are present
 # -------------------------------------
 autoSetVariableLabels <- function(x) {
-  # check if we have variable label attribut
-  vl <- as.vector(attr(x, "variable.label"))
-  label <- NULL
-  # check if we have variable labels
-  if (!is.null(vl) && length(vl)>0) {
-    label <- vl
+  # do we have global options?
+  opt <- getOption("autoSetVariableLabels")
+  if (is.null(opt) || opt == TRUE) {
+    # ----------------------------
+    # check value_labels option
+    # ----------------------------
+    opt <- getOption("value_labels")
+    if (!is.null(opt) && opt == "haven") {
+      attr.string <- "label"
+    }
+    else {
+      attr.string <- "variable.label"
+    }
+    # check if we have variable label attribut
+    vl <- as.vector(attr(x, attr.string))
+    label <- NULL
+    # check if we have variable labels
+    if (!is.null(vl) && length(vl) > 0) {
+      label <- vl
+    }
+    return(label)
   }
-  return(label)
+  return (NULL)
+}
+
+
+
+# -------------------------------------
+# checks at which position in fitted models factors with
+# more than two levels are located.
+# -------------------------------------
+retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
+  # init group-row-indices
+  group.pred.rows <- c()
+  group.pred.labs <- c()
+  group.pred.span <- c()
+  found.factors <- c()
+  add.index <- 0
+  # ------------------------
+  # retrieve fitted models
+  # ------------------------
+  # go through fitted models
+  for (k in 1 : length(models)) {
+    # get model
+    fit <- models[[k]]
+    # retrieve all factors from model
+    for (grp.cnt in 1 : ncol(fit$model)) {
+      # get variable
+      fit.var <- fit$model[, grp.cnt]
+      # is factor? and has more than two levels?
+      # (otherwise, only one category would appear in
+      # coefficients, so no grouping needed anyway)
+      if (is.factor(fit.var) && length(levels(fit.var)) > 2) {
+        # get factor name
+        fac.name <- colnames(fit$model)[grp.cnt]
+        # check whether we already have this factor
+        if (!any(found.factors == fac.name)) {
+          # if not, save found factor variable name
+          found.factors <- c(found.factors, fac.name)
+          # save factor name
+          lab <- unname(get_var_labels(fit.var))
+          # any label?
+          if (is.null(lab)) lab <- colnames(fit$model)[grp.cnt]
+          # determins startindex
+          index <- grp.cnt + add.index - 1
+          index.add <- length(levels(fit.var)) - 2
+          # save row index, so we know where to start group
+          group.pred.rows <- c(group.pred.rows, index)
+          group.pred.span <- c(group.pred.span, index : (index + index.add))
+          group.pred.labs <- c(group.pred.labs, lab)
+          # increase add.index by amount of factor levels (minus reference cat.)
+          add.index <- add.index + index.add
+        }
+        else {
+          add.index <- add.index + length(levels(fit.var)) - 2
+        }
+      }
+    }
+  }
+  # have any groups? if not, reset row-index-counter
+  if (length(group.pred.rows) < 1) {
+    group.pred.rows <- NULL
+    group.pred.labs <- NULL
+    group.pred.span <- NULL
+  }
+  # do we have any rows removed?
+  else if (!is.null(rem_rows)) {
+    # any non-computed row-indices left?
+    while (length(rem_rows) > 0) {
+      # take care, while loop!
+      any.found <- FALSE
+      # if yes, go through all grouping row indices
+      for (i in 1:length(group.pred.rows)) {
+        # if yes, check if removed row was before
+        # grouped row indes
+        if (length(rem_rows) > 0 && rem_rows[1] <= group.pred.rows[i]) {
+          # if yes, iterate all remaining group indices
+          for (j in i:length(group.pred.rows)) {
+            # and reduce index number (because of removed rows)
+            group.pred.rows[j] <- group.pred.rows[j] - 1
+          }
+          # where does span for grouping start?
+          start <- min(which(group.pred.span >= rem_rows[1]))
+          for (j in start:length(group.pred.span)) {
+            # and reduce index number (because of removed rows)
+            group.pred.span[j] <- group.pred.span[j] - 1
+          }
+          # reduce indices
+          rem_rows <- rem_rows - 1
+          # remove computed row-index
+          rem_rows <- rem_rows[-1]
+          # found something!
+          any.found <- TRUE
+        }
+      }
+      # removed any index? if not, break loop
+      if (!any.found) break
+    }
+  }
+  return (list(group.pred.rows,
+               group.pred.span,
+               group.pred.labs))
+}
+
+
+# -------------------------------------
+# automatically retrieve predictor labels
+# of fitted (g)lm
+# -------------------------------------
+retrieveModelLabels <- function(models) {
+  # do we have global options?
+  opt <- getOption("autoSetVariableLabels")
+  if (is.null(opt) || opt == TRUE) {
+    fit.labels <- c()
+    for (k in 1 : length(models)) {
+      # get model
+      fit <- models[[k]]
+      # iterate coefficients (1 is intercept or response)
+      for (i in 2 : ncol(fit$model)) {
+        # is predictor a factor?
+        pvar <- fit$model[, i]
+        # if yes, we have this variable multiple
+        # times, so manually set value labels
+        if (is.factor(pvar)) {
+          # get amount of levels
+          pvar.len <- length(levels(pvar))
+          # get value labels, if any
+          pvar.lab <- get_val_labels(pvar)
+          # have any labels, and have we same amount of labels
+          # as factor levels?
+          if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
+            # add labels
+            if (!any(fit.labels == pvar.lab[2 : pvar.len])) {
+              fit.labels <- c(fit.labels, pvar.lab[2 : pvar.len])
+            }
+          }
+          else {
+            # add labels
+            if (!any(fit.labels == attr(fit$coefficients[i], "names"))) {
+              fit.labels <- c(fit.labels, attr(fit$coefficients[i], "names"))
+            }
+          }
+        }
+        else {
+          # check if we hav label
+          lab <- autoSetVariableLabels(fit$model[, i])
+          # if not, use coefficient name
+          if (is.null(lab)) {
+            lab <- attr(fit$coefficients[i], "names")
+          }
+          if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
+        }
+      }
+    }
+    return (fit.labels)
+  }
+  return (NULL)
 }
 
 
@@ -427,13 +611,13 @@ sju.modsum.lm <- function(fit) {
   pval <- pf(fstat[1], fstat[2], fstat[3],lower.tail = FALSE)
   # indicate significance level by stars
   pan <- c("")
-  if (pval<=0.001) {
+  if (pval < 0.001) {
     pan <- c("***")
   }
-  else  if (pval<=0.01) {
+  else  if (pval < 0.01) {
     pan <- c("**")
   }
-  else  if (pval<=0.05) {
+  else  if (pval < 0.05) {
     pan <- c("*")
   }
   # create mathematical term

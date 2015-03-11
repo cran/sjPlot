@@ -15,7 +15,7 @@
 #'          the file will be saved as temporary file and openend either in the RStudio View pane or
 #'          in the default web browser.
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{data}.
-#'          default is \code{NULL}, so no weights are used.
+#'          Must be a vector of same length as \code{nrow(data)}. Default is \code{NULL}, so no weights are used.
 #' @param variableLabels A single character vector or a list of character vectors that indicate
 #'          the variable names of those variables from \code{data} and will be used as variable labels
 #'          in the output. Note that if multiple variables
@@ -25,10 +25,10 @@
 #'          from \code{data}. Note that if multiple variables are supplied (as data frame), the 
 #'          value labels must be supplied as nested \code{list} object (see examples).
 #' @param autoGroupAt A value indicating at which length of unique values a variable from \code{data}
-#'          is automatically grouped into smaller units (see \code{\link{sju.groupVar}}). Variables with large 
+#'          is automatically grouped into smaller units (see \code{\link{group_var}}). Variables with large 
 #'          numbers of unique values may be too time consuming when a HTML table is created and R would
 #'          not respond any longer. Hence it's recommended to group such variables. Default value is 50,
-#'          i.e. variables with 50 and more unique values will be grouped using \code{\link{sju.groupVar}} with
+#'          i.e. variables with 50 and more unique values will be grouped using \code{\link{group_var}} with
 #'          \code{groupsize="auto"} parameter. By default, the maximum group count is 30. However, if
 #'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built. Default value is \code{NULL},
 #'          i.e. auto-grouping is turned off.
@@ -126,8 +126,8 @@
 #' data(efc)
 #' 
 #' # retrieve value and variable labels
-#' variables <- sji.getVariableLabels(efc)
-#' values <- sji.getValueLabels(efc)
+#' variables <- get_var_labels(efc)
+#' values <- get_val_labels(efc)
 #' 
 #' # show frequencies of "e42dep" in RStudio Viewer Pane
 #' # or default web browser
@@ -155,7 +155,7 @@
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
-#' efc <- sji.setVariableLabels(efc, variables)
+#' efc <- set_var_labels(efc, variables)
 #' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
 #' 
 #' # -------------------------------
@@ -380,7 +380,7 @@ sjt.frq <- function (data,
       # check if character
       if (is.character(sv)) {
         # group strings
-        data[,i] <- sju.groupString(sv, maxStringDist, remove.empty = F)
+        data[,i] <- group_str(sv, maxStringDist, remove.empty = F)
       }
     }
   }
@@ -452,12 +452,20 @@ sjt.frq <- function (data,
     # -----------------------------------------------
     # check for length of unique values and skip if too long
     # -----------------------------------------------
-    if (!is.null(autoGroupAt) && length(unique(var))>=autoGroupAt) {
+    if (!is.null(autoGroupAt) && length(unique(var)) >= autoGroupAt) {
       message(sprintf("Variable %s with %i unique values was grouped...", colnames(data)[cnt], length(unique(var))))
       varsum <- var
-      agcnt <- ifelse (autoGroupAt<30, autoGroupAt, 30)
-      valueLabels[[cnt]] <- sju.groupVarLabels(var, groupsize="auto", autoGroupCount=agcnt)
-      var <- sju.groupVar(var, groupsize="auto", asNumeric=TRUE, autoGroupCount=agcnt)
+      # check for default auto-group-size or user-defined groups
+      agcnt <- ifelse (autoGroupAt < 30, autoGroupAt, 30)
+      # group labels
+      valueLabels[[cnt]] <- group_labels(var, 
+                                         groupsize ="auto", 
+                                         autoGroupCount = agcnt)
+      # group variable
+      var <- group_var(var, 
+                       groupsize = "auto", 
+                       asNumeric = TRUE, 
+                       autoGroupCount = agcnt)
     }
     # retrieve summary
     varsummary <- summary(var)
@@ -478,7 +486,7 @@ sjt.frq <- function (data,
       # retrieve range of values
       vonbis <- max(var, na.rm = T) - min(var, na.rm = T)
       # retrieve count of unique values
-      anzval <- unique(var)
+      anzval <- na.omit(unique(var))
       # check proportion of possible values and actual values
       # if we have more than 25% of zero-values, or if we have
       # in general a large variable range, skip zero-rows.
@@ -582,7 +590,7 @@ sjt.frq <- function (data,
       }
       descr <- ""
       if (showSkew || showKurtosis) {
-        pstat <- describe(data.frame(orivar))
+        pstat <- psych::describe(data.frame(orivar))
         if (showSkew) descr <- sprintf(" &middot; %s=%.2f", skewString, pstat$skew)
         if (showKurtosis) descr <- sprintf("%s &middot; %s=%.2f", descr, kurtosisString, pstat$kurtosis)
       }

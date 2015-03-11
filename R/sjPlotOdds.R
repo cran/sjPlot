@@ -35,9 +35,9 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param axisLabels.y Labels of the predictor variables (independent vars, odds) that are used for labelling the
 #'          axis. Passed as vector of strings.
 #'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
-#'          Note: If you use the \code{\link{sji.SPSS}} function and the \code{\link{sji.getValueLabels}} function, you receive a
-#'          \code{list} object with label string. The labels may also be passed as list object. They will be unlisted and
-#'          converted to character vector automatically.
+#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          \code{list} object with label string. The labels may also be passed as list object. They will be coerced
+#'          to character vector automatically.
 #' @param showAxisLabels.y Whether odds names (predictor labels) should be shown or not.
 #' @param axisTitle.x A label ("title") for the x axis.
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
@@ -120,7 +120,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' # -------------------------------
 #' data(efc)
 #' # retrieve predictor variable labels
-#' labs <- sji.getVariableLabels(efc)
+#' labs <- get_var_labels(efc)
 #' predlab <- c(labs[['c161sex']],
 #'              paste0(labs[['e42dep']], " (slightly)"),
 #'              paste0(labs[['e42dep']], " (moderate)"),
@@ -155,7 +155,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'         type = "prob")
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
 #' @importFrom car outlierTest influencePlot crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot vif
 #' @export
 sjp.glm <- function(fit,
@@ -211,33 +210,23 @@ sjp.glm <- function(fit,
   # auto-retrieve value labels
   # --------------------------------------------------------
   if (is.null(axisLabels.y)) {
-    axisLabels.y <- c()
-    # iterate coefficients (1 is intercept or response)
-    for (i in 2 : ncol(fit$model)) {
-      # check if we hav label
-      lab <- autoSetVariableLabels(fit$model[, i])
-      # if not, use coefficient name
-      if (is.null(lab)) {
-        lab <- attr(fit$coefficients[i], "names")
-      }
-      axisLabels.y <- c(axisLabels.y, lab)
-    }
+    axisLabels.y <- suppressWarnings(retrieveModelLabels(list(fit)))
   }
   # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- sju.wordwrap(title, breakTitleAt)
+    title <- word_wrap(title, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    axisTitle.x <- sju.wordwrap(axisTitle.x, breakTitleAt)
+    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) {
-    axisLabels.y <- sju.wordwrap(axisLabels.y, breakLabelsAt)
+    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)
   }
   # create data frame for ggplot
   tmp <- data.frame(cbind(exp(coef(fit)), exp(confint(fit))))
@@ -561,11 +550,9 @@ sjp.glm.pc <- function(fit,
       # sort values, for x axis
       vals.unique <- sort(vals)
       # melt variable
-      mydf.vals <- data.frame(melt(vals.unique))
-      # set colnames
-      colnames(mydf.vals) <- c("value")
+      mydf.vals <- data.frame(value = vals.unique)
       # convert factor to numeric
-      if (is.factor(mydf.vals$value)) mydf.vals$value <- sji.convertToValue(mydf.vals$value, 0)
+      if (is.factor(mydf.vals$value)) mydf.vals$value <- to_value(mydf.vals$value, 0)
       # retrieve names of coefficients
       coef.names <- names(coef(fit))
       # check if we have a factor, then we may have reference levels
