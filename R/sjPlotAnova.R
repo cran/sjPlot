@@ -10,10 +10,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("pv"))
 #'                dependent variable (variance within and between groups) is printed to
 #'                the model summary.
 #'                
-#' @seealso \itemize{
-#'            \item \code{\link{levene_test}}
-#'            \item \code{\link{sjt.grpmean}}
-#'          }
+#' @seealso \code{\link{sjt.grpmean}}
 #'                
 #' @param depVar The dependent variable. Will be used with following formular:
 #'          \code{aov(depVar ~ grpVar)}
@@ -29,11 +26,11 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("pv"))
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
 #'          Use \code{"NULL"} to automatically detect variable names that will be used as title
-#'          (see \code{\link{set_var_labels}}) for details). Use \code{title=""} for a blank title.
+#'          (see \code{\link[sjmisc]{set_var_labels}}) for details). Use \code{title=""} for a blank title.
 #' @param axisLabels.y Value labels of the grouping variable \code{grpVar} that are used for labelling the
 #'          grouping variable axis. Passed as vector of strings.
 #'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}. \cr
-#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically. See examples below. \cr
 #'          Note: In case \code{type} is \code{"bars"}, the \code{grpVar} will be plotted along
@@ -46,7 +43,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("pv"))
 #'          or not. Default is \code{TRUE}.
 #' @param axisTitle.x A label for the x axis. Default is \code{""}, which means no x-axis title.
 #'          Use \code{NULL} to automatically detect variable names that will be used as title
-#'          (see \code{\link{set_var_labels}}) for details).
+#'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
 #' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
 #'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
@@ -85,6 +82,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("pv"))
 #'           was used for setting up the ggplot-object (\code{df}).
 #' 
 #' @examples
+#' library(sjmisc)
 #' data(efc)
 #' # note: "grpVar" does not need to be a factor.
 #' # coercion to factor is done by the function
@@ -118,6 +116,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("pv"))
 #'          showModelSummary = FALSE)
 #'
 #' @import ggplot2
+#' @import sjmisc
 #' @export
 sjp.aov1 <- function(depVar,
                     grpVar,
@@ -146,11 +145,11 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(axisLabels.y)) axisLabels.y <- autoSetValueLabels(grpVar)
-  if (is.null(axisTitle.x)) axisTitle.x <- autoSetVariableLabels(depVar)
+  if (is.null(axisLabels.y)) axisLabels.y <- sjmisc:::autoSetValueLabels(grpVar)
+  if (is.null(axisTitle.x)) axisTitle.x <- sjmisc:::autoSetVariableLabels(depVar)
   if (is.null(title)) {
-    t1 <- autoSetVariableLabels(depVar)
-    t2 <- autoSetVariableLabels(grpVar)
+    t1 <- sjmisc:::autoSetVariableLabels(depVar)
+    t2 <- sjmisc:::autoSetVariableLabels(grpVar)
     if (!is.null(t1) && !is.null(t2)) {
       title <- paste0(t1, " by ", t2)
     }
@@ -218,17 +217,17 @@ sjp.aov1 <- function(depVar,
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)
+    title <- sjmisc::word_wrap(title, breakTitleAt)
   }
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) {
-    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)
+    axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   if (!is.null(axisLabels.y)) {
-    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)
+    axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
   }
   # ----------------------------
   # Calculate one-way-anova. Since we have
@@ -251,9 +250,9 @@ sjp.aov1 <- function(depVar,
   # ----------------------------
   if (meansums) {
     for (i in 2:length(means)) {
-      means[i] <- means[i]+means[1]
-      means.lci[i] <- means.lci[i]+means[1]
-      means.uci[i] <- means.uci[i]+means[1]
+      means[i] <- means[i] + means[1]
+      means.lci[i] <- means.lci[i] + means[1]
+      means.uci[i] <- means.uci[i] + means[1]
     }
   }
   # ----------------------------
@@ -270,16 +269,14 @@ sjp.aov1 <- function(depVar,
     # get F-statistics
     fstat <- summary.lm(fit)$fstatistic[1]
     # p-value for F-test
-    pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
+    pval <- summary(fit)[[1]]['Pr(>F)'][1, 1]
     # indicate significance level by stars
     pan <- c("")
     if (pval < 0.001) {
       pan <- c("***")
-    }
-    else  if (pval < 0.01) {
+    } else if (pval < 0.01) {
       pan <- c("**")
-    }
-    else  if (pval < 0.05) {
+    } else if (pval < 0.05) {
       pan <- c("*")
     }
     # create mathematical term
@@ -307,16 +304,12 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   if (showPValueLabels) {
     for (i in 1:length(means.p)) {
-      if (means.p[i] >= 0.05) {
-      }
-      else if (means.p[i] >= 0.01 && means.p[i] < 0.05) {
-        ps[i] <- paste(ps[i], "*")
-      }
-      else if (means.p[i] >= 0.001 && means.p[i] < 0.01) {
-        ps[i] <- paste(ps[i], "**")
-      }
-      else {
+      if (means.p[i] < 0.001) {
         ps[i] <- paste(ps[i], "***")
+      } else if (means.p[i] >= 0.001 && means.p[i] < 0.01) {
+        ps[i] <- paste(ps[i], "**")
+      } else if (means.p[i] >= 0.01 && means.p[i] < 0.05) {
+        ps[i] <- paste(ps[i], "*")
       }
     }  
   }
@@ -355,10 +348,10 @@ sjp.aov1 <- function(depVar,
   axisLabels.y <- axisLabels.y[catorder]
   # give columns names
   names(df) <- c("means", "lower", "upper", "p", "pv", "xv")
-  df$means <- as.numeric(as.character(df$means))
-  df$lower <- as.numeric(as.character(df$lower))
-  df$upper <- as.numeric(as.character(df$upper))
-  df$p <- as.numeric(as.character(df$p))
+  df$means <- sjmisc::to_value(df$means, keep.labels = F)
+  df$lower <- sjmisc::to_value(df$lower, keep.labels = F)
+  df$upper <- sjmisc::to_value(df$upper, keep.labels = F)
+  df$p <- sjmisc::to_value(df$p, keep.labels = F)
   df$pv <- as.character(df$pv)
   # bind color values to data frame, because we cannot use several
   # different color aesthetics in ggplot
@@ -439,11 +432,10 @@ sjp.aov1 <- function(depVar,
       geom_errorbar(aes(ymin=lower, ymax=upper), colour=df$errcol, width=0) +
       # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
       geom_text(aes(label=pv, y=means), vjust=-0.8, show_guide=FALSE)
-  }
   # --------------------------------------------------------
   # start with bar plots here
   # --------------------------------------------------------
-  else if (type=="bars") {
+  } else if (type=="bars") {
     # check whether we have error bars. if yes, adjust horizontal
     # posizion of labels
     hlabj <- ifelse(hideErrorBars==FALSE, 1.3, 0.5)
@@ -453,8 +445,11 @@ sjp.aov1 <- function(depVar,
       # stat="identity": y-axis relates to value of variable
       geom_bar(fill=df$geocol, stat="identity", position="identity", width=geom.size) +
       # print value labels and p-values
-      geom_text(aes(label=pv, y=means), vjust=ifelse(df$means >= 0, -1, 1), hjust=hlabj, show_guide=FALSE)
-    if (hideErrorBars==FALSE) {
+      geom_text(aes(label = pv, y = means), 
+                vjust = ifelse(df$means >= 0, -1, 1), 
+                hjust = hlabj, 
+                show_guide = FALSE)
+    if (hideErrorBars == FALSE) {
       anovaplot <- anovaplot +
         # print confidence intervalls (error bars)
         geom_errorbar(aes(ymin=lower, ymax=upper), colour=df$errcol, width=0)
@@ -467,24 +462,33 @@ sjp.aov1 <- function(depVar,
     # set y-scale-limits, breaks and tick labels
     scaley +
     # set value labels to x-axis
-    scale_x_discrete(labels=axisLabels.y, limits=c(1:nrow(df))) +
+    scale_x_discrete(labels = axisLabels.y, limits = c(1:nrow(df))) +
     # flip coordinates
-    labs(title=title, x=NULL, y=axisTitle.x)
+    labs(title = title, x = NULL, y = axisTitle.x)
   # --------------------------------------------------------
   # Flip coordinates when we have dots
   # --------------------------------------------------------
-  if (type=="dots") {
-    anovaplot <- anovaplot + coord_flip()
-  }
+  if (type=="dots") anovaplot <- anovaplot + coord_flip()
   # check whether modelsummary should be printed
   if (showModelSummary) {
     # add annotations with model summary
     # annotations include intercept-value and model's r-square
-    if (type=="dots") {
-      anovaplot <- anovaplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, vjust=-0.5, hjust=1.1)
-    }
-    else {
-      anovaplot <- anovaplot + annotate("text", label=modsum, parse=TRUE, x=-Inf, y=Inf, vjust=1.2, hjust=-0.02)
+    if (type == "dots") {
+      anovaplot <- anovaplot + annotate("text", 
+                                        label = modsum, 
+                                        parse = TRUE, 
+                                        x = -Inf, 
+                                        y = Inf, 
+                                        vjust = -0.5, 
+                                        hjust = 1.1)
+    } else {
+      anovaplot <- anovaplot + annotate("text", 
+                                        label = modsum, 
+                                        parse = TRUE, 
+                                        x = -Inf, 
+                                        y = Inf, 
+                                        vjust = 1.2, 
+                                        hjust = -0.02)
     }
   }
   # ---------------------------------------------------------
@@ -497,46 +501,4 @@ sjp.aov1 <- function(depVar,
   invisible (structure(class = "sjpaov1",
                        list(plot = anovaplot,
                             df = df)))
-}
-
-
-
-#' @title Plot Levene-Test for One-Way-Anova
-#' @name levene_test
-#' 
-#' @description Plot results of Levene's Test for Equality of Variances for One-Way-Anova.
-#' @seealso \code{\link{sjp.aov1}}, \code{\link{chisq_gof}}, \code{\link{mwu}} and \code{\link{wilcox.test}}, 
-#'          \code{\link{ks.test}}, \code{\link{kruskal.test}}, \code{\link{t.test}}, \code{\link{chisq.test}}, 
-#'          \code{\link{fisher.test}}
-#'           
-#' @param depVar The dependent variable. Will be used with following formular:
-#'          \code{aov(depVar ~ grpVar)}
-#' @param grpVar The grouping variable, as unordered factor. Will be used with following formular:
-#'          \code{aov(depVar ~ grpVar)}
-#' 
-#' @examples
-#' data(efc)
-#' levene_test(efc$c12hour, efc$e42dep)
-#' 
-#' @export
-levene_test <- function(depVar, grpVar) {
-  # check if grpVar is factor
-  if (!is.factor(grpVar)) grpVar <- factor(grpVar)
-  # remove missings
-  df <- na.omit(data.frame(depVar, grpVar))
-  # calculate means
-  means <- tapply(df$depVar, df$grpVar, mean)
-  depVarNew <- abs(df$depVar - means[df$grpVar])
-  message("\nLevene's Test for Homogeneity of Variances\n------------------------------------------")
-  fit <- aov(depVarNew ~ df$grpVar)
-  print(summary(fit))
-  pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
-  # print "summary" of test
-  message("\nConclusion:")
-  if (pval>0.05) {
-    message("Groups are homogeneous. Everything's fine.\n")
-  }
-  else {
-    message("Groups are not homogeneous!\n")
-  }
 }

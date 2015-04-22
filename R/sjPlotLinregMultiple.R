@@ -7,13 +7,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #' @description Plot beta coefficients (estimates) with confidence intervalls of multiple fitted linear models
 #'                in one plot.
 #'                
-#' @seealso \itemize{
-#'            \item \code{\link{sjp.lm}}
-#'            \item \code{\link{sjt.lm}}
-#'            \item \code{\link{sjp.glmm}}
-#'            }
-#' 
-#' @param ... One or more fitted lm-objects.
+#' @param ... One or more fitted lm-objects. May also be a \code{\link{list}}-object with 
+#'          fitted models, instead of separating each model with comma. See examples.
 #' @param title Diagram's title as string.
 #'          Example: \code{title=c("my title")}
 #' @param labelDependentVariables Labels of the dependent variables of all fitted models
@@ -28,7 +23,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #' @param axisLabels.y Labels of the predictor variables (independent vars, betas) that are used for labelling the
 #'          axis. Passed as vector of strings.
 #'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
-#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          \code{list} object with label strings. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically.
 #' @param showAxisLabels.y Whether beta names (predictor labels) should be shown or not.
@@ -85,29 +80,41 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("beta", "lower", "upper",
 #' # prepare dummy variables for binary logistic regression
 #' # Now fit the models. Note that all models share the same predictors
 #' # and only differ in their dependent variable
+#' library(sjmisc)
 #' data(efc)
 #' 
-#' # fit first model
-#' fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
-#' # fit second model
-#' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
-#' # fit third model
-#' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
+#' # fit three models
+#' fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data = efc)
+#' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data = efc)
+#' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data = efc)
 #' 
 #' # plot multiple models
-#' sjp.lmm(fit1, fit2, fit3, facet.grid=TRUE)
+#' sjp.lmm(fit1, fit2, fit3, facet.grid = TRUE)
 #' 
 #' # plot multiple models with legend labels and point shapes instead of value  labels
 #' sjp.lmm(fit1, fit2, fit3,
-#'          axisLabels.y=c("Carer's Age", "Hours of Care", 
-#'                         "Carer's Sex", "Educational Status"),
-#'          labelDependentVariables=c("Barthel Index", "Negative Impact", "Services used"),
-#'          showValueLabels=FALSE,
-#'          showPValueLabels=FALSE,
-#'          usePShapes=TRUE,
-#'          nsAlpha=0.3)
+#'          axisLabels.y = c("Carer's Age",
+#'                           "Hours of Care", 
+#'                           "Carer's Sex",
+#'                           "Educational Status"),
+#'          labelDependentVariables = c("Barthel Index", 
+#'                                      "Negative Impact", 
+#'                                      "Services used"),
+#'          showValueLabels = FALSE,
+#'          showPValueLabels = FALSE,
+#'          usePShapes = TRUE,
+#'          nsAlpha = 0.3)
+#' 
+#' # plot multiple models from nested lists parameter
+#' all.models <- list()
+#' all.models[[1]] <- fit1
+#' all.models[[2]] <- fit2
+#' all.models[[3]] <- fit3
+#' 
+#' sjp.lmm(all.models)
 #' 
 #' @import ggplot2
+#' @import sjmisc
 #' @export
 sjp.lmm <- function(..., 
                      title=NULL,
@@ -143,12 +150,15 @@ sjp.lmm <- function(...,
   # --------------------------------------------------------
   input_list <- list(...)
   # --------------------------------------------------------
+  # check length. if we have a list of fitted model, 
+  # we need to "unlist" them
+  # --------------------------------------------------------
+  if (length(input_list) == 1 && class(input_list[[1]]) == "list") input_list <- lapply(input_list[[1]], function(x) x)
+  # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
   # unlist axis labels (predictors)
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
+  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
   # unlist labels of dependent variables (legend)
   if (!is.null(labelDependentVariables) && is.list(labelDependentVariables)) {
     labelDependentVariables <- unlistlabels(labelDependentVariables)
@@ -162,27 +172,20 @@ sjp.lmm <- function(...,
   # Prepare length of title and labels
   # ----------------------------
   # check length of diagram title and split longer string at into new lines
-  if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)
-  }
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
-  if (!is.null(axisTitle.x)) {
-    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)
-  }
+  if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)
   # check length of dependent variables
   if (!is.null(labelDependentVariables)) {
-    labelDependentVariables <- word_wrap(labelDependentVariables, breakLegendAt)
-  }
-  else {
+    labelDependentVariables <- sjmisc::word_wrap(labelDependentVariables, breakLegendAt)
+  } else {
     # else if we have no labels of dependent variables supplied, use a 
     # default string (Model) for legend
     labelDependentVariables <- c(sprintf("%s %i", stringModel, 1:fitlength))
   }
   # check length of x-axis-labels and split longer strings at into new lines
-  if (!is.null(axisLabels.y)) {
-    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)
-  }
+  if (!is.null(axisLabels.y)) axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
   # ----------------------------
   # iterate all fitted models
   # ----------------------------
@@ -192,12 +195,12 @@ sjp.lmm <- function(...,
     # ----------------------------
     # retrieve beta's (lm)
     # ----------------------------
-    betas <- data.frame(cbind(coef(fit), confint(fit)))
+    betas <- data.frame(coef(fit), confint(fit))
     # ----------------------------
     # print p-values in bar charts
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
-    pv <- coef(summary(fit))[,4]
+    pv <- coef(summary(fit))[, 4]
     # for better readability, convert p-values to asterisks
     # with:
     # p < 0.001 = ***
@@ -222,35 +225,23 @@ sjp.lmm <- function(...,
     # ----------------------------
     # copy beta-values into data column
     # ----------------------------
-    if (showValueLabels) {
-      for (i in 1:length(pv)) {
-        ps[i] <- sprintf("%.*f", labelDigits, ov[i])
-      }
-    }
+    ps <- rep("", length(ov))
+    if (showValueLabels) ps <- sprintf("%.*f", labelDigits, ov)
     # ----------------------------
     # copy p-values into data column
     # ----------------------------
     for (i in 1:length(pv)) {
-      if (pv[i]>=0.05) {
+      if (pv[i] >= 0.05) {
         pointshapes[i] <- 1
         palpha[i] <- "ns"
-      }
-      else if (pv[i]>=0.01 && pv[i]<0.05) {
-        if (showPValueLabels) {
-          ps[i] <- paste(ps[i], "*")
-        }
+      } else if (pv[i] >= 0.01 && pv[i] < 0.05) {
+        if (showPValueLabels) ps[i] <- paste(ps[i], "*")
         pointshapes[i] <- 2
-      }
-      else if (pv[i]>=0.001 && pv[i]<0.01) {
-        if (showPValueLabels) {
-          ps[i] <- paste(ps[i], "**")
-        }
+      } else if (pv[i] >= 0.001 && pv[i] < 0.01) {
+        if (showPValueLabels) ps[i] <- paste(ps[i], "**")
         pointshapes[i] <- 3
-      }
-      else {
-        if (showPValueLabels) {
-          ps[i] <- paste(ps[i], "***")
-        }
+      } else {
+        if (showPValueLabels) ps[i] <- paste(ps[i], "***")
         pointshapes[i] <- 4
       }
     }  
@@ -261,23 +252,19 @@ sjp.lmm <- function(...,
     if (is.null(axisLabels.y)) {
       axisLabels.y <- row.names(betas)
       #remove intercept from labels
-      if (!showIntercept) {
-        axisLabels.y <- axisLabels.y[-1]
-      }
+      if (!showIntercept) axisLabels.y <- axisLabels.y[-1]
     }
     # ----------------------------
     # bind p-values to data frame
     # ----------------------------
-    betas <- cbind(betas, ps, palpha, pointshapes, fitcnt)
+    betas <- data.frame(betas, ps, palpha, pointshapes, fitcnt)
     # set column names
-    names(betas) <- c("beta", "lower", "upper", "p", "pa", "shape", "grp")
+    colnames(betas) <- c("beta", "lower", "upper", "p", "pa", "shape", "grp")
     # set x-position
-    betas$xpos <- cbind(c(nrow(betas):1))
+    betas$xpos <- c(nrow(betas):1)
     betas$xpos <- as.factor(betas$xpos)
     #remove intercept from df
-    if (!showIntercept) {
-      betas <- betas[-1,]
-    }
+    if (!showIntercept) betas <- betas[-1, ]
     # add data frame to final data frame
     finalbetas <- rbind(finalbetas, betas)
   }
@@ -297,16 +284,13 @@ sjp.lmm <- function(...,
     # we have confindence intervals displayed, so
     # the range corresponds to the boundaries given by
     # the CI's
-    upper_lim <- (ceiling(10*max(finalbetas$upper))) / 10
-    lower_lim <- (floor(10*min(finalbetas$lower))) / 10
+    upper_lim <- ceiling(10 * max(finalbetas$upper)) / 10
+    lower_lim <- floor(10 * min(finalbetas$lower)) / 10
     # if we show p value labels, increase upper
     # limit of x axis, so labels are plotted inside
     # diagram range
-    if (showValueLabels || showPValueLabels) {
-      upper_lim <- upper_lim + 0.1
-    }
-  }
-  else {
+    if (showValueLabels || showPValueLabels) upper_lim <- upper_lim + 0.1
+  } else {
     # Here we have user defind axis range
     lower_lim <- axisLimits[1]
     upper_lim <- axisLimits[2]
@@ -318,20 +302,17 @@ sjp.lmm <- function(...,
   # determine gridbreaks
   if (is.null(gridBreaksAt)) {
     ticks <- pretty(c(lower_lim, upper_lim))
+  } else {
+    ticks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
   }
-  else {
-    ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
-  }
-  if (!showAxisLabels.y) {
-    axisLabels.y <- c("")
-  }
+  if (!showAxisLabels.y) axisLabels.y <- c("")
   # --------------------------------------------------------
   # body of plot
   # --------------------------------------------------------
   # The order of aesthetics matters in terms of ordering the error bars!
   # Using alpha-aes before colour would order error-bars according to
   # alpha-level instead of colour-aes.
-  plotHeader <- ggplot(finalbetas, aes(y=beta, x=xpos, colour=grp, alpha=pa))
+  plotHeader <- ggplot(finalbetas, aes(y = beta, x = xpos, colour = grp, alpha = pa))
   # --------------------------------------------------------
   # start with dot-plotting here
   # first check, whether user wants different shapes for
@@ -345,13 +326,15 @@ sjp.lmm <- function(...,
       # The order of aesthetics matters in terms of ordering the error bars!
       # Using shape before colour would order points according to shapes instead
       # of colour-aes.
-      geom_point(aes(y=beta, x=xpos, colour=grp, shape=shape), size=geom.size, position=position_dodge(-geom.spacing)) +
+      geom_point(aes(shape = shape), 
+                 size = geom.size, 
+                 position = position_dodge(-geom.spacing)) +
       # and use a shape scale, in order to have a legend
-      scale_shape_manual(values=c(1,16,17,15), labels=c("n.s.", "*", "**", "***"))
-  }
-  else {
+      scale_shape_manual(values = c(1, 16, 17, 15), 
+                         labels = c("n.s.", "*", "**", "***"))
+  } else {
     plotHeader <- plotHeader +
-      geom_point(size=geom.size, position=position_dodge(-geom.spacing))
+      geom_point(size = geom.size, position = position_dodge(-geom.spacing))
   }
   # --------------------------------------------------------
   # continue with errorbars, p-value-label and intercept line
@@ -391,13 +374,8 @@ sjp.lmm <- function(...,
   # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
-  if (coord.flip)  {
-    plotHeader <- plotHeader +
-      coord_flip()
-  }
-  if (facet.grid) {
-    plotHeader <- plotHeader + facet_grid(.~grp)
-  }
+  if (coord.flip)  plotHeader <- plotHeader + coord_flip()
+  if (facet.grid) plotHeader <- plotHeader + facet_grid(. ~ grp)
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------

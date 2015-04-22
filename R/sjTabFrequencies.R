@@ -6,7 +6,6 @@
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/sjt.frq/}{sjPlot manual: sjt.frq}
 #'            \item \code{\link{sjp.frq}}
-#'            \item \code{\link{sjt.xtab}}
 #'          }
 #' 
 #' @param data The variables which frequencies should be printed as table. Either use a single variable
@@ -25,10 +24,10 @@
 #'          from \code{data}. Note that if multiple variables are supplied (as data frame), the 
 #'          value labels must be supplied as nested \code{list} object (see examples).
 #' @param autoGroupAt A value indicating at which length of unique values a variable from \code{data}
-#'          is automatically grouped into smaller units (see \code{\link{group_var}}). Variables with large 
+#'          is automatically grouped into smaller units (see \code{group_var}). Variables with large 
 #'          numbers of unique values may be too time consuming when a HTML table is created and R would
 #'          not respond any longer. Hence it's recommended to group such variables. Default value is 50,
-#'          i.e. variables with 50 and more unique values will be grouped using \code{\link{group_var}} with
+#'          i.e. variables with 50 and more unique values will be grouped using \code{group_var} with
 #'          \code{groupsize="auto"} parameter. By default, the maximum group count is 30. However, if
 #'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built. Default value is \code{NULL},
 #'          i.e. auto-grouping is turned off.
@@ -61,10 +60,10 @@
 #' @param showSummary If \code{TRUE} (default), a summary row with total and valid N as well as mean and
 #'          standard deviation is shown.
 #' @param showSkew If \code{TRUE}, the variable's skewness is added to the summary.
-#'          The skewness is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          The skewness is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
 #' @param showKurtosis If \code{TRUE}, the variable's kurtosis is added to the summary.
-#'          The kurtosis is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          The kurtosis is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
 #' @param skewString A character string, which is used as header for the skew column (see \code{showSkew})).
 #'          Default is lower case Greek gamma.
@@ -106,7 +105,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item each frequency table as web page content (\code{page.content.list}),
@@ -123,6 +122,7 @@
 #' @examples
 #' \dontrun{
 #' # load sample data
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # retrieve value and variable labels
@@ -171,10 +171,10 @@
 #'         valueLabels=values[['e42dep']],
 #'         CSS=list(css.table="border: 2px solid;",
 #'                  css.tdata="border: 1px solid;",
-#'                  css.firsttablecol="color:#003399; font-weight:bold;"))
-#' }
+#'                  css.firsttablecol="color:#003399; font-weight:bold;"))}
 #' 
 #' @importFrom psych describe
+#' @import sjmisc
 #' @export
 sjt.frq <- function (data,
                      file=NULL,
@@ -298,15 +298,12 @@ sjt.frq <- function (data,
       # if yes, iterate each variable
       for (i in 1:ncol(data)) {
         # check type
-        if (is.character(data[,i])) stringcolumns <- c(stringcolumns, i)
+        if (is.character(data[, i])) stringcolumns <- c(stringcolumns, i)
       }
       # check if any strings found
-      if (length(stringcolumns)>0) {
-        # remove string variables
-        data <- data[,-stringcolumns]
-      }
-    }
-    else {
+      # remove string variables
+      if (length(stringcolumns) > 0) data <- data[, -stringcolumns]
+    } else {
       if (is.character(data)) {
         stop("Parameter 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See parameter 'removeStringVectors' for details.", call. = FALSE)
       }
@@ -323,27 +320,24 @@ sjt.frq <- function (data,
       # if yes, iterate each variable
       for (i in 1:ncol(data)) {
         # retrieve variable name attribute
-        vn <- autoSetVariableLabels(data[,i])
+        vn <- sjmisc:::autoSetVariableLabels(data[,i])
         # if variable has attribute, add to variableLabel list
         if (!is.null(vn)) {
           variableLabels <- c(variableLabels, vn)
-        }
-        else {
+        } else {
           # else break out of loop
           variableLabels <- NULL
           break
         }
       }
-    }
     # we have a single variable only
-    else {
+    } else {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(data)
+      vn <- sjmisc:::autoSetVariableLabels(data)
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         variableLabels <- c(variableLabels, vn)
-      }
-      else {
+      } else {
         # else reset variableLabels
         variableLabels <- NULL
       }
@@ -357,7 +351,7 @@ sjt.frq <- function (data,
     isString <- is.character(data)
     # check for auto-detection of labels, but only for non-character-vectors
     # characters will be handled later
-    if (is.null(valueLabels) && !isString) valueLabels <- autoSetValueLabels(data)
+    if (is.null(valueLabels) && !isString) valueLabels <- sjmisc:::autoSetValueLabels(data)
     # copy variable to data frame for unuqie handling
     data <- as.data.frame(data)
     if (isString) {
@@ -376,11 +370,11 @@ sjt.frq <- function (data,
     # iterate data frame
     for (i in 1:nvar) {
       # get variable
-      sv <- data[,i]
+      sv <- data[, i]
       # check if character
       if (is.character(sv)) {
         # group strings
-        data[,i] <- group_str(sv, maxStringDist, remove.empty = F)
+        data[, i] <- sjmisc::group_str(sv, maxStringDist, remove.empty = F)
       }
     }
   }
@@ -412,14 +406,12 @@ sjt.frq <- function (data,
       # set value labels according to values
       if (is.character(dummy)) {
         valueLabels <- c(valueLabels, list(names(table(dummy))))
-      }
-      else {
+      } else {
         # check for auto-detection of labels
-        avl <- autoSetValueLabels(dummy)
+        avl <- sjmisc:::autoSetValueLabels(dummy)
         if (!is.null(avl)) {
           valueLabels <- c(valueLabels, list(avl))
-        }
-        else {
+        } else {
           valueLabels <- c(valueLabels, list(min(dummy, na.rm=TRUE):max(dummy, na.rm=TRUE)))
         }
       }
@@ -444,9 +436,8 @@ sjt.frq <- function (data,
     if (is.character(data[,cnt])) {
       # convert string to numeric
       orivar <- var <- as.numeric(as.factor(data[,cnt]))
-    }
     # here we have numeric or factor variables
-    else {
+    } else {
       orivar <- var <- as.numeric(data[,cnt])
     }
     # -----------------------------------------------
@@ -458,14 +449,14 @@ sjt.frq <- function (data,
       # check for default auto-group-size or user-defined groups
       agcnt <- ifelse (autoGroupAt < 30, autoGroupAt, 30)
       # group labels
-      valueLabels[[cnt]] <- group_labels(var, 
-                                         groupsize ="auto", 
-                                         autoGroupCount = agcnt)
+      valueLabels[[cnt]] <- sjmisc::group_labels(var, 
+                                                 groupsize = "auto", 
+                                                 autoGroupCount = agcnt)
       # group variable
-      var <- group_var(var, 
-                       groupsize = "auto", 
-                       asNumeric = TRUE, 
-                       autoGroupCount = agcnt)
+      var <- sjmisc::group_var(var, 
+                               groupsize = "auto", 
+                               asNumeric = TRUE, 
+                               autoGroupCount = agcnt)
     }
     # retrieve summary
     varsummary <- summary(var)
@@ -516,7 +507,7 @@ sjt.frq <- function (data,
     # -------------------------------------
     page.content <- paste0(page.content, headerRow)
     # iterate all labels, each one in one row
-    for (j in 1 : (nrow(df) - 1)) {
+    for (j in 1:(nrow(df) - 1)) {
       # retrieve data row
       datarow <- df[j,]
       zerorow <- (datarow[3] == 0)
@@ -635,24 +626,24 @@ sjt.frq <- function (data,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr)
-  knitr <- gsub(tag.thead, css.thead, knitr)
-  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr)
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)
-  knitr <- gsub(tag.leftalign, css.leftalign, knitr)  
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr)  
-  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr)  
-  knitr <- gsub(tag.summary, css.summary, knitr)  
-  knitr <- gsub(tag.arc, css.arc, knitr)  
-  knitr <- gsub(tag.qrow, css.qrow, knitr)  
-  knitr <- gsub(tag.mdrow, css.mdrow, knitr)  
-  knitr <- gsub(tag.abstand, css.abstand, knitr)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
+  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.qrow, css.qrow, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.mdrow, css.mdrow, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.abstand, css.abstand, knitr, fixed = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

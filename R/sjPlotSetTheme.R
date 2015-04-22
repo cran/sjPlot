@@ -55,11 +55,13 @@
 #' @param panel.minor.gridcol Color of the minor grid lines of the diagram background.
 #' @param panel.gridcol Color for both minor and major grid lines of the diagram background.
 #'          If set, overrides both \code{panel.major.gridcol} and \code{panel.minor.gridcol}.
+#' @param panel.major.linetype Line type for major grid lines.
+#' @param panel.minor.linetype Line type for minor grid lines.
 #' @param plot.backcol Color of the plot's background.
 #' @param plot.bordercol Color of whole plot's border (panel border).
 #' @param plot.col Color of both plot's region border and background.
 #'          If set, overrides both \code{plot.backcol} and \code{plot.bordercol}.
-#' @param legend.pos Position of the legend, if a legend is drawn. \cr
+#' @param legend.pos Position of the legend, if a legend is drawn.\cr
 #'          \emph{legend outside plot} \cr
 #'          Use \code{"bottom"}, \code{"top"}, \code{"left"}
 #'          or \code{"right"} to position the legend above, below, on the left or right side of the diagram. 
@@ -67,7 +69,8 @@
 #'          \emph{legend inside plot} \cr
 #'          If \code{legend.inside} is \code{TRUE}, legend can be placed inside
 #'          plot. Use \code{"top left"}, \code{"top right"}, \code{"bottom left"} and \code{"bottom right"}
-#'          to position legend in any of these corners, or a two-element numeric vector with values from 0-1.
+#'          to position legend in any of these corners, or a two-element numeric vector with values from 0-1. \cr
+#'          See also \code{legend.inside}.
 #' @param legend.just Justification of legend, relative to its position ("center" or 
 #'          two-element numeric vector with values from 0-1. By default (outside legend),
 #'          justification is centered. If legend is inside and justification not specified,
@@ -81,6 +84,8 @@
 #' @param legend.title.face Font face of the legend title. By default, \code{"bold"} face is used.
 #' @param legend.bordercol Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
 #' @param legend.backgroundcol Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
+#' @param legend.item.bordercol Color of the legend's item-border. Default is \code{"white"}.
+#' @param legend.item.backcol Fill color of the legend's item-background. Default is \code{"grey90"}.
 #' @param theme valid parameter for ggplot default-themes are:
 #'        \itemize{
 #'          \item \code{theme_bw}
@@ -94,8 +99,10 @@
 #'        \itemize{
 #'          \item \code{"blank"}: a theme with no grids and axes.
 #'          \item \code{"forest"}: a theme for forest plots, with no grids.
+#'          \item \code{"forestgrey"}: a theme for forest plots, with no grids, in "539" style.
 #'          \item \code{"538"}: a grey-scaled theme inspired by \href{http://fivethirtyeight.com}{538-charts}, adapted from \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{minimaxir.com}.
 #'          \item \code{"539"}: a slight modification of the 538-theme.
+#'          \item \code{"scatter"}: a theme for scatter plots in 539-theme-style.
 #'          \item \code{"blues"}: a blue-colored scheme based on the Blues color-brewer-palette.
 #'          \item \code{"greens"}: a green-colored scheme.
 #'        }
@@ -105,9 +112,7 @@
 #' @return The customized theme object, or \code{NULL}, if a ggplot-theme
 #'           was used.
 #' 
-#' @seealso \itemize{
-#'            \item \href{http://www.strengejacke.de/sjPlot/custplot/}{sjPlot manual: customize plot appearance}
-#'          }
+#' @seealso \href{http://www.strengejacke.de/sjPlot/custplot/}{sjPlot manual: customize plot appearance}
 #' 
 #' @references \itemize{
 #'              \item \href{http://zevross.com/blog/2014/08/04/beautiful-plotting-in-r-a-ggplot2-cheatsheet-3/}{Beautiful plotting in R: A ggplot2 cheatsheet}
@@ -116,6 +121,7 @@
 #' 
 #' @examples
 #' \dontrun{
+#' library(sjmisc)
 #' data(efc)
 #' # set sjPlot-defaults, a slightly modification
 #' # of the ggplot base theme
@@ -217,6 +223,8 @@ sjp.setTheme <- function(title.color="black",
                          panel.major.gridcol=NULL,
                          panel.minor.gridcol=NULL,
                          panel.gridcol=NULL,
+                         panel.major.linetype = 1,
+                         panel.minor.linetype = 1,
                          # plot background color
                          plot.backcol=NULL,
                          plot.bordercol=NULL,
@@ -232,6 +240,8 @@ sjp.setTheme <- function(title.color="black",
                          legend.title.face="bold",
                          legend.backgroundcol="white",
                          legend.bordercol="white",
+                         legend.item.backcol="grey90",
+                         legend.item.bordercol="white",
                          # base theme
                          theme=NULL,
                          base=theme_grey()) {
@@ -266,7 +276,7 @@ sjp.setTheme <- function(title.color="black",
     panel.major.gridcol <- g.palette[4]
     panel.minor.gridcol <- g.palette[2]
     axis.linecolor.x  <- axis.linecolor.y <- axis.linecolor <- g.palette[2]
-    legend.backgroundcol <- legend.bordercol <- g.palette[2]
+    legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[2]
     title.color <- g.palette[9]
     axis.textcolor <- g.palette[6]
     axis.title.color <- g.palette[7]
@@ -282,18 +292,22 @@ sjp.setTheme <- function(title.color="black",
     plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
     message("Theme '538' looks better with panel margins. You may want to use parameter 'expand.grid = TRUE' in sjp-functions.")
   }  
-  if (!is.null(theme) && theme=="539") {
+  if (!is.null(theme) && (theme == "539" || theme == "forestgrey")) {
     base <- theme_bw()
     g.palette <- scales::brewer_pal(palette = "Greys")(9)
     panel.bordercol <- panel.backcol <- panel.col <- g.palette[2]
     plot.backcol <- plot.bordercol <- plot.col <- g.palette[2]
-    panel.major.gridcol <- g.palette[4]
-    panel.minor.gridcol <- g.palette[2]
+    if (theme == "539") {
+      panel.major.gridcol <- g.palette[4]
+      panel.minor.gridcol <- g.palette[2]
+      panel.gridcol.x <- g.palette[2]
+    } else {
+      panel.major.gridcol <- panel.minor.gridcol <- g.palette[2]
+    }
     axis.linecolor <- NULL
-    axis.linecolor.y  <- g.palette[2]
-    axis.linecolor.x <- g.palette[9]
-    panel.gridcol.x <- g.palette[2]
-    legend.backgroundcol <- legend.bordercol <- g.palette[2]
+    if (is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[2]
+    if (is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[9]
+    legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[2]
     title.color <- g.palette[9]
     axis.textcolor <- g.palette[6]
     axis.title.color <- g.palette[7]
@@ -302,6 +316,31 @@ sjp.setTheme <- function(title.color="black",
     legend.color <- g.palette[6]
     axis.tickslen <- 0
     # custom modifications
+    title.align <- "center"
+    axis.title.x.vjust <- -1
+    axis.title.y.vjust <- 1.5
+    title.vjust <- 1.75
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
+  }  
+  if (!is.null(theme) && theme=="scatter") {
+    base <- theme_bw()
+    g.palette <- scales::brewer_pal(palette = "Greys")(9)
+    panel.bordercol <- panel.backcol <- panel.col <- g.palette[2]
+    plot.backcol <- plot.bordercol <- plot.col <- g.palette[2]
+    panel.major.gridcol <- panel.minor.gridcol <- g.palette[4]
+    axis.linecolor <- g.palette[5]
+    if (is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[2]
+    if (is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[2]
+    legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[2]
+    title.color <- g.palette[9]
+    axis.textcolor <- g.palette[6]
+    axis.title.color <- g.palette[7]
+    if (is.null(geom.label.color)) geom.label.color <- g.palette[6]
+    legend.title.color <- g.palette[7]
+    legend.color <- g.palette[6]
+    axis.tickslen <- 0
+    # custom modifications
+    panel.major.linetype <- panel.minor.linetype <- 2
     title.align <- "center"
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
@@ -319,7 +358,7 @@ sjp.setTheme <- function(title.color="black",
     axis.linecolor.y  <- g.palette[1]
     axis.linecolor.x <- g.palette[9]
     panel.gridcol.x <- g.palette[1]
-    legend.backgroundcol <- legend.bordercol <- g.palette[1]
+    legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[1]
     title.color <- "black"
     axis.textcolor <- g.palette[9]
     axis.title.color <- "black"
@@ -346,7 +385,7 @@ sjp.setTheme <- function(title.color="black",
     axis.linecolor.y  <- g.palette[5]
     axis.linecolor.x <- g.palette[9]
     panel.gridcol.x <- g.palette[5]
-    legend.backgroundcol <- legend.bordercol <- g.palette[5]
+    legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[5]
     title.color <- "black"
     axis.textcolor <- g.palette[9]
     axis.title.color <- "black"
@@ -513,6 +552,14 @@ sjp.setTheme <- function(title.color="black",
             legend.background = element_rect(colour = legend.bordercol, 
                                              fill = legend.backgroundcol))
     # ----------------------------------------
+    # set legend items background-color
+    # ----------------------------------------
+    if (!is.null(legend.item.backcol)) {
+      sjtheme <- sjtheme +
+        theme(legend.key = element_rect(colour = legend.item.bordercol, 
+                                        fill = legend.item.backcol))
+    }
+    # ----------------------------------------
     # set axis line colors, if defined
     # ----------------------------------------
     if (!is.null(axis.linecolor)) {
@@ -559,8 +606,8 @@ sjp.setTheme <- function(title.color="black",
     # ----------------------------------------
     if (!is.null(panel.gridcol)) {
       sjtheme <- sjtheme +
-        theme(panel.grid.minor = element_line(colour = panel.minor.gridcol),
-              panel.grid.major = element_line(colour = panel.major.gridcol))
+        theme(panel.grid.minor = element_line(colour = panel.minor.gridcol, linetype = panel.minor.linetype),
+              panel.grid.major = element_line(colour = panel.major.gridcol, linetype = panel.major.linetype))
     }
     # ----------------------------------------
     # set plot margins. onyl applies to pre-set themes
@@ -594,13 +641,13 @@ sjp.setTheme <- function(title.color="black",
     # ----------------------------------------
     if (!is.null(panel.gridcol.x)) {
       sjtheme <- sjtheme +
-        theme(panel.grid.minor.x = element_line(colour = panel.gridcol.x),
-              panel.grid.major.x = element_line(colour = panel.gridcol.x))
+        theme(panel.grid.minor.x = element_line(colour = panel.gridcol.x, linetype = panel.minor.linetype),
+              panel.grid.major.x = element_line(colour = panel.gridcol.x, linetype = panel.major.linetype))
     }
     if (!is.null(panel.gridcol.y)) {
       sjtheme <- sjtheme +
-        theme(panel.grid.minor.y = element_line(colour = panel.gridcol.y),
-              panel.grid.major.y = element_line(colour = panel.gridcol.y))
+        theme(panel.grid.minor.y = element_line(colour = panel.gridcol.y, linetype = panel.minor.linetype),
+              panel.grid.major.y = element_line(colour = panel.gridcol.y, linetype = panel.major.linetype))
     }
     # ----------------------------------------
     # finally, set theme

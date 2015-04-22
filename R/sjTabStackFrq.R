@@ -18,20 +18,22 @@
 #' @param title A table caption.
 #' @param varlabels A list or vector of strings with variable names. If not specified, row names of \code{items}
 #'          will be used, resp. variable labels will automatically be detected, when they have
-#'          a \code{"variable.lable"} attribute (see \code{\link{set_var_labels}}) for details).
+#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
 #' @param breakLabelsAt Wordwrap for variable labels. Determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param valuelabels A list or vector of strings that category/value labels, which
 #'          appear in the header row.
 #' @param breakValueLabelsAt Wordwrap for value labels. Determines how many chars of the value labels are displayed in 
 #'          one line and when a line break is inserted. Default is 20.
-#' @param orderBy Indicates whether the \code{items} should be ordered by highest count of first or last category of \code{items}.
-#'          Use \code{"first"} to order ascending by lowest count of first category, 
-#'          \code{"last"} to order ascending by lowest count of last category
-#'          or \code{NULL} (default) for no sorting. You can specify just the initial letter.
-#'          In case you want to revers order (descending from highest count), use
-#'          \code{reverseOrder} parameter.
-#' @param reverseOrder If \code{TRUE}, the item order is reversed.
+#' @param sort.frq Indicates whether the \code{items} should be ordered by
+#'          by highest count of first or last category of \code{items}.
+#'          \itemize{
+#'            \item Use \code{"first.asc"} to order ascending by lowest count of first category,
+#'            \item \code{"first.desc"} to order descending by lowest count of first category,
+#'            \item \code{"last.asc"} to order ascending by lowest count of last category,
+#'            \item \code{"last.desc"} to order descending by lowest count of last category,
+#'            \item or \code{NULL} (default) for no sorting.
+#'          }
 #' @param digits The amount of digits for rounding the percentage values.
 #'          Default is 2, i.e. percentage values have 2 digits after decimal point.
 #' @param showN If \code{TRUE}, each item's category N is printed in the table cells.
@@ -39,10 +41,10 @@
 #' @param showNA If \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
 #' @param labelNA The label for the missing column/row.
 #' @param showSkew If \code{TRUE}, an additional column with each item's skewness is printed.
-#'          The skewness is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          The skewness is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
 #' @param showKurtosis If \code{TRUE}, an additional column with each item's kurtosis is printed.
-#'          The kurtosis is retrieved from the \code{\link{describe}} function of the \code{\link{psych}}
+#'          The kurtosis is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
 #' @param digits.stats The amount of digits for rounding the skewness and kurtosis valuess.
 #'          Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.
@@ -83,7 +85,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
@@ -102,62 +104,81 @@
 #' # random sample
 #' # -------------------------------
 #' # prepare data for 4-category likert scale, 5 items
-#' likert_4 <- data.frame(as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.2,0.3,0.1,0.4))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.5,0.25,0.15,0.1))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.25,0.1,0.4,0.25))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.1,0.4,0.4,0.1))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.35,0.25,0.15,0.25))))
+#' likert_4 <- data.frame(as.factor(sample(1:4, 
+#'                                         500, 
+#'                                         replace = TRUE, 
+#'                                         prob = c(0.2, 0.3, 0.1, 0.4))),
+#'                        as.factor(sample(1:4, 
+#'                                         500, 
+#'                                         replace = TRUE, 
+#'                                         prob = c(0.5, 0.25, 0.15, 0.1))),
+#'                        as.factor(sample(1:4, 
+#'                                         500, 
+#'                                         replace = TRUE, 
+#'                                         prob = c(0.25, 0.1, 0.4, 0.25))),
+#'                        as.factor(sample(1:4, 
+#'                                         500, 
+#'                                         replace = TRUE, 
+#'                                         prob = c(0.1, 0.4, 0.4, 0.1))),
+#'                        as.factor(sample(1:4, 
+#'                                         500, 
+#'                                         replace = TRUE, 
+#'                                         prob = c(0.35, 0.25, 0.15, 0.25))))
 #' # create labels
-#' levels_4 <- c("Independent", "Slightly dependent", "Dependent", "Severely dependent")
+#' levels_4 <- c("Independent", 
+#'               "Slightly dependent", 
+#'               "Dependent", 
+#'               "Severely dependent")
 #' 
 #' # create item labels
 #' items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
 #' 
 #' # plot stacked frequencies of 5 (ordered) item-scales
 #' \dontrun{
-#' sjt.stackfrq(likert_4, valuelabels=levels_4, varlabels=items)
+#' sjt.stackfrq(likert_4, valuelabels = levels_4, varlabels = items)
 #' 
 #' 
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
+#' start <- which(colnames(efc) == "c82cop1")
 #' # recveive first item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
+#' end <- which(colnames(efc) == "c90cop9")
 #' # retrieve variable labels
 #' varlabs <- get_var_labels(efc)
 #' 
 #' # Note: Parameter "valuelabels" is only needed for datasets
 #' # that have been imported from SPSS.
-#' sjt.stackfrq(efc[,c(start:end)],
-#'              varlabels=varlabs[c(start:end)],
-#'              alternateRowColors=TRUE)
+#' sjt.stackfrq(efc[, c(start:end)],
+#'              varlabels = varlabs[c(start:end)],
+#'              alternateRowColors = TRUE)
 #' 
-#' sjt.stackfrq(efc[,c(start:end)],
+#' sjt.stackfrq(efc[, c(start:end)],
 #'              varlabels=varlabs[c(start:end)],
-#'              alternateRowColors=TRUE,
-#'              showN=TRUE,
-#'              showNA=TRUE)
+#'              alternateRowColors = TRUE,
+#'              showN = TRUE,
+#'              showNA = TRUE)
 #'          
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.stackfrq(efc[,c(start:end)])
+#' sjt.stackfrq(efc[, c(start:end)])
 #'          
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
-#' sjt.stackfrq(efc[,c(start:end)],
-#'              varlabels=varlabs[c(start:end)],
-#'              alternateRowColors=TRUE,
-#'              showTotalN=TRUE,
-#'              showSkew=TRUE,
-#'              showKurtosis=TRUE,
-#'              CSS=list(css.ncol="border-left:1px dotted black;",
-#'                       css.summary="font-style:italic;"))}
+#' sjt.stackfrq(efc[, c(start:end)],
+#'              varlabels = varlabs[c(start:end)],
+#'              alternateRowColors = TRUE,
+#'              showTotalN = TRUE,
+#'              showSkew = TRUE,
+#'              showKurtosis = TRUE,
+#'              CSS=list(css.ncol = "border-left:1px dotted black;",
+#'                       css.summary = "font-style:italic;"))}
 #'              
 #' @importFrom psych describe
 #' @export
@@ -168,8 +189,7 @@ sjt.stackfrq <- function (items,
                           breakLabelsAt=40,
                           valuelabels=NULL,
                           breakValueLabelsAt=20,
-                          orderBy=NULL,
-                          reverseOrder=FALSE,
+                          sort.frq=NULL,
                           alternateRowColors=FALSE,
                           digits=2,
                           showN=FALSE,
@@ -188,23 +208,46 @@ sjt.stackfrq <- function (items,
                           no.output=FALSE,
                           remove.spaces=TRUE) {
   # --------------------------------------------------------
+  # check sorting
+  # --------------------------------------------------------
+  if (!is.null(sort.frq)) {
+    if (sort.frq == "first.asc") {
+      sort.frq  <- "first"
+      reverseOrder <- FALSE
+    } else if (sort.frq == "first.desc") {
+      sort.frq  <- "first"
+      reverseOrder <- TRUE
+    } else if (sort.frq == "last.asc") {
+      sort.frq  <- "last"
+      reverseOrder <- FALSE
+    } else if (sort.frq == "last.desc") {
+      sort.frq  <- "last"
+      reverseOrder <- TRUE
+    } else {
+      sort.frq  <- NULL
+      reverseOrder <- FALSE
+    }
+    
+  } else {
+    reverseOrder <- FALSE
+  }
+  # --------------------------------------------------------
   # check encoding
   # --------------------------------------------------------
   encoding <- get.encoding(encoding)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(valuelabels)) valuelabels <- autoSetValueLabels(items[,1])
+  if (is.null(valuelabels)) valuelabels <- sjmisc:::autoSetValueLabels(items[, 1])
   if (is.null(varlabels)) {
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(items[,i])
+      vn <- sjmisc:::autoSetVariableLabels(items[, i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
-      }
-      else {
+      } else {
         # else break out of loop
         varlabels <- NULL
         break
@@ -212,53 +255,36 @@ sjt.stackfrq <- function (items,
     }
   }
   # --------------------------------------------------------
-  # check abbreviations
-  # --------------------------------------------------------
-  if (!is.null(orderBy)) {
-    if (orderBy=="f") orderBy <- "first"
-    if (orderBy=="l") orderBy <- "last"
-  }
-  # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  if (!is.null(varlabels) && is.list(varlabels)) {
-    varlabels <- unlistlabels(varlabels)
-  }
-  if (!is.null(valuelabels) && is.list(valuelabels)) {
-    valuelabels <- unlistlabels(valuelabels)
-  }
+  if (!is.null(varlabels) && is.list(varlabels)) varlabels <- unlistlabels(varlabels)
+  if (!is.null(valuelabels) && is.list(valuelabels)) valuelabels <- unlistlabels(valuelabels)
   # ----------------------------
   # retrieve min and max values
   # ----------------------------
-  minval <- as.numeric(min(apply(items, 2, function(x) min(x, na.rm=TRUE))))
-  maxval <- as.numeric(max(apply(items, 2, function(x) max(x, na.rm=TRUE))))
+  minval <- as.numeric(min(apply(items, 2, function(x) min(x, na.rm = TRUE))))
+  maxval <- as.numeric(max(apply(items, 2, function(x) max(x, na.rm = TRUE))))
   # ----------------------------
   # if we have no value labels, set default labels and find amount
   # of unique categories
   # ----------------------------
-  if (is.null(valuelabels)) {
-    valuelabels <- as.character(minval:maxval)
-  }
+  if (is.null(valuelabels)) valuelabels <- as.character(minval:maxval)
   # check whether missings should be shown
   if (showNA) valuelabels <- c(valuelabels, labelNA)
   # save amolunt of values
   catcount <- length(valuelabels)
   # check length of x-axis-labels and split longer strings at into new lines
-  valuelabels <- word_wrap(valuelabels, breakValueLabelsAt, "<br>")
+  valuelabels <- sjmisc::word_wrap(valuelabels, breakValueLabelsAt, "<br>")
   # ----------------------------
   # if we have no variable labels, use row names
   # ----------------------------
-  if (is.null(varlabels)) {
-    varlabels <- colnames(items)
-  }
+  if (is.null(varlabels)) varlabels <- colnames(items)
   # check length of x-axis-labels and split longer strings at into new lines
-  varlabels <- word_wrap(varlabels, breakLabelsAt, "<br>")
+  varlabels <- sjmisc::word_wrap(varlabels, breakLabelsAt, "<br>")
   # ----------------------------  
   # additional statistics required from psych-package?
   # ----------------------------
-  if (showSkew || showKurtosis) {
-    pstat <- psych::describe(items)
-  }
+  if (showSkew || showKurtosis) pstat <- psych::describe(items)
   # ----------------------------
   # create data frame with each item in a row
   # therefore, iterate each item
@@ -271,11 +297,11 @@ sjt.stackfrq <- function (items,
   # determine minimum value. if 0, add one, because
   # vector indexing starts with 1
   # ----------------------------
-  if (any(apply(items, c(1,2), is.factor)) || any(apply(items, c(1,2), is.character))) {
-    diff <- ifelse(min(apply(items, c(1,2), as.numeric),na.rm=TRUE)==0, 1, 0)
-  }
-  else {
-    diff <- ifelse(min(items,na.rm=TRUE)==0, 1, 0)
+  if (any(apply(items, c(1, 2), is.factor)) || 
+      any(apply(items, c(1, 2), is.character))) {
+    diff <- ifelse(min(apply(items, c(1, 2), as.numeric), na.rm = TRUE) == 0, 1, 0)
+  } else {
+    diff <- ifelse(min(items, na.rm = TRUE) == 0, 1, 0)
   }
   # iterate item-list
   for (i in 1:ncol(items)) {
@@ -288,23 +314,20 @@ sjt.stackfrq <- function (items,
       # include missing
       # ----------------------------
       if (is.null(weightBy)) {
-        dummy <- table(addNA(items[,i]))
-      }
-      else {
+        dummy <- table(addNA(items[, i]))
+      } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ addNA(items[,i])),0)
+        dummy <- round(xtabs(weightBy ~ addNA(items[, i])), 0)
       }
-    }
     # ----------------------------
     # exclude missing
     # ----------------------------
-    else {
+    } else {
       if (is.null(weightBy)) {
-        dummy <- table(items[,i])
-      }
-      else {
+        dummy <- table(items[, i])
+      } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ items[,i]),0)
+        dummy <- round(xtabs(weightBy ~ items[, i]), 0)
       }
     }
     # ----------------------------
@@ -326,17 +349,17 @@ sjt.stackfrq <- function (items,
       maxtl <- max(as.numeric(na.omit(names(dummy))))
       # set NA table name to max-value+1, so we have continuous
       # vector-index (needed below)
-      names(dummy)[tl] <- maxtl+1
+      names(dummy)[tl] <- maxtl + 1
     }
     # ----------------------------
     # table name equals cateogory value,
     # table itself contains counts of each category
     # ----------------------------
-    fr[as.numeric(names(dummy))+diff] <- dummy
+    fr[as.numeric(names(dummy)) + diff] <- dummy
     # ----------------------------
     # add proportional percentages to data frame row
     # ----------------------------
-    mat <- rbind(mat, round(prop.table(fr),4))
+    mat <- rbind(mat, round(prop.table(fr), 4))
     mat.n <- rbind(mat.n, fr)
   }
   # ----------------------------
@@ -344,18 +367,17 @@ sjt.stackfrq <- function (items,
   # ----------------------------
   # default order
   facord <- c(1:nrow(mat))
-  if (!is.null(orderBy)) {
+  if (!is.null(sort.frq)) {
     # ----------------------------
     # order by first cat
     # ----------------------------
-    if (orderBy=="first") {
-      facord <- order(mat[,1])
-    }
+    if (sort.frq == "first") {
+      facord <- order(mat[, 1])
     # ----------------------------
     # order by last cat
     # ----------------------------
-    else {
-      facord <- order(mat[,ncol(mat)])
+    } else {
+      facord <- order(mat[, ncol(mat)])
     }
   }
   # ----------------------------
@@ -469,10 +491,9 @@ sjt.stackfrq <- function (items,
     # --------------------------------------------------------
     for (j in 1:ncol(mat)) {
       if (showN) {
-        page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%i<br>(%.*f&nbsp;%%)</td>\n", arcstring, mat.n[facord[i],j], digits, 100*mat[facord[i],j]))
-      }
-      else {
-        page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%.*f&nbsp;%%</td>\n", arcstring, digits, 100*mat[facord[i],j]))
+        page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%i<br>(%.*f&nbsp;%%)</td>\n", arcstring, mat.n[facord[i], j], digits, 100 * mat[facord[i], j]))
+      } else {
+        page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%.*f&nbsp;%%</td>\n", arcstring, digits, 100 * mat[facord[i], j]))
       }
     }
     # add column with N's
@@ -503,21 +524,21 @@ sjt.stackfrq <- function (items,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr)
-  knitr <- gsub(tag.thead, css.thead, knitr)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr)
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)  
-  knitr <- gsub(tag.ncol, css.ncol, knitr)  
-  knitr <- gsub(tag.skewcol, css.skewcol, knitr)  
-  knitr <- gsub(tag.kurtcol, css.kurtcol, knitr)  
-  knitr <- gsub(tag.summary, css.summary, knitr)  
-  knitr <- gsub(tag.arc, css.arc, knitr)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.ncol, css.ncol, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.skewcol, css.skewcol, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.kurtcol, css.kurtcol, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

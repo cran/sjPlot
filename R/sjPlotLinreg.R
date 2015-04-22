@@ -5,26 +5,22 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @title Plot linear models
 #' @name sjp.lm
 #' 
-#' @seealso \itemize{
-#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
-#'              \item \code{\link{sjp.int}}
-#'              \item \code{\link{sjp.scatter}}
-#'              \item  \code{\link{std_beta}}
-#'             }
+#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
 #' 
 #' @description Depending on the \code{type}, this function plots beta coefficients (estimates) 
-#'                of linear regressions with confidence intervalls as dot plot (forest plot),
+#'                of linear regressions (including panel models fitted with the \code{plm} function 
+#'                from the plm-package) with confidence intervalls as dot plot (forest plot),
 #'                model assumptions for linear models or slopes and scatter plots for each single
 #'                coefficient. See \code{type} for details.
 #' 
 #' @details \itemize{
 #'            \item If \code{type = "lm"} and fitted model only has one predictor, no forest plot is shown. Instead, a regression line with confidence interval (in blue) is plotted by default, and a loess-smoothed line without confidence interval (in red) can be added if parameter \code{showLoess} is \code{TRUE}.
-#'            \item If \code{type = "pred"}, regression lines with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and each of them are fitted against the response variable.
+#'            \item If \code{type = "pred"}, regression lines (slopes) with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and each of them is plotted against the response variable.
 #'            \item If \code{type = "ma"} (i.e. checking model assumptions), please note that only three parameters are relevant: \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.
 #'            \item If \code{type = "vif"}, the Variance Inflation Factors (check for multicollinearity) are plotted. As a rule of thumb, values below 5 are considered as good and indicate no multicollinearity, values between 5 and 10 may be tolerable. Values greater than 10 are not acceptable and indicate multicollinearity between model's predictors.
 #'            }
 #'                
-#' @param fit The model of the linear regression (\code{\link{lm}}-Object).
+#' @param fit The model of the linear regression (\code{\link{lm}}- or \code{\link[plm]{plm}}-object).
 #' @param type type of plot. Use one of following:
 #'          \itemize{
 #'            \item \code{"lm"} (default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.
@@ -39,13 +35,13 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' @param axisLabels.x Labels of the predictor (independent variable) that is used for labelling the
 #'          axis. Passed as string. Not used if fitted model has more than one predictor and \code{type = "lm"}.
 #'          Example: \code{axisLabel.x=c("My Predictor Var")}.
-#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_var_labels}} function, you receive a
-#'          character vector with variable label strings. You can use it like so:
+#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a
+#'          character vector with variable label strings. You can use it like this:
 #'          \code{axisLabel.x = get_var_labels(efc)['quol_5']}
 #' @param axisLabels.y Labels of the predictor variables (independent vars) that are used for labelling the
 #'          axis. Passed as vector of strings.
 #'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}.
-#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically.
 #' @param showAxisLabels.y Whether x axis text (category names, predictor labels) should be shown (use \code{TRUE})
@@ -157,6 +153,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' # plotting regression line of linear model (done 
 #' # automatically if fitted model has only 1 predictor)
 #' # ---------------------------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' # fit model
 #' fit <- lm(neg_c_7 ~ quol_5, data=efc)
@@ -189,6 +186,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lo
 #' sjp.lm(fit, type = "ma")
 #'         
 #' @import ggplot2
+#' @import sjmisc
 #' @importFrom car outlierTest crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot vif
 #' @export
 sjp.lm <- function(fit,
@@ -230,6 +228,18 @@ sjp.lm <- function(fit,
   # remember length of predictor variables
   # -----------------------------------------------------------
   predvars.length <- length(fit$coefficients)
+  # -----------------------------------------------------------
+  # check parameter. No model-summary supported for plm-objects
+  # -----------------------------------------------------------
+  if (any(class(fit) == "plm")) {
+    showModelSummary = F
+    # -----------------------------------------------------------
+    # check package availability if fit is plm-object
+    # -----------------------------------------------------------
+    if (!"package:plm" %in% search()) {
+      stop("Package 'plm' needs to be loaded for this function to work... Use 'library(plm)' and call this function again.", call. = FALSE)
+    }
+  }
   # -----------------------------------------------------------
   # this function requires a fitted model with only one predictor,
   # so check whether only one predictor was used
@@ -283,45 +293,34 @@ sjp.lm <- function(fit,
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
+  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
   # --------------------------------------------------------
   # auto-retrieve value labels
   # --------------------------------------------------------
-  if (is.null(axisLabels.y)) {
-    axisLabels.y <- suppressWarnings(retrieveModelLabels(list(fit)))
-  }
+  if (is.null(axisLabels.y)) axisLabels.y <- suppressWarnings(retrieveModelLabels(list(fit)))
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
-  if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)
-  }
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
-  if (!is.null(axisTitle.x)) {
-    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)
-  }
+  if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  if (!is.null(axisLabels.y)) {
-    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)
-  }
+  if (!is.null(axisLabels.y)) axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
   # ----------------------------
   # create expression with model summarys. used
   # for plotting in the diagram later
   # ----------------------------
   if (showModelSummary) {
     modsum <- sju.modsum.lm(fit)
-  }
-  else {
+  } else {
     modsum <- NULL
   }
   # ----------------------------
   # print beta- and p-values in bar charts
   # ----------------------------
   # retrieve sigificance level of independent variables (p-values)
-  pv <- coef(summary(fit))[-1,4]
+  pv <- coef(summary(fit))[-1, 4]
   # for better readability, convert p-values to asterisks
   # with:
   # p < 0.001 = ***
@@ -330,32 +329,28 @@ sjp.lm <- function(fit,
   # retrieve betas, leave out intercept ([-1])
   bv <- coef(fit)[-1]
   # retrieve standardized betas
-  stdbv <- suppressWarnings(std_beta(fit, include.ci = TRUE))
+  stdbv <- suppressWarnings(sjmisc::std_beta(fit, include.ci = TRUE))
   # init data column for p-values
   ps <- sprintf("%.*f", labelDigits, bv)
   pstdbv <- sprintf("%.*f", labelDigits, stdbv$beta)
   # if no values should be shown, clear
   # vector now
   if (!showValueLabels) {
-    ps <- rep(c(""), length(ps))
-    pstdbv <- rep(c(""), length(pstdbv))
+    ps <- rep("", length(ps))
+    pstdbv <- rep("", length(pstdbv))
   }
   # --------------------------------------------------------
   # copy p-values into data column
   # --------------------------------------------------------
   if (showPValueLabels) {
     for (i in 1:length(pv)) {
-      if (pv[i]>=0.05) {
-      }
-      else if (pv[i]>=0.01 && pv[i]<0.05) {
+      if (pv[i] >= 0.01 && pv[i] < 0.05) {
         ps[i] <- paste(ps[i], "*")
         pstdbv[i] <- paste(pstdbv[i], "*")
-      }
-      else if (pv[i]>=0.001 && pv[i]<0.01) {
+      } else if (pv[i] >= 0.001 && pv[i] < 0.01) {
         ps[i] <- paste(ps[i], "**")
         pstdbv[i] <- paste(pstdbv[i], "**")
-      }
-      else {
+      } else if (pv[i] < 0.001) {
         ps[i] <- paste(ps[i], "***")
         pstdbv[i] <- paste(pstdbv[i], "***")
       }
@@ -371,24 +366,22 @@ sjp.lm <- function(fit,
   if (type == "std") {
     tmp <- stdbv
     ps <- pstdbv
-  }
-  else {
-    if (1==length(coefficients(fit)[-1])) {
+  } else {
+    if (1 == length(coefficients(fit)[-1])) {
       tmp <- data.frame(
         # Append beta coefficients, [-1] means that the first
         # row (Intercept) will be removed / ignored
         coefficients(fit)[-1],
         # append CI
-        confint(fit, level=0.95)[-1,1],
-        confint(fit, level=0.95)[-1,2])
-    }
-    else {
+        confint(fit, level = 0.95)[-1, 1],
+        confint(fit, level = 0.95)[-1, 2])
+    } else {
       tmp <- data.frame(cbind(
         # Append beta coefficients, [-1] means that the first
         # row (Intercept) will be removed / ignored
         coefficients(fit)[-1],
         # append CI
-        confint(fit, level=0.95)[-1,]))
+        confint(fit, level = 0.95)[-1, ]))
     }
   }
   # append p-values and standardized beta coefficients
@@ -405,9 +398,7 @@ sjp.lm <- function(fit,
   # have factors with different levels, which appear as 
   # "multiple predictors", but are only one variable
   # --------------------------------------------------------
-  if (is.null(axisLabels.y) || length(axisLabels.y) < length(row.names(betas))) {
-    axisLabels.y <- row.names(betas)
-  }
+  if (is.null(axisLabels.y) || length(axisLabels.y) < length(row.names(betas))) axisLabels.y <- row.names(betas)
   # --------------------------------------------------------
   # define sorting criteria. the values on the x-axis are being sorted
   # either by beta-values (sort="beta") or by standardized
@@ -419,11 +410,10 @@ sjp.lm <- function(fit,
   if (sort.est) {
     if (type == "lm") {
       axisLabels.y <- axisLabels.y[order(bv)]
-      betas <- betas[order(bv),]
-    }
-    else if (type == "std") {
+      betas <- betas[order(bv), ]
+    } else if (type == "std") {
       axisLabels.y <- axisLabels.y[order(stdbv$beta)]
-      betas <- betas[order(stdbv$beta),]
+      betas <- betas[order(stdbv$beta), ]
     }
   }
   betas <- cbind(c(seq(1:nrow(betas))), betas)
@@ -436,52 +426,51 @@ sjp.lm <- function(fit,
   # is not NULL)
   # --------------------------------------------------------
   if (is.null(axisLimits)) {
-    upper_lim <- (ceiling(10*max(betas$upper))) / 10
-    lower_lim <- (floor(10*min(betas$lower))) / 10
-  }
-  else {
+    upper_lim <- (ceiling(10 * max(betas$upper))) / 10
+    lower_lim <- (floor(10 * min(betas$lower))) / 10
+  } else {
     lower_lim <- axisLimits[1]
     upper_lim <- axisLimits[2]
   }
   # determine gridbreaks
   if (is.null(gridBreaksAt)) {
     ticks <- pretty(c(lower_lim, upper_lim))
+  } else {
+    ticks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
   }
-  else {
-    ticks <- c(seq(lower_lim, upper_lim, by=gridBreaksAt))
-  }
-  if (!showAxisLabels.y) {
-    axisLabels.y <- c("")
-  }
+  if (!showAxisLabels.y) axisLabels.y <- c("")
   # --------------------------------------------------------
   # Start plot here!
   # --------------------------------------------------------
-  betaplot <- ggplot(betas, aes(y=Beta, x=xv, colour=Beta>=0)) +
+  betaplot <- ggplot(betas, aes(y = Beta, x = xv, colour = (Beta >= 0))) +
     # and error bar
-    geom_errorbar(aes(ymin=lower, ymax=upper), width=0) +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 0) +
     # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
-    geom_text(aes(label=p, y=Beta), vjust=-0.8, show_guide=FALSE) +
+    geom_text(aes(label = p, y = Beta), 
+              vjust = -0.8, 
+              show_guide = FALSE) +
     # print point
-    geom_point(size=geom.size) +
+    geom_point(size = geom.size) +
     # Intercept-line
-    geom_hline(yintercept=0, linetype=interceptLineType, color=interceptLineColor) +
+    geom_hline(yintercept = 0, 
+               linetype = interceptLineType, 
+               color = interceptLineColor) +
     # set y-scale-limits, breaks and tick labels
-    scale_y_continuous(limits=c(lower_lim,upper_lim), breaks=ticks, labels=ticks) +
+    scale_y_continuous(limits = c(lower_lim, upper_lim), 
+                       breaks = ticks, 
+                       labels = ticks) +
     # set value labels to x-axis
-    scale_x_discrete(labels=axisLabels.y, limits=c(1:nrow(betas))) +
-    labs(title=title, x=NULL, y=axisTitle.x)
+    scale_x_discrete(labels = axisLabels.y, 
+                     limits = c(1:nrow(betas))) +
+    labs(title = title, x = NULL, y = axisTitle.x)
   # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
-  if (coord.flip)  {
-    betaplot <- betaplot +
-      coord_flip()
-  }
+  if (coord.flip) betaplot <- betaplot + coord_flip()
   # ------------------------------------------
   # check whether table summary should be printed
   # ------------------------------------------
-  betaplot <- print.table.summary(betaplot,
-                                  modsum)
+  betaplot <- print.table.summary(betaplot, modsum)
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
@@ -519,27 +508,31 @@ sjp.reglin <- function(fit,
   # retrieve column names of dataset so we can identify in which
   # column the data for each predictor is.
   # -----------------------------------------------------------
-  # check if we have x=TRUE parameter, so we use this. this
-  # data matrix also contains interaction terms or factor levels
-  if (any(names(fit) == "x")) {
-    predvars <- colnames(fit$x)[-1]
-    cn <- predvars
-    fit.x <- TRUE
+  if (any(class(fit) == "plm")) {
+    # plm objects have different structure than (g)lm
+    fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), model.matrix(fit)))
+    depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
+    # retrieve response vector
+    resp <- as.vector(fit$model[, 1])
+  } else if (any(class(fit) == "lmerMod") || any(class(fit) == "merModLmerTest")) {
+    fit_x <- data.frame(model.matrix(fit))
+    # retrieve response vector
+    resp <- lme4::getME(fit, "y")
+    depvar.label <- attr(attr(attr(fit@frame, "terms"), "dataClasses"), "names")[1]
+  } else {
+    fit_x <- data.frame(model.matrix(fit))
+    depvar.label <- attr(attr(fit$terms, "dataClasses"), "names")[1]
+    # retrieve response vector
+    resp <- as.vector(fit$model[, 1])
   }
-  # else we use the normal data frame retrieves from the model
-  else {
-    predvars <- attr(attr(fit$terms, "dataClasses"), "names")[-1]
-    cn <- colnames(fit$model)
-    fit.x <- FALSE
-    message("Interaction terms and factor levels may not be included. Use 'x=TRUE' parameter in lm-call to plot all predictors.")
-  }
-  depvar.label <- attr(attr(fit$terms, "dataClasses"), "names")[1]
+  predvars <- colnames(fit_x)[-1]
+  cn <- predvars
   # remember length of predictor variables
   predvars.length <- length(predvars)
   # -----------------------------------------------------------
   # retrieve name of dependent variable
   # -----------------------------------------------------------
-  response <- ifelse(useResiduals==TRUE, "residuals", depvar.label)
+  response <- ifelse(useResiduals == TRUE, "residuals", depvar.label)
   # init return var
   plotlist <- list()
   dflist <- list()
@@ -547,9 +540,7 @@ sjp.reglin <- function(fit,
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   # -----------------------------------------------------------
-  if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)
-  }
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)
   # -----------------------------------------------------------
   # iterate all predictors
   # -----------------------------------------------------------
@@ -562,55 +553,47 @@ sjp.reglin <- function(fit,
     # create dummy-data frame with response and predictor
     # as data columns, used for the ggplot
     # -----------------------------------------------------------
-    if (fit.x) {
-      if (useResiduals) {
-        mydat <- as.data.frame(cbind(fit$x[,which(cn==xval)+1],
-                                     fit$residuals))
-      }
-      else {
-        mydat <- as.data.frame(cbind(fit$x[,which(cn==xval)+1],
-                                     fit$model[, 1]))
-      }
-    }
-    else {
-      if (useResiduals) {
-        mydat <- as.data.frame(cbind(fit$model[,which(cn==xval)],
-                                     fit$residuals))
-      }
-      else {
-        mydat <- as.data.frame(cbind(fit$model[,which(cn==xval)],
-                                     fit$model[,which(cn==response)]))
-      }
+    if (useResiduals) {
+      mydat <- data.frame(x = fit_x[, which(cn == xval) + 1], y = residuals(fit))
+    } else {
+      mydat <- data.frame(x = fit_x[, which(cn == xval) + 1], y = resp)
     }
     # -----------------------------------------------------------
     # plot regression line and confidence intervall
     # -----------------------------------------------------------
-    reglinplot <- ggplot(mydat, aes(x=V1, y=V2)) +
-      stat_smooth(method="lm", se=showCI, level=ciLevel, colour=lineColor)
+    reglinplot <- ggplot(mydat, aes(x = x, y = y)) +
+      stat_smooth(method = "lm", 
+                  se = showCI, 
+                  level = ciLevel, 
+                  colour = lineColor)
     # -----------------------------------------------------------
     # plot jittered values if requested
     # -----------------------------------------------------------
-    if (showScatterPlot) {
-      reglinplot <- reglinplot + geom_jitter(alpha=pointAlpha, colour=pointColor)
-    }
+    if (showScatterPlot) reglinplot <- reglinplot + geom_jitter(alpha = pointAlpha, 
+                                                                colour = pointColor)
     # -----------------------------------------------------------
     # check whether additional loess-line should be plotted
     # -----------------------------------------------------------
     if (showLoess) {
       reglinplot <- reglinplot + 
-        stat_smooth(method="loess", se=showLoessCI, level=loessCiLevel, colour=loessLineColor)
+        stat_smooth(method = "loess", 
+                    se = showLoessCI, 
+                    level = loessCiLevel, 
+                    colour = loessLineColor)
     }
     # -----------------------------------------------------------
     # set plot labs
     # -----------------------------------------------------------
     reglinplot <- reglinplot + 
-      labs(title=title, x=xval, y=response)
+      labs(title = title, 
+           x = xval, 
+           y = response)
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
     # concatenate plot object
-    plotlist[[length(plotlist)+1]] <- reglinplot
-    dflist[[length(dflist)+1]] <- mydat
+    plotlist[[length(plotlist) + 1]] <- reglinplot
+    dflist[[length(dflist) + 1]] <- mydat
     # print plot
     if (printPlot) print(reglinplot)
   }
@@ -644,24 +627,23 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   removedcases <- 0
   loop <- TRUE
   # start loop
-  while(loop==TRUE) {
+  while(loop == TRUE) {
     # get outliers of model
-    ol <- outlierTest(model)
+    ol <- car::outlierTest(model)
     # retrieve variable numbers of outliers
     vars <- as.numeric(names(ol$p))
     # update model by removing outliers
-    dummymodel <- update(model, subset=-c(vars))
+    dummymodel <- update(model, subset = -c(vars))
     # retrieve new r2
     dummyrs <- summary(dummymodel)$r.squared
     # decrease maximum loops
-    maxcnt <- maxcnt -1
+    maxcnt <- maxcnt - 1
     # check whether r2 of updated model is lower
     # than previous r2 or if we have already all loop-steps done,
     # stop loop
-    if(dummyrs<rs || maxcnt<1) {
+    if(dummyrs < rs || maxcnt < 1) {
       loop <- FALSE
-    }
-    else {
+    } else {
       # else copy new model, which is the better one (according to r2)
       model <- dummymodel
       # and get new r2
@@ -675,23 +657,26 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # ---------------------------------
   message(sprintf(("Removed %i cases during %i step(s).\nR^2 / adj. R^2 of original model: %f / %f\nR^2 / adj. R^2 of updated model: %f / %f\n"), 
               removedcases,
-              maxloops-(maxcnt+1), 
+              maxloops - (maxcnt + 1), 
               summary(linreg)$r.squared, 
               summary(linreg)$adj.r.squared,
               summary(model)$r.squared, 
               summary(model)$adj.r.squared))
-  modelOptmized <- ifelse(removedcases>0, TRUE, FALSE)
+  modelOptmized <- ifelse(removedcases > 0, TRUE, FALSE)
   if (showOriginalModelOnly) modelOptmized <- FALSE
   # ---------------------------------
   # show VIF-Values
   # ---------------------------------
+  sjp.setTheme(theme = "539")
   sjp.vif(linreg)
   if (modelOptmized) sjp.vif(model)
   # ---------------------------------
   # Print non-normality of residuals and outliers both of original and updated model
   # dots should be plotted along the line, this the dots should follow a linear direction
   # ---------------------------------
-  mydf <- data.frame(x = sort(linreg$fitted.values), y = sort(linreg$residuals))
+  mydf <- data.frame(x = sort(linreg$fitted.values), 
+                     y = sort(linreg$residuals))
+  sjp.setTheme(theme = "scatter")
   print(ggplot(mydf, aes(x = x, y = y)) + 
           geom_point() + 
           stat_smooth(method = "lm", se = FALSE) +
@@ -711,16 +696,35 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # Print non-normality of residuals both of original and updated model
   # Distribution should look like normal curve
   # ---------------------------------
-  print(ggplot(linreg, aes(x=.resid)) + 
-          geom_histogram(aes(y=..density..), binwidth=0.2, fill="grey60", colour="grey30") +
-          geom_density(aes(y=..density..), fill="#4080cc", alpha=0.2) +
-          stat_function(fun=dnorm, args=list(mean=mean(unname(linreg$residuals), na.rm=TRUE), sd=sd(unname(linreg$residuals), na.rm=TRUE)), colour="FireBrick", size=0.8) +
+  sjp.setTheme(theme = "539")
+  print(ggplot(linreg, aes(x = .resid)) + 
+          geom_histogram(aes(y = ..density..), 
+                         binwidth = 0.2, 
+                         fill = "grey60", 
+                         colour = "grey30") +
+          geom_density(aes(y = ..density..), 
+                       fill = "#4080cc", 
+                       alpha = 0.2) +
+          stat_function(fun = dnorm, 
+                        args = list(mean = mean(unname(linreg$residuals), na.rm = TRUE), 
+                                    sd = sd(unname(linreg$residuals), na.rm = TRUE)), 
+                        colour = "FireBrick", 
+                        size = 0.8) +
           ggtitle("Non-normality of residuals (original model)\n(Distribution should look like normal curve)"))
   if (modelOptmized) {
-    print(ggplot(model, aes(x=.resid)) + 
-            geom_histogram(aes(y=..density..), binwidth=0.2, fill="grey60", colour="grey30") +
-            geom_density(aes(y=..density..), fill="#4080cc", alpha=0.2) +
-            stat_function(fun=dnorm, args=list(mean=mean(unname(model$residuals), na.rm=TRUE), sd=sd(unname(model$residuals), na.rm=TRUE)), colour="FireBrick", size=0.8) +
+    print(ggplot(model, aes(x = .resid)) + 
+            geom_histogram(aes(y = ..density..), 
+                           binwidth = 0.2, 
+                           fill = "grey60", 
+                           colour = "grey30") +
+            geom_density(aes(y = ..density..), 
+                         fill = "#4080cc", 
+                         alpha = 0.2) +
+            stat_function(fun = dnorm, 
+                          args = list(mean = mean(unname(model$residuals), na.rm = TRUE), 
+                                      sd = sd(unname(model$residuals), na.rm = TRUE)), 
+                          colour = "FireBrick", 
+                          size = 0.8) +
             ggtitle("Non-normality of residuals (updated model)\n(Distribution should look like normal curve)"))
   }
   # ---------------------------------
@@ -739,48 +743,51 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # you want is something that is akin towards a horizontal line. In such case, the data is somehow not homogenous 
   # maybe because one part of the data is more variable than another. If that is the case, you might need to transform 
   # the data in order to make it meet the assumptions that are necessary for linear models.  
-  print(ggplot(linreg, aes(x=.fitted, y=.resid)) +
-          geom_hline(yintercept=0, alpha=0.7) +
+  sjp.setTheme(theme = "scatter")
+  print(ggplot(linreg, aes(x = .fitted, y = .resid)) +
+          geom_hline(yintercept = 0, alpha = 0.7) +
           geom_point() +
-          geom_smooth(method="loess", se=FALSE) +
+          geom_smooth(method = "loess", se = FALSE) +
           ggtitle("Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals, original model)\n(Amount and distance of points scattered above/below line is equal)"))
   
   if (modelOptmized) {
-    print(ggplot(model, aes(x=.fitted, y=.resid)) +
-            geom_hline(yintercept=0, alpha=0.7) +
+    print(ggplot(model, aes(x = .fitted, y = .resid)) +
+            geom_hline(yintercept = 0, alpha = 0.7) +
             geom_point() +
-            geom_smooth(method="loess", se=FALSE) +
+            geom_smooth(method = "loess", se = FALSE) +
             ggtitle("Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals, updated model)\n(Amount and distance of points scattered above/below line is equal)"))
   }
   # ---------------------------------
   # summarize old and new model
   # ---------------------------------
-  sjp.lm(linreg, title="Original model")
-  if (modelOptmized) sjp.lm(model, title="Updated model")
+  sjp.setTheme(theme = "forestgrey")
+  sjp.lm(linreg, title = "Original model")
+  if (modelOptmized) sjp.lm(model, title = "Updated model")
   if (completeDiagnostic) {
     # ---------------------------------
     # Plot residuals against predictors
     # ---------------------------------
-    sjp.reglin(linreg, title="Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
-    if (modelOptmized) sjp.reglin(model, title="Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
+    sjp.setTheme(theme = "scatter")
+    sjp.reglin(linreg, title = "Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
+    if (modelOptmized) sjp.reglin(model, title = "Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
     # ---------------------------------
     # Non-linearity
     # ---------------------------------
-    plot(crPlots(linreg))
+    plot(car::crPlots(linreg))
     # ---------------------------------
     # non-independence of residuals
     # ---------------------------------
-    print(durbinWatsonTest(linreg))
+    print(car::durbinWatsonTest(linreg))
     # ---------------------------------
     # Print leverage plots
     # ---------------------------------
-    plot(leveragePlots(linreg))
+    plot(car::leveragePlots(linreg))
     # ---------------------------------
     # Non-constant residuals
     # ---------------------------------
-    print(ncvTest(linreg))
+    print(car::ncvTest(linreg))
     print(lmtest::bptest(linreg))
-    print(spreadLevelPlot(linreg))
+    print(car::spreadLevelPlot(linreg))
   }
   # return updated model
   return(model)
@@ -810,9 +817,7 @@ sjp.lm1 <- function(fit,
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   # -----------------------------------------------------------
-  if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)    
-  }
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)    
   # -----------------------------------------------------------
   # remember length of predictor variables
   # -----------------------------------------------------------
@@ -821,7 +826,7 @@ sjp.lm1 <- function(fit,
   # this function requires a fitted model with only one predictor,
   # so check whether only one predictor was used
   # -----------------------------------------------------------
-  if (predvars.length>2) {
+  if (predvars.length > 2) {
     stop("Only one predictor is allowed in fitted model. Formula y=b*x is plotted.", call.=FALSE)
   }
   # -----------------------------------------------------------
@@ -839,12 +844,12 @@ sjp.lm1 <- function(fit,
   # as data columns, used for the ggplot
   # -----------------------------------------------------------
   if (useResiduals) {
-    mydat <- as.data.frame(cbind(x = fit$model[,2],
+    mydat <- as.data.frame(cbind(x = as.vector(fit$model[, 2]),
                                  y = fit$residuals))
-  }
-  else {
-    mydat <- as.data.frame(cbind(x = fit$model[,2],
-                                 y = fit$model[,1]))
+  } else {
+    # use as.vector, to make function work with plm-objects
+    mydat <- as.data.frame(cbind(x = as.vector(fit$model[, 2]),
+                                 y = as.vector(fit$model[, 1])))
   }
   # ----------------------------
   # create expression with model summarys. used
@@ -852,23 +857,18 @@ sjp.lm1 <- function(fit,
   # ----------------------------
   if (showModelSummary) {
     modsum <- sju.modsum.lm(fit)
-  }
-  else {
+  } else {
     modsum <- NULL
   }
   # ----------------------------
   # prepare axis labels
   # ----------------------------
-  if (is.null(axisLabel.x)) {
-    axisLabel.x <- xval
-  }
-  if (is.null(axisLabel.y)) {
-    axisLabel.y <- response
-  }
+  if (is.null(axisLabel.x)) axisLabel.x <- xval
+  if (is.null(axisLabel.y)) axisLabel.y <- response
   # check length of axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  axisLabel.x <- word_wrap(axisLabel.x, breakLabelsAt)    
-  axisLabel.y <- word_wrap(axisLabel.y, breakLabelsAt)    
+  axisLabel.x <- sjmisc::word_wrap(axisLabel.x, breakLabelsAt)    
+  axisLabel.y <- sjmisc::word_wrap(axisLabel.y, breakLabelsAt)    
   # -----------------------------------------------------------
   # plot regression line and confidence intervall
   # -----------------------------------------------------------

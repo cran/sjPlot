@@ -2,9 +2,8 @@
 #' @name sjp.stackfrq
 #' 
 #' @seealso \itemize{
-#'              \item \code{\link{sjp.likert}}
-#'              \item \code{\link{sjt.stackfrq}}
 #'              \item \href{http://www.strengejacke.de/sjPlot/sjp.stackfrq/}{sjPlot manual: sjp.stackfrq}
+#'              \item \code{\link{sjt.stackfrq}}
 #'              }
 #' 
 #' @description Plot items (variables) of a scale as stacked proportional bars. This
@@ -16,19 +15,21 @@
 #' @param items A data frame with each column representing one likert-item.
 #' @param legendLabels A list or vector of strings that indicate the likert-scale-categories and which
 #'          appear as legend text.
-#' @param orderBy Indicates whether the \code{items} should be ordered by highest count of first or last category of \code{items}.
-#'          Use \code{"first"} to order ascending by lowest count of first category, 
-#'          \code{"last"} to order ascending by lowest count of last category
-#'          or \code{NULL} (default) for no sorting.
-#'          In case you want to revers order (descending from highest count), use
-#'          \code{reverseOrder} parameter.
+#' @param sort.frq Indicates whether the \code{items} should be ordered by
+#'          by highest count of first or last category of \code{items}.
+#'          \itemize{
+#'            \item Use \code{"first.asc"} to order ascending by lowest count of first category,
+#'            \item \code{"first.desc"} to order descending by lowest count of first category,
+#'            \item \code{"last.asc"} to order ascending by lowest count of last category,
+#'            \item \code{"last.desc"} to order descending by lowest count of last category,
+#'            \item or \code{NULL} (default) for no sorting.
+#'          }
 #' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
 #'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.
 #' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
 #'          may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
 #'          cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString=" (weighted)"}.
 #' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param reverseOrder If \code{TRUE}, the item order on the x-axis is reversed.
 #' @param title Title of the diagram, plotted above the whole diagram panel.
 #' @param legendTitle Title of the diagram's legend.
 #' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
@@ -44,7 +45,7 @@
 #' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
 #'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
 #'          Axis labels will automatically be detected, when they have
-#'          a \code{"variable.lable"} attribute (see \code{\link{set_var_labels}}) for details).
+#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
@@ -62,6 +63,8 @@
 #' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
 #'          are assigned to the y axis.
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
+#' @param labelDigits The amount of digits for rounding \code{value.labels}. Default is 1, 
+#'          i.e. value labels have 1 digit after decimal point.
 #' @param showPercentageAxis If \code{TRUE} (default), the percentage values at the x-axis are shown.
 #' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
 #'          alternating vertical positions to avoid overlapping of labels in case bars are
@@ -81,31 +84,35 @@
 #' # random sample
 #' # -------------------------------
 #' # prepare data for 4-category likert scale, 5 items
-#' likert_4 <- data.frame(as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.2,0.3,0.1,0.4))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.5,0.25,0.15,0.1))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.25,0.1,0.4,0.25))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.1,0.4,0.4,0.1))),
-#'                        as.factor(sample(1:4, 500, replace=TRUE, prob=c(0.35,0.25,0.15,0.25))))
-#' # create labels
-#' levels_4 <- list(c("Independent", "Slightly dependent", "Dependent", "Severely dependent"))
+#' Q1 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4)))
+#' Q2 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1)))
+#' Q3 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25)))
+#' Q4 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1)))
+#' Q5 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
 #' 
-#' # create item labels
-#' items <- list(c("Q1", "Q2", "Q3", "Q4", "Q5"))
+#' likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
+#' 
+#' # create labels
+#' levels_4 <- list(c("Independent", 
+#'                    "Slightly dependent", 
+#'                    "Dependent", 
+#'                    "Severely dependent"))
 #' 
 #' # plot stacked frequencies of 5 (ordered) item-scales
-#' sjp.stackfrq(likert_4, legendLabels=levels_4, axisLabels.y=items)
+#' sjp.stackfrq(likert_4, legendLabels = levels_4)
 #' 
 #' 
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
+#' start <- which(colnames(efc) == "c82cop1")
 #' 
 #' # recveive first item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
+#' end <- which(colnames(efc) == "c90cop9")
 #' 
 #' # retrieve variable and value labels
 #' varlabs <- get_var_labels(efc)
@@ -119,27 +126,29 @@
 #' # create item labels
 #' items <- list(varlabs[c(start:end)])
 #' 
-#' sjp.stackfrq(efc[,c(start:end)], legendLabels=levels,
-#'              axisLabels.y=items, jitterValueLabels=TRUE)
+#' sjp.stackfrq(efc[, c(start:end)], 
+#'              legendLabels = levels,
+#'              axisLabels.y = items, 
+#'              jitterValueLabels = TRUE)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjp.stackfrq(efc[,c(start:end)])
+#' sjp.stackfrq(efc[, c(start:end)])
 #' 
 #' 
 #' @import ggplot2
 #' @import dplyr
+#' @import sjmisc
 #' @importFrom scales percent
 #' @export
 sjp.stackfrq <- function(items,
                         legendLabels=NULL,
-                        orderBy=NULL,
+                        sort.frq=NULL,
                         weightBy=NULL,
                         weightByTitleString=NULL,
                         hideLegend=FALSE,
-                        reverseOrder=TRUE,
                         title=NULL,
                         legendTitle=NULL,
                         includeN=TRUE,
@@ -155,6 +164,7 @@ sjp.stackfrq <- function(items,
                         axisTitle.x=NULL,
                         axisTitle.y=NULL,
                         showValueLabels=TRUE,
+                        labelDigits = 1,
                         showPercentageAxis=TRUE,
                         jitterValueLabels=FALSE,
                         showItemLabels=TRUE,
@@ -164,20 +174,43 @@ sjp.stackfrq <- function(items,
                         coord.flip=TRUE,
                         printPlot=TRUE) {
   # --------------------------------------------------------
+  # check sorting
+  # --------------------------------------------------------
+  if (!is.null(sort.frq)) {
+    if (sort.frq == "first.asc") {
+      sort.frq  <- "first"
+      reverseOrder <- FALSE
+    } else if (sort.frq == "first.desc") {
+      sort.frq  <- "first"
+      reverseOrder <- TRUE
+    } else if (sort.frq == "last.asc") {
+      sort.frq  <- "last"
+      reverseOrder <- TRUE
+    } else if (sort.frq == "last.desc") {
+      sort.frq  <- "last"
+      reverseOrder <- FALSE
+    } else {
+      sort.frq  <- NULL
+      reverseOrder <- FALSE
+    }
+    
+  } else {
+    reverseOrder <- FALSE
+  }
+  # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(legendLabels)) legendLabels <- autoSetValueLabels(items[,1])
+  if (is.null(legendLabels)) legendLabels <- sjmisc:::autoSetValueLabels(items[, 1])
   if (is.null(axisLabels.y)) {
     axisLabels.y <- c()
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(items[,i])
+      vn <- sjmisc:::autoSetVariableLabels(items[, i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         axisLabels.y <- c(axisLabels.y, vn)
-      }
-      else {
+      } else {
         # else break out of loop
         axisLabels.y <- NULL
         break
@@ -187,28 +220,22 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   # If axisLabels.y were not defined, simply use column names
   # --------------------------------------------------------
-  if (is.null(axisLabels.y)) {
-    axisLabels.y <- colnames(items)
-  }
+  if (is.null(axisLabels.y)) axisLabels.y <- colnames(items)
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
-  if (!is.null(legendLabels) && is.list(legendLabels)) {
-    legendLabels <- unlistlabels(legendLabels)
-  }
-  if (is.null(legendLabels)) {
-    legendLabels <- c(as.character(sort(unique(items[,1]))))
-  }
+  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
+  if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
+  if (is.null(legendLabels)) legendLabels <- c(as.character(sort(unique(items[, 1]))))
   # --------------------------------------------------------
   # Check whether N of each item should be included into
   # axis labels
   # --------------------------------------------------------
   if (includeN && !is.null(axisLabels.y)) {
     for (i in 1:length(axisLabels.y)) {
-      axisLabels.y[i] <- paste(axisLabels.y[i], sprintf(" (n=%i)", length(na.omit(items[,i]))), sep="")
+      axisLabels.y[i] <- paste(axisLabels.y[i], 
+                               sprintf(" (n=%i)", length(na.omit(items[, i]))), 
+                               sep = "")
     }
   }
   # -----------------------------------------------
@@ -226,16 +253,15 @@ sjp.stackfrq <- function(items,
   # determine minimum value. if 0, add one, because
   # vector indexing starts with 1
   # ----------------------------
-  if (any(apply(items, c(1,2), is.factor)) || any(apply(items, c(1,2), is.character))) {
-    diff <- ifelse(min(apply(items, c(1,2), as.numeric),na.rm=TRUE)==0, 1, 0)
-  }
-  else {
-    diff <- ifelse(min(items,na.rm=TRUE)==0, 1, 0)
+  if (any(apply(items, c(1, 2), is.factor)) || any(apply(items, c(1, 2), is.character))) {
+    diff <- ifelse(min(apply(items, c(1, 2), as.numeric), na.rm = TRUE) == 0, 1, 0)
+  } else {
+    diff <- ifelse(min(items, na.rm = TRUE) == 0, 1, 0)
   }
   # iterate item-list
   for (i in 1:ncol(items)) {
     # get each single items
-    variable <- items[,i]
+    variable <- items[ ,i]
     # -----------------------------------------------
     # create proportional table so we have the percentage
     # values that should be used as y-value for the bar charts
@@ -246,28 +272,26 @@ sjp.stackfrq <- function(items,
     # check whether counts should be weighted or not
     if (is.null(weightBy)) {
       df <- as.data.frame(prop.table(table(variable)))
-    }
-    else {
-      df <- as.data.frame(prop.table(round(xtabs(weightBy ~ variable),0)))
+    } else {
+      df <- as.data.frame(prop.table(round(xtabs(weightBy ~ variable), 0)))
     }
     # give columns names
     names(df) <- c("var", "prc")
     # need to be numeric, so percentage values (see below) are
     # correctly assigned, i.e. missing categories are considered
-    df$var <- as.numeric(as.character(df$var))+diff # if categories start with zero, fix this here
-    #     if (min(df$var)==0) {
-    #       df$var <- df$var+1
-    #     }
+    df$var <- sjmisc::to_value(df$var, keep.labels = F) + diff # if categories start with zero, fix this here
     # Create a vector of zeros 
-    prc <- rep(0,countlen)
+    prc <- rep(0, countlen)
     # Replace the values in prc for those indices which equal df$var
     prc[df$var] <- df$prc
     # create new data frame. We now have a data frame with all
     # variable categories abd their related percentages, including
     # zero counts, but no(!) missings!
-    mydf <- as.data.frame(cbind(grp=i, cat=1:countlen, prc))
+    mydf <- data.frame(grp = i, 
+                       cat = 1:countlen, 
+                       prc)
     # now, append data frames
-    mydat <- as.data.frame(rbind(mydat, mydf))
+    mydat <- data.frame(rbind(mydat, mydf))
   }
   # ----------------------------
   # make sure group and count variable 
@@ -276,48 +300,43 @@ sjp.stackfrq <- function(items,
   mydat$grp <- as.factor(mydat$grp)
   mydat$cat <- as.factor(mydat$cat)
   # add half of Percentage values as new y-position for stacked bars
-  # mydat = ddply(mydat, "grp", transform, ypos = cumsum(prc) - 0.5*prc)
-  mydat <- mydat %>% dplyr::group_by(grp) %>% dplyr::mutate(ypos = cumsum(prc) - 0.5*prc) %>% dplyr::arrange(grp)
+  mydat <- mydat %>% 
+    dplyr::group_by(grp) %>% 
+    dplyr::mutate(ypos = cumsum(prc) - 0.5 * prc) %>% 
+    dplyr::arrange(grp)
   # --------------------------------------------------------
   # Caculate vertical adjustment to avoid overlapping labels
   # --------------------------------------------------------
-  jvert <- rep(c(1.1,-0.1), length.out=length(unique(mydat$cat)))
-  jvert <- rep(jvert, length.out=nrow(mydat))
+  jvert <- rep(c(1.1, -0.1), length.out = length(unique(mydat$cat)))
+  jvert <- rep(jvert, length.out = nrow(mydat))
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
   # wrap legend text lines
-  legendLabels <- word_wrap(legendLabels, breakLegendLabelsAt)    
+  legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)    
   # check whether we have a title for the legend
-  if (!is.null(legendTitle)) {
-    # if yes, wrap legend title line
-    legendTitle <- word_wrap(legendTitle, breakLegendTitleAt)    
-  }
+  # if yes, wrap legend title line
+  if (!is.null(legendTitle)) legendTitle <- sjmisc::word_wrap(legendTitle, breakLegendTitleAt)
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
     # if we have weighted values, say that in diagram's title
-    if (!is.null(weightByTitleString)) {
-      title <- paste(title, weightByTitleString, sep="")
-    }
-    title <- word_wrap(title, breakTitleAt)    
+    if (!is.null(weightByTitleString)) title <- paste0(title, weightByTitleString)
+    title <- sjmisc::word_wrap(title, breakTitleAt)    
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  if (!is.null(axisLabels.y)) {
-    axisLabels.y <- word_wrap(axisLabels.y, breakLabelsAt)    
-  }
+  if (!is.null(axisLabels.y)) axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)    
   # ----------------------------
   # Check if ordering was requested
   # ----------------------------
-  if (!is.null(orderBy)) {
+  if (!is.null(sort.frq)) {
     # order by first cat
-    if (orderBy=="first") {
-      facord <- order(mydat$prc[which(mydat$cat==1)])
-    }
-    # order by last cat
-    else {
-      facord <- order(mydat$prc[which(mydat$cat==countlen)])
+    if (sort.frq == "first") {
+      facord <- order(mydat$prc[which(mydat$cat == 1)])
+    } else {
+      # order by last cat
+      facord <- order(mydat$prc[which(mydat$cat == countlen)])
     }
     # create dummy vectors from 1 to itemlength
     dummy1 <- dummy2 <- c(1:length(facord))
@@ -333,14 +352,13 @@ sjp.stackfrq <- function(items,
     # second pos and item 4 is on third pos in order)
     if (reverseOrder) {
       dummy2[rev(facord)] <- dummy1
-    }
-    else {
+    } else {
       dummy2[facord] <- dummy1
     }
     # now we have the order of either lowest to highest counts of first
     # or last category of "items". We now need to repeat these values as 
     # often as we have answer categories
-    orderedrow <- unlist(tapply(dummy2, 1:length(dummy2), function (x) rep(x,countlen)))
+    orderedrow <- unlist(tapply(dummy2, 1:length(dummy2), function (x) rep(x, countlen)))
     # replace old grp-order by new order
     mydat$grp <- as.factor(orderedrow)
     # reorder axis labels as well
@@ -350,9 +368,7 @@ sjp.stackfrq <- function(items,
   # check if category-oder on x-axis should be reversed
   # change category label order then
   # --------------------------------------------------------
-  if (reverseOrder && is.null(orderBy)) {
-    axisLabels.y <- rev(axisLabels.y)
-  }
+  if (reverseOrder && is.null(sort.frq)) axisLabels.y <- rev(axisLabels.y)
   # --------------------------------------------------------
   # define vertical position for labels
   # --------------------------------------------------------
@@ -360,8 +376,7 @@ sjp.stackfrq <- function(items,
     # if we flip coordinates, we have to use other parameters
     # than for the default layout
     vert <- 0.35
-  }
-  else {
+  } else {
     vert <- waiver()
   }
   # --------------------------------------------------------
@@ -369,55 +384,53 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   if (expand.grid) {
     expgrid <- waiver()
-  }
-  else {
-    expgrid <- c(0,0)
+  } else {
+    expgrid <- c(0, 0)
   }
   # --------------------------------------------------------
-  # Set value labels
+  # Set value labels and label digits
   # --------------------------------------------------------
+  mydat$labelDigits <- labelDigits
   if (showValueLabels) {
     if (jitterValueLabels) {
-      ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
-                                  vjust=jvert)
+      ggvaluelabels <-  geom_text(aes(y = ypos, label = sprintf("%.*f%%", labelDigits, 100 * prc)),
+                                  vjust = jvert)
+    } else {
+      ggvaluelabels <-  geom_text(aes(y = ypos, label = sprintf("%.*f%%", labelDigits, 100 * prc)),
+                                  vjust = vert)
     }
-    else {
-      ggvaluelabels <-  geom_text(aes(y=ypos, label=sprintf("%.01f%%", 100*prc)),
-                                  vjust=vert)
-    }
-  }
-  else {
-    ggvaluelabels <-  geom_text(label="")
+  } else {
+    ggvaluelabels <-  geom_text(label = "")
   }
   # --------------------------------------------------------
   # Set up grid breaks
   # --------------------------------------------------------
   if (is.null(gridBreaksAt)) {
     gridbreaks <- waiver()
-  }
-  else {
-    gridbreaks <- c(seq(0, 1, by=gridBreaksAt))
+  } else {
+    gridbreaks <- c(seq(0, 1, by = gridBreaksAt))
   }
   # --------------------------------------------------------
   # check if category-oder on x-axis should be reversed
   # change x axis order then
   # --------------------------------------------------------
-  if (reverseOrder && is.null(orderBy)) {
-    baseplot <- ggplot(mydat, aes(x=rev(grp), y=prc, fill=cat))
-  }
-  else {
-    baseplot <- ggplot(mydat, aes(x=grp, y=prc, fill=cat))
+  if (reverseOrder && is.null(sort.frq)) {
+    baseplot <- ggplot(mydat, aes(x = rev(grp), y = prc, fill = cat))
+  } else {
+    baseplot <- ggplot(mydat, aes(x = grp, y = prc, fill = cat))
   }  
   baseplot <- baseplot +
     # plot bar chart
-    geom_bar(stat="identity", position="stack", width=geom.size)
+    geom_bar(stat = "identity", position = "stack", width = geom.size)
   # --------------------------------------------------------
   # check whether bars should be visually separated by an 
   # additional separator line
   # --------------------------------------------------------
   if (showSeparatorLine) {
     baseplot <- baseplot +
-      geom_vline(x=c(seq(1.5, length(items), by=1)), size=separatorLineSize, colour=separatorLineColor)
+      geom_vline(x = c(seq(1.5, length(items), by = 1)), 
+                 size = separatorLineSize, 
+                 colour = separatorLineColor)
   }
   # -----------------
   # show/hide percentage values on x axis
@@ -427,24 +440,29 @@ sjp.stackfrq <- function(items,
     # show absolute and percentage value of each bar.
     ggvaluelabels +
     # no additional labels for the x- and y-axis, only diagram title
-    labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle) +
+    labs(title = title, x = axisTitle.x, y = axisTitle.y, fill = legendTitle) +
     # print value labels to the x-axis.
     # If parameter "axisLabels.y" is NULL, the category numbers (1 to ...) 
     # appear on the x-axis
-    scale_x_discrete(labels=axisLabels.y) +
+    scale_x_discrete(labels = axisLabels.y) +
     # set Y-axis, depending on the calculated upper y-range.
     # It either corresponds to the maximum amount of cases in the data set
     # (length of var) or to the highest count of var's categories.
-    scale_y_continuous(breaks=gridbreaks, limits=c(0, 1), expand=expgrid, labels=percent)
+    scale_y_continuous(breaks = gridbreaks, 
+                       limits = c(0, 1), 
+                       expand = expgrid, 
+                       labels = percent)
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
-  if (coord.flip) {
-    baseplot <- baseplot + coord_flip()
-  }
+  if (coord.flip) baseplot <- baseplot + coord_flip()
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
-  baseplot <- sj.setGeomColors(baseplot, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)
+  baseplot <- sj.setGeomColors(baseplot, 
+                               geom.colors, 
+                               length(legendLabels), 
+                               ifelse(hideLegend == TRUE, FALSE, TRUE), 
+                               legendLabels)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------

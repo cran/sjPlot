@@ -10,11 +10,9 @@
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
 #'            \item \href{http://www.strengejacke.de/sjPlot/view_spss/}{sjPlot manual: inspecting (SPSS imported) data frames}
-#'            \item \code{\link{read_spss}}
-#'            \item \code{\link{sjt.df}}
 #'          }
 #' 
-#' @param df An imported data frame, imported by \code{\link{read_spss}} function.
+#' @param df An imported data frame, imported by \code{\link[sjmisc]{read_spss}} function.
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
 #'          the file will be saved as temporary file and openend either in the IDE's viewer pane or
 #'          in the default web browser.
@@ -28,7 +26,7 @@
 #' @param showValueLabels If \code{TRUE} (default), the value labels are shown as additional column.
 #' @param showFreq If \code{TRUE}, an additional column with frequencies for each variable is shown.
 #' @param showPerc If \code{TRUE}, an additional column with percentage of frequencies for each variable is shown.
-#' @param orderByName If \code{TRUE}, rows are ordered according to the variable
+#' @param sortByName If \code{TRUE}, rows are sorted according to the variable
 #'          names. By default, rows (variables) are ordered according to their
 #'          order in the data frame.
 #' @param breakVariableNamesAt Wordwrap for lomg variable names. Determines how many chars of
@@ -64,7 +62,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
@@ -76,6 +74,7 @@
 #' @examples
 #' \dontrun{
 #' # init dataset
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # view variables
@@ -85,7 +84,7 @@
 #' view_spss(efc, showValues=FALSE, showValueLabels=FALSE)
 #' 
 #' # view variables including variable typed, orderd by name
-#' view_spss(efc, orderByName=TRUE, showType=TRUE)
+#' view_spss(efc, sortByName=TRUE, showType=TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
@@ -94,7 +93,8 @@
 #'           CSS=list(css.table = "border: 2px solid;",
 #'                    css.tdata = "border: 1px solid;",
 #'                    css.arc = "color:blue;"))}
-#' 
+#'
+#' @import sjmisc 
 #' @export
 view_spss <- function (df,
                        file=NULL,
@@ -105,7 +105,7 @@ view_spss <- function (df,
                        showValueLabels=TRUE,
                        showFreq=FALSE,
                        showPerc=FALSE,
-                       orderByName=FALSE,
+                       sortByName=FALSE,
                        breakVariableNamesAt=50,
                        encoding=NULL,
                        hideProgressBar=FALSE,
@@ -113,16 +113,6 @@ view_spss <- function (df,
                        useViewer=TRUE,
                        no.output=FALSE,
                        remove.spaces=TRUE) {
-  # ----------------------------
-  # check value_labels option
-  # ----------------------------
-  opt <- getOption("value_labels")
-  if (!is.null(opt) && opt == "haven") {
-    attr.string <- "labels"
-  }
-  else {
-    attr.string <- "value.labels"
-  }
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -131,14 +121,12 @@ view_spss <- function (df,
   # make data frame of single variable, so we have
   # unique handling for the data
   # -------------------------------------
-  if (!is.data.frame(df)) {
-    stop("Parameter needs to be a data frame!", call.=FALSE)
-  }
+  if (!is.data.frame(df)) stop("Parameter needs to be a data frame!", call. = FALSE)
   # -------------------------------------
   # retrieve value and variable labels
   # -------------------------------------
-  df.var <- get_var_labels(df)
-  df.val <- get_val_labels(df)
+  df.var <- sjmisc::get_var_labels(df)
+  df.val <- sjmisc::get_val_labels(df)
   # -------------------------------------
   # get row count and ID's
   # -------------------------------------
@@ -147,10 +135,7 @@ view_spss <- function (df,
   # -------------------------------------
   # Order data set if requested
   # -------------------------------------
-  if (orderByName) {
-    # retrieve order
-    id <- id[order(colnames(df))]
-  }
+  if (sortByName) id <- id[order(colnames(df))]
   # -------------------------------------
   # init style sheet and tags used for css-definitions
   # we can use these variables for string-replacement
@@ -212,7 +197,7 @@ view_spss <- function (df,
     # default row string
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 ==0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 == 0, " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
     # ID
     if (showID) page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
@@ -232,70 +217,65 @@ view_spss <- function (df,
       varlab <- df.var[index]
       if (!is.null(breakVariableNamesAt)) {
         # wrap long variable labels
-        varlab <- word_wrap(varlab, breakVariableNamesAt, "<br>")
+        varlab <- sjmisc::word_wrap(varlab, breakVariableNamesAt, "<br>")
       }
-    }
-    else {
+    } else {
       varlab <- "<NA>"
     }
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, varlab))
     # values
     if (showValues) {
       if (index <= ncol(df)) {
-        vals <- sji.getValueLabelValues(df[[index]])
+        vals <- sjmisc:::sji.getValueLabelValues(df[[index]])
         valstring <- c("")
         for (i in 1:length(vals)) {
           valstring <- paste0(valstring, vals[i])
           if (i < length(vals)) valstring <- paste0(valstring, "<br>")
         }
-      }
-      else {
+      } else {
         valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
     # values
     if (showValueLabels) {
-      if (index<=length(df.val)) {
+      if (index <= length(df.val)) {
         # value labels
         vals <- df.val[[index]]
         valstring <- c("")
         for (i in 1:length(vals)) {
           valstring <- paste0(valstring, vals[i])
-          if (i<length(vals)) valstring <- paste0(valstring, "<br>")
+          if (i < length(vals)) valstring <- paste0(valstring, "<br>")
         }
-      }
-      else {
+      } else {
         valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
     # frequencies
     if (showFreq) {
-      if (index <= ncol(df) && !is.null(attr(df[[index]], attr.string))) {
+      if (index <= ncol(df) && !is.null(df.val[[index]])) {
         ftab <- as.numeric(table(df[[index]]))
         valstring <- c("")
         for (i in 1:length(ftab)) {
           valstring <- paste0(valstring, ftab[i])
-          if (i<length(ftab)) valstring <- paste0(valstring, "<br>")
+          if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
         }
-      }
-      else {
+      } else {
         valstring <- ""
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
     # frequencies
     if (showPerc) {
-      if (index <= ncol(df) && !is.null(attr(df[[index]], attr.string))) {
-        ftab <- 100*as.numeric(prop.table(table(df[[index]])))
+      if (index <= ncol(df) && !is.null(df.val[[index]])) {
+        ftab <- 100 * as.numeric(prop.table(table(df[[index]])))
         valstring <- c("")
         for (i in 1:length(ftab)) {
           valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
-          if (i<length(ftab)) valstring <- paste0(valstring, "<br>")
+          if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
         }
-      }
-      else {
+      } else {
         valstring <- ""
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
@@ -321,14 +301,14 @@ view_spss <- function (df,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr)
-  knitr <- gsub(tag.thead, css.thead, knitr)
-  knitr <- gsub(tag.arc, css.arc, knitr)
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

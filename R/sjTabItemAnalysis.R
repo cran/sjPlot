@@ -1,5 +1,6 @@
 #' @title Show item analysis of an item scale as HTML table
 #' @name sjt.itemanalysis
+#' 
 #' @description This function performs an item analysis with certain statistics that are
 #'                useful for scale / index development. The resulting tables are shown in the
 #'                viewer pane / webbrowser or can be saved as file. Following statistics are 
@@ -24,16 +25,6 @@
 #'                of the data frame that belong to a certain factor (see return value of function \code{\link{sjt.pca}}
 #'                as example for retrieving factor groups for a scale and see examples for more details).
 #'
-#' @seealso \itemize{
-#'            \item \code{\link{sjp.pca}}
-#'            \item \code{\link{sjt.pca}}
-#'            \item \code{\link{sjt.df}}
-#'            \item \code{\link{cronb}}
-#'            \item \code{\link{reliab_test}}
-#'            \item \code{\link{mic}}
-#'            \item \code{\link{mean_n}}
-#'            }
-#'          
 #' @param df A data frame with items (from a scale)
 #' @param factor.groups If not \code{NULL}, the data frame \code{df} will be splitted into sub-groups,
 #'          where the item analysis is carried out for each of these groups. Must be a vector of same 
@@ -44,12 +35,12 @@
 #'          Default is \code{"auto"}, which means that each table has a standard caption \emph{Component x}.
 #'          Use \code{NULL} to suppress table captions.
 #' @param scaleItems If \code{TRUE}, the data frame's vectors will be scaled when calculating the
-#'          Cronbach's Alpha value (see \code{\link{reliab_test}}). Recommended, when 
+#'          Cronbach's Alpha value (see \code{\link[sjmisc]{reliab_test}}). Recommended, when 
 #'          the variables have different measures / scales.
 #' @param minValidRowMeanValue the minimum amount of valid values to compute row means for index scores.
 #'          Default is 2, i.e. the return values \code{index.scores} and \code{df.index.scores} are
 #'          computed for those items that have at least \code{minValidRowMeanValue} per case (observation, or
-#'          technically, row). See \link{mean_n} for details.
+#'          technically, row). See \code{mean_n} for details.
 #' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
 #' @param orderColumn Indicates a column, either by column name or by column index number,
@@ -63,8 +54,8 @@
 #'          for further details.
 #' @param showShapiro If \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
 #'          See \code{\link{shapiro.test}} for details.
-#' @param showKurtosis If \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link{kurtosi}}
-#'          and \code{\link{describe}} in the \code{psych}-package for more details.
+#' @param showKurtosis If \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
+#'          and \code{\link[psych]{describe}} in the \code{psych}-package for more details.
 #' @param showCompCorrMat If \code{TRUE} (default), a correlation matrix of each component's
 #'          index score is shown. Only applies if \code{factor.groups} is not \code{NULL} and \code{df} has
 #'          more than one group. First, for each case (df's row), the sum of all variables (df's columns) is
@@ -103,7 +94,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return (Invisibly) returns a structure with following elements:
+#' @return Invisibly returns
 #'         \itemize{
 #'          \item \code{df.list}: List of data frames with the item analysis for each sub.group (or complete, if \code{factor.groups} was \code{NULL})
 #'          \item \code{index.scores}: List of standardized scale / index scores of each case (mean value of all scale items for each case) for each sub-group. Note that NA's are removed from this list. Use \code{df.index.scores} if you want to append the cases' related index scores to the original data frame.
@@ -121,7 +112,7 @@
 #' @note \itemize{
 #'          \item The \emph{Shapiro-Wilk Normality Test} (see column \code{W(p)}) tests if an item has a distribution that is significantly different from normal.
 #'          \item \emph{Item difficulty} should range between 0.2 and 0.8. Ideal value is \code{p+(1-p)/2} (which mostly is between 0.5 and 0.8).
-#'          \item For \emph{item discrimination}, acceptable values are 0.20 or higher; the closer to 1.00 the better. See \code{\link{reliab_test}} for more details.
+#'          \item For \emph{item discrimination}, acceptable values are 0.20 or higher; the closer to 1.00 the better. See \code{\link[sjmisc]{reliab_test}} for more details.
 #'          \item In case the total \emph{Cronbach's Alpha} value is below the acceptable cut-off of 0.7 (mostly if an index has few items), the \emph{mean inter-item-correlation} is an alternative measure to indicate acceptability. Satisfactory range lies between 0.2 and 0.4.
 #'        }
 #' 
@@ -136,6 +127,7 @@
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
@@ -167,6 +159,7 @@
 #' sjt.itemanalysis(df, factor.groups)}
 #'  
 #' @importFrom psych describe
+#' @import sjmisc
 #' @export
 sjt.itemanalysis <- function(df,
                              factor.groups=NULL,
@@ -195,12 +188,11 @@ sjt.itemanalysis <- function(df,
   varlabels <- c()
   for (i in 1:ncol(df)) {
     # retrieve variable name attribute
-    vn <- autoSetVariableLabels(df[,i])
+    vn <- sjmisc:::autoSetVariableLabels(df[, i])
     # if variable has attribute, add to variableLabel list
     if (!is.null(vn)) {
       varlabels <- c(varlabels, vn)
-    }
-    else {
+    } else {
       # else break out of loop
       varlabels <- NULL
       break
@@ -212,7 +204,7 @@ sjt.itemanalysis <- function(df,
   # for data frame
   # -----------------------------------
   if (is.null(factor.groups)) {
-    factor.groups <- rep(1, length.out=ncol(df))
+    factor.groups <- rep(1, length.out = ncol(df))
   }
   # data frame with data from item-analysis-output-table
   df.ia <- list()
@@ -231,7 +223,7 @@ sjt.itemanalysis <- function(df,
   # -----------------------------------
   # set titles
   # -----------------------------------
-  if (!is.null(factor.groups.titles) && (factor.groups.titles[1]=="auto" || length(factor.groups.titles)!=length(findex))) {
+  if (!is.null(factor.groups.titles) && (factor.groups.titles[1] == "auto" || length(factor.groups.titles) != length(findex))) {
     factor.groups.titles <- sprintf("Component %i", seq_along(findex))
   }
   # -----------------------------------
@@ -256,12 +248,12 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     # retrieve sub-scale
     # -----------------------------------
-    df.sub <- subset(df, select=which(factor.groups==findex[i]))
+    df.sub <- subset(df, select = which(factor.groups == findex[i]))
     # -----------------------------------
     # remember item (column) names for return value
     # return value gets column names of initial data frame
     # -----------------------------------
-    df.names <- colnames(df)[which(factor.groups==findex[i])]
+    df.names <- colnames(df)[which(factor.groups == findex[i])]
     # -----------------------------------
     # retrieve missings for each item
     # -----------------------------------
@@ -269,7 +261,7 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     # retrieve missing percentage for each item
     # -----------------------------------
-    missings.prz <- apply(df.sub, 2, function(x) round(100*sum(is.na(x))/length(x),2))
+    missings.prz <- apply(df.sub, 2, function(x) round(100 * sum(is.na(x)) / length(x), 2))
     # -----------------------------------
     # remove missings
     # -----------------------------------
@@ -278,52 +270,54 @@ sjt.itemanalysis <- function(df,
     # item difficulty
     # -----------------------------------
     itemcnt <- ncol(df.sub)
-    difficulty <- apply(df.sub, 2, function(x) round(sum(x)/(max(x)*length(x)),2))
+    difficulty <- apply(df.sub, 2, function(x) round(sum(x) / (max(x) * length(x)), 2))
     # -----------------------------------
     # ideal item difficulty
     # -----------------------------------
     fun.diff.ideal <- function(x) {
-      p <- 1/max(x)
-      return (round(p+(1-p)/2,2))
+      p <- 1 / max(x)
+      return (round(p + (1 - p) / 2, 2))
     }
     diff.ideal <- apply(df.sub, 2, fun.diff.ideal)
     # -----------------------------------
     # get statistics
     # -----------------------------------
     dstat <- psych::describe(df.sub)
-    reli <- reliab_test(df.sub, scaleItems=scaleItems)
+    reli <- sjmisc::reliab_test(df.sub, scaleItems = scaleItems)
     # -----------------------------------
     # get index score value, by retrieving the row mean
     # -----------------------------------
-    item.score <- mean_n(df.sub, minValidRowMeanValue)
+    item.score <- sjmisc::mean_n(df.sub, minValidRowMeanValue)
     # -----------------------------------
     # store scaled values of each item's total score
     # to compute correlation coefficients between identified components
     # -----------------------------------
-    df.subcc <- subset(df, select=which(factor.groups==findex[i]))
-    comcor <- scale(apply(df.subcc, 1, sum), center=TRUE, scale=TRUE)
+    df.subcc <- subset(df, select = which(factor.groups == findex[i]))
+    comcor <- scale(apply(df.subcc, 1, sum), center = TRUE, scale = TRUE)
     # -----------------------------------
     # check if we have valid return values from reliability test.
     # In case df had less than 3 columns, NULL is returned
     # -----------------------------------
     if (!is.null(reli)) {
-      alpha <- reli[,1]
-      itemdis <- reli[,2]
-    }
-    else {
+      alpha <- reli[, 1]
+      itemdis <- reli[, 2]
+    } else {
       alpha <- as.factor(NA)
       itemdis <- as.factor(NA)
     }
     # -----------------------------------
     # create dummy data frame
     # -----------------------------------
-    df.dummy <- data.frame(cbind(sprintf("%.2f %%", missings.prz), round(dstat$mean,2), round(dstat$sd,2), round(dstat$skew,2)))
+    df.dummy <- data.frame(cbind(sprintf("%.2f %%", missings.prz), 
+                                 round(dstat$mean, 2), 
+                                 round(dstat$sd, 2), 
+                                 round(dstat$skew, 2)))
     df.colnames <- c("Missings", "Mean", "SD", "Skew")
     # -----------------------------------
     # include kurtosis statistics
     # -----------------------------------
     if (showKurtosis) {
-      df.dummy <- data.frame(cbind(df.dummy, round(dstat$kurtosis,2)))
+      df.dummy <- data.frame(cbind(df.dummy, round(dstat$kurtosis, 2)))
       df.colnames <- c(df.colnames, "Kurtosis")
     }
     # -----------------------------------
@@ -345,15 +339,15 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     # add results to return list
     # -----------------------------------
-    df.ia[[length(df.ia)+1]] <- df.dummy
-    diff.ideal.list[[length(diff.ideal.list)+1]] <- diff.ideal
-    index.scores[[length(index.scores)+1]] <- item.score
-    cronbach.total[[length(cronbach.total)+1]] <- cronb(df.sub)
-    df.comcor[[length(df.comcor)+1]] <- comcor
+    df.ia[[length(df.ia) + 1]] <- df.dummy
+    diff.ideal.list[[length(diff.ideal.list) + 1]] <- diff.ideal
+    index.scores[[length(index.scores) + 1]] <- item.score
+    cronbach.total[[length(cronbach.total) + 1]] <- sjmisc::cronb(df.sub)
+    df.comcor[[length(df.comcor) + 1]] <- comcor
     # -----------------------------------
     # Mean-interitem-corelation
     # -----------------------------------
-    mic.total[[length(mic.total)+1]] <- mic(df.sub)
+    mic.total[[length(mic.total) + 1]] <- sjmisc::mic(df.sub)
   }
   # -----------------------------------
   # create data frame with index scores,
@@ -363,7 +357,7 @@ sjt.itemanalysis <- function(df,
     # column names equal row-index-values
     index <- as.numeric(names(index.scores[[i]]))
     # fill df with index-score-values
-    df.index.scores[index,i] <- index.scores[[i]]
+    df.index.scores[index, i] <- index.scores[[i]]
   }
   # -----------------------------------
   # create page with all html content
@@ -391,16 +385,18 @@ sjt.itemanalysis <- function(df,
     # add to complete html-page
     complete.page <- paste0(complete.page, html$knitr)
     complete.page <- paste0(complete.page, "<p style=\"margin:2em;\">&nbsp;</p>")
-    knitr.list[[length(knitr.list)+1]] <- html$knitr
+    knitr.list[[length(knitr.list) + 1]] <- html$knitr
   }
   # -------------------------------------
   # show component correlation table
   # -------------------------------------
   if (showCompCorrMat) {
     # check if we have enough components
-    if (length(df.comcor)>1) {
+    if (length(df.comcor) > 1) {
       # copy all component correlation values to a data frame
-      df.cc <- data.frame(matrix(unlist(df.comcor), nrow=nrow(df), byrow=FALSE))
+      df.cc <- data.frame(matrix(unlist(df.comcor), 
+                                 nrow = nrow(df), 
+                                 byrow = FALSE))
       # give proper columm names
       colnames(df.cc) <- sprintf("Component %i", c(1:ncol(df.cc)))
       # compute correlation table, store html result
@@ -413,7 +409,7 @@ sjt.itemanalysis <- function(df,
                        no.output = TRUE)
       # add to html that is printed
       complete.page <- paste0(complete.page, html$knitr)
-      knitr.list[[length(knitr.list)+1]] <- html$knitr
+      knitr.list[[length(knitr.list) + 1]] <- html$knitr
     }
   }
   # -------------------------------------
@@ -432,13 +428,13 @@ sjt.itemanalysis <- function(df,
   # check if html-content should be printed
   # -------------------------------------
   out.html.table(no.output, file, knitr, complete.page, useViewer)  
-  invisible (list(class="sjtitemanalysis",
-                  df.list=df.ia,
-                  index.scores=index.scores,
-                  df.index.scores=df.index.scores,
-                  cronbach.values=cronbach.total,
-                  ideal.item.diff=diff.ideal.list,
-                  knitr=knitr,
-                  knitr.list=knitr.list,
-                  complete.page=complete.page))
+  invisible (list(class = "sjtitemanalysis",
+                  df.list = df.ia,
+                  index.scores = index.scores,
+                  df.index.scores = df.index.scores,
+                  cronbach.values = cronbach.total,
+                  ideal.item.diff = diff.ideal.list,
+                  knitr = knitr,
+                  knitr.list = knitr.list,
+                  complete.page = complete.page))
 }

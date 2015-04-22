@@ -17,13 +17,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'                
 #' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #' 
-#' @seealso \itemize{
-#'            \item \code{\link{sjc.cluster}}
-#'            \item \code{\link{sjc.kgap}}
-#'            \item \code{\link{sjc.elbow}}
-#'            \item \code{\link{sjc.grpdisc}}
-#'            }
-#'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
 #' @param groupcount The amount of groups (clusters) that should be retrieved. May also be
@@ -64,7 +57,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          Example: \code{title=c("my title")}
 #' @param axisLabels.x Labels for the x-axis breaks.
 #'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
-#'          Note: If you use the \code{\link{read_spss}} function and the \code{\link{get_val_labels}} function, you receive a
+#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
@@ -143,6 +136,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'           groups = airgrp$classification)
 #' 
 #' @import ggplot2
+#' @import sjmisc
 #' @export
 sjc.qclus <- function(data,
                       groupcount=NULL,
@@ -202,27 +196,27 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) {
-    title <- word_wrap(title, breakTitleAt)    
+    title <- sjmisc::word_wrap(title, breakTitleAt)    
   }
   # check length of x-axis title and split longer string at into new lines
   if (!is.null(axisTitle.x)) {
-    axisTitle.x <- word_wrap(axisTitle.x, breakTitleAt)    
+    axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)    
   }
   # check length of y-axis title and split longer string at into new lines
   if (!is.null(axisTitle.y)) {
-    axisTitle.y <- word_wrap(axisTitle.y, breakTitleAt)    
+    axisTitle.y <- sjmisc::word_wrap(axisTitle.y, breakTitleAt)    
   }
   # check length of legend title and split longer string at into new lines
   if (!is.null(legendTitle)) {
-    legendTitle <- word_wrap(title, breakLegendTitleAt)    
+    legendTitle <- sjmisc::word_wrap(title, breakLegendTitleAt)    
   }
   # check length of y-axis title and split longer string at into new lines
   if (!is.null(legendLabels)) {
-    legendLabels <- word_wrap(legendLabels, breakLegendLabelsAt)
+    legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)
   }
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  axisLabels.x <- word_wrap(axisLabels.x, breakLabelsAt)
+  axisLabels.x <- sjmisc::word_wrap(axisLabels.x, breakLabelsAt)
   # ---------------------------------------------
   # check for auto-groupcount
   # ---------------------------------------------
@@ -280,9 +274,9 @@ sjc.qclus <- function(data,
     # iterate legend labels
     for (i in 1:length(legendLabels)) {
       # label string for group count
-      gcnt.label <- sprintf("n=%i", length(which(grp==i)))
+      gcnt.label <- sprintf("n=%i", length(which(grp == i)))
       # label string for accuracy
-      acc.label <- sprintf("accuracy=%.2f%%", 100*grp.accuracy$accuracy[i])
+      acc.label <- sprintf("accuracy=%.2f%%", 100 * grp.accuracy$accuracy[i])
       # prepare legend label
       legendLabels[i] <- paste0(legendLabels[i], " (")
       # add group count to each label
@@ -303,16 +297,16 @@ sjc.qclus <- function(data,
   # ---------------------------------------------
   for (cnt in 1:colnr) {
     # retrieve column data
-    coldat <- z[,cnt]
+    coldat <- z[, cnt]
     # ---------------------------------------------
     # iterate groups
     # ---------------------------------------------
     for (i in 1:groupcount) {
       # retrieve column values for each group
-      grpvalues <- coldat[which(grp==i)]
+      grpvalues <- coldat[which(grp == i)]
       # calculate mean
-      mw <- mean(grpvalues, na.rm=TRUE)
-      df <- rbind(df, cbind(x=cnt, y=mw, group=i))
+      mw <- mean(grpvalues, na.rm = TRUE)
+      df <- rbind(df, cbind(x = cnt, y = mw, group = i))
     }
     # df %.% group_by(grp) %.% summarise(mean(a))
   }
@@ -323,9 +317,7 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # Hide or show Axis Labels (x axis text) 
   # --------------------------------------------------------
-  if (!showAxisLabels.x) {
-    axisLabels.x <- NULL
-  }
+  if (!showAxisLabels.x) axisLabels.x <- NULL
   # --------------------------------------------------------
   # create plot
   # --------------------------------------------------------
@@ -384,15 +376,6 @@ sjc.qclus <- function(data,
 #' @description Compute hierarchical or kmeans cluster analysis and returns the group
 #'                association for each observation as vector.
 #'                
-#' @seealso \itemize{
-#'            \item \code{\link{sjc.qclus}}
-#'            \item \code{\link{sjc.dend}}
-#'            \item \code{\link{sjc.grpdisc}}
-#'            \item \code{\link{sjc.elbow}}
-#'            \item \code{\link{kmeans}}
-#'            \item \code{\link{hclust}}
-#'            }
-#'          
 #' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #'
 #' @param data The data frame containing all variables that should be used for the
@@ -511,10 +494,6 @@ sjc.cluster <- function(data,
 #'                Can be used, for instance, as visual tool to verify the elbow-criterion
 #'                (see \code{\link{sjc.elbow}}).
 #'                
-#' @seealso \code{\link{sjc.cluster}} \cr
-#'          \code{\link{sjc.grpdisc}} \cr
-#'          \code{\link{sjc.elbow}}
-#'
 #' @param data The data frame containing all variables that should be used for the
 #'          cluster analysis.
 #' @param groupcount The amount of groups (clusters) that should be used.
@@ -599,10 +578,6 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
 #'                This function plots a bar graph indicating the goodness of classification
 #'                for each group.
 #'                
-#' @seealso \code{\link{sjc.dend}} \cr
-#'          \code{\link{sjc.cluster}} \cr
-#'          \code{\link{sjc.elbow}}
-#'
 #' @param data The data frame containing all variables that should be used for the
 #'          check for goodness of classification of a cluster analysis.
 #' @param groups The group classification of the cluster analysis that was returned
@@ -749,11 +724,6 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
 #'                "step" (i.e. between elbow values) on the y-axis. An
 #'                increase in the second plot may indicate the elbow criterion.
 #' 
-#' @seealso \code{\link{sjc.kgap}} \cr
-#'          \code{\link{sjc.dend}} \cr
-#'          \code{\link{sjc.cluster}} \cr
-#'          \code{\link{sjc.grpdisc}}
-#'
 #' @param data The data frame containing all variables that should be used for 
 #'          determining the elbow criteria.
 #' @param steps The maximum group-count for the k-means cluster analysis for
@@ -880,7 +850,7 @@ sjc.kgap <- function(x, max=10, B=100, SE.factor=1, method="Tibs2001SEmax", plot
   nc <- cluster::maxSE(f = T[,"gap"], SE.f = T[,"SE.sim"], method=method, SE.factor=SE.factor)
   message(sprintf(" --> Number of clusters (method '%s'%s): %d\n",
               method,
-              if(grepl("SE", method)) sprintf(", SE.factor=%g",SE.factor) else "", nc))
+              if(grepl("SE", method, fixed = T)) sprintf(", SE.factor=%g",SE.factor) else "", nc))
   # point size for cluster solution
   nclus <- rep(2, max)
   nclus[nc] <- 4

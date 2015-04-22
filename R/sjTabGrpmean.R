@@ -10,7 +10,7 @@
 #' @param varGrp a (numeric) vector with group indices, used to select sub-groups from \code{varCount}.
 #' @param rowLabels a character vector of same length as \code{varGrp} unqiue values. In short: the
 #'          value labels of \code{varGrp}. Used to name table rows. By default, row labels
-#'          are automatically detected if set by \code{set_val_labels}.
+#'          are automatically detected if set by \code{\link[sjmisc]{set_val_labels}}.
 #' @param digits amount of digits for table values.
 #' @param digits.summary amount of digits for summary statistics (Anova).
 #' @param file The destination file, which will be in html-format. If no filepath is specified,
@@ -42,7 +42,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns a \code{\link{list}} with
 #'          \itemize{
 #'            \item the data frame with the description information (\code{df}),
 #'            \item the web page style sheet (\code{page.style}),
@@ -54,10 +54,12 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(sjmisc)
 #' data(efc)
 #' sjt.grpmean(efc$c12hour,
 #'             efc$e42dep)}
 #'             
+#' @import sjmisc
 #' @export
 sjt.grpmean <- function(varCount, 
                         varGrp, 
@@ -76,16 +78,15 @@ sjt.grpmean <- function(varCount,
   opt <- getOption("p_zero")
   if (is.null(opt) || opt == FALSE) {
     p_zero <- ""
-  }
-  else {
+  } else {
     p_zero <- "0"
   }
   # --------------------------------------
   # set value and row labels
   # --------------------------------------
-  if (is.null(rowLabels)) rowLabels <- autoSetValueLabels(varGrp)
-  varGrpLabel <- autoSetVariableLabels(varGrp)
-  varCountLabel <- autoSetVariableLabels(varCount)
+  if (is.null(rowLabels)) rowLabels <- sjmisc:::autoSetValueLabels(varGrp)
+  varGrpLabel <- sjmisc:::autoSetVariableLabels(varGrp)
+  varCountLabel <- sjmisc:::autoSetVariableLabels(varCount)
   # --------------------------------------
   # handle NULL parameter
   # --------------------------------------
@@ -108,9 +109,8 @@ sjt.grpmean <- function(varCount,
   for (i in 1:length(means.p)) {
     if (means.p[i] < 0.001) {
       pval <- c(pval, sprintf("&lt;%s.001", p_zero))
-    }
-    else {
-      pval <- c(pval, sub("0", p_zero, sprintf("%.*f", digits, means.p[i])))
+    } else {
+      pval <- c(pval, sub("0", p_zero, sprintf("%.*f", digits, means.p[i]), fixed = T))
     }
   } 
   # --------------------------------------
@@ -131,7 +131,7 @@ sjt.grpmean <- function(varCount,
                 cbind(mean = sprintf("%.*f", digits, mean(varCount[varGrp == indices[i]], na.rm = TRUE)),
                       N = length(na.omit(varCount[varGrp == indices[i]])),
                       sd = sprintf("%.*f", digits, sd(varCount[varGrp == indices[i]], na.rm = TRUE)),
-                      se = sprintf("%.*f", digits, std_e(varCount[varGrp == indices[i]])),
+                      se = sprintf("%.*f", digits, sjmisc::std_e(varCount[varGrp == indices[i]])),
                       p = pval[i]))
   }
   # --------------------------------------
@@ -141,14 +141,12 @@ sjt.grpmean <- function(varCount,
               cbind(mean = sprintf("%.*f", digits, mean(varCount, na.rm = TRUE)),
                     N = length(na.omit(varCount)),
                     sd = sprintf("%.*f", digits, sd(varCount, na.rm = TRUE)),
-                    se = sprintf("%.*f", digits, std_e(varCount)),
+                    se = sprintf("%.*f", digits, sjmisc::std_e(varCount)),
                     p = ""))
   # --------------------------------------
   # fix row labels, if empty or NULL
   # --------------------------------------
-  if (is.null(rowLabels) || length(rowLabels) < (nrow(df) - 1)) {
-    rowLabels <- as.character(indices)
-  }
+  if (is.null(rowLabels) || length(rowLabels) < (nrow(df) - 1)) rowLabels <- as.character(indices)
   rownames(df) <- c(rowLabels, "Total")
   # --------------------------------------
   # get anova statistics for mean table
@@ -160,8 +158,10 @@ sjt.grpmean <- function(varCount,
   # get F-statistics
   fstat <- summary.lm(fit)$fstatistic[1]
   # p-value for F-test
-  pval <- summary(fit)[[1]]['Pr(>F)'][1,1]
-  pvalstring <- ifelse(pval < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.*f", digits.summary, pval)))
+  pval <- summary(fit)[[1]]['Pr(>F)'][1, 1]
+  pvalstring <- ifelse(pval < 0.001, 
+                       sprintf("p&lt;%s.001", p_zero), 
+                       sub("0", p_zero, sprintf("p=%.*f", digits.summary, pval)))
   # --------------------------------------
   # print data frame to html table
   # --------------------------------------
@@ -185,10 +185,10 @@ sjt.grpmean <- function(varCount,
   # check if html-content should be printed
   # -------------------------------------
   out.html.table(no.output, file, html$knitr, html$output.complete, useViewer)  
-  invisible (list(class="sjtgrpmean",
-                  df=df,
+  invisible (list(class = "sjtgrpmean",
+                  df = df, 
                   page.style = html$page.style,
                   page.content = html$page.content,
-                  knitr=html$knitr,
-                  output.complete=html$output.complete))
+                  knitr = html$knitr,
+                  output.complete = html$output.complete))
 }

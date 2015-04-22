@@ -29,7 +29,7 @@
 #'          provided (default), the data frame's column names are used. Item labels must
 #'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
 #'          varlabels are detected automatically if \code{data} is a data frame where each variable has
-#'          a \code{"variable.label"} attribute (see \code{\link{set_var_labels}}) for details).
+#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param digits The amount of digits used the values inside table cells.
@@ -77,7 +77,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
@@ -106,6 +106,7 @@
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
@@ -117,8 +118,8 @@
 #' end <- which(colnames(efc) == "c88cop7")
 #'  
 #' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[, c(start : end)])
-#' colnames(df) <- varlabs[c(start : end)]
+#' df <- as.data.frame(efc[, c(start:end)])
+#' colnames(df) <- varlabs[c(start:end)]
 #'
 #' # we have high correlations here, because all items
 #' # belong to one factor. See example from "sjp.pca". 
@@ -128,7 +129,7 @@
 #' # auto-detection of labels, only lower triangle
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.corr(efc[, c(start : end)], triangle = "lower")
+#' sjt.corr(efc[, c(start:end)], triangle = "lower")
 #' 
 #' # -------------------------------
 #' # auto-detection of labels, only lower triangle,
@@ -136,7 +137,7 @@
 #' # shown in the table
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.corr(efc[, c(start : end)], 
+#' sjt.corr(efc[, c(start:end)], 
 #'          triangle = "lower", 
 #'          val.rm = 0.3)
 #' 
@@ -146,7 +147,7 @@
 #' # in blue
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.corr(efc[, c(start : end)], 
+#' sjt.corr(efc[, c(start:end)], 
 #'          triangle = "lower",
 #'          val.rm = 0.3, 
 #'          CSS = list(css.valueremove = 'color:blue;'))}
@@ -177,8 +178,7 @@ sjt.corr <- function (data,
   opt <- getOption("p_zero")
   if (is.null(opt) || opt == FALSE) {
     p_zero <- ""
-  }
-  else {
+  } else {
     p_zero <- "0"
   }
   # --------------------------------------------------------
@@ -190,14 +190,11 @@ sjt.corr <- function (data,
   # --------------------------------------------------------
   if (is.null(triangle)) {
     triangle <- "both"
-  }
-  else if (triangle=="u" || triangle=="upper") {
+  } else if (triangle == "u" || triangle == "upper") {
     triangle <- "upper"
-  }
-  else if (triangle=="l" || triangle=="lower") {
+  } else if (triangle == "l" || triangle == "lower") {
     triangle <- "lower"
-  }
-  else triangle <- "both"
+  } else triangle <- "both"
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
@@ -206,12 +203,11 @@ sjt.corr <- function (data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(data[,i])
+      vn <- sjmisc:::autoSetVariableLabels(data[, i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
-      }
-      else {
+      } else {
         # else break out of loop
         varlabels <- NULL
         break
@@ -228,21 +224,21 @@ sjt.corr <- function (data,
   # check if user has passed a data frame
   # or a pca object
   # ----------------------------
-  if (class(data)=="matrix") {
+  if (class(data) == "matrix") {
     corr <- data
     cpvalues <- NULL
-  }
-  else {
+  } else {
     # missing deletion corresponds to
     # SPSS listwise
-    if (missingDeletion=="listwise") {
+    if (missingDeletion == "listwise") {
       data <- na.omit(data)
-      corr <- cor(data, method=corMethod)
-    }
-    # missing deletion corresponds to
-    # SPSS pairwise
-    else {
-      corr <- cor(data, method=corMethod, use="pairwise.complete.obs")
+      corr <- cor(data, method = corMethod)
+    } else {
+      # missing deletion corresponds to
+      # SPSS pairwise
+      corr <- cor(data, 
+                  method = corMethod, 
+                  use = "pairwise.complete.obs")
     }
     #---------------------------------------
     # if we have a data frame as parameter,
@@ -253,8 +249,11 @@ sjt.corr <- function (data,
       for (i in 1:ncol(df)) {
         pv <- c()
         for (j in 1:ncol(df)) {
-          test <- cor.test(df[,i], df[,j], alternative="two.sided", method=corMethod)
-          pv <- cbind(pv, round(test$p.value,5))
+          test <- cor.test(df[, i], 
+                           df[, j], 
+                           alternative = "two.sided", 
+                           method = corMethod)
+          pv <- cbind(pv, round(test$p.value, 5))
         }
         cp <- rbind(cp, pv)
       }
@@ -276,27 +275,25 @@ sjt.corr <- function (data,
       # with asterisks
       # --------------------------------------------------------
       fun.star <- function(x) {
-        if (x>=0.05) x=""
-        else if (x>=0.01 && x<0.05) x="*"
-        else if (x>=0.001 && x<0.01) x="**"
-        else if (x<0.001) x="***"
+        if (x >= 0.05) x <- ""
+        else if (x >= 0.01 && x < 0.05) x <- "*"
+        else if (x >= 0.001 && x < 0.01) x <- "**"
+        else if (x < 0.001) x <- "***"
       }
-    }
-    else {
+    } else {
       # --------------------------------------------------------
       # prepare function for apply-function.
       # round p-values, keeping the numeric values
       # --------------------------------------------------------
       fun.star <- function(x) {
-        round(x,digits)
+        round(x, digits)
       }
     }
     cpvalues <- apply(cpvalues, c(1,2), fun.star)
     if (pvaluesAsNumbers) {
       cpvalues <- apply(cpvalues, c(1,2), function (x) if (x < 0.001) x <- sprintf("&lt;%s.001", p_zero) else x <- sub("0", p_zero, sprintf("%.*f", digits, x)))
     }
-  }
-  else {
+  } else {
     showPValues <- FALSE
   }
   # ----------------------------
@@ -307,7 +304,7 @@ sjt.corr <- function (data,
     varlabels <- row.names(corr)
   }
   # check length of x-axis-labels and split longer strings at into new lines
-  varlabels <- word_wrap(varlabels, breakLabelsAt, "<br>")
+  varlabels <- sjmisc::word_wrap(varlabels, breakLabelsAt, "<br>")
   # -------------------------------------
   # init header
   # -------------------------------------
@@ -410,12 +407,10 @@ sjt.corr <- function (data,
       if (j==i) {
         if (is.null(stringDiagonal) || length(stringDiagonal)>ncol(corr)) {
           page.content <- paste0(page.content, "    <td class=\"tdata centeralign\">&nbsp;</td>\n")
-        }
-        else {
+        } else {
           page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign\">%s</td>\n", stringDiagonal[j]))
         }
-      }
-      else {
+      } else {
         # --------------------------------------------------------
         # check whether only lower or upper triangle of correlation
         # table should be printed
@@ -434,8 +429,7 @@ sjt.corr <- function (data,
               # if we have p-values as number, print them in new row
               # --------------------------------------------------------
               cellval <- sprintf("%s<br><span class=\"pval\">(%s)</span>", cellval, cpvalues[i,j])
-            }
-            else {
+            } else {
               # --------------------------------------------------------
               # if we have p-values as "*", add them
               # --------------------------------------------------------
@@ -451,7 +445,7 @@ sjt.corr <- function (data,
           # --------------------------------------------------------
           if (fadeNS && !is.null(cpv)) {
             # set css-class-attribute
-            if (cpv[i,j] >=0.05) notsig <- " notsig"
+            if (cpv[i, j] >= 0.05) notsig <- " notsig"
           }
           # --------------------------------------------------------
           # prepare css for values that shoould be removed due to low
@@ -466,8 +460,7 @@ sjt.corr <- function (data,
             value.remove <- " valueremove"            
           }
           page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s%s\">%s</td>\n", notsig, value.remove, cellval))
-        }
-        else {
+        } else {
           page.content <- paste0(page.content, "    <td class=\"tdata centeralign\">&nbsp;</td>\n")
         }
       }
@@ -501,20 +494,20 @@ sjt.corr <- function (data,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr)
-  knitr <- gsub(tag.thead, css.thead, knitr)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr)
-  knitr <- gsub(tag.notsig, css.notsig, knitr)  
-  knitr <- gsub(tag.pval, css.pval, knitr)  
-  knitr <- gsub(tag.summary, css.summary, knitr)  
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)  
-  knitr <- gsub(tag.valueremove, css.valueremove, knitr)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
+  knitr <- gsub(tag.notsig, css.notsig, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.pval, css.pval, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.valueremove, css.valueremove, knitr, fixed = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

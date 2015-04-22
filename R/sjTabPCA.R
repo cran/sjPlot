@@ -1,9 +1,9 @@
 #' @title Show principal component analysis as HTML table
 #' @name sjt.pca
 #' 
-#' @description Performes a principle component analysis on a data frame or matrix and
-#'                displays the factor solution as HTML table, or saves them as file. 
-#'                \cr \cr In case a data frame is used as 
+#' @description Performes a principle component analysis on a data frame or matrix 
+#'                (with varimax rotation) and displays the factor solution as HTML 
+#'                table, or saves them as file. \cr \cr In case a data frame is used as 
 #'                parameter, the Cronbach's Alpha value for each factor scale will be calculated,
 #'                i.e. all variables with the highest loading for a factor are taken for the
 #'                reliability test. The result is an alpha value for each factor dimension.
@@ -11,9 +11,6 @@
 #' @seealso \itemize{
 #'            \item \href{http://www.strengejacke.de/sjPlot/sjt.pca/}{sjPlot manual: sjt.pca}
 #'            \item \code{\link{sjp.pca}}
-#'            \item \code{\link{reliab_test}}
-#'            \item \code{\link{sjt.itemanalysis}}
-#'            \item \code{\link{cronb}}
 #'          }
 #' 
 #' @param data A data frame with factors (each columns one variable) that should be used 
@@ -33,7 +30,7 @@
 #' @param varlabels The item labels that are printed in the first column. If no item labels are
 #'          provided (default), the data frame's column names are used. Item labels must
 #'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
-#' @param title A table caption. By default, \code{"Principal Component Analysis (with varimax rotation)"}
+#' @param title A table caption. By default, \emph{"Principal Component Analysis (with varimax rotation)"}
 #'          is used as the table's title.
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 20.
@@ -50,9 +47,9 @@
 #' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
 #' @param stringPov The string for the table row that contains the proportions of variances. By default, 
-#'          \code{"Proportion of Variance"} will be used.
+#'          \emph{"Proportion of Variance"} will be used.
 #' @param stringCpov The string for the table row that contains the cumulative variances. By default, 
-#'          \code{"Cumulative Proportion"} will be used.
+#'          \emph{"Cumulative Proportion"} will be used.
 #' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
 #'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
@@ -81,7 +78,7 @@
 #' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 #'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 #'          may look less pretty, but it may help when exporting html-tables to office tools.
-#' @return Invisibly returns a \code{\link{structure}} with
+#' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
@@ -138,6 +135,7 @@
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
+#' library(sjmisc)
 #' data(efc)
 #' 
 #' # retrieve variable and value labels
@@ -149,16 +147,16 @@
 #' end <- which(colnames(efc) == "c90cop9")
 #'  
 #' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[, c(start : end)])
-#' colnames(df) <- varlabs[c(start : end)]
+#' mydf <- as.data.frame(efc[, c(start:end)])
+#' colnames(mydf) <- varlabs[c(start:end)]
 #' 
-#' sjt.pca(df)
+#' sjt.pca(mydf)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.pca(efc[, c(start : end)])}
+#' sjt.pca(efc[, c(start:end)])}
 #' 
 #' @importFrom psych KMO
 #' @export
@@ -192,12 +190,11 @@ sjt.pca <- function (data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- autoSetVariableLabels(data[,i])
+      vn <- sjmisc:::autoSetVariableLabels(data[, i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
-      }
-      else {
+      } else {
         # else break out of loop
         varlabels <- NULL
         break
@@ -208,13 +205,15 @@ sjt.pca <- function (data,
   # check if user has passed a data frame
   # or a pca object
   # ----------------------------
-  if (class(data)=="prcomp") {
+  if (class(data) == "prcomp") {
     pcadata <- data
     dataframeparam <- FALSE
     showMSA <- FALSE
-  }
-  else {
-    pcadata <- prcomp(na.omit(data), retx=TRUE, center=TRUE, scale.=TRUE)
+  } else {
+    pcadata <- prcomp(na.omit(data), 
+                      retx = TRUE, 
+                      center = TRUE, 
+                      scale. = TRUE)
     dataframeparam <- TRUE
   }
   # -------------------------------------
@@ -304,30 +303,26 @@ sjt.pca <- function (data,
   # retrieve best amount of factors according
   # to Kaiser-critearia, i.e. factors with eigen value > 1
   # ----------------------------
-  pcadata.kaiser <- which(pcadata.eigenval<1)[1]-1
+  pcadata.kaiser <- which(pcadata.eigenval < 1)[1] - 1
   # --------------------------------------------------------
   # varimax rotation, retrieve factor loadings
   # --------------------------------------------------------
   # check for predefined number of factors
-  if (!is.null(numberOfFactors) && is.numeric(numberOfFactors)) {
-    pcadata.kaiser <- numberOfFactors
-  }
-  pcadata.varim = varimaxrota(pcadata, pcadata.kaiser)
+  if (!is.null(numberOfFactors) && is.numeric(numberOfFactors)) pcadata.kaiser <- numberOfFactors
+  pcadata.varim <- varimaxrota(pcadata, pcadata.kaiser)
   # create data frame with factor loadings
-  df <- as.data.frame(pcadata.varim$loadings[,1:ncol(pcadata.varim$loadings)])
+  df <- as.data.frame(pcadata.varim$loadings[, 1:ncol(pcadata.varim$loadings)])
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
   # ----------------------------
-  if (is.null(varlabels)) {
-    varlabels <- row.names(df)
-  }
+  if (is.null(varlabels)) varlabels <- row.names(df)
   # ----------------------------
   # Prepare length of labels
   # ----------------------------
   if (!is.null(varlabels)) {
     # wrap long variable labels
-    varlabels <- word_wrap(varlabels, breakLabelsAt, "<br>")
+    varlabels <- sjmisc::word_wrap(varlabels, breakLabelsAt, "<br>")
   }
   # --------------------------------------------------------
   # this function checks which items have unclear factor loadings,
@@ -341,13 +336,13 @@ sjt.pca <- function (data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- as.numeric(abs(df[i,]))
+      rowval <- as.numeric(abs(df[i, ]))
       # retrieve highest loading
       maxload <- max(rowval)
       # retrieve 2. highest loading
       max2load <- sort(rowval, TRUE)[2]
       # check difference between both
-      if (abs(maxload-max2load)<factorLoadingTolerance) {
+      if (abs(maxload-max2load) < factorLoadingTolerance) {
         # if difference is below the tolerance,
         # remeber row-ID so we can remove that items
         # for further PCA with updated data frame
@@ -371,9 +366,9 @@ sjt.pca <- function (data,
     # one item with its factor loadings
     for (i in 1:nrow(dataframe)) {
       # get factor loadings for each item
-      rowval <- abs(df[i,])
+      rowval <- abs(df[i, ])
       # retrieve highest loading and remeber that column
-      itemloading <- c(itemloading, which(rowval==max(rowval)))
+      itemloading <- c(itemloading, which(rowval == max(rowval)))
     }
     # return a vector with index numbers indicating which items
     # loads the highest on which factor
@@ -392,7 +387,7 @@ sjt.pca <- function (data,
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- c(cbv, cronb(na.omit(dataframe[,which(itemloadings==n)])))
+      cbv <- c(cbv, sjmisc::cronb(na.omit(dataframe[, which(itemloadings == n)])))
     }
     # cbv now contains the factor numbers and the related alpha values
     # for each "factor dimension scale"
@@ -571,25 +566,25 @@ sjt.pca <- function (data,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr)
-  knitr <- gsub(tag.thead, css.thead, knitr)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr)
-  knitr <- gsub(tag.cronbach, css.cronbach, knitr)
-  knitr <- gsub(tag.msa, css.msa, knitr)
-  knitr <- gsub(tag.pov, css.pov, knitr)
-  knitr <- gsub(tag.arc, css.arc, knitr)
-  knitr <- gsub(tag.cpov, css.cpov, knitr)
-  knitr <- gsub(tag.kmo, css.kmo, knitr)
-  knitr <- gsub(tag.minval, css.minval, knitr)  
-  knitr <- gsub(tag.removable, css.removable, knitr)  
-  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr)  
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
+  knitr <- gsub(tag.cronbach, css.cronbach, knitr, fixed = TRUE)
+  knitr <- gsub(tag.msa, css.msa, knitr, fixed = TRUE)
+  knitr <- gsub(tag.pov, css.pov, knitr, fixed = TRUE)
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)
+  knitr <- gsub(tag.cpov, css.cpov, knitr, fixed = TRUE)
+  knitr <- gsub(tag.kmo, css.kmo, knitr, fixed = TRUE)
+  knitr <- gsub(tag.minval, css.minval, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.removable, css.removable, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

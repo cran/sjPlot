@@ -1,8 +1,6 @@
 sjPlot - Data Visualization for Statistics in Social Science
 ------------------------------------------------------------------------------
-Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales etc.
-
-Furthermore, this package contains some tools that are useful when carrying out data analysis or interpreting data (especially intended for people coming from SPSS and/or who are new to R). These tool functions support reading and writing data (SPSS, SAS and STATA), variable recoding and weighting, statistical tests, interpretation of interaction terms in regression models, reliability tests and constructing index or score variables and much more.
+Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales, interpretation of interaction terms in regression models, constructing index or score variables and much more.
 
 
 ### Installation
@@ -23,7 +21,7 @@ To install the latest stable release from CRAN, type following command into the 
 install.packages("sjPlot")
 ```
 
-### References, documentation and exmaples
+### References, documentation and examples
 
 - [Documentation and examples](http://www.strengejacke.de/sjPlot/)
 - [Weblog](http://strengejacke.wordpress.com/sjplot-r-package/)
@@ -33,41 +31,48 @@ install.packages("sjPlot")
 
 In case you want / have to cite my package, please use `citation('sjPlot')` for citation information. Since this package makes heavy use of the [ggplot-package](http://cran.r-project.org/web/packages/ggplot2/index.html), consider citing this package as well.
 
-### Changelog of current stable build 1.7
+### Changelog of current official release 1.8
 
 #### General
-* Renamed `sjs`, `sju`, `sjd` and `sji`-functions into more intuitiv and shorter function names.
-* `autoSetValueLabels` and `autoSetVariableLabels` are now a global option. E.g., use `options(autoSetValueLabels = FALSE)` to turn off automatic value label detection in plotting and table functions, or `options(autoSetValueLabels = TRUE)` to turn on automatic label detection.
-* `p_zero` is now a global option. Use `options(p_zero = TRUE)` to show leading zero before period in p-value, r-quared and phi labels.
-* `read_spss` is now a global option. Use `options(read_spss = 'haven')` to set default package for readind spss data to haven, or `options(read_spss = 'foreign')` to make `read_spss` use the foreign package to read spss data.
-* `value_labels` is now a global option. Use `options(value_labels = 'haven')` to set default attribute assignment in haven format (`labels` and `label`), or `options(value_labels = 'foreign')` to to set default attribute assignment in foreign format (`value.labels` and `variable.label`). Affects functions like auto-detection of labels, `set_var_labels` or `set_val_labels` etc.
-* Removed `plyr` import and replaced with `dplyr` functions.
-* Removed `reshape2` import and replaced with `tidyr` functions.
-* Added two more sample datasets (`efc2` and `efc3`) to the package, which slightly differ in their structure.
+* _Utility, recode and statistical test functions have been moved to another package called [sjmisc](https://github.com/sjPlot/sjmisc)!_
+* R-Version dependency changed to R >= 3.1, due to import of `tidyr` and `dplyr` packages.
+* `sjp.emm.int` is now deprecated. Use `sjp.int` with parameter `type = "emm"` to plot estimated marginal means. Estimated marginal means can now also be applied to `lmerMod`-objects from `lme4`-package.
 
 #### New functions
-* `write_spss` to write data frames to SPSS sav-files, including value and variable labels.
-* `write_stata` to write data frames to STATA files, including value and variable labels.
-* `read_stata` to read STATA files, including value and variable labels.
-* `read_sas` to read SAS files, including value and variable labels.
-* `to_sjPlot` to convert data frames imported with the `haven` package ([see GitHub](https://github.com/hadley/haven)) to a more sjPlot-friendly format.
-* `to_fac` to convert (numeric or atomic) variables to factors, but keeps value and variable labels. Useful alternative to `as.factor`, when data has been imported from SPSS (e.g. with `read_spss`).
+* `sjt.mwu` to print Mann-Whitney-tests as HTML-table.
 
-#### Changes to functions
-* `read_spss` (former `sji.SPSS`) now supports reading data via `haven`'s read-function (see parameter `option`).
-* `sjt.lm` and `sjt.glm` now also print multiple fitted models with different predictors in each model (e.g. when comparing stepwise regression). See examples in `?sjt.lm` and `?sjt.glm`.
-* Added parameter `remove.estimates` to `sjt.lm` and `sjt.glm`, so specific estimates can be removed from the table output.
-* Added parameter `group.pred` in `sjt.lm` and `sjt.glm` to automatically group table rows with factor levels of same factor.
-* Improved `set_var_labels`, `get_var_labels`, `set_val_labels` and `get_val_labels` to cope with `haven` package data structure.
-* Improved `view_spss` function (former `sji.viewSPSS`).
-* Improved automatic label extraction for `sjp.lm`, `sjt.lm`, `sjp.glm` and `sjt.glm`.
-* Improved pre-set theme `538` in `sjp.setTheme`.
+#### Changes to function 'sjp.int'
+* `sjp.int` now supports `plm` objects (from plm-package).
+* Added parameter `type` to `sjp.int` to plot different types of interactions, including estimated marginal means.
+* Added parameter `legendTitle` to `sjp.int`.
+* Added parameter `int.plot.index` to `sjp.int`, so only selected interaction terms may be plotted.
+* Added parameter `showCI` to `sjp.int` (only applies to `type = "emm"` and `"eff"`) to add confidence intervals to estimated marginal means.
+* Added parameter `facet.grid` to `sjp.int` to plot each effect in a separate plot.
+* Parameter `moderatorValues` in `sjp.int` has two new options `zeromax` and `quart` for chosing the moderator values.
+* Parameter `legendLabels` of `sjp.int` now accepts a list of character vectors, with one vector of legend labels for each interaction plot plotted.
+* Parameter `title` of `sjp.int` now accepts a character vector of same length as interaction terms, with one title character string for each interaction plot plotted.
+* Parameter `moderatorValues` in `sjp.int` has two new options `zeromax` and `quart` for chosing the moderator values.
+
+#### Changes to other functions
+* Linear mixed model methods (`sjp.int`, `sjp.lmer`) can now cope with `modMerLmerTest` objects (fitted with `lmerTest`-package).
+* `sjp.lmer` now calculates approximate p-values based on Wald chi-squared tests.
+* `sjp.lmer` and `sjp.glmer` now plot all random effects (when `type = "re"`) by default, instead of only the first random effect. Furthermore, parameter `ri.nr` now may be a numeric vector (instead of single numeric value) with several random effect index numbers.
+* `sjp.glm` now supports plotting `logistf` objects.
+* `sjp.glmm` and `sjp.lmm` now also accept a list of fitted models (see examples in `?sjp.glmm` and `?sjp.lmm`).
+* `sjp.int` and `sjp.lm` now support `plm` objects (from plm-package).
+* Parameters `orderBy` and `reverseOrder` in `sjp.stackfrq` and `sjt.stackfrq` were merged into new parameter `sort.frq`.
+* Parameter `transformTicks` in `sjp.glm` and `sjp.glmm` now defaults to `TRUE`.
+* Added parameter `emph.grp` to `sjp.lmer` and `sjp.glmer` to emphasize specific grouping levels when plot-type is either `fe.ri` or `ri.pc`.
+* Added parameter `labelDigits` to functions `sjp.likert` and `sjp.stackfrq`, so digits of value labels can be changed.
+* Added option `fe.pred` to `type`-parameter of `sjp.lmer` to plot slopes for each single fixed effect.
+* Added parameter `bar` to `sjp.pca` to plot loadings of principle components as bar charts.
+* Renamed parameters `y` and `x` in `sjp.xtab` into `var` and `grp`.
 * Added further pre-set themes to `sjp.setTheme`.
-* Minor improvements in `sjp.lm` with `type="ma"`.
+* Minor improvements of `sjp.setTheme`.
 
 #### Bug fixes
-* Fixed bug in `sjt.itemanalysis` [(#issue 8)](https://github.com/sjPlot/devel/issues/8).
-* Fixed bug in `sji.setValueLabels`.
-* Fixed bug in `sjt.frq` with string-variables that contained a larger amount of unique values including `NA`-values, when parameter `skipZeroRows` was set to `auto` (default).
-* Minor bug fixes in `sjp.lm` with `type="ma"`.
-* `weight` should now also include `NA`s.
+* `sjp.int` did not work for interaction terms of factors with more than two levels in mixed effects models (`merMod`-objects) - fixed.
+* `sjp.glm` and `sjp.glmm` should catch axis limits, which are out of printable bounds, hence these function should no longer stop in such cases.
+* `sjp.lmer` and `sjp.glmer` wrongly stated that paramter `ri.nr` was out of bound when `type` was `re`, `fe.ri` or `ri.pc` - fixed.
+* Weights with decimals in `sjt.xtab` (e.g. `weightBy = abs(rnorm(100, 2, 1)`) caused an error - fixed.
+* `sjp.int` did not work with interaction terms that used `AsIs` conversion (function `I`) - fixed.
