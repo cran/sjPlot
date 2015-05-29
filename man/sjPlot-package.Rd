@@ -34,8 +34,8 @@
 \tabular{rl}{
 Package: \tab sjPlot\cr
 Type: \tab Package\cr
-Version: \tab 1.8\cr
-Date: \tab 2015-04-22\cr
+Version: \tab 1.8.1\cr
+Date: \tab 2015-05-28\cr
 License: \tab GPL-3\cr
 }
 }
@@ -45,7 +45,6 @@ Daniel Lüdecke \email{d.luedecke@uke.de}
 \references{
   \itemize{
     \item Documentation: \url{http://www.strengejacke.de/sjPlot}
-    \item Weblog: \url{http://strengejacke.wordpress.com/sjplot-r-package/}
     \item Github: \url{https://github.com/sjPlot/devel}
     \item Bug reports: \url{https://github.com/sjPlot/devel/issues}
   }

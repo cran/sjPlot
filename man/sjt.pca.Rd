@@ -70,21 +70,7 @@ will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \c
 Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-of all style-sheet-classnames that are used in this function. Parameters for this list need:
-\enumerate{
-  \item the class-names with \code{"css."}-prefix as parameter name and
-  \item each style-definition must end with a semicolon
-}
-You can add style information to the default styles by using a + (plus-sign) as
-initial character for the parameter attributes. Examples:
-\itemize{
-  \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-  \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-  \item \code{css.cronbach='+color:green;'} to add green color formatting to the Cronbach's Alpha value.
-}
-See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
@@ -118,12 +104,13 @@ Performes a principle component analysis on a data frame or matrix
                i.e. all variables with the highest loading for a factor are taken for the
                reliability test. The result is an alpha value for each factor dimension.
 }
+\details{
+See 'Details' in \code{\link{sjt.frq}}.
+}
 \note{
-The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-        they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-        or opened with the default web browser. Displaying resp. opening a temporary file is the
-        default behaviour (i.e. \code{file=NULL}). \cr \cr
-        This PCA uses the \code{\link{prcomp}} function and the \code{\link{varimax}} rotation.
+See 'Notes' in \code{\link{sjt.frq}}.
+       This PCA uses the \code{\link{prcomp}} function and
+       the \code{\link{varimax}} rotation.
 }
 \examples{
 \dontrun{

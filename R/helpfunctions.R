@@ -38,18 +38,6 @@ print.table.summary <- function(baseplot,
 }
 
 
-# helper function to calculate probabilities for odds ratios
-# see http://stats.stackexchange.com/questions/89474/interpretation-of-ordinal-logistic-regression,
-# http://stats.stackexchange.com/questions/26288/understanding-odds-ratios-in-logistic-regression
-# and http://pages.uoregon.edu/aarong/teaching/G4075_Outline/node16.html
-odds.to.prob <- function(x) {
-  # formular: probality = odds divided by (1+odds),
-  # where odds = exp(logit)
-  # x = log-odds (logits)
-  return (1 / (1 + exp(-x)))
-}
-
-
 # display html-content in viewer pane
 # or write it to file
 out.html.table <- function(no.output, file, knitr, toWrite, useViewer) {
@@ -99,6 +87,7 @@ create.frq.df <- function(varCount,
   # create frequency data frame
   #---------------------------------------------------
   df <- as.data.frame(table(varCount))
+  # name columns
   names(df) <- c("y", "Freq")
   # --------------------------------------------------------
   # Define amount of category, include zero counts
@@ -129,6 +118,12 @@ create.frq.df <- function(varCount,
   # get the highest answer category of "y", so we know where the
   # range of the x-axis ends
   if (!is.null(labels)) {
+    # check if we have much less labels than values
+    # so there might be a labelling mistake with
+    # the variable
+    if (length(labels) < length(unique(na.omit(varCount)))) {
+      warning("Variable has less labels than unique values. Output might be incorrect. Please check value labels.", call. = F)
+    }
     catcount <- startAxisAt + length(labels) - 1
   } else {
     # determine maximum values
@@ -142,7 +137,7 @@ create.frq.df <- function(varCount,
     # categories (factor levels) corresponds either to the highest factor level
     # value or to the amount of different factor levels, depending on which one
     # is larger
-    catcount <- ifelse (catcount_1 > catcount_2, catcount_1, catcount_2)
+    catcount <- ifelse(catcount_1 > catcount_2, catcount_1, catcount_2)
   }
   # Create a vector of zeros
   frq <- rep(0, catcount)
@@ -216,10 +211,10 @@ create.frq.df <- function(varCount,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(list(mydat = mydat,
-                            labels = labels,
-                            catmin = catmin,
-                            minval = minval)))
+  invisible(structure(list(mydat = mydat,
+                           labels = labels,
+                           catmin = catmin,
+                           minval = minval)))
 }
 
 
@@ -424,15 +419,17 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
       if (!any.found) break
     }
   }
-  return (list(group.pred.rows,
-               group.pred.span,
-               group.pred.labs))
+  return(list(group.pred.rows,
+              group.pred.span,
+              group.pred.labs))
 }
 
 
 # automatically retrieve predictor labels
 # of fitted (g)lm
 retrieveModelLabels <- function(models) {
+  # check parameter. No labels supported for plm-objects
+  if (any(class(models) == "plm")) return(NULL)
   # do we have global options?
   opt <- getOption("autoSetVariableLabels")
   if (is.null(opt) || opt == TRUE) {
@@ -475,25 +472,15 @@ retrieveModelLabels <- function(models) {
         }
       }
     }
-    return (fit.labels)
+    return(fit.labels)
   }
-  return (NULL)
-}
-
-
-# compute pseudo r-square for glm
-PseudoR2 <- function(rr) { # rr must be the result of lm/glm
-  n <- nrow(rr$model)
-  COX <- (1 - exp((rr$deviance - rr$null) / n))
-  NR <- COX / (1 - exp(-rr$null / n))
-  RVAL <- c(N = n, CoxSnell = COX, Nagelkerke = NR)
-  return(RVAL)
+  return(NULL)
 }
 
 
 # compute chi-square for glm
 Chisquare.glm <- function(rr, digits=3) {
-  return (with(rr, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE), digits = digits))
+  return(with(rr, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE), digits = digits))
 }
 
 
@@ -502,7 +489,7 @@ sju.modsum.lm <- function(fit) {
   # get F-statistics
   fstat <- summary(fit)$fstatistic
   # Calculate p-value for F-test
-  pval <- pf(fstat[1], fstat[2], fstat[3],lower.tail = FALSE)
+  pval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
   # indicate significance level by stars
   pan <- c("")
   if (pval < 0.001) {
@@ -515,12 +502,12 @@ sju.modsum.lm <- function(fit) {
   # create mathematical term
   modsum <- as.character(as.expression(
     substitute(beta[0] == a * "," ~~ R^2 == r2 * "," ~~ "adj. " * R^2 == ar2 * "," ~~ "F" == f*panval * "," ~~ "AIC" == aic,
-               list(a=format(coef(fit)[1], digits=3),
-                    r2=format(summary(fit)$r.squared, digits=3),
-                    ar2=format(summary(fit)$adj.r.squared, digits=3),
-                    f=sprintf("%.2f", fstat[1]),
-                    panval=pan,
-                    aic=sprintf("%.2f", AIC(fit))))))
+               list(a = format(coef(fit)[1], digits = 3),
+                    r2 = format(summary(fit)$r.squared, digits = 3),
+                    ar2 = format(summary(fit)$adj.r.squared, digits = 3),
+                    f = sprintf("%.2f", fstat[1]),
+                    panval = pan,
+                    aic = sprintf("%.2f", AIC(fit))))))
   return(modsum)
 }
 
@@ -547,7 +534,7 @@ varimaxrota <- function(data, factors) {
   }
   # Varimax Rotation durchführen
   varib <- varimax(ladb)
-  return (varib)
+  return(varib)
 }
 
 
@@ -557,7 +544,7 @@ unlistlabels <- function(lab) {
   dummy <- unlist(lab)
   labels <- c()
   labels <- c(labels, as.character(dummy))
-  return (labels)
+  return(labels)
 }
 
 
@@ -588,7 +575,7 @@ unlistlabels <- function(lab) {
 #' data(efc)
 #' # show frequencies of relationship-variable and
 #' # retrieve plot object
-#' gp <- sjp.frq(efc$e15relat, printPlot=FALSE)
+#' gp <- sjp.frq(efc$e15relat, printPlot = FALSE)
 #' # show current plot
 #' plot(gp$plot)
 #' # show adjusted plot
@@ -645,26 +632,28 @@ sjp.vif <- function(fit) {
     # grafik ausgeben, dabei die variablen der X-Achse nach aufsteigenden
     # VIF-Werten ordnen
     plot(ggplot(mydat, aes(x = reorder(vars, vif), y = vif)) +
-           # Balken zeichnen. Stat=identity heißt, dass nicht die counts, sondern
-           # die tatsächlichen Zahlenwerte (VIF-Werte) abgebildet werden sollen
-           geom_bar(stat="identity", width=0.7, fill="#80acc8") +
-           # grüne Linie zeichnen, die den guten Bereich anzeigt (VIF < 5)
-           geom_hline(yintercept=5, linetype=2, colour="darkgreen", alpha=0.7) +
-           # rote  Linie zeichnen, die den tolerablen Bereich anzeigt (VIF < 10)
-           geom_hline(yintercept=10, linetype=2, colour="darkred", alpha=0.7) +
-           # grüne und rote Line beschriften
-           annotate("text", x=1, y=4.7, label="good", size=4, colour="darkgreen") +
-           annotate("text", x=1, y=9.7, label="tolerable", size=4, colour="darkred") +
-           # als X-Achsenbeschriftung die Variablennamen setzen
-           scale_x_discrete(labels=mydat$label) +
-           # Keine weiteren Titel an X- und Y-Achse angeben
-           labs(title="Variance Inflation Factors (multicollinearity)", x=NULL, y=NULL) +
-           # maximale Obergrenze der Y-Achse setzen
-           scale_y_continuous(limits=c(0, upperLimit), expand=c(0,0)) +
-           # Beschriftung der X-Achse (Variablenlabel) in 45-Grad-Winkel setzen
-           theme(axis.text.x=element_text(angle=45, vjust=0.5, size=rel(1.2))))
+      # Balken zeichnen. Stat=identity heißt, dass nicht die counts, sondern
+      # die tatsächlichen Zahlenwerte (VIF-Werte) abgebildet werden sollen
+      geom_bar(stat = "identity", width = 0.7, fill = "#80acc8") +
+      # grüne Linie zeichnen, die den guten Bereich anzeigt (VIF < 5)
+      geom_hline(yintercept = 5, linetype = 2, colour = "darkgreen", alpha = 0.7) +
+      # rote  Linie zeichnen, die den tolerablen Bereich anzeigt (VIF < 10)
+      geom_hline(yintercept = 10, linetype = 2, colour = "darkred", alpha = 0.7) +
+      # grüne und rote Line beschriften
+      annotate("text", x = 1, y = 4.7, label = "good", size = 4, colour = "darkgreen") +
+      annotate("text", x = 1, y = 9.7, label = "tolerable", size = 4, colour = "darkred") +
+      # als X-Achsenbeschriftung die Variablennamen setzen
+      scale_x_discrete(labels = mydat$label) +
+      # Keine weiteren Titel an X- und Y-Achse angeben
+      labs(title = "Variance Inflation Factors (multicollinearity)", 
+           x = NULL, 
+           y = NULL) +
+      # maximale Obergrenze der Y-Achse setzen
+      scale_y_continuous(limits = c(0, upperLimit), expand = c(0, 0)) +
+      # Beschriftung der X-Achse (Variablenlabel) in 45-Grad-Winkel setzen
+      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = rel(1.2))))
   }
-  invisible(vifval)
+  invisible(vifval)  
 }
 
 

@@ -1,5 +1,5 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "se", "group"))
+if (getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "se", "group"))
 
 
 #' @title Compute quick cluster analysis
@@ -28,8 +28,8 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          to determine the group-count depending on the elbow-criterion. Use \code{\link{sjc.grpdisc}}-function 
 #'          to inspect the goodness of grouping.
 #' @param groups By default, this parameter is \code{NULL} and will be ignored. However, if you just want to plot
-#'          an already existing cluster solution without computing a new cluster analysis, specifiy \code{groupcount}
-#'          and \code{group}. \code{group} is a vector of same length as \code{nrow(data)} and indicates the group
+#'          an already existing cluster solution without computing a new cluster analysis, specify \code{groupcount}
+#'          and \code{groups}. \code{groups} is a vector of same length as \code{nrow(data)} and indicates the group
 #'          classification of the cluster analysis. The group classification can be computed with the
 #'          \code{\link{sjc.cluster}} function.
 #' @param method The method for computing the cluster analysis. By default (\code{"kmeans"}), a
@@ -54,10 +54,10 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'          which computes a linear discriminant analysis on the classified cluster groups and plots a 
 #'          bar graph indicating the goodness of classification for each group.
 #' @param title Title of diagram as string.
-#'          Example: \code{title=c("my title")}
+#'          Example: \code{title = "my title"}
 #' @param axisLabels.x Labels for the x-axis breaks.
-#'          Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
-#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+#'          Example: \code{axisLabels.x = c("Label1", "Label2", "Label3")}. \cr
+#'          \strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          list object with label string. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically.
 #' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
@@ -102,16 +102,7 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("xpos", "value", "Var2", 
 #'            \item \code{accuracy}: the accuracy of group classification (as calculated by \code{\link{sjc.grpdisc}}).
 #'           }
 #' 
-#' @note To get similar results as in SPSS Quick Cluster function, following points
-#'        have to be considered:
-#'        \enumerate{
-#'          \item Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster to get a table with initial cluster centers.
-#'          \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specifying \code{nrow} and \code{ncol} parameters.
-#'          \item Use \code{algorithm="Lloyd"}.
-#'          \item Use the same amount of \code{iter.max} both in SPSS and this \code{sjc.qclus}.
-#'        }
-#'        This ensures a fixed initial set of cluster centers (as in SPSS), while \code{\link{kmeans}} in R
-#'        always selects initial cluster sets randomly.
+#' @note See 'Note' in \code{\link{sjc.cluster}}
 #' 
 #' @examples
 #' \dontrun{
@@ -172,8 +163,8 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # check for abbreviations
   # --------------------------------------------------------
-  if (method=="kmeans") method <- "k"
-  if (method=="hclust") method <- "h"
+  if (method == "kmeans") method <- "k"
+  if (method == "hclust") method <- "h"
   # --------------------------------------------------------
   # save original data frame
   # --------------------------------------------------------
@@ -181,39 +172,23 @@ sjc.qclus <- function(data,
   data.origin <- data
   # remove missings
   data <- na.omit(data)
-  if (!is.null(axisLabels.x) && is.list(axisLabels.x)) {
-    axisLabels.x <- unlistlabels(axisLabels.x)
-  }
-  if (!is.null(legendLabels) && is.list(legendLabels)) {
-    legendLabels <- unlistlabels(legendLabels)
-  }
+  if (!is.null(axisLabels.x) && is.list(axisLabels.x)) axisLabels.x <- unlistlabels(axisLabels.x)
+  if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
   # check for valid parameter
-  if (is.null(axisLabels.x)) {
-    axisLabels.x <- colnames(data)
-  }
+  if (is.null(axisLabels.x)) axisLabels.x <- colnames(data)
   # --------------------------------------------------------
   # Trim labels and title to appropriate size
   # --------------------------------------------------------
   # check length of diagram title and split longer string at into new lines
-  if (!is.null(title)) {
-    title <- sjmisc::word_wrap(title, breakTitleAt)    
-  }
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)    
   # check length of x-axis title and split longer string at into new lines
-  if (!is.null(axisTitle.x)) {
-    axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)    
-  }
+  if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)    
   # check length of y-axis title and split longer string at into new lines
-  if (!is.null(axisTitle.y)) {
-    axisTitle.y <- sjmisc::word_wrap(axisTitle.y, breakTitleAt)    
-  }
+  if (!is.null(axisTitle.y)) axisTitle.y <- sjmisc::word_wrap(axisTitle.y, breakTitleAt)    
   # check length of legend title and split longer string at into new lines
-  if (!is.null(legendTitle)) {
-    legendTitle <- sjmisc::word_wrap(title, breakLegendTitleAt)    
-  }
+  if (!is.null(legendTitle)) legendTitle <- sjmisc::word_wrap(title, breakLegendTitleAt)    
   # check length of y-axis title and split longer string at into new lines
-  if (!is.null(legendLabels)) {
-    legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)
-  }
+  if (!is.null(legendLabels)) legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
   axisLabels.x <- sjmisc::word_wrap(axisLabels.x, breakLabelsAt)
@@ -229,12 +204,12 @@ sjc.qclus <- function(data,
     }
     # check whether method is kmeans. hierarchical clustering
     # requires a specified groupcount
-    if (method!="k") {
-      message("\nCannot compute hierarchical cluster analysis when 'groupcount' is NULL. Using kmeans clustering instead.\n")
+    if (method != "k") {
+      message("Cannot compute hierarchical cluster analysis when 'groupcount' is NULL. Using kmeans clustering instead.")
       method <- "k"
     }
     # retrieve optimal group count via gap statistics
-    kgap <- sjc.kgap(data, plotResults=F)
+    kgap <- sjc.kgap(data, plotResults = F)
     # save group counts
     groupcount <- kgap$solution
   }
@@ -243,10 +218,9 @@ sjc.qclus <- function(data,
   # ---------------------------------------------
   if (is.null(groups)) {
     # check for parameter and R version
-    if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
+    if (!getRversion() <= "3.0.3" && agglomeration == "ward") agglomeration <- "ward.D2"
     grp.class <- grp <- sjc.cluster(data.origin, groupcount, method, distance, agglomeration, iter.max, algorithm)
-  }
-  else {
+  } else {
     grp.class <- grp <- groups
   }
   # remove missings
@@ -254,19 +228,18 @@ sjc.qclus <- function(data,
   # ---------------------------------------------
   # check whether groupcount was matrix or not
   # ---------------------------------------------
-  if (is.matrix(groupcount)) {
-    groupcount <- length(unique(grp))
-  }
+  if (is.matrix(groupcount)) groupcount <- length(unique(grp))
   # ---------------------------------------------
   # auto-set legend labels
   # ---------------------------------------------
-  if (is.null(legendLabels)) {
-    legendLabels <- sprintf("Group %i", c(1:groupcount))
-  }
+  if (is.null(legendLabels)) legendLabels <- sprintf("Group %i", c(1:groupcount))
   # --------------------------------------------------------
   # show goodness of classification
   # --------------------------------------------------------
-  grp.accuracy <- sjc.grpdisc(data, groups=grp, groupcount=groupcount, printPlot=showAccuracy)
+  grp.accuracy <- sjc.grpdisc(data, 
+                              groups = grp, 
+                              groupcount = groupcount, 
+                              printPlot = showAccuracy)
   # ---------------------------------------------
   # Add group count to legend labels
   # ---------------------------------------------
@@ -322,39 +295,40 @@ sjc.qclus <- function(data,
   # create plot
   # --------------------------------------------------------
   if (reverseAxis.x) {
-    gp <- ggplot(df, aes(x=rev(x), y=y, fill=group))
+    gp <- ggplot(df, aes(x = rev(x), y = y, fill = group))
     axisLabels.x <- rev(axisLabels.x)
-  }
-  else {
-    gp <- ggplot(df, aes(x=x, y=y, fill=group))
+  } else {
+    gp <- ggplot(df, aes(x = x, y = y, fill = group))
   }
   gp <- gp +
-    geom_bar(stat="identity", position=position_dodge(geom.size+geom.spacing), width=geom.size) +
-    scale_x_discrete(breaks=c(1:colnr), limits=c(1:colnr), labels=axisLabels.x) +
-    labs(title=title, x=axisTitle.x, y=axisTitle.y, fill=legendTitle)
+    geom_bar(stat = "identity", 
+             position = position_dodge(geom.size + geom.spacing), 
+             width = geom.size) +
+    scale_x_discrete(breaks = c(1:colnr), 
+                     limits = c(1:colnr), 
+                     labels = axisLabels.x) +
+    labs(title = title, x = axisTitle.x, y = axisTitle.y, fill = legendTitle)
   # --------------------------------------------------------
   # hide y-axis labels
   # --------------------------------------------------------
-  if (!showAxisLabels.y) {
-    gp <- gp + scale_y_continuous(labels=NULL)    
-  } 
+  if (!showAxisLabels.y) gp <- gp + scale_y_continuous(labels = NULL)    
   # --------------------------------------------------------
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   # --------------------------------------------------------
-  if (coord.flip) {
-    gp <- gp + coord_flip()
-  }
+  if (coord.flip) gp <- gp + coord_flip()
   # --------------------------------------------------------
   # use facets
   # --------------------------------------------------------
-  if (facetCluster) {
-    gp <- gp + facet_wrap(~group)
-  }
+  if (facetCluster) gp <- gp + facet_wrap(~group)
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
-  gp <- sj.setGeomColors(gp, geom.colors, length(legendLabels), ifelse(hideLegend==TRUE, FALSE, TRUE), legendLabels)  
+  gp <- sj.setGeomColors(gp, 
+                         geom.colors, 
+                         length(legendLabels), 
+                         ifelse(hideLegend == TRUE, FALSE, TRUE), 
+                         legendLabels)  
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
@@ -362,13 +336,13 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
-  invisible (structure(class = "sjcqclus",
-                       list(data = df,
-                            groupcount = groupcount,
-                            classification = grp.class,
-                            accuracy=grp.accuracy$accuracy,
-                            plot = gp)))
-}
+  invisible(structure(class = "sjcqclus",
+                      list(data = df,
+                           groupcount = groupcount,
+                           classification = grp.class,
+                           accuracy = grp.accuracy$accuracy,
+                           plot = gp)))
+                      }
 
 
 #' @title Compute hierarchical or kmeans cluster analysis
@@ -443,8 +417,8 @@ sjc.cluster <- function(data,
   # --------------------------------------------------------
   # check for abbreviations
   # --------------------------------------------------------
-  if (method=="kmeans") method <- "k"
-  if (method=="hclust") method <- "h"
+  if (method == "kmeans") method <- "k"
+  if (method == "hclust") method <- "h"
   # --------------------------------------------------------
   # save original data frame
   # --------------------------------------------------------
@@ -452,7 +426,7 @@ sjc.cluster <- function(data,
   # create id with index numbers for rows
   data.origin$sj.grp.id <- c(1:nrow(data.origin))
   # create NA-vector of same length as data frame
-  complete.groups <- rep(NA, times=nrow(data.origin))
+  complete.groups <- rep(NA, times = nrow(data.origin))
   # Prepare Data
   # listwise deletion of missing
   data <- na.omit(data) 
@@ -461,18 +435,20 @@ sjc.cluster <- function(data,
   # --------------------------------------------------
   # Ward Hierarchical Clustering
   # --------------------------------------------------
-  if (method=="h") {
+  if (method == "h") {
     # check for parameter and R version
-    if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
+    if (!getRversion() <= "3.0.3" && agglomeration == "ward") agglomeration <- "ward.D2"
     # distance matrix
-    d <- dist(data, method=distance)
+    d <- dist(data, method = distance)
     # hierarchical clustering, using ward
-    hc <- hclust(d, method=agglomeration) 
+    hc <- hclust(d, method = agglomeration) 
     # cut tree into x clusters
-    groups <- cutree(hc, k=groupcount)
-  }
-  else {
-    km <- kmeans(data, centers=groupcount, iter.max=iter.max, algorithm=algorithm)
+    groups <- cutree(hc, k = groupcount)
+  } else {
+    km <- kmeans(data, 
+                 centers = groupcount, 
+                 iter.max = iter.max, 
+                 algorithm = algorithm)
     # return cluster assignment
     groups <- km$cluster
   }
@@ -532,23 +508,26 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
   # Ward Hierarchical Clustering
   # --------------------------------------------------
   # distance matrix
-  d <- dist(data, method=distance)
+  d <- dist(data, method = distance)
   # check for parameter and R version
-  if (!getRversion() <= "3.0.3" && agglomeration=="ward") agglomeration <- "ward.D2"
+  if (!getRversion() <= "3.0.3" && agglomeration == "ward") agglomeration <- "ward.D2"
   # hierarchical clustering, using ward
-  hc <- hclust(d, method=agglomeration) 
+  hc <- hclust(d, method = agglomeration) 
   # display simple dendrogram
-  plot(hc, main="Cluster Dendrogramm", xlab=sprintf("Hierarchical Cluster Analysis, %s-Method", agglomeration))
+  plot(hc, 
+       main = "Cluster Dendrogramm", 
+       xlab = sprintf("Hierarchical Cluster Analysis, %s-Method", 
+                      agglomeration))
   # now plot overlaying rectangles, depending on the amount of groupcounts
   gl <- length(groupcount)
-  if (gl>1) {
+  if (gl > 1) {
     # retrieve different colors
     color <- scales::brewer_pal("qual", "Set1")(gl)
     # iterate all groupcounts
     for (cnt in 1:gl) {
       k <- groupcount[cnt]
       # retrieve cluster
-      cluster <- cutree(hc, k=k)
+      cluster <- cutree(hc, k = k)
       # create table with cluster groups
       clustab <- table(cluster)[unique(cluster[hc$order])]
       m <- c(0, cumsum(clustab))
@@ -556,18 +535,17 @@ sjc.dend <- function(data, groupcount, distance="euclidean", agglomeration="ward
       # draw dendrogram with red borders around the clusters 
       # source code taken from "rect.hclust" from base-package
       for (n in seq_along(which)) {
-        rect(m[which[n]] + 0.46 + (cnt*0.2), 
+        rect(m[which[n]] + 0.46 + (cnt * 0.2), 
              par("usr")[3L], 
-             m[which[n] + 1] + 0.53 - (cnt*0.2), 
-             mean(rev(hc$height)[(k-1):k]), 
-             border=color[cnt],
-             lwd=2)
+             m[which[n] + 1] + 0.53 - (cnt * 0.2), 
+             mean(rev(hc$height)[(k - 1):k]), 
+             border = color[cnt],
+             lwd = 2)
       }
     }
-  }
-  else {
+  } else {
     # draw dendrogram with red borders around the clusters 
-    rect.hclust(hc, k=groupcount, border="red")
+    rect.hclust(hc, k = groupcount, border = "red")
   }
 }
 
@@ -615,12 +593,12 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
   # listwise deletion of missing
   data <- na.omit(data)
   groups <- na.omit(groups)
-  xval <- cbind(1:groupcount)-0.25
+  xval <- cbind(1:groupcount) - 0.25
   xplotval <- cbind(1:groupcount)
   # ---------------------------------------------------------------
   # compute discriminant analysis of groups on original data frame
   # ---------------------------------------------------------------
-  disc <- MASS::lda(groups ~ ., data=data, na.action="na.omit", CV=TRUE)
+  disc <- MASS::lda(groups ~ ., data = data, na.action = "na.omit", CV = TRUE)
   # ---------------------------------------------------------------
   # Assess the accuracy of the prediction
   # percent correct for each category of groups
@@ -630,13 +608,13 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
   # ---------------------------------------------------------------
   # print barplot for correct percentage for each category of groups
   # ---------------------------------------------------------------
-  perc <- round(100*dg,2)
-  percrest <- round(100-perc,2)
+  perc <- round(100 * dg, 2)
+  percrest <- round(100 - perc, 2)
   counts <- rbind(perc, percrest)
   # total correct percentage
   totalcorrect <- sum(diag(prop.table(ct)))
   # round total percentages and transform to percent value
-  totalcorrect <- round(100*totalcorrect,2)
+  totalcorrect <- round(100 * totalcorrect, 2)
   # create three data columns for data frame which is
   # needed to plot the barchart with ggplot
   newdat <- NULL
@@ -648,8 +626,8 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect=TRUE, printPl
   for (i in 1:groupcount) {
     # first columns indicates the two parts of each group
     # (correct percentage and remaining percentage untill 100%)
-    newdat <- rbind(newdat, c(paste("g",i,sep="")))
-    newdat <- rbind(newdat, c(paste("g",i,sep="")))
+    newdat <- rbind(newdat, c(paste("g", i, sep = "")))
+    newdat <- rbind(newdat, c(paste("g", i, sep = "")))
     # second columns contains the percentage of lda
     # followed by the remaining percentage to 100%
     tmpdat <- rbind(tmpdat, perc[i])

@@ -8,19 +8,20 @@ sjp.corr(data, title = NULL, axisLabels = NULL, type = "circle",
   sortCorrelations = TRUE, decimals = 3, missingDeletion = "listwise",
   corMethod = "spearman", geom.colors = "RdBu", geom.size = 15,
   breakTitleAt = 50, breakLabelsAt = 20, hideLegend = TRUE,
-  legendTitle = NULL, showCorrelationValueLabels = TRUE,
-  showCorrelationPValues = TRUE, pvaluesAsNumbers = FALSE,
-  printPlot = TRUE)
+  legendTitle = NULL, showValueLabels = TRUE, showPValues = TRUE,
+  pvaluesAsNumbers = FALSE, printPlot = TRUE)
 }
 \arguments{
-\item{data}{A correlation object, built with the R-\code{\link{cor}}-function, or a data frame
-which correlations should be calculated.}
+\item{data}{a matrix with correlation coefficients as returned by the
+\code{\link{cor}}-function, or a \code{\link{data.frame}} of variables that
+should be correlated.}
 
-\item{title}{Title of the diagram, plotted above the whole diagram panel.}
+\item{title}{plot title as string.}
 
 \item{axisLabels}{Labels for the x- andy y-axis.
-axisLabels are detected automatically if \code{data} is a data frame where each variable has
-a \code{"variable.labels"} attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).}
+axisLabels are detected automatically if \code{data} is a \code{\link{data.frame}}
+where each variable has a variable label attribute (see \code{\link[sjmisc]{set_var_labels}})
+for details).}
 
 \item{type}{Indicates whether the geoms of correlation values should be plotted
 as \code{"circle"} (default) or as \code{"tile"}.}
@@ -32,7 +33,7 @@ data frame.}
 
 \item{decimals}{Indicates how many decimal values after comma are printed when
 the values labels are shown. Default is 3. Only applies when
-\code{showCorrelationValueLabels} is \code{TRUE}.}
+\code{showValueLabels} is \code{TRUE}.}
 
 \item{missingDeletion}{Indicates how missing values are treated. May be either
 \code{"listwise"} (default) or \code{"pairwise"}.}
@@ -60,13 +61,13 @@ by gradient colour fill. Default is \code{TRUE}, hence the legend is hidden.}
 \item{legendTitle}{The legend title, provided as string, e.g. \code{legendTitle=c("Strength of correlation")}.
 Default is \code{NULL}, hence no legend title is used.}
 
-\item{showCorrelationValueLabels}{Whether correlation values should be plotted to each geom}
+\item{showValueLabels}{Whether correlation values should be plotted to each geom}
 
-\item{showCorrelationPValues}{Whether significance levels (p-values) of correlations should
-be plotted to each geom.}
+\item{showPValues}{Whether significance levels (p-values) of correlations should
+be plotted to each geom. See 'Note'.}
 
 \item{pvaluesAsNumbers}{If \code{TRUE}, the significance levels (p-values) are printed as numbers.
-if \code{FALSE} (default), asterisks are used.}
+if \code{FALSE} (default), asterisks are used. See 'Note'.}
 
 \item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
@@ -77,21 +78,32 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
           (\code{corr.matrix}).
 }
 \description{
-Plot correlations as ellipses or tiles. Required parameter is either
-               a data frame or a computed \code{\link{cor}}-object. In case of ellipses, the
+Plot correlation matrix as ellipses or tiles. Required parameter is either
+               a \code{\link{data.frame}} or a matrix with correlation coefficients
+               as returned by the \code{\link{cor}}-function. In case of ellipses, the
                ellipses size indicates the strength of the correlation. Furthermore,
                blue and red colors indicate positive or negative correlations, where
-               stronger correlations are darkened.
+               stronger correlations are darker.
+}
+\note{
+If \code{data} is a matrix with correlation coefficients as returned by
+      the \code{\link{cor}}-function, p-values can't be computed.
+      Thus, \code{showPValues} and \code{pvaluesAsNumbers}
+      only have an effect if \code{data} is a \code{\link{data.frame}}.
 }
 \examples{
 # create data frame with 5 random variables
-df <- as.data.frame(cbind(rnorm(10), rnorm(10), rnorm(10), rnorm(10), rnorm(10)))
+mydf <- data.frame(cbind(runif(10),
+                         runif(10),
+                         runif(10),
+                         runif(10),
+                         runif(10)))
 
 # plot correlation matrix using circles
-sjp.corr(df)
+sjp.corr(mydf)
 
 # plot correlation matrix using square tiles without diagram background
-sjp.corr(df, type="tile")
+sjp.corr(mydf, type = "tile")
 
 
 # -------------------------------
@@ -105,16 +117,15 @@ varlabs <- get_var_labels(efc)
 
 # create data frame
 vars.index <- c(1, 4, 15, 19, 20, 21, 22, 24, 25)
-df <- as.data.frame(efc[, vars.index])
-colnames(df) <- varlabs[vars.index]
+mydf <- data.frame(efc[, vars.index])
+colnames(mydf) <- varlabs[vars.index]
 
 # show legend
-sjp.corr(df, type="tile", hideLegend=FALSE)
+sjp.corr(mydf, type = "tile", hideLegend = FALSE)
 
 # -------------------------------
 # auto-detection of labels
 # -------------------------------
-efc <- set_var_labels(efc, varlabs)
 # blank theme
 sjp.setTheme(theme = "blank", axis.angle.x = 90)
 sjp.corr(efc[, vars.index])

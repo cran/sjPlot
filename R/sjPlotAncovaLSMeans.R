@@ -1,100 +1,5 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld", "l.ci", "u.ci"))
-
-#' @title Plot estimated marginal means of Two-Way Repeated Measures AN(C)OVA
-#' @name sjp.emm.int
-#'
-#' @references \href{http://www.theanalysisfactor.com/using-adjusted-means-to-interpret-moderators-in-analysis-of-covariance/}{Grace-Martin K: Using Adjusted Means to Interpret Moderators in Analysis of Covariance.}
-#'
-#' @description Plot estimated marginal means (also called \emph{least square means} or
-#'                \emph{marginal means}) of (significant) interaction terms in two-way
-#'                repeated measure ANOVA or ANCOVA. The fitted models may be linear (mixed
-#'                effects) models of class \code{\link{lm}} or \code{\link[lme4]{merMod}}.
-#'                This function may be used to plot differences in interventions between
-#'                control and treatment groups over multiple time points.
-#'
-#' @note This function is deprecated and will be removed in future releases of \code{sjPlot}.
-#'         Please use \code{\link{sjp.int}} with parameter \code{type = "emm"}.
-#'
-#' @seealso \itemize{
-#'            \item \href{http://www.strengejacke.de/sjPlot/sjp.emm.int/}{sjPlot manual: sjp.emm.int}
-#'            \item \href{http://strengejacke.wordpress.com/2014/08/19/visualize-pre-post-comparison-of-intervention-rstats/}{Weblog example}
-#'          }
-#'
-#' @param fit the fitted linear (mixed effect) model (\code{\link{lm}} or \code{\link[lme4]{lmer}}),
-#'          including interaction terms.
-#' @param swapPredictors if \code{TRUE}, the grouping variable and predictor on
-#'          the x-axis are swapped.
-#' @param plevel Indicates at which p-value an interaction term is considered as \emph{significant},
-#'          i.e. at which p-level an interaction term will be considered for plotting. Default is
-#'          0.05 (5 percent), hence, non-significant interactions are excluded by default.
-#' @param title a default title used for the plots. Default value is \code{NULL}, which means that each plot's title
-#'          includes the dependent variable as well as the names of the interaction terms.
-#' @param geom.colors A vector of color values.
-#' @param axisTitle.x a default title used for the x-axis. Default value is \code{NULL},
-#'          which means that each plot's x-axis uses the predictor's name as title.
-#' @param axisTitle.y a default title used for the y-axis. Default value is \code{NULL},
-#'          which means that each plot's y-axis uses the dependent variable's name as title.
-#' @param axisLabels.x Character vector with value labels of the repeated measure variable
-#'          that are used for labelling the x-axis.
-#' @param legendTitle Character vector with title of the diagram's legend. Default is
-#'          \code{NULL}, so the name of the grouping variable is used as legend title.
-#' @param legendLabels Labels for the guide/legend. Default is \code{NULL}, so the levels of
-#'          the grouping variable are used as legend labels.
-#' @param showValueLabels if \code{TRUE}, value labels are plotted along the lines. Default is \code{FALSE}.
-#' @param valueLabel.digits the amount of digits of the displayed value labels. Defaults to 2.
-#' @param showCI If \code{TRUE}, a confidence region for the estimated marginal means
-#'          will be plotted.
-#' @param breakTitleAt Wordwrap for diagram's title. Determines how many chars of the title are
-#'          displayed in one line and when a line break is inserted. Default is \code{50}.
-#' @param breakLegendTitleAt Wordwrap for diagram legend title. Determines how many chars of the legend's title
-#'          are displayed in one line and when a line break is inserted.
-#' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are
-#'          displayed in one line and when a line break is inserted. Default is \code{20}.
-#' @param axisLimits.y A vector with two values, defining the lower and upper limit from the y-axis.
-#'          By default, this value is \code{NULL}, i.e. axis limits will be calculated upon the
-#'          range of y-values.
-#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is \code{NULL}.
-#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
-#' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list})
-#'           as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
-#'
-#'
-#' @import ggplot2
-#' @import sjmisc
-#' @export
-sjp.emm.int <- function(fit,
-                       swapPredictors=FALSE,
-                       plevel=0.05,
-                       title=NULL,
-                       geom.colors="Set1",
-                       axisTitle.x=NULL,
-                       axisTitle.y=NULL,
-                       axisLabels.x=NULL,
-                       legendTitle=NULL,
-                       legendLabels=NULL,
-                       showValueLabels=FALSE,
-                       valueLabel.digits=2,
-                       showCI=FALSE,
-                       breakTitleAt=50,
-                       breakLegendTitleAt=20,
-                       breakLegendLabelsAt=20,
-                       axisLimits.y=NULL,
-                       gridBreaksAt=NULL,
-                       printPlot=TRUE) {
-  .Deprecated("sjp.int", 
-              package = "sjPlot", 
-              msg = "sjp.emm.int is deprecated. Please use 'sjp.int' with paramerer 'type = \"emm\"'.",
-              old = as.character(sys.call(sys.parent()))[1L])
-
-  return (sjp.emm(fit, swapPredictors, plevel, title, geom.colors,
-                  axisTitle.x, axisTitle.y, axisLabels.x, legendTitle, legendLabels,
-                  showValueLabels, valueLabel.digits, showCI, breakTitleAt,
-                  breakLegendTitleAt, breakLegendLabelsAt, axisLimits.y, 
-                  gridBreaksAt, printPlot))
-}
+if (getRversion() >= "2.15.1") utils::globalVariables(c("xn", "vld", "l.ci", "u.ci"))
 
 sjp.emm <- function(fit,
                     swapPredictors=FALSE,
@@ -129,11 +34,11 @@ sjp.emm <- function(fit,
   # go to sub-function if class = lmerMod
   # -----------------------------------------------------------
   if (any(class(fit) == "lmerMod") || any(class(fit) == "merModLmerTest")) {
-    return (sjp.emm.lmer(fit, swapPredictors, plevel, title, geom.colors,
-                         axisTitle.x, axisTitle.y, axisLabels.x, legendLabels,
-                         showValueLabels, valueLabel.digits, showCI, breakTitleAt,
-                         breakLegendLabelsAt, axisLimits.y, gridBreaksAt, 
-                         facet.grid, printPlot))
+    return(sjp.emm.lmer(fit, swapPredictors, plevel, title, geom.colors,
+                        axisTitle.x, axisTitle.y, axisLabels.x, legendLabels,
+                        showValueLabels, valueLabel.digits, showCI, breakTitleAt,
+                        breakLegendLabelsAt, axisLimits.y, gridBreaksAt, 
+                        facet.grid, printPlot))
   }
   # init vector that saves ggplot objects
   plotlist <- list()
@@ -141,7 +46,7 @@ sjp.emm <- function(fit,
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
-  if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- waiver()
+  if (is.null(gridBreaksAt)) gridbreaks.y <- waiver()
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -182,9 +87,9 @@ sjp.emm <- function(fit,
     it.pos <- pos
   }
   # check whether we have any interaction terms included at all
-  if(it.nr == 0) {
+  if (it.nr == 0) {
     warning("No interaction term found in fitted model...", call. = FALSE)
-    return (invisible (NULL))
+    return(invisible(NULL))
   }
   # save names of interaction predictor variables into this object
   # but only those with a specific p-level
@@ -197,7 +102,7 @@ sjp.emm <- function(fit,
   # check for any signigicant interactions, stop if nothing found
   if (is.null(intnames) || 0 == length(intnames)) {
     warning("No significant interactions found...", call. = FALSE)
-    return (invisible (NULL))
+    return(invisible(NULL))
   }
   # -----------------------------------------------------------
   # Now iterate all interaction terms from model
@@ -209,198 +114,211 @@ sjp.emm <- function(fit,
     # -----------------------------------------------------------
     terms <- unlist(strsplit(it.names[i], ":"))
     # -----------------------------------------------------------
-    # Iterate all interactions on factor-level-basis from model
+    # check if both interaction terms are factors
     # -----------------------------------------------------------
-    for (cnt in 1:length(intnames)) {
+    if (is.factor(fit$model[[terms[1]]]) && is.factor(fit$model[[terms[2]]])) {
       # -----------------------------------------------------------
-      # first, retrieve and split interaction term so we know
-      # the two predictor variables, or factor levels of the
-      # interaction term
+      # Iterate all interactions on factor-level-basis from model
       # -----------------------------------------------------------
-      lvls <- unlist(strsplit(intnames[cnt], ":"))
-      # -----------------------------------------------------------
-      # since we may have factors with more levels, the original
-      # term labels differ from what we have as coefficient-
-      # e.g., "ChickWeight$Diet", becomes "Diet1", "Diet2", etc.
-      # to calculate marginal means, we only need "Diet". So here
-      # we have to find, which terms match the significant coefficients
-      # found, and use the term labels for ls means...
-      # -----------------------------------------------------------
-      if (grepl(terms[1], lvls[1], fixed = T) && grepl(terms[2], lvls[2], fixed = T)) {
-        # we found a match
-        interactionterms <- rbind(interactionterms, terms)
-        # leave loop
-        break
+      for (cnt in 1:length(intnames)) {
+        # -----------------------------------------------------------
+        # first, retrieve and split interaction term so we know
+        # the two predictor variables, or factor levels of the
+        # interaction term
+        # -----------------------------------------------------------
+        lvls <- unlist(strsplit(intnames[cnt], ":"))
+        # -----------------------------------------------------------
+        # since we may have factors with more levels, the original
+        # term labels differ from what we have as coefficient-
+        # e.g., "ChickWeight$Diet", becomes "Diet1", "Diet2", etc.
+        # to calculate marginal means, we only need "Diet". So here
+        # we have to find, which terms match the significant coefficients
+        # found, and use the term labels for ls means...
+        # -----------------------------------------------------------
+        if (grepl(terms[1], lvls[1], fixed = T) && grepl(terms[2], lvls[2], fixed = T)) {
+          # we found a match
+          interactionterms <- rbind(interactionterms, terms)
+          # leave loop
+          break
+        }
       }
+    } else {
+      warning(sprintf("Both %s and %s need to be factors! Skipping these interaction terms...", terms[1], terms[2]), call. = F)
     }
   }
-  for (cnt in 1:nrow(interactionterms)) {
-    # -----------------------------------------------------------
-    # retrieve each pair of interaction terms
-    # -----------------------------------------------------------
-    term.pairs <- interactionterms[cnt, ]
-    if (swapPredictors) term.pairs <- rev(term.pairs)
-    # -----------------------------------------------------------
-    # retrieve estiamted marginal means
-    # -----------------------------------------------------------
-    emm <- summary(lsmeans::lsmeans.character(fit, term.pairs))
-    # create data frame from lsmeans
-    intdf <- data.frame(emm[2],
-                        emm[3],
-                        emm[1],
-                        emm[6],
-                        emm[7],
-                        rep(valueLabel.digits, times = nrow(emm[1])))
-    colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
-    # -----------------------------------------------------------
-    # convert df-values to numeric
-    # -----------------------------------------------------------
-    intdf$y <- as.numeric(as.character(intdf$y))
-    # add numeric x for geom_line
-    intdf$xn <- as.numeric(intdf$x)
-    # ci to numeric, y-scale is continuous
-    intdf$l.ci <- as.numeric(intdf$l.ci)
-    intdf$u.ci <- as.numeric(intdf$u.ci)
-    # order data frame
-    intdf <- intdf[order(intdf$grp), ]
-    # -----------------------------------------------------------
-    # retrieve lowest and highest x and y position to determine
-    # the scale limits
-    # -----------------------------------------------------------
-    if (is.null(axisLimits.y)) {
-      lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
-      upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
-    } else {
-      lowerLim.y <- axisLimits.y[1]
-      upperLim.y <- axisLimits.y[2]
-    }
-    # -----------------------------------------------------------
-    # check whether user defined grid breaks / tick marks are used
-    # -----------------------------------------------------------
-    if (!is.null(gridBreaksAt)) {
-      gridbreaks.y <- c(seq(lowerLim.y, upperLim.y, by = gridBreaksAt))
-    }
-    # -----------------------------------------------------------
-    # prepare label and name from dependend variable
-    # -----------------------------------------------------------
-    # get response name, which is variable name
-    response.name <- colnames(fit$model)[1]
-    # get variable label attribute
-    response.label <- sjmisc:::autoSetVariableLabels(fit$model[[1]])
-    # check if we have any
-    if (is.null(response.label)) response.label <- response.name
-    # -----------------------------------------------------------
-    # prepare label for x-axix
-    # -----------------------------------------------------------
-    # get value label attribute
-    alx <- sjmisc:::autoSetValueLabels(fit$model[[term.pairs[2]]])
-    # check if we have any
-    if (is.null(alx)) alx <- term.pairs[2]
-    # -----------------------------------------------------------
-    # prepare plot title and axis titles
-    # -----------------------------------------------------------
-    if (is.null(title)) {
-      labtitle <- paste0("Estimated marginal means of ", response.name,
-                         " between ", term.pairs[2],
-                         " and ", term.pairs[1])
-    } else {
-      labtitle <- title
-    }
-    # -----------------------------------------------------------
-    # legend labels
-    # -----------------------------------------------------------
-    if (is.null(legendLabels)) {
-      lLabels <- levels(fit$model[term.pairs[1]][, 1])
-    } else {
-      lLabels <- legendLabels
-    }
-    # -----------------------------------------------------------
-    # legend title
-    # -----------------------------------------------------------
-    if (is.null(legendTitle)) {
-      lTitle <- term.pairs[1]
-    } else {
-      # set legend title for plot
-      lTitle <- legendTitle
-    }
-    if (is.null(axisLabels.x)) axisLabels.x <- alx
-    if (!is.null(axisTitle.x)) {
-      labx <- axisTitle.x
-    } else {
-      labx <- term.pairs[2]
-    }
-    if (!is.null(axisTitle.y)) {
-      laby <- axisTitle.y
-    } else {
-      laby <- response.label
-    }
-    # -----------------------------------------------------------
-    # prepare annotation labels
-    # -----------------------------------------------------------
-    # wrap title
-    labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
-    # wrap legend labels
-    lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
-    # wrap legend title
-    lTitle <- sjmisc::word_wrap(lTitle, breakLegendTitleAt)
-    # -----------------------------------------------------------
-    # prepare base plot of interactions
-    # -----------------------------------------------------------
-    baseplot <- ggplot(intdf)
-    # -----------------------------------------------------------
-    # Confidence intervals?
-    # -----------------------------------------------------------
-    if (showCI) baseplot <- baseplot +
-        geom_ribbon(aes(x = xn, ymin = l.ci, ymax = u.ci, fill = grp), alpha = .3)
-    # -----------------------------------------------------------
-    # continue with plot. point and line layers above ribbon
-    # -----------------------------------------------------------
-    baseplot <- baseplot +
-      geom_point(aes(x = x, y = y, colour = grp)) +
-      geom_line(aes(x = xn, y = y, colour = grp)) +
-      scale_x_discrete(labels = axisLabels.x)
-    # ------------------------------------------------------------
-    # plot value labels
-    # ------------------------------------------------------------
-    if (showValueLabels) {
+  # -----------------------------------------------------------
+  # check if we have any valid interaction terms
+  # for lsmeans function
+  # -----------------------------------------------------------
+  if (nrow(interactionterms) > 0) {
+    for (cnt in 1:nrow(interactionterms)) {
+      # -----------------------------------------------------------
+      # retrieve each pair of interaction terms
+      # -----------------------------------------------------------
+      term.pairs <- interactionterms[cnt, ]
+      if (swapPredictors) term.pairs <- rev(term.pairs)
+      # -----------------------------------------------------------
+      # retrieve estiamted marginal means
+      # -----------------------------------------------------------
+      emm <- summary(lsmeans::lsmeans.character(fit, term.pairs))
+      # create data frame from lsmeans
+      intdf <- data.frame(emm[2],
+                          emm[3],
+                          emm[1],
+                          emm[6],
+                          emm[7],
+                          rep(valueLabel.digits, times = nrow(emm[1])))
+      colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
+      # -----------------------------------------------------------
+      # convert df-values to numeric
+      # -----------------------------------------------------------
+      intdf$y <- as.numeric(as.character(intdf$y))
+      # add numeric x for geom_line
+      intdf$xn <- as.numeric(intdf$x)
+      # ci to numeric, y-scale is continuous
+      intdf$l.ci <- as.numeric(intdf$l.ci)
+      intdf$u.ci <- as.numeric(intdf$u.ci)
+      # order data frame
+      intdf <- intdf[order(intdf$grp), ]
+      # -----------------------------------------------------------
+      # retrieve lowest and highest x and y position to determine
+      # the scale limits
+      # -----------------------------------------------------------
+      if (is.null(axisLimits.y)) {
+        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
+        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
+      } else {
+        lowerLim.y <- axisLimits.y[1]
+        upperLim.y <- axisLimits.y[2]
+      }
+      # -----------------------------------------------------------
+      # check whether user defined grid breaks / tick marks are used
+      # -----------------------------------------------------------
+      if (!is.null(gridBreaksAt)) {
+        gridbreaks.y <- c(seq(lowerLim.y, upperLim.y, by = gridBreaksAt))
+      }
+      # -----------------------------------------------------------
+      # prepare label and name from dependend variable
+      # -----------------------------------------------------------
+      # get response name, which is variable name
+      response.name <- colnames(fit$model)[1]
+      # get variable label attribute
+      response.label <- sjmisc:::autoSetVariableLabels(fit$model[[1]])
+      # check if we have any
+      if (is.null(response.label)) response.label <- response.name
+      # -----------------------------------------------------------
+      # prepare label for x-axix
+      # -----------------------------------------------------------
+      # get value label attribute
+      alx <- sjmisc:::autoSetValueLabels(fit$model[[term.pairs[2]]])
+      # check if we have any
+      if (is.null(alx)) alx <- term.pairs[2]
+      # -----------------------------------------------------------
+      # prepare plot title and axis titles
+      # -----------------------------------------------------------
+      if (is.null(title)) {
+        labtitle <- paste0("Estimated marginal means of ", response.name,
+                           " between ", term.pairs[2],
+                           " and ", term.pairs[1])
+      } else {
+        labtitle <- title
+      }
+      # -----------------------------------------------------------
+      # legend labels
+      # -----------------------------------------------------------
+      if (is.null(legendLabels)) {
+        lLabels <- levels(fit$model[term.pairs[1]][, 1])
+      } else {
+        lLabels <- legendLabels
+      }
+      # -----------------------------------------------------------
+      # legend title
+      # -----------------------------------------------------------
+      if (is.null(legendTitle)) {
+        lTitle <- term.pairs[1]
+      } else {
+        # set legend title for plot
+        lTitle <- legendTitle
+      }
+      if (is.null(axisLabels.x)) axisLabels.x <- alx
+      if (!is.null(axisTitle.x)) {
+        labx <- axisTitle.x
+      } else {
+        labx <- term.pairs[2]
+      }
+      if (!is.null(axisTitle.y)) {
+        laby <- axisTitle.y
+      } else {
+        laby <- response.label
+      }
+      # -----------------------------------------------------------
+      # prepare annotation labels
+      # -----------------------------------------------------------
+      # wrap title
+      labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
+      # wrap legend labels
+      lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
+      # wrap legend title
+      lTitle <- sjmisc::word_wrap(lTitle, breakLegendTitleAt)
+      # -----------------------------------------------------------
+      # prepare base plot of interactions
+      # -----------------------------------------------------------
+      baseplot <- ggplot(intdf)
+      # -----------------------------------------------------------
+      # Confidence intervals?
+      # -----------------------------------------------------------
+      if (showCI) baseplot <- baseplot +
+          geom_ribbon(aes(x = xn, ymin = l.ci, ymax = u.ci, fill = grp), alpha = .3)
+      # -----------------------------------------------------------
+      # continue with plot. point and line layers above ribbon
+      # -----------------------------------------------------------
       baseplot <- baseplot +
-        geom_text(aes(label = round(y, vld), x = x, y = y),
-                  vjust = 1.5,
-                  show_guide = FALSE)
+        geom_point(aes(x = x, y = y, colour = grp)) +
+        geom_line(aes(x = xn, y = y, colour = grp)) +
+        scale_x_discrete(labels = axisLabels.x)
+      # ------------------------------------------------------------
+      # plot value labels
+      # ------------------------------------------------------------
+      if (showValueLabels) {
+        baseplot <- baseplot +
+          geom_text(aes(label = round(y, vld), x = x, y = y),
+                    vjust = 1.5,
+                    show_guide = FALSE)
+      }
+      # ------------------------------------------------------------------------------------
+      # build plot object with theme and labels
+      # ------------------------------------------------------------------------------------
+      baseplot <- baseplot +
+        # set plot and axis titles
+        labs(title = labtitle,
+             x = labx,
+             y = laby,
+             colour = lTitle) +
+        # set axis scale breaks
+        scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
+      # ---------------------------------------------------------
+      # facet grid?
+      # ---------------------------------------------------------
+      if (facet.grid) baseplot <- baseplot + facet_grid( ~grp)    
+      # ---------------------------------------------------------
+      # set geom colors
+      # ---------------------------------------------------------
+      baseplot <- sj.setGeomColors(baseplot, geom.colors, length(lLabels), TRUE, lLabels) + guides(fill = FALSE)
+      # ---------------------------------------------------------
+      # Check whether ggplot object should be returned or plotted
+      # ---------------------------------------------------------
+      if (printPlot) print(baseplot)
+      # concatenate plot object
+      plotlist[[length(plotlist) + 1]] <- baseplot
+      dflist[[length(dflist) + 1]] <- intdf
     }
-    # ------------------------------------------------------------------------------------
-    # build plot object with theme and labels
-    # ------------------------------------------------------------------------------------
-    baseplot <- baseplot +
-      # set plot and axis titles
-      labs(title = labtitle,
-           x = labx,
-           y = laby,
-           colour = lTitle) +
-      # set axis scale breaks
-      scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
-    # ---------------------------------------------------------
-    # facet grid?
-    # ---------------------------------------------------------
-    if (facet.grid) baseplot <- baseplot + facet_grid( ~ grp)    
-    # ---------------------------------------------------------
-    # set geom colors
-    # ---------------------------------------------------------
-    baseplot <- sj.setGeomColors(baseplot, geom.colors, length(lLabels), TRUE, lLabels) + guides(fill = FALSE)
-    # ---------------------------------------------------------
-    # Check whether ggplot object should be returned or plotted
-    # ---------------------------------------------------------
-    if (printPlot) print(baseplot)
-    # concatenate plot object
-    plotlist[[length(plotlist) + 1]] <- baseplot
-    dflist[[length(dflist) + 1]] <- intdf
   }
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpemmint",
-                       list(plot.list = plotlist,
-                            df.list = dflist)))
+  invisible(structure(class = "sjpemmint",
+                      list(plot.list = plotlist,
+                           df.list = dflist)))
 }
 
 
@@ -417,7 +335,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, axisTi
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
-  if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- waiver()
+  if (is.null(gridBreaksAt)) gridbreaks.y <- waiver()
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -435,7 +353,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, axisTi
     it.names <- preds[pos]
   } else {
     warning("No interaction term found in fitted model...", call. = F)
-    return (invisible (NULL))
+    return(invisible(NULL))
   }
   # -----------------------------------------------------------
   # find all significant interactions
@@ -457,7 +375,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, axisTi
   # check for any signigicant interactions, stop if nothing found
   if (is.null(intnames) || 0 == length(intnames)) {
     warning("No significant interactions found...", call. = FALSE)
-    return (invisible (NULL))
+    return(invisible(NULL))
   }
   # -----------------------------------------------------------
   # Now iterate all interaction terms from model
@@ -469,195 +387,208 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, axisTi
     # -----------------------------------------------------------
     terms <- unlist(strsplit(it.names[i], ":"))
     # -----------------------------------------------------------
-    # Iterate all interactions on factor-level-basis from model
+    # check if both interaction terms are factors
     # -----------------------------------------------------------
-    for (cnt in 1:length(intnames)) {
+    if (is.factor(fit@frame[[terms[1]]]) && is.factor(fit@frame[[terms[2]]])) {
       # -----------------------------------------------------------
-      # first, retrieve and split interaction term so we know
-      # the two predictor variables, or factor levels of the
-      # interaction term
+      # Iterate all interactions on factor-level-basis from model
       # -----------------------------------------------------------
-      lvls <- unlist(strsplit(intnames[cnt], ":"))
-      # -----------------------------------------------------------
-      # since we may have factors with more levels, the original
-      # term labels differ from what we have as coefficient-
-      # e.g., "ChickWeight$Diet", becomes "Diet1", "Diet2", etc.
-      # to calculate marginal means, we only need "Diet". So here
-      # we have to find, which terms match the significant coefficients
-      # found, and use the term labels for ls means...
-      # -----------------------------------------------------------
-      if (grepl(terms[1], lvls[1], fixed = T) && grepl(terms[2], lvls[2], fixed = T)) {
-        # we found a match
-        interactionterms <- rbind(interactionterms, terms)
-        # leave loop
-        break
+      for (cnt in 1:length(intnames)) {
+        # -----------------------------------------------------------
+        # first, retrieve and split interaction term so we know
+        # the two predictor variables, or factor levels of the
+        # interaction term
+        # -----------------------------------------------------------
+        lvls <- unlist(strsplit(intnames[cnt], ":"))
+        # -----------------------------------------------------------
+        # since we may have factors with more levels, the original
+        # term labels differ from what we have as coefficient-
+        # e.g., "ChickWeight$Diet", becomes "Diet1", "Diet2", etc.
+        # to calculate marginal means, we only need "Diet". So here
+        # we have to find, which terms match the significant coefficients
+        # found, and use the term labels for ls means...
+        # -----------------------------------------------------------
+        if (grepl(terms[1], lvls[1], fixed = T) && grepl(terms[2], lvls[2], fixed = T)) {
+          # we found a match
+          interactionterms <- rbind(interactionterms, terms)
+          # leave loop
+          break
+        }
       }
+    } else {
+      warning(sprintf("Both %s and %s need to be factors! Skipping these interaction terms...", terms[1], terms[2]), call. = F)
     }
   }
-  for (cnt in 1:nrow(interactionterms)) {
-    # -----------------------------------------------------------
-    # retrieve each pair of interaction terms
-    # -----------------------------------------------------------
-    term.pairs <- interactionterms[cnt, ]
-    # -----------------------------------------------------------
-    # retrieve estimated marginal means for all predictors of
-    # the model, with various statistics in a data frame format
-    # -----------------------------------------------------------
-    emm.df <- lmerTest::lsmeans(fit, paste(term.pairs, collapse = ":"))[[1]]
-    # swap predictors?
-    if (swapPredictors) term.pairs <- rev(term.pairs)
-    # -----------------------------------------------------------
-    # get column indices of interaction terms, estimate and
-    # confidence intervals. latter term in interaction is considered
-    # as "within subject" (x-pos), first term is considered as
-    # "between subjects" (group)
-    # -----------------------------------------------------------
-    emm.col <- c(which(colnames(emm.df) == term.pairs[2]),
-                 which(colnames(emm.df) == "Estimate"),
-                 which(colnames(emm.df) == term.pairs[1]),
-                 which(colnames(emm.df) == "Lower CI"),
-                 which(colnames(emm.df) == "Upper CI"))
-    # -----------------------------------Ï------------------------
-    # create data frame from lsmeans
-    # -----------------------------------------------------------
-    intdf <- data.frame(emm.df[, emm.col],
-                        rep(valueLabel.digits, times = nrow(emm.df)))
-    colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
-    # -----------------------------------------------------------
-    # convert df-values to numeric
-    # -----------------------------------------------------------
-    intdf$y <- as.numeric(as.character(intdf$y))
-    # add numeric x for geom_line
-    intdf$xn <- as.numeric(intdf$x)
-    # ci to numeric, y-scale is continuous
-    intdf$l.ci <- as.numeric(intdf$l.ci)
-    intdf$u.ci <- as.numeric(intdf$u.ci)
-    # order data frame
-    intdf <- intdf[order(intdf$grp), ]
-    # -----------------------------------------------------------
-    # retrieve lowest and highest x and y position to determine
-    # the scale limits
-    # -----------------------------------------------------------
-    if (is.null(axisLimits.y)) {
-      lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
-      upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
-    } else {
-      lowerLim.y <- axisLimits.y[1]
-      upperLim.y <- axisLimits.y[2]
-    }
-    # -----------------------------------------------------------
-    # check whether user defined grid breaks / tick marks are used
-    # -----------------------------------------------------------
-    if (!is.null(gridBreaksAt)) {
-      gridbreaks.y <- c(seq(lowerLim.y, upperLim.y, by = gridBreaksAt))
-    }
-    # -----------------------------------------------------------
-    # prepare label and name from depend variable
-    # -----------------------------------------------------------
-    # get response name, which is variable name
-    response.name <- colnames(fit@frame)[1]
-    # get variable label attribute
-    response.label <- sjmisc:::autoSetVariableLabels(fit@frame[[1]])
-    # check if we have any
-    if (is.null(response.label)) response.label <- response.name
-    # -----------------------------------------------------------
-    # prepare label for x-axix
-    # -----------------------------------------------------------
-    # get value label attribute
-    alx <- sjmisc:::autoSetValueLabels(fit@frame[[term.pairs[2]]])
-    # check if we have any
-    if (is.null(alx)) alx <- term.pairs[2]
-    # -----------------------------------------------------------
-    # prepare plot title and axis titles
-    # -----------------------------------------------------------
-    if (is.null(title)) {
-      labtitle <- paste0("Estimated marginal means of ", response.name,
-                         " between ", term.pairs[2],
-                         " and ", term.pairs[1])
-    } else {
-      labtitle <- title
-    }
-    if (is.null(legendLabels)) {
-      lLabels <- levels(fit@frame[[term.pairs[1]]])
-    } else {
-      lLabels <- legendLabels
-    }
-    if (is.null(axisLabels.x)) axisLabels.x <- alx
-    if (!is.null(axisTitle.x)) {
-      labx <- axisTitle.x
-    } else {
-      labx <- term.pairs[2]
-    }
-    if (!is.null(axisTitle.y)) {
-      laby <- axisTitle.y
-    } else {
-      laby <- response.label
-    }
-    # -----------------------------------------------------------
-    # prepare annotation labels
-    # -----------------------------------------------------------
-    # wrap title(s)
-    labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
-    labx <- sjmisc::word_wrap(labx, breakTitleAt)
-    laby <- sjmisc::word_wrap(laby, breakTitleAt)
-    # wrap legend labels
-    lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
-    # -----------------------------------------------------------
-    # prepare base plot of interactions
-    # -----------------------------------------------------------
-    baseplot <- ggplot(intdf)
-    # -----------------------------------------------------------
-    # Confidence intervals?
-    # -----------------------------------------------------------
-    if (showCI) baseplot <- baseplot +
+  # -----------------------------------------------------------
+  # check if we have any valid interaction terms
+  # for lsmeans function
+  # -----------------------------------------------------------
+  if (nrow(interactionterms) > 0) {
+    for (cnt in 1:nrow(interactionterms)) {
+      # -----------------------------------------------------------
+      # retrieve each pair of interaction terms
+      # -----------------------------------------------------------
+      term.pairs <- interactionterms[cnt, ]
+      # -----------------------------------------------------------
+      # retrieve estimated marginal means for all predictors of
+      # the model, with various statistics in a data frame format
+      # -----------------------------------------------------------
+      emm.df <- lmerTest::lsmeans(fit, paste(term.pairs, collapse = ":"))[[1]]
+      # swap predictors?
+      if (swapPredictors) term.pairs <- rev(term.pairs)
+      # -----------------------------------------------------------
+      # get column indices of interaction terms, estimate and
+      # confidence intervals. latter term in interaction is considered
+      # as "within subject" (x-pos), first term is considered as
+      # "between subjects" (group)
+      # -----------------------------------------------------------
+      emm.col <- c(which(colnames(emm.df) == term.pairs[2]),
+                   which(colnames(emm.df) == "Estimate"),
+                   which(colnames(emm.df) == term.pairs[1]),
+                   which(colnames(emm.df) == "Lower CI"),
+                   which(colnames(emm.df) == "Upper CI"))
+      # -----------------------------------------------------------
+      # create data frame from lsmeans
+      # -----------------------------------------------------------
+      intdf <- data.frame(emm.df[, emm.col],
+                          rep(valueLabel.digits, times = nrow(emm.df)))
+      colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
+      # -----------------------------------------------------------
+      # convert df-values to numeric
+      # -----------------------------------------------------------
+      intdf$y <- as.numeric(as.character(intdf$y))
+      # add numeric x for geom_line
+      intdf$xn <- as.numeric(intdf$x)
+      # ci to numeric, y-scale is continuous
+      intdf$l.ci <- as.numeric(intdf$l.ci)
+      intdf$u.ci <- as.numeric(intdf$u.ci)
+      # order data frame
+      intdf <- intdf[order(intdf$grp), ]
+      # -----------------------------------------------------------
+      # retrieve lowest and highest x and y position to determine
+      # the scale limits
+      # -----------------------------------------------------------
+      if (is.null(axisLimits.y)) {
+        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
+        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
+      } else {
+        lowerLim.y <- axisLimits.y[1]
+        upperLim.y <- axisLimits.y[2]
+      }
+      # -----------------------------------------------------------
+      # check whether user defined grid breaks / tick marks are used
+      # -----------------------------------------------------------
+      if (!is.null(gridBreaksAt)) {
+        gridbreaks.y <- c(seq(lowerLim.y, upperLim.y, by = gridBreaksAt))
+      }
+      # -----------------------------------------------------------
+      # prepare label and name from depend variable
+      # -----------------------------------------------------------
+      # get response name, which is variable name
+      response.name <- colnames(fit@frame)[1]
+      # get variable label attribute
+      response.label <- sjmisc:::autoSetVariableLabels(fit@frame[[1]])
+      # check if we have any
+      if (is.null(response.label)) response.label <- response.name
+      # -----------------------------------------------------------
+      # prepare label for x-axix
+      # -----------------------------------------------------------
+      # get value label attribute
+      alx <- sjmisc:::autoSetValueLabels(fit@frame[[term.pairs[2]]])
+      # check if we have any
+      if (is.null(alx)) alx <- term.pairs[2]
+      # -----------------------------------------------------------
+      # prepare plot title and axis titles
+      # -----------------------------------------------------------
+      if (is.null(title)) {
+        labtitle <- paste0("Estimated marginal means of ", response.name,
+                           " between ", term.pairs[2],
+                           " and ", term.pairs[1])
+      } else {
+        labtitle <- title
+      }
+      if (is.null(legendLabels)) {
+        lLabels <- levels(fit@frame[[term.pairs[1]]])
+      } else {
+        lLabels <- legendLabels
+      }
+      if (is.null(axisLabels.x)) axisLabels.x <- alx
+      if (!is.null(axisTitle.x)) {
+        labx <- axisTitle.x
+      } else {
+        labx <- term.pairs[2]
+      }
+      if (!is.null(axisTitle.y)) {
+        laby <- axisTitle.y
+      } else {
+        laby <- response.label
+      }
+      # -----------------------------------------------------------
+      # prepare annotation labels
+      # -----------------------------------------------------------
+      # wrap title(s)
+      labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
+      labx <- sjmisc::word_wrap(labx, breakTitleAt)
+      laby <- sjmisc::word_wrap(laby, breakTitleAt)
+      # wrap legend labels
+      lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
+      # -----------------------------------------------------------
+      # prepare base plot of interactions
+      # -----------------------------------------------------------
+      baseplot <- ggplot(intdf)
+      # -----------------------------------------------------------
+      # Confidence intervals?
+      # -----------------------------------------------------------
+      if (showCI) baseplot <- baseplot +
         geom_ribbon(aes(x = xn, ymin = l.ci, ymax = u.ci, fill = grp), alpha = .3)
-    # -----------------------------------------------------------
-    # continue with plot. point and line layers above ribbon
-    # -----------------------------------------------------------
-    baseplot <- baseplot +
-      geom_point(aes(x = x, y = y, colour = grp)) +
-      geom_line(aes(x = xn, y = y, colour = grp)) +
-      scale_x_discrete(labels = axisLabels.x)
-    # ------------------------------------------------------------
-    # plot value labels
-    # ------------------------------------------------------------
-    if (showValueLabels) {
+      # -----------------------------------------------------------
+      # continue with plot. point and line layers above ribbon
+      # -----------------------------------------------------------
       baseplot <- baseplot +
-        geom_text(aes(label = round(y, vld), x = x, y = y),
-                  vjust = 1.5,
-                  show_guide = FALSE)
+        geom_point(aes(x = x, y = y, colour = grp)) +
+        geom_line(aes(x = xn, y = y, colour = grp)) +
+        scale_x_discrete(labels = axisLabels.x)
+      # ------------------------------------------------------------
+      # plot value labels
+      # ------------------------------------------------------------
+      if (showValueLabels) {
+        baseplot <- baseplot +
+          geom_text(aes(label = round(y, vld), x = x, y = y),
+                    vjust = 1.5,
+                    show_guide = FALSE)
+      }
+      # ------------------------------------------------------------------------------------
+      # build plot object with theme and labels
+      # ------------------------------------------------------------------------------------
+      baseplot <- baseplot +
+        # set plot and axis titles
+        labs(title = labtitle,
+             x = labx,
+             y = laby,
+             colour = term.pairs[1]) +
+        # set axis scale breaks
+        scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
+      # ---------------------------------------------------------
+      # facet grid?
+      # ---------------------------------------------------------
+      if (facet.grid) baseplot <- baseplot + facet_grid( ~grp)    
+      # ---------------------------------------------------------
+      # set geom colors
+      # ---------------------------------------------------------
+      baseplot <- sj.setGeomColors(baseplot, geom.colors, length(lLabels), TRUE, lLabels) + guides(fill = FALSE)
+      # ---------------------------------------------------------
+      # Check whether ggplot object should be returned or plotted
+      # ---------------------------------------------------------
+      if (printPlot) print(baseplot)
+      # concatenate plot object
+      plotlist[[length(plotlist) + 1]] <- baseplot
+      dflist[[length(dflist) + 1]] <- intdf
     }
-    # ------------------------------------------------------------------------------------
-    # build plot object with theme and labels
-    # ------------------------------------------------------------------------------------
-    baseplot <- baseplot +
-      # set plot and axis titles
-      labs(title = labtitle,
-           x = labx,
-           y = laby,
-           colour = term.pairs[1]) +
-      # set axis scale breaks
-      scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
-    # ---------------------------------------------------------
-    # facet grid?
-    # ---------------------------------------------------------
-    if (facet.grid) baseplot <- baseplot + facet_grid( ~ grp)    
-    # ---------------------------------------------------------
-    # set geom colors
-    # ---------------------------------------------------------
-    baseplot <- sj.setGeomColors(baseplot, geom.colors, length(lLabels), TRUE, lLabels) + guides(fill = FALSE)
-    # ---------------------------------------------------------
-    # Check whether ggplot object should be returned or plotted
-    # ---------------------------------------------------------
-    if (printPlot) print(baseplot)
-    # concatenate plot object
-    plotlist[[length(plotlist) + 1]] <- baseplot
-    dflist[[length(dflist) + 1]] <- intdf
   }
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpemmint",
-                       list(plot.list = plotlist,
-                            df.list = dflist)))
+  invisible(structure(class = "sjpemmint",
+                      list(plot.list = plotlist,
+                           df.list = dflist)))
 }

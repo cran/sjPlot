@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjPlotLinreg.R
 \name{sjp.lm}
 \alias{sjp.lm}
-\title{Plot linear models}
+\title{Plot estimates or predicted values of linear models}
 \usage{
 sjp.lm(fit, type = "lm", sort.est = TRUE, title = NULL,
   axisLabels.x = NULL, axisLabels.y = NULL, showAxisLabels.y = TRUE,
@@ -18,33 +18,34 @@ sjp.lm(fit, type = "lm", sort.est = TRUE, title = NULL,
   printPlot = TRUE)
 }
 \arguments{
-\item{fit}{The model of the linear regression (\code{\link{lm}}- or \code{\link[plm]{plm}}-object).}
+\item{fit}{fitted linear regression model (\code{\link{lm}}- or \code{plm}-object).}
 
 \item{type}{type of plot. Use one of following:
-\itemize{
-  \item \code{"lm"} (default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.
-  \item \code{"std"} for forest-plot like plot of standardized beta values. If the fitted model only contains one predictor, intercept and slope are plotted.
-  \item \code{"pred"} to plot regression lines for each single predictor of the fitted model.
-  \item \code{"ma"} to check model assumptions. Note that only three parameters are relevant for this option \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.
-  \item \code{"vif"} to plot Variance Inflation Factors. See details.
+\describe{
+  \item{\code{"lm"}}{(default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.}
+  \item{\code{"std"}}{for forest-plot like plot of standardized beta values. If the fitted model only contains one predictor, intercept and slope are plotted.}
+  \item{\code{"pred"}}{to plot regression lines for each single predictor of the fitted model.}
+  \item{\code{"resp"}}{to plot predicted values for the response. Use \code{showCI} parameter to plot standard errors as well.}
+  \item{\code{"ma"}}{to check model assumptions. Note that only three parameters are relevant for this option \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.}
+  \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 }}
 
 \item{sort.est}{Logical, determines whether estimates should be sorted by their values.}
 
-\item{title}{Diagram's title as string.
-Example: \code{title=c("my title")}}
+\item{title}{Diagram's title as string. Example: \code{title = c("my title")}}
 
-\item{axisLabels.x}{Labels of the predictor (independent variable) that is used for labelling the
-axis. Passed as string. Not used if fitted model has more than one predictor and \code{type = "lm"}.
-Example: \code{axisLabel.x=c("My Predictor Var")}.
-Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a
-character vector with variable label strings. You can use it like this:
-\code{axisLabel.x = get_var_labels(efc)['quol_5']}}
+\item{axisLabels.x}{predictor label (independent variable) that is used for labelling the
+axis. Passed as string.
+Two things to consider:
+\itemize{
+  \item Only used if fitted model has one predictor and \code{type = "lm"}.
+  \item If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a character vector with variable label strings. You can use it like this: \code{axisLabel.x = get_var_labels(efc)['quol_5']}
+}}
 
 \item{axisLabels.y}{Labels of the predictor variables (independent vars) that are used for labelling the
 axis. Passed as vector of strings.
-Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}.
-Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+Example: \code{axisLabels.y = c("Label1", "Label2", "Label3")}.
+\strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 list object with label string. The labels may also be passed as list object. They will be coerced
 to character vector automatically.}
 
@@ -55,16 +56,16 @@ or not. Default is \code{TRUE}}
 
 \item{axisLimits}{Defines the range of the axis where the beta coefficients and their confidence intervalls
 are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.}
+the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.}
 
 \item{geom.colors}{User defined color palette for geoms. Must either be vector with two color values
 or a specific color palette code (see below).
 \itemize{
-  \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+  \item If not specified, the \code{"Set1"} color brewer palette will be used.
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-}
-Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).}
+  \item Else specify your own color values as vector, e.g. \code{geom.colors = c("#f00000", "#00ff00")}.
+}}
 
 \item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).}
 
@@ -81,14 +82,13 @@ one line and when a line break is inserted}
 \item{gridBreaksAt}{Sets the breaks on the y axis, i.e. at every n'th position a major
 grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.}
 
-\item{coord.flip}{If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
+\item{coord.flip}{If \code{TRUE} (default), predictors are plotted along the y-axis and estimate
 values are plotted on the x-axis.}
 
-\item{showValueLabels}{Whether the beta and standardized beta values should be plotted
-to each dot or not.}
+\item{showValueLabels}{Whether value labels should be plotted to each dot or not.}
 
 \item{labelDigits}{The amount of digits for rounding the estimations (see \code{showValueLabels}).
-Default is 2, i.e. estimators have 2 digits after decimal point.}
+Default is 2, i.e. estimates have 2 digits after decimal point.}
 
 \item{showPValueLabels}{Whether the significance levels of each coefficient should be appended
 to values or not}
@@ -128,18 +128,18 @@ or if \code{type = "pred"}.}
 
 \item{showLoess}{If \code{TRUE}, an additional loess-smoothed line is plotted.
 Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+or if \code{type = "pred"} or \code{type = "resp"}.}
 
 \item{loessLineColor}{The color of the loess-smoothed line. Default is \code{"red"}. Only applies, if
 \code{showLoess} is \code{TRUE}.
 Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+or if \code{type = "pred"} or \code{type = "resp"}.}
 
 \item{showLoessCI}{If \code{TRUE}, a confidence region for the loess-smoothed line
 will be plotted. Default is \code{FALSE}. Use \code{loessCiLevel} to specifiy the confidence level.
 Only applies, if \code{showLoess} is \code{TRUE}.
 Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+or if \code{type = "pred"} or \code{type = "resp"}.}
 
 \item{loessCiLevel}{The confidence level of the loess-line's confidence region.
 Only applies, if \code{showLoessCI} is \code{TRUE}. Default is 0.95.
@@ -167,7 +167,8 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 Depending on the \code{type}, in most cases (insisibily)
           returns the ggplot-object with the complete plot (\code{plot})
           as well as the data frame that was used for setting up the
-          ggplot-object (\code{df}).
+          ggplot-object (\code{df}). For \code{type = "ma"}, an updated model
+          with removed outliers is returned.
 }
 \description{
 Depending on the \code{type}, this function plots beta coefficients (estimates)
@@ -218,6 +219,8 @@ sjp.lm(fit,
 # plotting regression lines of each single predictor
 # of a fitted model
 # --------------------------------------------------
+library(sjmisc)
+data(efc)
 # fit model
 fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
 

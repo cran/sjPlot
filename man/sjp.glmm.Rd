@@ -9,8 +9,8 @@ sjp.glmm(..., title = NULL, labelDependentVariables = NULL,
   stringModel = "Model", axisLabels.y = NULL, axisTitle.x = "Odds Ratios",
   axisLimits = NULL, breakTitleAt = 50, breakLabelsAt = 25,
   breakLegendAt = 20, gridBreaksAt = 0.5, transformTicks = TRUE,
-  geom.size = 3, geom.spacing = 0.4, geom.colors = "Dark2", nsAlpha = 1,
-  usePShapes = FALSE, interceptLineType = 2,
+  geom.size = 3, geom.spacing = 0.4, geom.colors = "Set1",
+  fade.ns = TRUE, usePShapes = FALSE, interceptLineType = 2,
   interceptLineColor = "grey70", coord.flip = TRUE, showIntercept = FALSE,
   showAxisLabels.y = TRUE, showValueLabels = TRUE, labelDigits = 2,
   showPValueLabels = TRUE, hideLegend = FALSE, facet.grid = FALSE,
@@ -21,7 +21,7 @@ sjp.glmm(..., title = NULL, labelDependentVariables = NULL,
 fitted models, instead of separating each model with comma. See examples.}
 
 \item{title}{Diagram's title as string.
-Example: \code{title=c("my title")}}
+Example: \code{title = "my title"}}
 
 \item{labelDependentVariables}{Labels of the dependent variables of all fitted models
 which have been used as first parameter(s), provided as char vector.}
@@ -38,8 +38,8 @@ Default is \code{"Model"}.}
 
 \item{axisLabels.y}{Labels of the predictor variables (independent vars, odds) that are used for labelling the
 axis. Passed as vector of strings.
-Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
-Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+Example: \code{axisLabels.y = c("Label1", "Label2", "Label3")} \cr
+\strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 \code{list} object with label strings. The labels may also be passed as list object. They will be coerced
 to character vector automatically.}
 
@@ -47,7 +47,7 @@ to character vector automatically.}
 
 \item{axisLimits}{Defines the range of the axis where the beta coefficients and their confidence intervalls
 are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.}
+the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.}
 
 \item{breakTitleAt}{Wordwrap for diagram title. Determines how many chars of the title are displayed in
 one line and when a line break is inserted into the title}
@@ -80,11 +80,10 @@ You can use:
   \item If not specified, the qualitative \code{"Dark2"} color brewer palette will be used.
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-  }
-Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).}
+  \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00", "#0080ff")}).
+  }}
 
-\item{nsAlpha}{The alpha level (transparancy) of non significant predicors. Points and error bars
-are affected by this value and plotted with a slight transparancy. Default is 1.}
+\item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
 
 \item{usePShapes}{If \code{TRUE}, significant levels are distinguished by different point shapes and a related
 legend is plotted. Default is \code{FALSE}.}
@@ -143,7 +142,7 @@ fitOR3 <- glm(y3 ~ swiss$Education + swiss$Examination + swiss$Catholic,
               family = binomial(link = "logit"))
 
 # plot multiple models
-sjp.glmm(fitOR1, fitOR2, fitOR3, facet.grid = TRUE)
+sjp.glmm(fitOR1, fitOR2, fitOR3, facet.grid = TRUE, fade.ns = FALSE)
 
 # plot multiple models with legend labels and point shapes instead of value  labels
 sjp.glmm(fitOR1, fitOR2, fitOR3,
@@ -152,8 +151,7 @@ sjp.glmm(fitOR1, fitOR2, fitOR3,
                                      "Agriculture"),
          showValueLabels = FALSE,
          showPValueLabels = FALSE,
-         usePShapes = TRUE,
-         nsAlpha = 0.2)
+         usePShapes = TRUE)
 
 # plot multiple models from nested lists parameter
 all.models <- list()

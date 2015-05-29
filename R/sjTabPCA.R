@@ -54,21 +54,7 @@
 #'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
-#'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as parameter name and
-#'            \item each style-definition must end with a semicolon
-#'          } 
-#'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the parameter attributes. Examples:
-#'          \itemize{
-#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-#'            \item \code{css.cronbach='+color:green;'} to add green color formatting to the Cronbach's Alpha value.
-#'          }
-#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -89,11 +75,12 @@
 #'            }
 #'            for further use.
 #'
-#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file=NULL}). \cr \cr
-#'         This PCA uses the \code{\link{prcomp}} function and the \code{\link{varimax}} rotation.
+#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#'        This PCA uses the \code{\link{prcomp}} function and 
+#'        the \code{\link{varimax}} rotation.
+#'  
+#' @details See 'Details' in \code{\link{sjt.frq}}.
+#'         
 #' 
 #' @examples
 #' \dontrun{
@@ -190,7 +177,7 @@ sjt.pca <- function (data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(data[, i])
+      vn <- sjmisc:::autoSetVariableLabels(data[[i]])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
@@ -423,13 +410,13 @@ sjt.pca <- function (data,
   # -------------------------------------
   pov <- cpov <- NULL
   if (showVariance) {
-    pov <- summary(pcadata)$importance[2,1:pcadata.kaiser]
-    cpov <- summary(pcadata)$importance[3,1:pcadata.kaiser]
+    pov <- summary(pcadata)$importance[2, 1:pcadata.kaiser]
+    cpov <- summary(pcadata)$importance[3, 1:pcadata.kaiser]
   }
   # -------------------------------------
   # convert data frame, add label names
   # -------------------------------------
-  maxdf <- apply(df,1,function(x) max(abs(x)))
+  maxdf <- apply(df, 1, function(x) max(abs(x)))
   # -------------------------------------
   # start table tag
   # -------------------------------------
@@ -461,28 +448,42 @@ sjt.pca <- function (data,
     # start table row
     rowcss <- ""
     # check for removable items in first row
-    if (i %in% removableItems && i==1) rowcss <- " firsttablerow removable"
+    if (i %in% removableItems && i == 1) rowcss <- " firsttablerow removable"
     # check for removable items in other rows
-    if (i %in% removableItems && i!=1) rowcss <- " removable"
+    if (i %in% removableItems && i != 1) rowcss <- " removable"
     # check for non-removable items in first row
-    if (is.na(match(i, removableItems)) && i==1) rowcss <- " firsttablerow"
+    if (is.na(match(i, removableItems)) && i == 1) rowcss <- " firsttablerow"
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(i %% 2 ==0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(i %% 2 == 0, " arc", "")
     # write tr-tag with class-attributes
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell
-    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol%s%s\">%s</td>\n", arcstring, rowcss, varlabels[i]))
+    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol%s%s\">%s</td>\n", 
+                                                 arcstring, 
+                                                 rowcss, 
+                                                 varlabels[i]))
     # iterate all columns
     for (j in 1:ncol(df)) {
       # start table column
-      colcss <- sprintf(" class=\"tdata centeralign%s%s\"", arcstring, rowcss)
-      if (maxdf[[i]]!=max(abs(df[i,j]))) colcss <- sprintf(" class=\"tdata centeralign minval%s%s\"", arcstring, rowcss)
-      page.content <- paste0(page.content, sprintf("    <td%s>%.*f</td>\n", colcss, digits, df[i,j]))
+      colcss <- sprintf(" class=\"tdata centeralign%s%s\"", 
+                        arcstring, 
+                        rowcss)
+      if (maxdf[[i]] != max(abs(df[i, j]))) colcss <- sprintf(" class=\"tdata centeralign minval%s%s\"", 
+                                                              arcstring, 
+                                                              rowcss)
+      page.content <- paste0(page.content, sprintf("    <td%s>%.*f</td>\n", 
+                                                   colcss, 
+                                                   digits, 
+                                                   df[i, j]))
     }
     # check if msa column should be shown
-    if (showMSA) page.content <- paste0(page.content, sprintf("    <td class=\"tdata msa centeralign%s%s\">%.*f</td>\n", arcstring, rowcss, digits, kmo$MSAi[[i]]))
+    if (showMSA) page.content <- paste0(page.content, sprintf("    <td class=\"tdata msa centeralign%s%s\">%.*f</td>\n", 
+                                                              arcstring, 
+                                                              rowcss, 
+                                                              digits, 
+                                                              kmo$MSAi[[i]]))
     # close row
     page.content <- paste0(page.content, "  </tr>\n")
   }
@@ -496,7 +497,9 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata pov\">%s</td>\n", stringPov))
     # iterate alpha-values
     for (i in 1:length(pov)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign pov\">%.*f&nbsp;%%</td>\n", digits, 100*pov[i]))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign pov\">%.*f&nbsp;%%</td>\n", 
+                                                   digits, 
+                                                   100 * pov[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign pov\"></td>\n")
@@ -505,7 +508,9 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata cpov\">%s</td>\n", stringCpov))
     # iterate alpha-values
     for (i in 1:length(pov)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cpov\">%.*f&nbsp;%%</td>\n", digits, 100*cpov[i]))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cpov\">%.*f&nbsp;%%</td>\n", 
+                                                   digits, 
+                                                   100 * cpov[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign cpov\"></td>\n")
@@ -521,7 +526,9 @@ sjt.pca <- function (data,
     page.content <- paste0(page.content, "    <td class=\"tdata cronbach\">Cronbach's &alpha;</td>\n")
     # iterate alpha-values
     for (i in 1:length(alphaValues)) {
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cronbach\">%.*f</td>\n", digits, alphaValues[i]))
+      page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign cronbach\">%.*f</td>\n", 
+                                                   digits, 
+                                                   alphaValues[i]))
     }
     # check if msa column should be shown
     if (showMSA) page.content <- paste0(page.content, "    <td class=\"tdata centeralign cronbach\"></td>\n")
@@ -552,10 +559,7 @@ sjt.pca <- function (data,
   # on which column inside the data frame the highest
   # loading is
   # -------------------------------------
-  factorindex <- c()
-  for (i in 1:nrow(df)) {
-    factorindex <- c(factorindex, which.max(abs(df[i,])))
-  }
+  factorindex <- apply(df, 1, function(x) which.max(abs(x)))
   # -------------------------------------
   # replace class attributes with inline style,
   # useful for knitr
@@ -600,11 +604,11 @@ sjt.pca <- function (data,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjtpca",
-                       list(page.style = page.style,
-                            page.content = page.content,
-                            output.complete = toWrite,
-                            knitr = knitr,
-                            factor.index = factorindex,
-                            removed.items = removableItems)))
+  invisible(structure(class = "sjtpca",
+                      list(page.style = page.style,
+                           page.content = page.content,
+                           output.complete = toWrite,
+                           knitr = knitr,
+                           factor.index = factorindex,
+                           removed.items = removableItems)))
 }

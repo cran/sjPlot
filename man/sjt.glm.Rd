@@ -14,11 +14,11 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   digits.se = 2, digits.summary = 3, exp.coef = TRUE,
   pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
   showStdError = FALSE, separateConfColumn = TRUE, newLineConf = TRUE,
-  group.pred = TRUE, showAbbrHeadline = TRUE, showPseudoR = TRUE,
+  group.pred = TRUE, showAbbrHeadline = TRUE, showPseudoR = FALSE,
   showLogLik = FALSE, showAIC = FALSE, showChi2 = FALSE,
-  showFamily = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
-  cellGroupIndent = 0.6, encoding = NULL, CSS = NULL, useViewer = TRUE,
-  no.output = FALSE, remove.spaces = TRUE)
+  showHosLem = FALSE, showFamily = FALSE, remove.estimates = NULL,
+  cellSpacing = 0.2, cellGroupIndent = 0.6, encoding = NULL, CSS = NULL,
+  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{One or more fitted \code{\link{glm}}-objects.}
@@ -101,7 +101,8 @@ abbreviations for odds ratios, confidence interval and p-values.}
 
 \item{showPseudoR}{If \code{TRUE} (default), the pseudo R2 values for each model are printed
 in the model summary. R2cs is the Cox-Snell-pseudo R-square value, R2n is Nagelkerke's
-pseudo R-square value.}
+pseudo R-square value and \code{D} is Tjur's Coefficient of Discrimination
+(see \code{\link[sjmisc]{cod}}).}
 
 \item{showLogLik}{If \code{TRUE}, the Log-Likelihood for each model is printed
 in the model summary. Default is \code{FALSE}.}
@@ -109,8 +110,17 @@ in the model summary. Default is \code{FALSE}.}
 \item{showAIC}{If \code{TRUE}, the \code{\link{AIC}} value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showChi2}{If \code{TRUE}, the chi-square value for each model is printed
-in the model summary. Default is \code{FALSE}.}
+\item{showChi2}{If \code{TRUE}, the p-value of the chi-squared value for each
+model's residual deviance against the null deviance is printed
+in the model summary. Default is \code{FALSE}. A well-fitting model
+with predictors should significantly differ from the null-model
+(without predictors), thus, a p-value less than 0.05 indicates a
+good model-fit.}
+
+\item{showHosLem}{If \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
+performed. A well-fitting model shows no significant difference between
+the model and the observed data, i.e. the reported p-values should be
+greater than 0.05.}
 
 \item{showFamily}{If \code{TRUE}, the family object and link function for each fitted model
 are printed. Can be used in case you want to compare models with different link functions
@@ -126,7 +136,7 @@ would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) f
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (measure is cm), which is
+\item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.}
@@ -139,21 +149,7 @@ will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \c
 Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-of all style-sheet-classnames that are used in this function. Parameters for this list need:
-\enumerate{
-  \item the class-names with \code{"css."}-prefix as parameter name and
-  \item each style-definition must end with a semicolon
-}
-You can add style information to the default styles by using a + (plus-sign) as
-initial character for the parameter attributes. Examples:
-\itemize{
-  \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-  \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-  \item \code{css.colnames='+color:green'} to add green color formatting to column names.
-}
-See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
@@ -178,20 +174,15 @@ Invisibly returns
            for further use.
 }
 \description{
-Shows (and compares multiple) generalized linear models (Odds Ratios)
-               as HTML table, or saves them as file. The fitted glm's should have the same predictor variables and
-               either
-               \itemize{
-               \item differ only in their response (dependent variable), to see the effect of a specific set of predictors on different responses, or
-               \item all have the same reponse variables, but differ in their \code{\link{family}} objects and link function in order to see which model fits best to the data.
-               }
-               See parameter \code{showFamily} for details and section \code{examples}.
+Summarizes (multiple) fitted generalized linear models (odds ratios, ci, p-values...)
+               as HTML table, or saves them as file. The fitted models may have different predictors,
+               e.g. when comparing different stepwise fitted models.
+}
+\details{
+See 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
-The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-        they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-        or opened with the default web browser. Displaying resp. opening a temporary file is the
-        default behaviour (i.e. \code{file=NULL}).
+See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 # prepare dummy variables for binary logistic regression
@@ -273,8 +264,7 @@ fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep,
 # compare models
 sjt.glm(fit1, fit2, fit3,
         showAIC = TRUE,
-        showFamily = TRUE,
-        showPseudoR = FALSE)
+        showFamily = TRUE)
 
 
 # --------------------------------------------
@@ -285,8 +275,7 @@ sjt.glm(fit1, fit2, fit3,
 sjt.glm(fit1, fit2, fit3,
         pvaluesAsNumbers = FALSE,
         showAIC = TRUE,
-        showFamily = TRUE,
-        showPseudoR = FALSE)
+        showFamily = TRUE)
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # indicating p-values as stars and integrate CI in OR column
@@ -295,11 +284,12 @@ sjt.glm(fit1, fit2, fit3,
         separateConfColumn = FALSE,
         showAIC = TRUE,
         showFamily = TRUE,
-        showPseudoR = FALSE)
+        showPseudoR = TRUE)
 
 # ----------------------------------
 # automatic grouping of predictors
 # ----------------------------------
+library(sjmisc)
 # load efc sample data
 data(efc)
 # set variable labels

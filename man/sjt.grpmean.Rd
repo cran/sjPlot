@@ -4,14 +4,18 @@
 \alias{sjt.grpmean}
 \title{Show grouped means as HTML table}
 \usage{
-sjt.grpmean(varCount, varGrp, rowLabels = NULL, digits = 2,
-  digits.summary = 3, file = NULL, encoding = NULL, CSS = NULL,
-  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+sjt.grpmean(varCount, varGrp, weightBy = NULL, rowLabels = NULL,
+  digits = 2, digits.summary = 3, file = NULL, encoding = NULL,
+  CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{varCount}{a numeric vector / variable. Mean, SD and SE for this variable are calculated.}
 
 \item{varGrp}{a (numeric) vector with group indices, used to select sub-groups from \code{varCount}.}
+
+\item{weightBy}{A weight factor that will be applied to weight all cases.
+Must be a vector of same length as \code{varCount}. Default is \code{NULL},
+so no weights are used.}
 
 \item{rowLabels}{a character vector of same length as \code{varGrp} unqiue values. In short: the
 value labels of \code{varGrp}. Used to name table rows. By default, row labels
@@ -30,19 +34,7 @@ will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \c
 Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-of all style-sheet-classnames that are used in this function. Parameters for this list need:
-\enumerate{
-  \item the class-names with \code{"css."}-prefix as parameter name and
-  \item each style-definition must end with a semicolon
-}
-You can add style information to the default styles by using a + (plus-sign) as
-initial character for the parameter attributes. Examples:
-\itemize{
-  \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-}
-See further examples below and the \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
@@ -70,6 +62,12 @@ Invisibly returns a \code{\link{list}} with
 \description{
 Computes mean, sd and se for each sub-group (indicated by \code{varGrp})
                of \code{varCount} and prints the result as HTML table.
+}
+\details{
+See 'Details' in \code{\link{sjt.frq}}.
+}
+\note{
+See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{

@@ -25,7 +25,7 @@
 #'                  \item generalized linear mixed effects models (\code{\link[lme4]{glmer}})
 #'                  \item linear mixed effects models (\code{\link[nlme]{lme}}, but only for \code{type = "eff"})
 #'                  \item generalized least squares models (\code{\link[nlme]{gls}}, but only for \code{type = "eff"})
-#'                  \item panel data estimators (\code{\link[plm]{plm}})
+#'                  \item panel data estimators (\code{plm})
 #'                }
 #'                Note that beside interaction terms, also the single predictors of each interaction (main effects)
 #'                must be included in the fitted model as well. Thus, \code{lm(dep ~ pred1 * pred2)} will work, 
@@ -40,13 +40,13 @@
 #'            \item generalized linear mixed effects models (\code{\link[lme4]{glmer}})
 #'            \item linear mixed effects models (\code{\link[nlme]{lme}}, but only for \code{type = "eff"})
 #'            \item generalized least squares models (\code{\link[nlme]{gls}}, but only for \code{type = "eff"})
-#'            \item panel data estimators (\code{\link[plm]{plm}})
+#'            \item panel data estimators (\code{plm})
 #'          }
 #' @param type interaction plot type. Use one of following values:
-#'          \itemize{
-#'            \item \code{type = "cond"} plots the mere change of the moderating effect on the response value (conditional effect). See details.
-#'            \item \code{type = "eff"} (default) plots the overall moderation effect on the response value. See details.
-#'            \item \code{type = "emm"} plots the estimated marginal means (least square means). If this type is chosen, not all parameters are applicable. See details.
+#'          \describe{
+#'            \item{\code{type = "cond"}}{(default) plots the mere change of the moderating effect on the response value (conditional effect). See 'Details'.}
+#'            \item{\code{type = "eff"}}{plots the overall moderation effect on the response value. See 'Details'.}
+#'            \item{\code{type = "emm"}}{plots the estimated marginal means (least square means). If this type is chosen, not all function parameters are applicable. See 'Details'.}
 #'          }
 #' @param int.plot.index A numeric vector with index numbers that indicate which 
 #'          interaction terms should be plotted in case the \code{fit} has more than
@@ -57,11 +57,11 @@
 #'          is shown (single line). Only applies to \code{type = "cond"}.
 #' @param moderatorValues indicates which values of the moderator variable should be used when plotting the effects of the
 #'          independent variable on the dependent variable.
-#'          \itemize{
-#'            \item By default, \code{"minmax"} is used, i.e. the minimum and maximum values (lower and upper bounds) of the moderator are used to plot the interaction between independent variable and moderator.
-#'            \item Use \code{"meansd"} to use the mean value of the moderator as well as one standard deviation below and above mean value to plot the effect of the moderator on the independent variable (following the convention suggested by Cohen and Cohen and popularized by Aiken and West, i.e. using the mean, the value one standard deviation above, and the value one standard deviation below the mean as values of the moderator, see \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin K: 3 Tips to Make Interpreting Moderation Effects Easier}).
-#'            \item The \code{"zeromax"} is similar to the \code{"minmax"} option, however, \code{0} is always used as minimum value for the moderator. This may be useful for predictors that don't have an empirical zero-value, but absence of moderation should be simulated by using 0 as minimum.
-#'            \item \code{"quart"} calculates and uses the quartiles (lower, median and upper) of the moderator value.
+#'          \describe{
+#'            \item{\code{"minmax"}}{(default) minimum and maximum values (lower and upper bounds) of the moderator are used to plot the interaction between independent variable and moderator.}
+#'            \item{\code{"meansd"}}{uses the mean value of the moderator as well as one standard deviation below and above mean value to plot the effect of the moderator on the independent variable (following the convention suggested by Cohen and Cohen and popularized by Aiken and West, i.e. using the mean, the value one standard deviation above, and the value one standard deviation below the mean as values of the moderator, see \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin K: 3 Tips to Make Interpreting Moderation Effects Easier}).}
+#'            \item{\code{"zeromax"}}{is similar to the \code{"minmax"} option, however, \code{0} is always used as minimum value for the moderator. This may be useful for predictors that don't have an empirical zero-value, but absence of moderation should be simulated by using 0 as minimum.}
+#'            \item{\code{"quart"}}{calculates and uses the quartiles (lower, median and upper) of the moderator value.}
 #'          }
 #' @param swapPredictors if \code{TRUE}, the predictor on the x-axis and the moderator value in an interaction are
 #'          swapped. For \code{type = "eff"}, the first interaction term is used as moderator and the second term
@@ -139,7 +139,7 @@
 #'           as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
 #'
 #' @details \describe{
-#'            \item{type = "cond"}{plots the effective \emph{change} or \emph{impact} 
+#'            \item{\code{type = "cond"}}{plots the effective \emph{change} or \emph{impact} 
 #'              (conditional effect) on a dependent variable of a moderation effect, as 
 #'              described in \href{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}{Grace-Martin},
 #'              i.e. the difference of the moderation effect on the dependent variable in \emph{presence}
@@ -151,14 +151,14 @@
 #'              \code{type = "eff"} for effect displays similar to the \code{\link[effects]{effect}} function 
 #'              from the effects-package.
 #'            }
-#'            \item{type = "eff}{plots the overall effects of the interaction, with all remaining
+#'            \item{\code{type = "eff"}}{plots the overall effects of the interaction, with all remaining
 #'              covariates set to the mean. Effects are calculated using the \code{\link[effects]{effect}}-
 #'              function from the \code{effects}-package. \cr \cr
 #'              Following parameters \emph{do not} apply to this function: \code{diff}, \code{axisLabels.x}
 #'              \code{interceptLineColor}, \code{estLineColor}, \code{lineLabelSize}, \code{lineLabelColor} 
 #'              and \code{lineLabelString}.
 #'            }
-#'            \item{type = "emm"}{plots the estimated marginal means of Two-Way Repeated Measures AN(C)OVA,
+#'            \item{\code{type = "emm"}}{plots the estimated marginal means of Two-Way Repeated Measures AN(C)OVA,
 #'              which was the former \code{sjp.emm.int} function. This plot type plots estimated marginal means 
 #'              (also called \emph{least square means} or \emph{marginal means}) of (significant) interaction terms 
 #'              in two-way repeated measure ANOVA or ANCOVA. The fitted models may be linear (mixed effects) 
@@ -776,10 +776,10 @@ sjp.int <- function(fit,
       }
     } else {
       intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
-      intdf$y <- odds.to.prob(sjmisc::to_value(intdf$y, keep.labels = F))
-      intdf$ymin <- odds.to.prob(sjmisc::to_value(intdf$ymin, keep.labels = F))
-      intdf$ymax <- odds.to.prob(sjmisc::to_value(intdf$ymax, keep.labels = F))
-      intdf$ydiff <- odds.to.prob(intdf$ymax - intdf$ymin)
+      intdf$y <- plogis(sjmisc::to_value(intdf$y, keep.labels = F))
+      intdf$ymin <- plogis(sjmisc::to_value(intdf$ymin, keep.labels = F))
+      intdf$ymax <- plogis(sjmisc::to_value(intdf$ymax, keep.labels = F))
+      intdf$ydiff <- plogis(intdf$ymax - intdf$ymin)
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
       # the scale limits
@@ -1179,10 +1179,10 @@ sjp.eff.int <- function(fit,
       # make sure x is numeric
       intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
       # convert log-odds to probabilities
-      intdf$y <- odds.to.prob(intdf$y)
-      intdf$lower <- odds.to.prob(intdf$lower)
-      intdf$upper <- odds.to.prob(intdf$upper)
-      intdf$se <- odds.to.prob(intdf$se)
+      intdf$y <- plogis(intdf$y)
+      intdf$lower <- plogis(intdf$lower)
+      intdf$upper <- plogis(intdf$upper)
+      intdf$se <- plogis(intdf$se)
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
       # the scale limits

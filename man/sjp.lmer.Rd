@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjPlotGLME.R
 \name{sjp.lmer}
 \alias{sjp.lmer}
-\title{Plot estimates (forest plots) of linear mixed effects models}
+\title{Plot estimates or predicted values of linear mixed effects models}
 \usage{
 sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   title = NULL, geom.size = 3, geom.colors = "Set1",
@@ -11,20 +11,21 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   axisTitle.x = NULL, axisTitle.y = NULL, interceptLineType = 2,
   interceptLineColor = "grey70", showValueLabels = TRUE, labelDigits = 2,
   showPValueLabels = TRUE, facet.grid = TRUE, free.scale = FALSE,
-  fade.ns = FALSE, printPlot = TRUE)
+  fade.ns = FALSE, show.se = TRUE, printPlot = TRUE)
 }
 \arguments{
 \item{fit}{a fitted \code{lmer} object.}
 
 \item{type}{type of plot. Use one of following:
-\itemize{
-  \item \code{"re"} (default) for estimates of random effects
-  \item \code{"fe"} for estimates of fixed effects
-  \item \code{"fe.std"} for standardized estimates of fixed effects
-  \item \code{"fe.pred"} for regression lines (slopes) with confidence intervals for each single fixed effect are plotted, i.e. all fixed effects are extracted and each is plotted against the response variable.
-  \item \code{"fe.cor"} for correlation matrix of fixed effects
-  \item \code{"re.qq"} for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)
-  \item \code{"fe.ri"} for fixed effects slopes depending on the random intercept.
+\describe{
+  \item{\code{"re"}}{(default) for estimates of random effects}
+  \item{\code{"fe"}}{for estimates of fixed effects}
+  \item{\code{"fe.std"}}{for standardized estimates of fixed effects}
+  \item{\code{"fe.pred"}}{for regression lines (slopes) with confidence intervals for each single fixed effect are plotted, i.e. all fixed effects are extracted and each is plotted against the response variable.}
+  \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
+  \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
+  \item{\code{"fe.ri"}}{for fixed effects slopes depending on the random intercept.}
+  \item{\code{"resp"}}{to plot predicted values for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot.}
 }}
 
 \item{vars}{a numeric vector with column indices of selected variables or a character vector with
@@ -34,7 +35,7 @@ In this case, only slopes for the selected variables specified in \code{"vars"} 
 
 \item{ri.nr}{Numeric vector. If \code{type = "re"} or \code{type = "fe.ri"}, and fitted model has more than one random
 intercept, \code{ri.nr} indicates which random effects of which random intercept (or:
-which list elements of \code{lme4::ranef}) will be plotted. Default is \code{NULL},
+which list elements of \code{\link[lme4]{ranef}}) will be plotted. Default is \code{NULL},
 so all random effects will be plotted.}
 
 \item{emph.grp}{numeric vector with index numbers of grouping levels (from random effect).
@@ -54,8 +55,8 @@ or a specific color palette code (see below).
   \item If not specified, the diverging \code{"Set1"} color brewer palette will be used.
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-}
-Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).}
+  \item Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).
+}}
 
 \item{hideErrorBars}{If \code{TRUE}, the error bars that indicate the confidence intervals of the estimates are not
 shown.}
@@ -101,9 +102,12 @@ to values or not}
 an integrated (faceted) single graph.}
 
 \item{free.scale}{If \code{TRUE} and \code{facet.grid=TRUE}, each facet grid gets its own fitted scale. If
-\code{free.scale=FALSE}, each facet in the grid has the same scale range.}
+\code{free.scale = FALSE}, each facet in the grid has the same scale range.}
 
 \item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly fading colors.}
+
+\item{show.se}{Use \code{TRUE} to plot (depending on \code{type}) the standard
+error for predicted values.}
 
 \item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
@@ -157,11 +161,11 @@ data(efc)
 efc$grp = as.factor(efc$e15relat)
 levels(x = efc$grp) <- get_val_labels(efc$e15relat)
 # data frame for fitted model
-mydf <- na.omit(data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
-                           sex = as.factor(efc$c161sex),
-                           c12hour = as.numeric(efc$c12hour),
-                           barthel = as.numeric(efc$barthtot),
-                           grp = efc$grp))
+mydf <- data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
+                   sex = as.factor(efc$c161sex),
+                   c12hour = as.numeric(efc$c12hour),
+                   barthel = as.numeric(efc$barthtot),
+                   grp = efc$grp)
 # fit glmer
 fit <- lmer(neg_c_7 ~ sex + c12hour + barthel + (1|grp),
             data = mydf)

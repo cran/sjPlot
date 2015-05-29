@@ -69,21 +69,7 @@
 #'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
-#'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as parameter name and
-#'            \item each style-definition must end with a semicolon
-#'          } 
-#'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the parameter attributes. Examples:
-#'          \itemize{
-#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-#'            \item \code{css.summary='+color:blue;'} to add blue font color style to the summary row.
-#'          }
-#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Detail'.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -102,16 +88,9 @@
 #'            }
 #'            for further use.
 #'          
-#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file=NULL}). \cr \cr
-#'         Since package version 1.3, the parameter \code{valueLabels}, which represent the 
-#'         value labels, is retrieved automatically if a) the variables \code{var.col} and \code{var.row} come from a data frame
-#'         that was imported with the \code{\link[sjmisc]{read_spss}} function (because then value labels are
-#'         attached as attributes to the data) or b) when the variables are factors with named factor levels
-#'         (e.g., see column \code{group} in dataset \code{\link{PlantGrowth}}). However, you still
-#'         can use own parameters variable labels.
+#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#'  
+#' @details See 'Details' in \code{\link{sjt.frq}}.
 #'         
 #' @examples 
 #' # prepare sample data set
@@ -705,14 +684,14 @@ sjt.xtab <- function (var.row,
     if (nrow(tab) > 2 || ncol(tab) > 2) {
       kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sjmisc::cramer(tab))
       # if minimum expected values below 5, compute fisher's exact test
-      if(min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab, simulate.p.value = TRUE)
+      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab, simulate.p.value = TRUE)
     } else {
       kook <- sprintf("&Phi;=%.3f", sjmisc::phi(tab))
       # if minimum expected values below 5 and df=1, compute fisher's exact test
-      if(min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab)
+      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab)
     }
     # make phi-value apa style
-    kook <- gsub("0.", paste0(".", p_zero), kook, fixed = TRUE)
+    kook <- gsub("0.", paste0(p_zero, "."), kook, fixed = TRUE)
     # create summary row
     if (is.null(fish)) {
       pvalstring <- ifelse(chsq$p.value < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.3f", chsq$p.value)))

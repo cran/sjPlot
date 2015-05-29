@@ -1,9 +1,9 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "p"))
+if (getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "p"))
 
 
 
-#' @title Plot odds ratios (forest plots)
+#' @title Plot odds ratios or predicted probabilities of generalized linear models
 #' @name sjp.glm
 #'
 #' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.glm/}{sjPlot manual: sjp.glm}
@@ -15,30 +15,30 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #'
 #' @note Based on the script from \href{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}{surefoss}
 #'
-#' @param fit The fitted model of a logistic regression (or any other \code{\link{glm}}- or \code{logistf}-object).
+#' @param fit fitted generalized linear model (\code{\link{glm}}- or \code{logistf}-object).
 #' @param type type of plot. Use one of following:
-#'          \itemize{
-#'            \item \code{"dots"}, \code{"glm"} or \code{"or"} (default) for odds ratios (forest plot)
-#'            \item \code{"bars"} for odds ratios as bar plot
-#'            \item \code{"prob"} or \code{"pc"} to plot probability (predicted probabilities) curves of coefficients (model terms). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.
-#'            \item \code{"ma"} to check model assumptions. Note that only two parameters are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other parameters are ignored.
-#'            \item \code{"vif"} to plot Variance Inflation Factors. See details.
+#'          \describe{
+#'            \item{\code{"dots"}}{(or \code{"glm"} or \code{"or"} (default)) for odds ratios (forest plot)}
+#'            \item{\code{"bars"}}{for odds ratios as bar plot}
+#'            \item{\code{"prob"}}{(or \code{"pc"}) to plot predicted probabilities for each model terms, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+#'            \item{\code{"probc"}}{(or \code{"pcc"}) to plot centered predicted probabilities for each model term (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+#'            \item{\code{"y.pc"}}{(or \code{"y.prob"}) to plot predicted probabilities for the response.}
+#'            \item{\code{"ma"}}{to check model assumptions. Note that only two parameters are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other parameters are ignored.}
+#'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 #'          }
-#' @param sortOdds If \code{TRUE} (default), the odds ratios are ordered according their OR value from highest first
+#' @param sortOdds If \code{TRUE} (default), the odds ratios are ordered according their values from highest first
 #'          to lowest last. Use \code{FALSE} if you don't want to change the order of the predictors.
-#' @param title Diagram's title as string.
-#'          Example: \code{title=c("my title")}
-#' @param axisLabels.y Labels of the predictor variables (independent vars, odds) that are used for labelling the
-#'          axis. Passed as vector of strings.
-#'          Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
-#'          Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+#' @param title Diagram's title as string. Example: \code{title = "my title"}
+#' @param axisLabels.y labels of the predictor variables (independent vars) that are used for labelling the
+#'          axis. Must be a character vector of same length as independent variables. \cr
+#'          \strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 #'          \code{list} object with label string. The labels may also be passed as list object. They will be coerced
 #'          to character vector automatically.
-#' @param showAxisLabels.y Whether odds names (predictor labels) should be shown or not.
-#' @param axisTitle.x A label ("title") for the x axis.
-#' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
+#' @param showAxisLabels.y Whether labels of independent variables should be shown or not.
+#' @param axisTitle.x string; title for the x axis.
+#' @param axisLimits Defines the range of the axis where the odds ratios and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-#'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.
+#'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.
 #' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title
 #' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in
@@ -46,26 +46,26 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
 #'          grid is being printed. Default is 0.5
 #' @param transformTicks if \code{TRUE}, the grid bars have exponential distances (equidistant), i.e. they
-#'          visually have the same distance from one grid bar to the next. Default is \code{FALSE} which
-#'          means that grids are plotted on every \code{gridBreaksAt}'s position, thus the grid bars
-#'          become narrower with higher odds ratio values.
+#'          visually have the same distance from one panel grid to the next. If \code{FALSE}, grids are 
+#'          plotted on every \code{gridBreaksAt}'s position, thus the grid bars become narrower with 
+#'          higher odds ratio values.
 #' @param geom.colors User defined color palette for geoms. Must either be vector with two color values
 #'          or a specific color palette code (see below).
 #'          \itemize{
-#'            \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+#'            \item If not specified, the \code{"Set1"} color brewer palette will be used.
 #'            \item If \code{"gs"}, a greyscale will be used.
 #'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'            \item Else specify your own color values as vector, e.g. \code{geom.colors=c("#f00000", "#00ff00")}.
 #'          }
-#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).
 #' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
 #' @param hideErrorBars If \code{TRUE}, the error bars that indicate the confidence intervals of the odds ratios are not
-#'          shown. Only applies if parameter \code{type} is \code{bars}. Default value is \code{FALSE}.
+#'          shown. Only applies if parameter \code{type = "bars"}. Default value is \code{FALSE}.
 #' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
 #' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
 #' @param coord.flip If \code{TRUE} (default), predictors are plotted on the left y-axis and estimate
 #'          values are plotted on the x-axis.
 #' @param showIntercept If \code{TRUE}, the intercept of the fitted model is also plotted.
-#'          Default is \code{FALSE}. Please note that due to exp-transformation of
+#'          Default is \code{FALSE}. Please note that due to exponential transformation of
 #'          estimates, the intercept in some cases can not be calculated, thus the
 #'          function call is interrupted and no plot printed.
 #' @param showValueLabels Whether odds ratio values should be plotted to each dot or not.
@@ -79,20 +79,61 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' @param show.se Use \code{TRUE} to plot (depending on \code{type}) the standard
 #'          error for probability curves (predicted probabilities).
 #' @param facet.grid \code{TRUE} when each plot should be plotted separately instead of
-#'          an integrated (faceted) single graph. Only applies, if \code{type="prob"}.
+#'          an integrated (faceted) single graph. Only applies, if \code{type = "prob"}.
 #' @param showOriginalModelOnly if \code{TRUE} (default) and \code{type = "ma"}, 
 #'          only the model assumptions of the fitted model \code{fit} are plotted.
 #'          If \code{FALSE}, the model assumptions of an updated model where outliers
 #'          are automatically excluded are also plotted.
 #' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
-#' @return (Invisibly) returns a structure with following elements:
-#'         \itemize{
-#'          \item \code{plot}: ggplot-object with the complete plot
-#'          \item \code{mydf}: data frame that was used for setting up the ggplot-object
-#'          \item \code{mydf.mp}: a list of data frames with the data for metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
-#'          \item \code{plot.mp}: a list of ggplot-objects with plots of metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
+#' @return (Invisibly) returns various objects, depending on 
+#'           the \code{type}-parameter:
+#'         \describe{
+#'          \item{\code{type = "dots" or "bars"}}{
+#'            \itemize{
+#'              \item \code{mydf} - data frame used for the plot
+#'              \item \code{plot} - plot as ggplot-object
+#'            }
+#'          }
+#'          \item{\code{type = "prob" or "probc"}}{
+#'            \itemize{
+#'              \item \code{mydf.mp} - data frame used for predicted probability plots
+#'              \item \code{plot.mp} - predicted probability plots as ggplot-objects
+#'              \item \code{mydf.facet} - data frame used for faceted predicted probability plots
+#'              \item \code{plot.facet} - facted predicted probability plots as ggplot-objects
+#'            }
+#'          }
+#'          \item{\code{type = "y.pc"}}{
+#'            \itemize{
+#'              \item \code{mydf} - data frame used for the plot
+#'              \item \code{plot} - plot as ggplot-object
+#'              \item \code{mean.pp} - mean value of the predicted probabilities for the response
+#'            }
+#'          }
+#'          \item{\code{type = "ma"}}{
+#'            \itemize{
+#'              \item \code{model} - updated model-fit with removed outliers
+#'            }
+#'          }
+#'          \item{\code{type = "vif"}}{
+#'            \itemize{
+#'              \item \code{vifval} - a vector with vif-values
+#'            }
+#'          }
 #'         }
+#'
+#' @details \describe{
+#'            \item{\code{type = "prob"}}{(or \code{"pc"}), the predicted probabilities
+#'            are based on the intercept's estimate and each specific term's estimate.
+#'            All other co-variates are set to zero (i.e. ignored).}
+#'            \item{\code{type = "probc"}}{(or \code{"pcc"}), the predicted probabilities
+#'            are based on the \code{\link{predict.glm}} method, where predicted values 
+#'            are "centered"
+#'            (see \href{http://stats.stackexchange.com/questions/35682/contribution-of-each-covariate-to-a-single-prediction-in-a-logistic-regression-m#comment71993_35802}{CrossValidated}).}
+#'            \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
+#'            of the response are computed, based on the \code{\link{predict.glm}}
+#'            method.}
+#'          }
 #'
 #' @examples
 #' # prepare dichotomous dependent variable
@@ -131,12 +172,12 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("OR", "lower", "upper", "
 #' edu.mid <- ifelse(efc$c172code == 2, 1, 0)
 #' edu.high <- ifelse(efc$c172code == 3, 1, 0)
 #' # create data frame for fitted model
-#' mydf <- na.omit(data.frame(y = as.factor(y),
-#'                            sex = as.factor(efc$c161sex),
-#'                            dep = as.factor(efc$e42dep),
-#'                            barthel = as.numeric(efc$barthtot),
-#'                            edu.mid = as.factor(edu.mid),
-#'                            edu.hi = as.factor(edu.high)))
+#' mydf <- data.frame(y = as.factor(y),
+#'                    sex = as.factor(efc$c161sex),
+#'                    dep = as.factor(efc$e42dep),
+#'                    barthel = as.numeric(efc$barthtot),
+#'                    edu.mid = as.factor(edu.mid),
+#'                    edu.hi = as.factor(edu.high))
 #' # fit model
 #' fit <- glm(y ~., data = mydf, family = binomial(link = "logit"))
 #' # plot odds
@@ -202,14 +243,27 @@ sjp.glm <- function(fit,
   if (type == "prob" || type == "pc") {
     return(invisible(sjp.glm.pc(fit,
                                 show.se,
+                                type = "prob",
                                 facet.grid,
                                 printPlot)))
   }
+  if (type == "probc" || type == "pcc") {
+    return(invisible(sjp.glm.pc(fit,
+                                show.se,
+                                type = "probc",
+                                facet.grid,
+                                printPlot)))
+  }
+  if (type == "y.pc" || type == "y.prob") {
+    return(invisible(sjp.glm.response.probcurv(fit,
+                                               show.se,
+                                               printPlot)))
+  }
   if (type == "ma") {
-    return (invisible(sjp.glm.ma(fit, showOriginalModelOnly)))
+    return(invisible(sjp.glm.ma(fit, showOriginalModelOnly)))
   }
   if (type == "vif") {
-    return (invisible(sjp.vif(fit)))
+    return(invisible(sjp.vif(fit)))
   }
   if (type == "or" || type == "glm") type <- "dots"
   # --------------------------------------------------------
@@ -373,19 +427,19 @@ sjp.glm <- function(fit,
   # for plotting in the diagram later
   # ----------------------------
   if (showModelSummary) {
-    psr <- PseudoR2(fit)
+    psr <- sjmisc::pseudo_r2(fit)
     modsum <- as.character(as.expression(
       substitute("(Intercept)" == ic * "," ~~ italic(R)[CS]^2 == r2cs * "," ~~ italic(R)[N]^2 == r2n * "," ~~ -2 * lambda == la * "," ~~ chi^2 == c2 * "," ~~ "AIC" == aic,
                  list(ic = sprintf("%.2f", exp(coef(fit)[1])),
-                      r2cs = sprintf("%.3f", psr[2]),
-                      r2n = sprintf("%.3f", psr[3]),
+                      r2cs = sprintf("%.3f", psr$CoxSnell),
+                      r2n = sprintf("%.3f", psr$Nagelkerke),
                       la = sprintf("%.2f", -2 * logLik(fit)),
                       c2 = sprintf("%.2f", Chisquare.glm(fit)),
                       aic = sprintf("%.2f", fit$aic)))))
     cat(sprintf("Intercept = %.2f\nR2[cs] = %.3f\nR2[n] = %.3f\nLambda = %.2f\nChi2 = %.2f\nAIC = %.2f\n",
                 exp(coef(fit)[1]),
-                psr[2],
-                psr[3],
+                psr$CoxSnell,
+                psr$Nagelkerke,
                 -2 * logLik(fit),
                 Chisquare.glm(fit),
                 fit$aic))
@@ -448,7 +502,7 @@ sjp.glm <- function(fit,
       geom_text(aes(label = p, y = 1), 
                 vjust = -1, 
                 hjust = odds$labhjust)
-    if (hideErrorBars==FALSE) {
+    if (hideErrorBars == FALSE) {
       plotHeader <- plotHeader +
         # print confidence intervalls (error bars)
       geom_errorbar(aes(ymin = lower, 
@@ -507,15 +561,16 @@ sjp.glm <- function(fit,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpglm",
-                       list(plot = plotHeader,
-                            mydf = odds)))
+  invisible(structure(class = "sjpglm",
+                      list(plot = plotHeader,
+                           mydf = odds)))
 }
 
 
 sjp.glm.pc <- function(fit,
                        show.se,
                        facet.grid,
+                       type,
                        printPlot) {
   # ----------------------------
   # prepare additional plots, when metric
@@ -527,9 +582,6 @@ sjp.glm.pc <- function(fit,
   axisLabels.mp <- c()
   plot.facet <- NULL
   mydf.facet <- NULL
-  # retrieve data classes of model terms to check whether
-  # we have any numeric terms in fitted model
-  fit.data.classes <- unname(attr(fit$terms, "dataClasses"))
   # retrieve term names, so we find the estimates in the
   # coefficients list
   fit.term.names <- names(attr(fit$terms, "dataClasses"))[-1]
@@ -542,9 +594,7 @@ sjp.glm.pc <- function(fit,
     # check if we have found the coefficient
     if (length(coef.column) > 0) {
       # get values from numeric term
-      vals <- fit$model[, coef.column]
-      # sort values, for x axis
-      values <- sort(vals)
+      values <- fit$model[, coef.column]
       # melt variable
       mydf.vals <- data.frame(values = values)
       # convert factor to numeric
@@ -552,19 +602,42 @@ sjp.glm.pc <- function(fit,
       # retrieve names of coefficients
       coef.names <- names(coef(fit))
       # check if we have a factor, then we may have reference levels
-      if (is.factor(vals)) {
+      if (is.factor(values)) {
         # add reference level to coefficient name
-        ll <- levels(vals)
+        ll <- levels(values)
         fit.fac.name <- paste0(fit.term.names[i], ll[length(ll)])
       } else {
         fit.fac.name <- fit.term.names[i]
       }
       # find coef-position
       coef.pos <- which(coef.names == fit.fac.name)
-      # calculate x-beta by multiplying original values with estimate of that term
-      mydf.vals$xbeta <- mydf.vals$values * coef(fit)[coef.pos]
-      # calculate probability (y) via cdf-function
-      mydf.vals$y <- odds.to.prob(coef(fit)[1] + mydf.vals$xbeta)
+      # ---------------------------------------------
+      # Here we go with predicted probabilities
+      # for each single term, w/o including remaining
+      # co-variates to predict the values. This can be
+      # used to investigate a term "isolated"
+      # ---------------------------------------------
+      if (type == "prob") {
+        # calculate x-beta by multiplying original values with estimate of that term
+        mydf.vals$xbeta <- mydf.vals$values * coef(fit)[coef.pos]
+        # calculate probability (y) via cdf-function
+        mydf.vals$y <- plogis(coef(fit)[1] + mydf.vals$xbeta)
+      # ---------------------------------------------
+      # Here we go with predicted probabilities,
+      # with all remaining co-variates set to zero or mean
+      # i.e. we are using the 'predict' function to predict
+      # fitted values of terms
+      # ---------------------------------------------
+      } else {
+        # get predicted values. Note that the returned matrix
+        # does not contain response value
+        pred.vals <- predict(fit, type = "terms")
+        # retrieve predicted prob. of term. coef.column -1
+        # because coef.column relates to fit$model, which has one
+        # more column (response)
+        mydf.vals$y <- plogis(pred.vals[, coef.column - 1])
+        # add title prefix for predicted values
+      }
       # assign group
       mydf.vals$grp = coef.names[coef.pos]
       # add mydf to list
@@ -585,7 +658,7 @@ sjp.glm.pc <- function(fit,
       # create single plots for each numeric predictor
       mp <- ggplot(mydf.metricpred[[i]], aes(x = values, y = y)) +
         labs(x = axisLabels.mp[i], 
-             y = "Probability") +
+             y = "Predicted Probability") +
         stat_smooth(method = "glm", 
                     family = "binomial", 
                     se = show.se) +
@@ -599,18 +672,18 @@ sjp.glm.pc <- function(fit,
                                  y = y,
                                  colour = grp)) +
         labs(x = NULL,
-             y = "Probability",
+             y = "Predicted Probability",
              colour = "Term",
-             title = "Probability of coefficients") +
+             title = "Predicted probabilities of coefficients") +
         scale_colour_manual(values = brewer_pal(palette = "Set1")(length(axisLabels.mp)),
                             labels = axisLabels.mp) +
         stat_smooth(method = "glm", 
                     family = "binomial", 
                     se = show.se) +
         coord_cartesian(ylim = c(0, 1)) +
-        facet_wrap( ~ grp,
-                    ncol = round(sqrt(length(mydf.metricpred))),
-                    scales = "free_x") +
+        facet_wrap(~grp,
+                   ncol = round(sqrt(length(mydf.metricpred))),
+                   scales = "free_x") +
         guides(colour = FALSE)
       # add integrated plot to plot list
       plot.facet <- mp
@@ -631,11 +704,47 @@ sjp.glm.pc <- function(fit,
     }
   }
 
-  invisible (structure(class = "sjpglm.pc",
-                       list(mydf.mp = mydf.metricpred,
-                            plot.mp = plot.metricpred,
-                            mydf.facet = mydf.facet,
-                            plot.facet = plot.facet)))
+  invisible(structure(class = "sjpglm.pc",
+                      list(mydf.mp = mydf.metricpred,
+                           plot.mp = plot.metricpred,
+                           mydf.facet = mydf.facet,
+                           plot.facet = plot.facet)))
+}
+
+
+sjp.glm.response.probcurv <- function(fit,
+                                      show.se,
+                                      printPlot) {
+  # ----------------------------
+  # get predicted values for response
+  # ----------------------------
+  pp <- plogis(predict(fit, type = "response"))
+  # ----------------------------
+  # get predicted probabilities for 
+  # response, including random effects
+  # ----------------------------
+  mydf <- data.frame(x = 1:length(pp), y = sort(pp))
+  # ---------------------------------------------------------
+  # Prepare plot
+  # ---------------------------------------------------------
+  mp <- ggplot(mydf, aes(x = x, y = y)) +
+    labs(x = NULL, 
+         y = "Predicted Probability",
+         title = "Predicted Probabilities for model-response") +
+    stat_smooth(method = "glm", 
+                family = "binomial", 
+                se = show.se) +
+    # cartesian coord still plots range of se, even
+    # when se exceeds plot range.
+    coord_cartesian(ylim = c(0, 1))
+  # --------------------------
+  # plot plots
+  # --------------------------
+  if (printPlot) print(mp)
+  return(structure(class = "sjpglm.ppresp",
+                   list(mydf = mydf,
+                        plot = mp,
+                        mean.pp = mean(pp))))
 }
 
 
@@ -654,7 +763,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   removedcases <- 0
   loop <- TRUE
   # start loop
-  while(loop == TRUE) {
+  while (loop == TRUE) {
     # get outliers of model
     ol <- outlierTest(model)
     # retrieve variable numbers of outliers
@@ -668,7 +777,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     # check whether AIC-value of updated model is larger
     # than previous AIC-value or if we have already all loop-steps done,
     # stop loop
-    if(dummyaic >= aic || maxcnt < 1) {
+    if (dummyaic >= aic || maxcnt < 1) {
       loop <- FALSE
     } else {
       # else copy new model, which is the better one (according to AIC-value)
@@ -690,12 +799,6 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   
   modelOptmized <- ifelse(removedcases > 0, TRUE, FALSE)
   if (showOriginalModelOnly) modelOptmized <- FALSE
-  # ---------------------------------
-  # show VIF-Values
-  # ---------------------------------
-  sjp.setTheme(theme ="539")
-  sjp.vif(logreg)
-  if (modelOptmized) sjp.vif(model)
   # ------------------------------------------------------
   # Overdispersion
   # Sometimes we can get a deviance that is much larger than expected
@@ -703,7 +806,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # sparse data or clustering of data. A half-normal plot of the residuals
   # can help checking for outliers:
   # ------------------------------------------------------
-  halfnorm <- function (x, nlab = 2, labs = as.character(1:length(x)), ylab = "Sorted Data", ...) {
+  halfnorm <- function(x, nlab = 2, labs = as.character(1:length(x)), ylab = "Sorted Data", ...) {
     x <- abs(x)
     labord <- order(x)
     x <- sort(x)
@@ -715,9 +818,9 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
          xlab = "Half-normal quantiles", 
          ylab = ylab, 
          ylim = c(0, max(x)), 
-         type="n",
+         type = "n",
          ...)
-    if(nlab < n) points(ui[1:(n - nlab)], x[i][1:(n - nlab)])
+    if (nlab < n) points(ui[1:(n - nlab)], x[i][1:(n - nlab)])
     text(ui[(n - nlab + 1):n], 
          x[i][(n - nlab + 1):n], 
          labs[labord][(n - nlab + 1):n])
@@ -738,7 +841,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # ------------------------------------------------------
   res <- residuals(logreg, type = "deviance")
   plot(log(abs(predict(logreg))), 
-       res, main="Residual plot (original model)", 
+       res, main = "Residual plot (original model)", 
        xlab = "Log-predicted values", 
        ylab = "Deviance residuals")
   abline(h = 0, lty = 2)
@@ -760,15 +863,15 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # We can see that all terms were highly significant when they were
   # introduced into the model.
   # -------------------------------------
-  message(paste("--------------------\nCheck significance of terms when they entered the model..."))
-  message(paste("Anova original model:"))
+  message("--------------------\nCheck significance of terms when they entered the model...")
+  message("Anova original model:")
   print(anova(logreg, test = "Chisq"))
   if (!showOriginalModelOnly) {
     message(paste("\n\nAnova updated model:\n"))
     print(anova(model, test = "Chisq"))
   }
   # -------------------------------------
-  sjp.setTheme(theme ="forestgrey")
+  sjp.setTheme(theme = "forestgrey")
   sjp.glm(logreg, title = "Original model")
   if (!showOriginalModelOnly) sjp.glm(model, title = "Updated model")
   # return updated model

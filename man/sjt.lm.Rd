@@ -121,7 +121,7 @@ would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) f
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (measure is cm), which is
+\item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
 cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.}
@@ -134,21 +134,7 @@ will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \c
 Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-of all style-sheet-classnames that are used in this function. Parameters for this list need:
-\enumerate{
-  \item the class-names with \code{"css."}-prefix as parameter name and
-  \item each style-definition must end with a semicolon
-}
-You can add style information to the default styles by using a + (plus-sign) as
-initial character for the parameter attributes. Examples:
-\itemize{
-  \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-  \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-  \item \code{css.colnames='+color:green'} to add green color formatting to column names.
-}
-See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
@@ -173,15 +159,15 @@ Invisibly returns
            for further use.
 }
 \description{
-Shows (multiple) fitted linear models (beta coefficients, std. beta values etc.)
-               as HTML table, or saves them as file. The fitted models may hav different predictors,
+Summarizes (multiple) fitted linear models (beta coefficients, std. beta values etc.)
+               as HTML table, or saves them as file. The fitted models may have different predictors,
                e.g. when comparing different stepwise fitted models.
 }
+\details{
+See 'Details' in \code{\link{sjt.frq}}.
+}
 \note{
-The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-        they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-        or opened with the default web browser. Displaying resp. opening a temporary file is the
-        default behaviour (i.e. \code{file=NULL}).
+See 'Note' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{
@@ -318,6 +304,7 @@ sjt.lm(fit1,
 # ----------------------------------
 # automatic grouping of predictors
 # ----------------------------------
+library(sjmisc)
 data(efc)
 
 # attach variable labels to each variable of the data
@@ -340,6 +327,7 @@ sjt.lm(fit1,
 # ----------------------------------------
 # compare models with different predictors
 # ----------------------------------------
+library(sjmisc)
 data(efc)
 
 # attach variable labels to each variable of the data

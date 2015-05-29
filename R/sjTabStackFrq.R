@@ -61,21 +61,7 @@
 #'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
-#'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as parameter name and
-#'            \item each style-definition must end with a semicolon
-#'          } 
-#'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the parameter attributes. Examples:
-#'          \itemize{
-#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.caption='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-#'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
-#'          }
-#'          See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -94,10 +80,9 @@
 #'            }
 #'            for further use.
 #'
-#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
-#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file=NULL}).
+#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#'  
+#' @details See 'Details' in \code{\link{sjt.frq}}.
 #' 
 #' @examples
 #' # -------------------------------
@@ -140,6 +125,7 @@
 #' 
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
+#' # Auto-detection of labels
 #' # -------------------------------
 #' library(sjmisc)
 #' data(efc)
@@ -147,66 +133,54 @@
 #' start <- which(colnames(efc) == "c82cop1")
 #' # recveive first item of COPE-index scale
 #' end <- which(colnames(efc) == "c90cop9")
-#' # retrieve variable labels
-#' varlabs <- get_var_labels(efc)
 #' 
-#' # Note: Parameter "valuelabels" is only needed for datasets
-#' # that have been imported from SPSS.
 #' sjt.stackfrq(efc[, c(start:end)],
-#'              varlabels = varlabs[c(start:end)],
 #'              alternateRowColors = TRUE)
 #' 
 #' sjt.stackfrq(efc[, c(start:end)],
-#'              varlabels=varlabs[c(start:end)],
 #'              alternateRowColors = TRUE,
 #'              showN = TRUE,
 #'              showNA = TRUE)
 #'          
-#' # -------------------------------
-#' # auto-detection of labels
-#' # -------------------------------
-#' efc <- set_var_labels(efc, varlabs)
-#' sjt.stackfrq(efc[, c(start:end)])
 #'          
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
 #' sjt.stackfrq(efc[, c(start:end)],
-#'              varlabels = varlabs[c(start:end)],
 #'              alternateRowColors = TRUE,
 #'              showTotalN = TRUE,
 #'              showSkew = TRUE,
 #'              showKurtosis = TRUE,
-#'              CSS=list(css.ncol = "border-left:1px dotted black;",
-#'                       css.summary = "font-style:italic;"))}
+#'              CSS = list(css.ncol = "border-left:1px dotted black;",
+#'                         css.summary = "font-style:italic;"))}
 #'              
 #' @importFrom psych describe
 #' @export
-sjt.stackfrq <- function (items,
-                          weightBy=NULL,
-                          title=NULL,
-                          varlabels=NULL,
-                          breakLabelsAt=40,
-                          valuelabels=NULL,
-                          breakValueLabelsAt=20,
-                          sort.frq=NULL,
-                          alternateRowColors=FALSE,
-                          digits=2,
-                          showN=FALSE,
-                          showTotalN=FALSE,
-                          showNA=FALSE,
-                          labelNA="NA",
-                          showSkew=FALSE,
-                          showKurtosis=FALSE,
-                          digits.stats=2,
-                          skewString="Skew",
-                          kurtosisString="Kurtosis",
-                          file=NULL, 
-                          encoding=NULL,
-                          CSS=NULL,
-                          useViewer=TRUE,
-                          no.output=FALSE,
-                          remove.spaces=TRUE) {
+sjt.stackfrq <- function(items,
+                         weightBy = NULL,
+                         title = NULL,
+                         varlabels = NULL,
+                         breakLabelsAt = 40,
+                         valuelabels = NULL,
+                         breakValueLabelsAt = 20,
+                         sort.frq = NULL,
+                         alternateRowColors = FALSE,
+                         digits = 2,
+                         showN = FALSE,
+                         showTotalN = FALSE,
+                         showNA = FALSE,
+                         labelNA = "NA",
+                         showSkew = FALSE,
+                         showKurtosis = FALSE,
+                         digits.stats = 2,
+                         skewString = "Skew",
+                         kurtosisString = "Kurtosis",
+                         file = NULL, 
+                         encoding = NULL,
+                         CSS = NULL,
+                         useViewer = TRUE,
+                         no.output = FALSE,
+                         remove.spaces = TRUE) {
   # --------------------------------------------------------
   # check sorting
   # --------------------------------------------------------
@@ -227,7 +201,6 @@ sjt.stackfrq <- function (items,
       sort.frq  <- NULL
       reverseOrder <- FALSE
     }
-    
   } else {
     reverseOrder <- FALSE
   }
@@ -238,12 +211,12 @@ sjt.stackfrq <- function (items,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(valuelabels)) valuelabels <- sjmisc:::autoSetValueLabels(items[, 1])
+  if (is.null(valuelabels)) valuelabels <- sjmisc:::autoSetValueLabels(items[[1]])
   if (is.null(varlabels)) {
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(items[, i])
+      vn <- sjmisc:::autoSetVariableLabels(items[[i]])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
@@ -314,20 +287,20 @@ sjt.stackfrq <- function (items,
       # include missing
       # ----------------------------
       if (is.null(weightBy)) {
-        dummy <- table(addNA(items[, i]))
+        dummy <- table(addNA(items[[i]]))
       } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ addNA(items[, i])), 0)
+        dummy <- round(xtabs(weightBy ~ addNA(items[[i]])), 0)
       }
     # ----------------------------
     # exclude missing
     # ----------------------------
     } else {
       if (is.null(weightBy)) {
-        dummy <- table(items[, i])
+        dummy <- table(items[[i]])
       } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ items[, i]), 0)
+        dummy <- round(xtabs(weightBy ~ items[[i]]), 0)
       }
     }
     # ----------------------------

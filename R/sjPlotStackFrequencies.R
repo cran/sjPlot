@@ -39,8 +39,8 @@
 #'            \item If not specified, the sequential \code{"Blues"} color brewer palette will be used.
 #'            \item If \code{"gs"}, a greyscale will be used.
 #'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
+#'            \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00", "#8000f0")}).
 #'          }
-#'          Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).
 #' @param geom.size size resp. width of the geoms (bar width)
 #' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
 #'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
@@ -84,11 +84,16 @@
 #' # random sample
 #' # -------------------------------
 #' # prepare data for 4-category likert scale, 5 items
-#' Q1 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4)))
-#' Q2 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1)))
-#' Q3 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25)))
-#' Q4 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1)))
-#' Q5 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
+#' Q1 <- as.factor(sample(1:4, 500, replace = TRUE, 
+#'                        prob = c(0.2, 0.3, 0.1, 0.4)))
+#' Q2 <- as.factor(sample(1:4, 500, replace = TRUE, 
+#'                        prob = c(0.5, 0.25, 0.15, 0.1)))
+#' Q3 <- as.factor(sample(1:4, 500, replace = TRUE, 
+#'                        prob = c(0.25, 0.1, 0.4, 0.25)))
+#' Q4 <- as.factor(sample(1:4, 500, replace = TRUE, 
+#'                        prob = c(0.1, 0.4, 0.4, 0.1)))
+#' Q5 <- as.factor(sample(1:4, 500, replace = TRUE, 
+#'                        prob = c(0.35, 0.25, 0.15, 0.25)))
 #' 
 #' likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 #' 
@@ -174,6 +179,11 @@ sjp.stackfrq <- function(items,
                         coord.flip=TRUE,
                         printPlot=TRUE) {
   # --------------------------------------------------------
+  # check param. if we have a single vector instead of
+  # a data frame with several items, convert vector to data frame
+  # --------------------------------------------------------
+  if (!is.data.frame(items) && !is.matrix(items)) items <- as.data.frame(items)
+  # --------------------------------------------------------
   # check sorting
   # --------------------------------------------------------
   if (!is.null(sort.frq)) {
@@ -193,20 +203,19 @@ sjp.stackfrq <- function(items,
       sort.frq  <- NULL
       reverseOrder <- FALSE
     }
-    
   } else {
     reverseOrder <- FALSE
   }
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(legendLabels)) legendLabels <- sjmisc:::autoSetValueLabels(items[, 1])
+  if (is.null(legendLabels)) legendLabels <- sjmisc:::autoSetValueLabels(items[[1]])
   if (is.null(axisLabels.y)) {
     axisLabels.y <- c()
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(items[, i])
+      vn <- sjmisc:::autoSetVariableLabels(items[[i]])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         axisLabels.y <- c(axisLabels.y, vn)
@@ -226,7 +235,7 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
   if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
-  if (is.null(legendLabels)) legendLabels <- c(as.character(sort(unique(items[, 1]))))
+  if (is.null(legendLabels)) legendLabels <- as.character(sort(unique(items[[1]])))
   # --------------------------------------------------------
   # Check whether N of each item should be included into
   # axis labels
@@ -358,7 +367,7 @@ sjp.stackfrq <- function(items,
     # now we have the order of either lowest to highest counts of first
     # or last category of "items". We now need to repeat these values as 
     # often as we have answer categories
-    orderedrow <- unlist(tapply(dummy2, 1:length(dummy2), function (x) rep(x, countlen)))
+    orderedrow <- unlist(tapply(dummy2, 1:length(dummy2), function(x) rep(x, countlen)))
     # replace old grp-order by new order
     mydat$grp <- as.factor(orderedrow)
     # reorder axis labels as well
@@ -470,7 +479,7 @@ sjp.stackfrq <- function(items,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpstackfrq",
-                       list(plot = baseplot,
-                            df = mydat)))
+  invisible(structure(class = "sjpstackfrq",
+                      list(plot = baseplot,
+                           df = mydat)))
 }

@@ -4,7 +4,8 @@
 \alias{sjt.frq}
 \title{Show frequencies as HTML table}
 \usage{
-sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
+sjt.frq(data, file = NULL, weightBy = NULL,
+  weightByTitleString = " (weighted)", variableLabels = NULL,
   valueLabels = NULL, autoGroupAt = NULL, sort.frq = NULL,
   alternateRowColors = FALSE, stringValue = "value", stringCount = "N",
   stringPerc = "raw \%", stringValidPerc = "valid \%",
@@ -12,7 +13,7 @@ sjt.frq(data, file = NULL, weightBy = NULL, variableLabels = NULL,
   highlightMedian = FALSE, highlightQuartiles = FALSE,
   skipZeroRows = "auto", showSummary = TRUE, showSkew = FALSE,
   showKurtosis = FALSE, skewString = "&gamma;",
-  kurtosisString = "&omega;", removeStringVectors = TRUE,
+  kurtosisString = "&omega;", digits = 2, removeStringVectors = TRUE,
   autoGroupStrings = TRUE, maxStringDist = 3, encoding = NULL,
   CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
@@ -26,6 +27,10 @@ in the default web browser.}
 
 \item{weightBy}{A weight factor that will be applied to weight all cases from \code{data}.
 Must be a vector of same length as \code{nrow(data)}. Default is \code{NULL}, so no weights are used.}
+
+\item{weightByTitleString}{If a weight factor is supplied via the parameter \code{weightBy}, the table caption
+may indicate this with a remark. Default is \code{" (weightBy)"}, so table captions
+of weighted data will have an additional title suffix.}
 
 \item{variableLabels}{A single character vector or a list of character vectors that indicate
 the variable names of those variables from \code{data} and will be used as variable labels
@@ -100,6 +105,8 @@ Default is lower case Greek gamma.}
 \item{kurtosisString}{A character string, which is used as header for the kurtosis column (see \code{showKurtosis})).
 Default is lower case Greek omega.}
 
+\item{digits}{amount of digits used for table values. Default is 2.}
+
 \item{removeStringVectors}{If \code{TRUE} (default), character vectors / string variables will be removed from
 \code{data} before frequency tables are computed.}
 
@@ -116,21 +123,7 @@ will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \c
 Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-of all style-sheet-classnames that are used in this function. Parameters for this list need:
-\enumerate{
-  \item the class-names with \code{"css."}-prefix as parameter name and
-  \item each style-definition must end with a semicolon
-}
-You can add style information to the default styles by using a + (plus-sign) as
-initial character for the parameter attributes. Examples:
-\itemize{
-  \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-  \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-  \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-  \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
-}
-See further examples below and \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
@@ -157,6 +150,29 @@ Invisibly returns
 \description{
 Shows (multiple) frequency tables as HTML file, or saves them as file.
 }
+\details{
+\bold{How does the \code{CSS}-parameter work?}
+           \cr \cr
+           With the \code{CSS}-paramater, the visual appearance of the tables
+           can be modified. To get an overview of all style-sheet-classnames
+           that are used in this function, see return value \code{page.style} for details.
+           Parameters for this list have following syntax:
+         \enumerate{
+           \item the class-names with \code{"css."}-prefix as parameter name and
+           \item each style-definition must end with a semicolon
+         }
+         You can add style information to the default styles by using a + (plus-sign) as
+         initial character for the parameter attributes. Examples:
+         \itemize{
+           \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
+           \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
+           \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+           \item \code{css.colnames='+color:green'} to add green color formatting to column names.
+           \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
+           \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
+         }
+         See further examples at \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+}
 \note{
 The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
@@ -179,43 +195,51 @@ sjt.frq(efc$e42dep)
 
 # plot and show frequency table of "e42dep" with labels
 sjt.frq(efc$e42dep,
-        variableLabels=variables['e42dep'],
-        valueLabels=values[['e42dep']])
+        variableLabels = variables['e42dep'],
+        valueLabels = values[['e42dep']])
 
 # plot frequencies of e42dep, e16sex and c172code in one HTML file
 # and show table in RStudio Viewer Pane or default web browser
-sjt.frq(as.data.frame(cbind(efc$e42dep, efc$e16sex, efc$c172code)),
-        variableLabels=list(variables['e42dep'], variables['e16sex'], variables['c172code']),
-        valueLabels=list(values[['e42dep']], values[['e16sex']], values[['c172code']]))
+# Note that valueLabels of multiple variables have to be
+# list-objects
+sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code),
+        variableLabels = c(variables['e42dep'],
+                           variables['e16sex'],
+                           variables['c172code']),
+        valueLabels = list(values[['e42dep']],
+                           values[['e16sex']],
+                           values[['c172code']]))
+
+
+# -------------------------------
+# auto-detection of labels
+# due to auto-detection of labels, this works as well
+# -------------------------------
+sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
+
 
 # plot larger scale including zero-counts
 # indicating median and quartiles
 sjt.frq(efc$neg_c_7,
-        variableLabels=variables['neg_c_7'],
-        valueLabels=values[['neg_c_7']],
-        highlightMedian=TRUE,
-        highlightQuartiles=TRUE)
-
-# -------------------------------
-# auto-detection of labels
-# -------------------------------
-efc <- set_var_labels(efc, variables)
-sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
+        variableLabels = variables['neg_c_7'],
+        valueLabels = values[['neg_c_7']],
+        highlightMedian = TRUE,
+        highlightQuartiles = TRUE)
 
 # -------------------------------
 # sort frequencies
 # -------------------------------
-sjt.frq(efc$e42dep, sort.frq="desc")
+sjt.frq(efc$e42dep, sort.frq = "desc")
 
 # --------------------------------
 # User defined style sheet
 # --------------------------------
 sjt.frq(efc$e42dep,
-        variableLabels=variables['e42dep'],
-        valueLabels=values[['e42dep']],
-        CSS=list(css.table="border: 2px solid;",
-                 css.tdata="border: 1px solid;",
-                 css.firsttablecol="color:#003399; font-weight:bold;"))}
+        variableLabels = variables['e42dep'],
+        valueLabels = values[['e42dep']],
+        CSS = list(css.table = "border: 2px solid;",
+                   css.tdata = "border: 1px solid;",
+                   css.firsttablecol = "color:#003399; font-weight:bold;"))}
 }
 \seealso{
 \itemize{

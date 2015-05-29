@@ -30,8 +30,8 @@ to determine the group-count depending on the elbow-criterion. Use \code{\link{s
 to inspect the goodness of grouping.}
 
 \item{groups}{By default, this parameter is \code{NULL} and will be ignored. However, if you just want to plot
-an already existing cluster solution without computing a new cluster analysis, specifiy \code{groupcount}
-and \code{group}. \code{group} is a vector of same length as \code{nrow(data)} and indicates the group
+an already existing cluster solution without computing a new cluster analysis, specify \code{groupcount}
+and \code{groups}. \code{groups} is a vector of same length as \code{nrow(data)} and indicates the group
 classification of the cluster analysis. The group classification can be computed with the
 \code{\link{sjc.cluster}} function.}
 
@@ -63,11 +63,11 @@ which computes a linear discriminant analysis on the classified cluster groups a
 bar graph indicating the goodness of classification for each group.}
 
 \item{title}{Title of diagram as string.
-Example: \code{title=c("my title")}}
+Example: \code{title = "my title"}}
 
 \item{axisLabels.x}{Labels for the x-axis breaks.
-Example: \code{axisLabels.x=c("Label1", "Label2", "Label3")}.
-Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+Example: \code{axisLabels.x = c("Label1", "Label2", "Label3")}. \cr
+\strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 list object with label string. The labels may also be passed as list object. They will be coerced
 to character vector automatically.}
 
@@ -146,16 +146,7 @@ Compute a quick kmeans or hierarchical cluster analysis and displays "cluster ch
                a new cluster analysis. See parameter \code{groups} for more details.
 }
 \note{
-To get similar results as in SPSS Quick Cluster function, following points
-       have to be considered:
-       \enumerate{
-         \item Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster to get a table with initial cluster centers.
-         \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specifying \code{nrow} and \code{ncol} parameters.
-         \item Use \code{algorithm="Lloyd"}.
-         \item Use the same amount of \code{iter.max} both in SPSS and this \code{sjc.qclus}.
-       }
-       This ensures a fixed initial set of cluster centers (as in SPSS), while \code{\link{kmeans}} in R
-       always selects initial cluster sets randomly.
+See 'Note' in \code{\link{sjc.cluster}}
 }
 \examples{
 \dontrun{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjPlotOdds.R
 \name{sjp.glm}
 \alias{sjp.glm}
-\title{Plot odds ratios (forest plots)}
+\title{Plot odds ratios or predicted probabilities of generalized linear models}
 \usage{
 sjp.glm(fit, type = "dots", sortOdds = TRUE, title = NULL,
   axisLabels.y = NULL, axisTitle.x = "Odds Ratios", axisLimits = NULL,
@@ -15,35 +15,35 @@ sjp.glm(fit, type = "dots", sortOdds = TRUE, title = NULL,
   show.se = FALSE, showOriginalModelOnly = TRUE, printPlot = TRUE)
 }
 \arguments{
-\item{fit}{The fitted model of a logistic regression (or any other \code{\link{glm}}- or \code{logistf}-object).}
+\item{fit}{fitted generalized linear model (\code{\link{glm}}- or \code{logistf}-object).}
 
 \item{type}{type of plot. Use one of following:
-\itemize{
-  \item \code{"dots"}, \code{"glm"} or \code{"or"} (default) for odds ratios (forest plot)
-  \item \code{"bars"} for odds ratios as bar plot
-  \item \code{"prob"} or \code{"pc"} to plot probability (predicted probabilities) curves of coefficients (model terms). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.
-  \item \code{"ma"} to check model assumptions. Note that only two parameters are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other parameters are ignored.
-  \item \code{"vif"} to plot Variance Inflation Factors. See details.
+\describe{
+  \item{\code{"dots"}}{(or \code{"glm"} or \code{"or"} (default)) for odds ratios (forest plot)}
+  \item{\code{"bars"}}{for odds ratios as bar plot}
+  \item{\code{"prob"}}{(or \code{"pc"}) to plot predicted probabilities for each model terms, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+  \item{\code{"probc"}}{(or \code{"pcc"}) to plot centered predicted probabilities for each model term (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+  \item{\code{"y.pc"}}{(or \code{"y.prob"}) to plot predicted probabilities for the response.}
+  \item{\code{"ma"}}{to check model assumptions. Note that only two parameters are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other parameters are ignored.}
+  \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 }}
 
-\item{sortOdds}{If \code{TRUE} (default), the odds ratios are ordered according their OR value from highest first
+\item{sortOdds}{If \code{TRUE} (default), the odds ratios are ordered according their values from highest first
 to lowest last. Use \code{FALSE} if you don't want to change the order of the predictors.}
 
-\item{title}{Diagram's title as string.
-Example: \code{title=c("my title")}}
+\item{title}{Diagram's title as string. Example: \code{title = "my title"}}
 
-\item{axisLabels.y}{Labels of the predictor variables (independent vars, odds) that are used for labelling the
-axis. Passed as vector of strings.
-Example: \code{axisLabels.y=c("Label1", "Label2", "Label3")}
-Note: If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
+\item{axisLabels.y}{labels of the predictor variables (independent vars) that are used for labelling the
+axis. Must be a character vector of same length as independent variables. \cr
+\strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
 \code{list} object with label string. The labels may also be passed as list object. They will be coerced
 to character vector automatically.}
 
-\item{axisTitle.x}{A label ("title") for the x axis.}
+\item{axisTitle.x}{string; title for the x axis.}
 
-\item{axisLimits}{Defines the range of the axis where the beta coefficients and their confidence intervalls
+\item{axisLimits}{Defines the range of the axis where the odds ratios and their confidence intervalls
 are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits=c(-0.8,0.8)}.}
+the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.}
 
 \item{breakTitleAt}{Wordwrap for diagram title. Determines how many chars of the title are displayed in
 one line and when a line break is inserted into the title}
@@ -55,23 +55,23 @@ one line and when a line break is inserted}
 grid is being printed. Default is 0.5}
 
 \item{transformTicks}{if \code{TRUE}, the grid bars have exponential distances (equidistant), i.e. they
-visually have the same distance from one grid bar to the next. Default is \code{FALSE} which
-means that grids are plotted on every \code{gridBreaksAt}'s position, thus the grid bars
-become narrower with higher odds ratio values.}
+visually have the same distance from one panel grid to the next. If \code{FALSE}, grids are
+plotted on every \code{gridBreaksAt}'s position, thus the grid bars become narrower with
+higher odds ratio values.}
 
 \item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).}
 
 \item{geom.colors}{User defined color palette for geoms. Must either be vector with two color values
 or a specific color palette code (see below).
 \itemize{
-  \item If not specified, the diverging \code{"Paired"} color brewer palette will be used.
+  \item If not specified, the \code{"Set1"} color brewer palette will be used.
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-}
-Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00")}).}
+  \item Else specify your own color values as vector, e.g. \code{geom.colors=c("#f00000", "#00ff00")}.
+}}
 
 \item{hideErrorBars}{If \code{TRUE}, the error bars that indicate the confidence intervals of the odds ratios are not
-shown. Only applies if parameter \code{type} is \code{bars}. Default value is \code{FALSE}.}
+shown. Only applies if parameter \code{type = "bars"}. Default value is \code{FALSE}.}
 
 \item{interceptLineType}{The linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
 
@@ -81,11 +81,11 @@ shown. Only applies if parameter \code{type} is \code{bars}. Default value is \c
 values are plotted on the x-axis.}
 
 \item{showIntercept}{If \code{TRUE}, the intercept of the fitted model is also plotted.
-Default is \code{FALSE}. Please note that due to exp-transformation of
+Default is \code{FALSE}. Please note that due to exponential transformation of
 estimates, the intercept in some cases can not be calculated, thus the
 function call is interrupted and no plot printed.}
 
-\item{showAxisLabels.y}{Whether odds names (predictor labels) should be shown or not.}
+\item{showAxisLabels.y}{Whether labels of independent variables should be shown or not.}
 
 \item{showValueLabels}{Whether odds ratio values should be plotted to each dot or not.}
 
@@ -100,7 +100,7 @@ Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
 of the diagram.}
 
 \item{facet.grid}{\code{TRUE} when each plot should be plotted separately instead of
-an integrated (faceted) single graph. Only applies, if \code{type="prob"}.}
+an integrated (faceted) single graph. Only applies, if \code{type = "prob"}.}
 
 \item{show.se}{Use \code{TRUE} to plot (depending on \code{type}) the standard
 error for probability curves (predicted probabilities).}
@@ -114,12 +114,40 @@ are automatically excluded are also plotted.}
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
-(Invisibly) returns a structure with following elements:
-        \itemize{
-         \item \code{plot}: ggplot-object with the complete plot
-         \item \code{mydf}: data frame that was used for setting up the ggplot-object
-         \item \code{mydf.mp}: a list of data frames with the data for metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
-         \item \code{plot.mp}: a list of ggplot-objects with plots of metric predictors (terms of type \code{numeric}), which will be plotted if \code{showContPredPlots} is \code{TRUE}
+(Invisibly) returns various objects, depending on
+          the \code{type}-parameter:
+        \describe{
+         \item{\code{type = "dots" or "bars"}}{
+           \itemize{
+             \item \code{mydf} - data frame used for the plot
+             \item \code{plot} - plot as ggplot-object
+           }
+         }
+         \item{\code{type = "prob" or "probc"}}{
+           \itemize{
+             \item \code{mydf.mp} - data frame used for predicted probability plots
+             \item \code{plot.mp} - predicted probability plots as ggplot-objects
+             \item \code{mydf.facet} - data frame used for faceted predicted probability plots
+             \item \code{plot.facet} - facted predicted probability plots as ggplot-objects
+           }
+         }
+         \item{\code{type = "y.pc"}}{
+           \itemize{
+             \item \code{mydf} - data frame used for the plot
+             \item \code{plot} - plot as ggplot-object
+             \item \code{mean.pp} - mean value of the predicted probabilities for the response
+           }
+         }
+         \item{\code{type = "ma"}}{
+           \itemize{
+             \item \code{model} - updated model-fit with removed outliers
+           }
+         }
+         \item{\code{type = "vif"}}{
+           \itemize{
+             \item \code{vifval} - a vector with vif-values
+           }
+         }
         }
 }
 \description{
@@ -127,6 +155,20 @@ Plot odds ratios (exponentiated coefficients) with confidence intervalls as bar 
                Depending on the \code{type} parameter, this function may also plot model
                assumptions for generalized linear models, or predicted probabilities
                of coefficients.
+}
+\details{
+\describe{
+           \item{\code{type = "prob"}}{(or \code{"pc"}), the predicted probabilities
+           are based on the intercept's estimate and each specific term's estimate.
+           All other co-variates are set to zero (i.e. ignored).}
+           \item{\code{type = "probc"}}{(or \code{"pcc"}), the predicted probabilities
+           are based on the \code{\link{predict.glm}} method, where predicted values
+           are "centered"
+           (see \href{http://stats.stackexchange.com/questions/35682/contribution-of-each-covariate-to-a-single-prediction-in-a-logistic-regression-m#comment71993_35802}{CrossValidated}).}
+           \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
+           of the response are computed, based on the \code{\link{predict.glm}}
+           method.}
+         }
 }
 \note{
 Based on the script from \href{http://www.surefoss.org/dataanalysis/plotting-odds-ratios-aka-a-forrestplot-with-ggplot2/}{surefoss}
@@ -168,12 +210,12 @@ y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
 edu.mid <- ifelse(efc$c172code == 2, 1, 0)
 edu.high <- ifelse(efc$c172code == 3, 1, 0)
 # create data frame for fitted model
-mydf <- na.omit(data.frame(y = as.factor(y),
-                           sex = as.factor(efc$c161sex),
-                           dep = as.factor(efc$e42dep),
-                           barthel = as.numeric(efc$barthtot),
-                           edu.mid = as.factor(edu.mid),
-                           edu.hi = as.factor(edu.high)))
+mydf <- data.frame(y = as.factor(y),
+                   sex = as.factor(efc$c161sex),
+                   dep = as.factor(efc$e42dep),
+                   barthel = as.numeric(efc$barthtot),
+                   edu.mid = as.factor(edu.mid),
+                   edu.hi = as.factor(edu.high))
 # fit model
 fit <- glm(y ~., data = mydf, family = binomial(link = "logit"))
 # plot odds

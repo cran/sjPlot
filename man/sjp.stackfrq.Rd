@@ -78,8 +78,8 @@ of same length as groups defined in \code{legendLabels}, or a specific color pal
   \item If not specified, the sequential \code{"Blues"} color brewer palette will be used.
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-}
-Else specify your own color values as vector (e.g. \code{geom.colors=c("#f00000", "#00ff00", "#0080ff")}).}
+  \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00", "#8000f0")}).
+}}
 
 \item{axisTitle.x}{A label for the x axis. Useful when plotting histograms with metric scales where no category labels
 are assigned to the x axis.}
@@ -128,11 +128,16 @@ Thanks to \href{http://www.clas.ufl.edu/users/forrest/}{Forrest Stevens} for bug
 # random sample
 # -------------------------------
 # prepare data for 4-category likert scale, 5 items
-Q1 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4)))
-Q2 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1)))
-Q3 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25)))
-Q4 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1)))
-Q5 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
+Q1 <- as.factor(sample(1:4, 500, replace = TRUE,
+                       prob = c(0.2, 0.3, 0.1, 0.4)))
+Q2 <- as.factor(sample(1:4, 500, replace = TRUE,
+                       prob = c(0.5, 0.25, 0.15, 0.1)))
+Q3 <- as.factor(sample(1:4, 500, replace = TRUE,
+                       prob = c(0.25, 0.1, 0.4, 0.25)))
+Q4 <- as.factor(sample(1:4, 500, replace = TRUE,
+                       prob = c(0.1, 0.4, 0.4, 0.1)))
+Q5 <- as.factor(sample(1:4, 500, replace = TRUE,
+                       prob = c(0.35, 0.25, 0.15, 0.25)))
 
 likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 

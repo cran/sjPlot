@@ -2,8 +2,8 @@
 #' @name sjt.itemanalysis
 #' 
 #' @description This function performs an item analysis with certain statistics that are
-#'                useful for scale / index development. The resulting tables are shown in the
-#'                viewer pane / webbrowser or can be saved as file. Following statistics are 
+#'                useful for scale or index development. The resulting tables are shown in the
+#'                viewer pane resp. webbrowser or can be saved as file. Following statistics are 
 #'                computed for each item of a data frame:
 #'                \itemize{
 #'                  \item percentage of missing values
@@ -24,6 +24,8 @@
 #'                splitted into groups, assuming that \code{factor.groups} indicate those columns
 #'                of the data frame that belong to a certain factor (see return value of function \code{\link{sjt.pca}}
 #'                as example for retrieving factor groups for a scale and see examples for more details).
+#'
+#' @seealso \href{http://www.strengejacke.de/sjPlot/sjt.itemanalysis/}{sjPlot manual: sjt.itemanalysis}
 #'
 #' @param df A data frame with items (from a scale)
 #' @param factor.groups If not \code{NULL}, the data frame \code{df} will be splitted into sub-groups,
@@ -70,21 +72,7 @@
 #'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See return value \code{page.style} for details
-#'          of all style-sheet-classnames that are used in this function. Parameters for this list need:
-#'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as parameter name and
-#'            \item each style-definition must end with a semicolon
-#'          } 
-#'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the parameter attributes. Examples:
-#'          \itemize{
-#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
-#'            \item \code{css.arc='+font-style:italic;'} to add italic formatting to each 2nd row.
-#'          }
-#'          See further examples at \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -116,6 +104,10 @@
 #'          \item In case the total \emph{Cronbach's Alpha} value is below the acceptable cut-off of 0.7 (mostly if an index has few items), the \emph{mean inter-item-correlation} is an alternative measure to indicate acceptability. Satisfactory range lies between 0.2 and 0.4.
 #'        }
 #' 
+#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#'  
+#' @details See 'Details' in \code{\link{sjt.frq}}.
+#' 
 #' @references \itemize{
 #'              \item Jorion N, Self B, James K, Schroeder L, DiBello L, Pellegrino J (2013) Classical Test Theory Analysis of the Dynamics Concept Inventory. (\href{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory}{web})
 #'              \item Briggs SR, Cheek JM (1986) The role of factor analysis in the development and evaluation of personality scales. Journal of Personality, 54(1), 106-148 (\href{http://onlinelibrary.wiley.com/doi/10.1111/j.1467-6494.1986.tb00391.x/abstract}{web})
@@ -134,29 +126,29 @@
 #' varlabs <- get_var_labels(efc)
 #' 
 #' # recveive first item of COPE-index scale
-#' start <- which(colnames(efc)=="c82cop1")
+#' start <- which(colnames(efc) == "c82cop1")
 #' # recveive last item of COPE-index scale
-#' end <- which(colnames(efc)=="c90cop9")
+#' end <- which(colnames(efc) == "c90cop9")
 #'  
 #' # create data frame with COPE-index scale
-#' df <- as.data.frame(efc[,c(start:end)])
-#' colnames(df) <- varlabs[c(start:end)]
+#' mydf <- data.frame(efc[, c(start:end)])
+#' colnames(mydf) <- varlabs[c(start:end)]
 #' 
 #' \dontrun{
-#' sjt.itemanalysis(df)
+#' sjt.itemanalysis(mydf)
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
 #' # -------------------------------
 #' efc <- set_var_labels(efc, varlabs)
-#' sjt.itemanalysis(efc[,c(start:end)])
+#' sjt.itemanalysis(efc[, c(start:end)])
 #'   
 #' # ---------------------------------------
 #' # Compute PCA on Cope-Index, and perform a
 #' # item analysis for each extracted factor.
 #' # ---------------------------------------
-#' factor.groups <- sjt.pca(df, no.output=TRUE)$factor.index
-#' sjt.itemanalysis(df, factor.groups)}
+#' factor.groups <- sjt.pca(mydf, no.output = TRUE)$factor.index
+#' sjt.itemanalysis(mydf, factor.groups)}
 #'  
 #' @importFrom psych describe
 #' @import sjmisc
@@ -188,7 +180,7 @@ sjt.itemanalysis <- function(df,
   varlabels <- c()
   for (i in 1:ncol(df)) {
     # retrieve variable name attribute
-    vn <- sjmisc:::autoSetVariableLabels(df[, i])
+    vn <- sjmisc:::autoSetVariableLabels(df[[i]])
     # if variable has attribute, add to variableLabel list
     if (!is.null(vn)) {
       varlabels <- c(varlabels, vn)
@@ -255,10 +247,6 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     df.names <- colnames(df)[which(factor.groups == findex[i])]
     # -----------------------------------
-    # retrieve missings for each item
-    # -----------------------------------
-    missings <- apply(df.sub, 2, function(x) sum(is.na(x)))
-    # -----------------------------------
     # retrieve missing percentage for each item
     # -----------------------------------
     missings.prz <- apply(df.sub, 2, function(x) round(100 * sum(is.na(x)) / length(x), 2))
@@ -269,14 +257,13 @@ sjt.itemanalysis <- function(df,
     # -----------------------------------
     # item difficulty
     # -----------------------------------
-    itemcnt <- ncol(df.sub)
     difficulty <- apply(df.sub, 2, function(x) round(sum(x) / (max(x) * length(x)), 2))
     # -----------------------------------
     # ideal item difficulty
     # -----------------------------------
     fun.diff.ideal <- function(x) {
       p <- 1 / max(x)
-      return (round(p + (1 - p) / 2, 2))
+      return(round(p + (1 - p) / 2, 2))
     }
     diff.ideal <- apply(df.sub, 2, fun.diff.ideal)
     # -----------------------------------
@@ -428,13 +415,13 @@ sjt.itemanalysis <- function(df,
   # check if html-content should be printed
   # -------------------------------------
   out.html.table(no.output, file, knitr, complete.page, useViewer)  
-  invisible (list(class = "sjtitemanalysis",
-                  df.list = df.ia,
-                  index.scores = index.scores,
-                  df.index.scores = df.index.scores,
-                  cronbach.values = cronbach.total,
-                  ideal.item.diff = diff.ideal.list,
-                  knitr = knitr,
-                  knitr.list = knitr.list,
-                  complete.page = complete.page))
+  invisible(list(class = "sjtitemanalysis",
+                 df.list = df.ia,
+                 index.scores = index.scores,
+                 df.index.scores = df.index.scores,
+                 cronbach.values = cronbach.total,
+                 ideal.item.diff = diff.ideal.list,
+                 knitr = knitr,
+                 knitr.list = knitr.list,
+                 complete.page = complete.page))
 }
