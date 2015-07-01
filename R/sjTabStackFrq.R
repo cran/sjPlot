@@ -1,4 +1,4 @@
-#' @title Show stacked frequencies as HTML table
+#' @title Summary of stacked frequencies as HTML table
 #' @name sjt.stackfrq
 #' 
 #' @seealso \itemize{
@@ -12,20 +12,20 @@
 #'                should be printed as table to compare their distributions (e.g.
 #'                when plotting scales like SF, Barthel-Index, Quality-of-Life-scales etc.).
 #'                
-#' @param items A \code{\link{data.frame}} with each column representing one (likert- or scale-)item.
-#' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
+#' @param items \code{\link{data.frame}} with each column representing one (likert- or scale-)item.
+#' @param weightBy weight factor that will be applied to weight all cases from \code{items}.
 #'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.
-#' @param title A table caption.
-#' @param varlabels A list or vector of strings with variable names. If not specified, row names of \code{items}
+#' @param title table caption.
+#' @param varlabels list or vector of strings with variable names. If not specified, row names of \code{items}
 #'          will be used, resp. variable labels will automatically be detected, when they have
 #'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
-#' @param breakLabelsAt Wordwrap for variable labels. Determines how many chars of the variable labels are displayed in 
+#' @param breakLabelsAt determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
-#' @param valuelabels A list or vector of strings that category/value labels, which
+#' @param valuelabels list or vector of strings that category/value labels, which
 #'          appear in the header row.
-#' @param breakValueLabelsAt Wordwrap for value labels. Determines how many chars of the value labels are displayed in 
+#' @param breakValueLabelsAt determines how many chars of the value labels are displayed in 
 #'          one line and when a line break is inserted. Default is 20.
-#' @param sort.frq Indicates whether the \code{items} should be ordered by
+#' @param sort.frq logical, indicates whether the \code{items} should be ordered by
 #'          by highest count of first or last category of \code{items}.
 #'          \itemize{
 #'            \item Use \code{"first.asc"} to order ascending by lowest count of first category,
@@ -34,43 +34,28 @@
 #'            \item \code{"last.desc"} to order descending by lowest count of last category,
 #'            \item or \code{NULL} (default) for no sorting.
 #'          }
-#' @param digits The amount of digits for rounding the percentage values.
+#' @param digits amount of digits for rounding the percentage values.
 #'          Default is 2, i.e. percentage values have 2 digits after decimal point.
-#' @param showN If \code{TRUE}, each item's category N is printed in the table cells.
-#' @param showTotalN If \code{TRUE}, an additional column with each item's total N is printed.
-#' @param showNA If \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
+#' @param showN logical, if \code{TRUE}, each item's category N is printed in the table cells.
+#' @param showTotalN logical, if \code{TRUE}, an additional column with each item's total N is printed.
+#' @param showNA logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
 #' @param labelNA The label for the missing column/row.
-#' @param showSkew If \code{TRUE}, an additional column with each item's skewness is printed.
+#' @param showSkew logical, if \code{TRUE}, an additional column with each item's skewness is printed.
 #'          The skewness is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
-#' @param showKurtosis If \code{TRUE}, an additional column with each item's kurtosis is printed.
+#' @param showKurtosis logical, if \code{TRUE}, an additional column with each item's kurtosis is printed.
 #'          The kurtosis is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
 #'          package.
-#' @param digits.stats The amount of digits for rounding the skewness and kurtosis valuess.
+#' @param digits.stats amount of digits for rounding the skewness and kurtosis valuess.
 #'          Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.
-#' @param skewString A character string, which is used as header for the skew column (see \code{showSkew})).
+#' @param skewString string, which is used as header for the skew column (see \code{showSkew})).
 #'          Default is \code{"Skew"}.
-#' @param kurtosisString A character string, which is used as header for the kurtosis column (see \code{showKurtosis})).
+#' @param kurtosisString string, which is used as header for the kurtosis column (see \code{showKurtosis})).
 #'          Default is \code{"Kurtosis"}.
-#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
-#'          background color.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#' @inheritParams sjt.df
+#'          
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -155,6 +140,7 @@
 #'                         css.summary = "font-style:italic;"))}
 #'              
 #' @importFrom psych describe
+#' @importFrom stats xtabs
 #' @export
 sjt.stackfrq <- function(items,
                          weightBy = NULL,
@@ -290,7 +276,7 @@ sjt.stackfrq <- function(items,
         dummy <- table(addNA(items[[i]]))
       } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ addNA(items[[i]])), 0)
+        dummy <- round(stats::xtabs(weightBy ~ addNA(items[[i]])), 0)
       }
     # ----------------------------
     # exclude missing
@@ -300,7 +286,7 @@ sjt.stackfrq <- function(items,
         dummy <- table(items[[i]])
       } else {
         # else weight with xtabs
-        dummy <- round(xtabs(weightBy ~ items[[i]]), 0)
+        dummy <- round(stats::xtabs(weightBy ~ items[[i]]), 0)
       }
     }
     # ----------------------------
@@ -319,7 +305,7 @@ sjt.stackfrq <- function(items,
       # retrieve amount of categories
       tl <- length(names(dummy))
       # retrieve maximum category value, omitting NA
-      maxtl <- max(as.numeric(na.omit(names(dummy))))
+      maxtl <- max(as.numeric(stats::na.omit(names(dummy))))
       # set NA table name to max-value+1, so we have continuous
       # vector-index (needed below)
       names(dummy)[tl] <- maxtl + 1
@@ -454,7 +440,7 @@ sjt.stackfrq <- function(items,
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(i %% 2 ==0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
     # write tr-tag
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell

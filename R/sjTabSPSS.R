@@ -1,7 +1,37 @@
-#' @title View SPSS (and SAS/Stata) data set structure
 #' @name view_spss
+#' @rdname view_df
 #' 
-#' @description Save (or show) content of an imported SPSS, SAS or Stata data file as HTML table.
+#' @import sjmisc 
+#' @export
+view_spss <- function(x,
+                      file = NULL,
+                      alternateRowColors = TRUE,
+                      showID = TRUE,
+                      showType = FALSE,
+                      showValues = TRUE,
+                      showValueLabels = TRUE,
+                      showFreq = FALSE,
+                      showPerc = FALSE,
+                      sortByName = FALSE,
+                      breakVariableNamesAt = 50,
+                      encoding = NULL,
+                      hideProgressBar = FALSE,
+                      CSS = NULL,
+                      useViewer = TRUE,
+                      no.output = FALSE,
+                      remove.spaces = TRUE) {
+  .Deprecated("view_df")
+  view_df(x, file, alternateRowColors, showID, showType, showValues,
+          showValueLabels, showFreq, showPerc, sortByName, breakVariableNamesAt,
+          encoding, hideProgressBar, CSS, useViewer, no.output, remove.spaces)
+}
+
+
+#' @title View structure of labelled data frames
+#' @name view_df
+#' 
+#' @description Save (or show) content of an imported SPSS, SAS or Stata data file,
+#'                or any similar labelled \code{data.frame}, as HTML table.
 #'                Similar to the SPSS variable view. This quick overview shows
 #'                variable ID numner, name, label, type and associated
 #'                value labels. The result can be considered as "codeplan" of
@@ -12,13 +42,10 @@
 #'            \item \href{http://www.strengejacke.de/sjPlot/view_spss/}{sjPlot manual: inspecting (SPSS imported) data frames}
 #'          }
 #' 
-#' @param df An imported data frame, imported by \code{\link[sjmisc]{read_spss}},
-#'          \code{\link[sjmisc]{read_sas}} or \code{\link[sjmisc]{read_stata}} function.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the IDE's viewer pane or
-#'          in the default web browser.
-#' @param alternateRowColors logical, if \code{TRUE}, alternating rows are highlighted with a light gray
-#'          background color.
+#' @param x \code{data.frame}, imported by \code{\link[sjmisc]{read_spss}},
+#'          \code{\link[sjmisc]{read_sas}} or \code{\link[sjmisc]{read_stata}} function,
+#'          or any similar labelled data frame (see \code{\link[sjmisc]{set_var_labels}}
+#'          and \code{\link[sjmisc]{set_val_labels}}).
 #' @param showID logical, if \code{TRUE} (default), the variable ID is shown in the first column.
 #' @param showType logical, if \code{TRUE}, the variable type is shown in a separate column. Since
 #'          SPSS variable types are mostly \code{\link{numeric}} after import, this column
@@ -35,20 +62,10 @@
 #'          Default value is 50, use \code{NULL} to turn off word wrap.
 #' @param hideProgressBar If \code{TRUE}, the progress bar that is displayed when creating the
 #'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#' @inheritParams sjt.df
+#'          
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -69,41 +86,42 @@
 #' data(efc)
 #' 
 #' # view variables
-#' view_spss(efc)
+#' view_df(efc)
 #' 
 #' # view variables w/o values and value labels
-#' view_spss(efc, showValues = FALSE, showValueLabels = FALSE)
+#' view_df(efc, showValues = FALSE, showValueLabels = FALSE)
 #' 
 #' # view variables including variable typed, orderd by name
-#' view_spss(efc, sortByName = TRUE, showType = TRUE)
+#' view_df(efc, sortByName = TRUE, showType = TRUE)
 #' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
-#' view_spss(efc,
-#'           CSS=list(css.table = "border: 2px solid;",
+#' view_df(efc,
+#'         CSS = list(css.table = "border: 2px solid;",
 #'                    css.tdata = "border: 1px solid;",
 #'                    css.arc = "color:blue;"))}
 #'
 #' @import sjmisc 
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
-view_spss <- function(df,
-                      file = NULL,
-                      alternateRowColors = TRUE,
-                      showID = TRUE,
-                      showType = FALSE,
-                      showValues = TRUE,
-                      showValueLabels = TRUE,
-                      showFreq = FALSE,
-                      showPerc = FALSE,
-                      sortByName = FALSE,
-                      breakVariableNamesAt = 50,
-                      encoding = NULL,
-                      hideProgressBar = FALSE,
-                      CSS = NULL,
-                      useViewer = TRUE,
-                      no.output = FALSE,
-                      remove.spaces = TRUE) {
+view_df <- function(x,
+                    file = NULL,
+                    alternateRowColors = TRUE,
+                    showID = TRUE,
+                    showType = FALSE,
+                    showValues = TRUE,
+                    showValueLabels = TRUE,
+                    showFreq = FALSE,
+                    showPerc = FALSE,
+                    sortByName = FALSE,
+                    breakVariableNamesAt = 50,
+                    encoding = NULL,
+                    hideProgressBar = FALSE,
+                    CSS = NULL,
+                    useViewer = TRUE,
+                    no.output = FALSE,
+                    remove.spaces = TRUE) {
 # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -112,21 +130,21 @@ view_spss <- function(df,
   # make data frame of single variable, so we have
   # unique handling for the data
   # -------------------------------------
-  if (!is.data.frame(df)) stop("Parameter needs to be a data frame!", call. = FALSE)
+  if (!is.data.frame(x)) stop("Parameter needs to be a data frame!", call. = FALSE)
   # -------------------------------------
   # retrieve value and variable labels
   # -------------------------------------
-  df.var <- sjmisc::get_var_labels(df)
-  df.val <- sjmisc::get_val_labels(df)
+  df.var <- sjmisc::get_var_labels(x)
+  df.val <- sjmisc::get_val_labels(x)
   # -------------------------------------
   # get row count and ID's
   # -------------------------------------
-  rowcnt <- ncol(df)
+  rowcnt <- ncol(x)
   id <- 1:rowcnt
   # -------------------------------------
   # Order data set if requested
   # -------------------------------------
-  if (sortByName) id <- id[order(colnames(df))]
+  if (sortByName) id <- id[order(colnames(x))]
   # -------------------------------------
   # init style sheet and tags used for css-definitions
   # we can use these variables for string-replacement
@@ -178,7 +196,9 @@ view_spss <- function(df,
   # -------------------------------------
   # create progress bar
   # -------------------------------------
-  if (!hideProgressBar) pb <- txtProgressBar(min = 0, max = rowcnt, style = 3)
+  if (!hideProgressBar) pb <- utils::txtProgressBar(min = 0, 
+                                                    max = rowcnt, 
+                                                    style = 3)
   # -------------------------------------
   # subsequent rows
   # -------------------------------------
@@ -188,19 +208,19 @@ view_spss <- function(df,
     # default row string
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 == 0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(sjmisc::is_even(rcnt), " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
     # ID
     if (showID) page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
     # name
-    page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, colnames(df)[index]))
+    page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, colnames(x)[index]))
     # type
     if (showType) {
       vartype <- c("unknown type")
-      if (is.character(df[[index]])) vartype <- c("character")
-      else if (is.factor(df[[index]])) vartype <- c("factor")
-      else if (is.numeric(df[[index]])) vartype <- c("numeric")
-      else if (is.atomic(df[[index]])) vartype <- c("atomic")
+      if (is.character(x[[index]])) vartype <- c("character")
+      else if (is.factor(x[[index]])) vartype <- c("factor")
+      else if (is.numeric(x[[index]])) vartype <- c("numeric")
+      else if (is.atomic(x[[index]])) vartype <- c("atomic")
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, vartype))
     }
     # label
@@ -214,41 +234,68 @@ view_spss <- function(df,
       varlab <- "<NA>"
     }
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, varlab))
+    # ----------------------------
     # values
+    # ----------------------------
     if (showValues) {
-      if (index <= ncol(df)) {
-        vals <- sjmisc:::sji.getValueLabelValues(df[[index]])
-        valstring <- c("")
-        for (i in 1:length(vals)) {
-          valstring <- paste0(valstring, vals[i])
-          if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+      valstring <- c("")
+      # do we have valid index?
+      if (index <= ncol(x)) {
+        # if yes, get variable values
+        vals <- sjmisc::get_values(x[[index]])
+        # check if we have any values...
+        if (!is.null(vals)) {
+          # if we have values, put all values into a string
+          for (i in 1:length(vals)) {
+            valstring <- paste0(valstring, vals[i])
+            if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+          }
         }
       } else {
         valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
-    # values
+    # ----------------------------
+    # value labels
+    # ----------------------------
     if (showValueLabels) {
+      valstring <- c("")
+      # do we have valid index?
       if (index <= length(df.val)) {
-        # value labels
+        # if yes, get value labels
+        # the code here corresponds to the above code
+        # for variable values
         vals <- df.val[[index]]
-        valstring <- c("")
-        for (i in 1:length(vals)) {
-          valstring <- paste0(valstring, vals[i])
-          if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+        # check if we have any values...
+        if (!is.null(vals)) {
+          # if yes, add all to a string
+          for (i in 1:length(vals)) {
+            valstring <- paste0(valstring, vals[i])
+            if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+          }
         }
       } else {
         valstring <- "<NA>"
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
+    # ----------------------------
     # frequencies
+    # ----------------------------
     if (showFreq) {
-      if (index <= ncol(df) && !is.null(df.val[[index]])) {
-        ftab <- as.numeric(table(df[[index]]))
-        valstring <- c("")
-        for (i in 1:length(ftab)) {
+      valstring <- c("")
+      # check if we have a valid index
+      if (index <= ncol(x) && !is.null(df.val[[index]])) {
+        # create frequency table. same function as for
+        # sjt.frq and sjp.frq
+        ftab <- create.frq.df(x[[index]],
+                              df.val[[index]], 
+                              sjmisc::get_values(x[[index]]),
+                              20)$mydat$frq
+        # ftab <- as.numeric(table(x[[index]]))
+        # remove last value, which is N for NA
+        for (i in 1:(length(ftab) - 1)) {
           valstring <- paste0(valstring, ftab[i])
           if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
         }
@@ -257,12 +304,20 @@ view_spss <- function(df,
       }
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
-    # frequencies
+    # ----------------------------
+    # percentage of frequencies
+    # ----------------------------
     if (showPerc) {
-      if (index <= ncol(df) && !is.null(df.val[[index]])) {
-        ftab <- 100 * as.numeric(prop.table(table(df[[index]])))
-        valstring <- c("")
-        for (i in 1:length(ftab)) {
+      valstring <- c("")
+      # check for valid indices
+      if (index <= ncol(x) && !is.null(df.val[[index]])) {
+        # create frequency table, but only get valid percentages
+        ftab <- create.frq.df(x[[index]],
+                              df.val[[index]], 
+                              sjmisc::get_values(x[[index]]),
+                              20)$mydat$valid
+        # remove last value, which is a NA dummy
+        for (i in 1:(length(ftab) - 1)) {
           valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
           if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
         }
@@ -272,7 +327,7 @@ view_spss <- function(df,
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, valstring))
     }
     # update progress bar
-    if (!hideProgressBar) setTxtProgressBar(pb, rcnt)
+    if (!hideProgressBar) utils::setTxtProgressBar(pb, rcnt)
     # close row tag
     page.content <- paste0(page.content, "  </tr>\n")
   }

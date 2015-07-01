@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjTabGrpmean.R
 \name{sjt.grpmean}
 \alias{sjt.grpmean}
-\title{Show grouped means as HTML table}
+\title{Summary of grouped means as HTML table}
 \usage{
 sjt.grpmean(varCount, varGrp, weightBy = NULL, rowLabels = NULL,
   digits = 2, digits.summary = 3, file = NULL, encoding = NULL,
@@ -25,21 +25,22 @@ are automatically detected if set by \code{\link[sjmisc]{set_val_labels}}.}
 
 \item{digits.summary}{amount of digits for summary statistics (Anova).}
 
-\item{file}{The destination file, which will be in html-format. If no filepath is specified,
-the file will be saved as temporary file and openend either in the RStudio View pane or
-in the default web browser.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
+\item{encoding}{string, indicating the charset encoding used for variable and
+value labels. Default is \code{NULL}, so encoding will be auto-detected
+depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
-\item{no.output}{If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+\item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
 the viewer pane and not even saved to file. This option is useful when the html output
 should be used in \code{knitr} documents. The html output can be accessed via the return
 value.}
@@ -64,7 +65,16 @@ Computes mean, sd and se for each sub-group (indicated by \code{varGrp})
                of \code{varCount} and prints the result as HTML table.
 }
 \details{
-See 'Details' in \code{\link{sjt.frq}}.
+This function performs a One-Way-Anova with \code{varCount} as dependent
+           and \code{varGrp} as independent variable, by calling
+           \code{lm(varCount ~ as.factor(varGrp))}, to get p-values for each
+           sub-group and the complete "model". Thus, p-values indicate whether
+           each group-mean is significantly different from the reference
+           group (reference level of \code{varGrp}). Statistics like mean values are
+           based on subsetted groups (i.e. \code{varCount} is divided into sub-groups
+           indicated by \code{varGrp}).
+           \cr \cr
+           Furthermore, see 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
 See 'Notes' in \code{\link{sjt.frq}}.

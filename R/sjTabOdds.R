@@ -1,83 +1,85 @@
 # bind global variables
-if (getRversion() >= "2.15.1") utils::globalVariables(c("starts_with"))
+utils::globalVariables(c("starts_with"))
 
 
-#' @title Show (and compare) generalized linear models as HTML table
+#' @title Summary of generalized linear models as HTML table
 #' @name sjt.glm
 #' 
 #' @description Summarizes (multiple) fitted generalized linear models (odds ratios, ci, p-values...)
 #'                as HTML table, or saves them as file. The fitted models may have different predictors,
 #'                e.g. when comparing different stepwise fitted models.
 #' 
-#' @param ... One or more fitted \code{\link{glm}}-objects.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param labelPredictors Labels of the predictor variables, provided as char vector.
-#' @param labelDependentVariables Labels of the dependent variables of all fitted models
-#'          which have been used as first parameter(s), provided as char vector.
-#' @param stringPredictors String constant used as headline for the predictor column.
+#' @param ... one or more fitted generalized linear (mixed) models.
+#' @param labelPredictors character vector with labels of predictor variables.
+#'          If not \code{NULL}, \code{labelPredictors} will be used in the first
+#'          table column with the predictors' names. See 'Examples'.
+#' @param labelDependentVariables character vector with labels of dependent 
+#'          variables of all fitted models. See 'Examples'.
+#' @param stringPredictors string constant used as headline for the predictor column.
 #'          Default is \code{"Predictors"}.
-#' @param stringDependentVariables String constant used as headline for the 
+#' @param stringDependentVariables string constant used as headline for the 
 #'          dependent variable columns. Default is \code{"Dependent Variables"}.
-#' @param showHeaderStrings If \code{TRUE}, the header strings \code{stringPredictors}
+#' @param showHeaderStrings logical, if \code{TRUE}, the header strings \code{stringPredictors}
 #'          and \code{stringDependentVariables} are shown. By default, they're hidden.
-#' @param stringModel String constant used as headline for the model names in case no 
-#'          labels for the dependent variables are provided (see labelDependentVariables).
+#' @param stringModel string constant used as headline for the model names in case no 
+#'          labels for the dependent variables are provided (see \code{labelDependentVariables}).
 #'          Default is \code{"Model"}.
-#' @param stringIntercept String constant used as headline for the Intercept row
-#'          default is \code{"Intercept"}.
-#' @param stringObservations String constant used in the summary row for the count of observation
+#' @param stringIntercept String constant used as headline for the Intercept row.
+#'          Default is \code{"Intercept"}.
+#' @param stringObservations string constant used in the summary row for the count of observation
 #'          (cases). Default is \code{"Observations"}.
-#' @param stringOR String used for the column heading of odds ratio values. Default is \code{"OR"}.
-#' @param stringCI String used for the column heading of confidence interval values. Default is \code{"CI"}.
-#' @param stringSE String used for the column heading of standard error values. Default is \code{"std. Error"}.
-#' @param stringP String used for the column heading of p values. Default is \code{"p"}.
-#' @param digits.est Amount of decimals for estimators.
-#' @param digits.p Amount of decimals for p-values.
-#' @param digits.ci Amount of decimals for confidence intervals.
-#' @param digits.se Amount of decimals for standard error.
-#' @param digits.summary Amount of decimals for values in model summary.
-#' @param exp.coef If \code{TRUE} (default), regression coefficients and confidence intervals are exponentiated
-#'          (odds ratios, \code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if you want the non-exponentiated coefficients
-#'          (log-odds) as they are provided by the \code{\link{summary}} function.
-#' @param pvaluesAsNumbers If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
+#' @param stringOR string used for the column heading of odds ratio values. Default is \code{"OR"}.
+#' @param stringCI string used for the column heading of confidence interval values. Default is \code{"CI"}.
+#' @param stringSE string used for the column heading of standard error values. Default is \code{"std. Error"}.
+#' @param stringP string used for the column heading of p values. Default is \code{"p"}.
+#' @param digits.est amount of decimals for estimators
+#' @param digits.p amount of decimals for p-values
+#' @param digits.ci amount of decimals for confidence intervals
+#' @param digits.se amount of decimals for standard error
+#' @param digits.summary amount of decimals for values in model summary
+#' @param exp.coef logical, if \code{TRUE} (default), regression coefficients and 
+#'          confidence intervals are exponentiated. Use \code{FALSE} for 
+#'          non-exponentiated coefficients (log-odds) as provided by 
+#'          the \code{\link{summary}} function.
+#' @param pvaluesAsNumbers logical, if \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
 #'          p-values are indicated by asterisks.
-#' @param boldpvalues If \code{TRUE} (default), significant p-values are shown bold faced.
-#' @param showConfInt If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
+#' @param boldpvalues logical, if \code{TRUE} (default), significant p-values are shown bold faced.
+#' @param showConfInt logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 #'          \code{FALSE} to omit the CI in the table.
-#' @param showStdError If \code{TRUE}, the standard errors are also printed.
+#' @param showStdError logical, if \code{TRUE}, the standard errors are also printed.
 #'          Default is \code{FALSE}.
-#' @param separateConfColumn if \code{TRUE}, the CI values are shown in a separate table column.
+#' @param separateConfColumn logical, if \code{TRUE}, the CI values are shown in a separate table column.
 #'          Default is \code{FALSE}.
-#' @param newLineConf If \code{TRUE} and \code{separateConfColumn} is \code{FALSE}, inserts a line break
+#' @param newLineConf logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 #'          between OR and CI values. If \code{FALSE}, CI values are printed in the same
 #'          line with OR values.
 #' @param group.pred logical, if \code{TRUE} (default), automatically groups table rows with 
 #'          factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
 #'          be grouped, if the factor has more than two levels. Grouping means that a separate headline
 #'          row is inserted to the table just before the predictor values.
-#' @param showAbbrHeadline If \code{TRUE} (default), the table data columns have a headline with 
+#' @param showAbbrHeadline logical, if \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for odds ratios, confidence interval and p-values.
-#' @param showPseudoR If \code{TRUE} (default), the pseudo R2 values for each model are printed
+#' @param showPseudoR logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
 #'          in the model summary. R2cs is the Cox-Snell-pseudo R-square value, R2n is Nagelkerke's 
 #'          pseudo R-square value and \code{D} is Tjur's Coefficient of Discrimination
 #'          (see \code{\link[sjmisc]{cod}}).
-#' @param showLogLik If \code{TRUE}, the Log-Likelihood for each model is printed
+#' @param showLogLik logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param showAIC If \code{TRUE}, the \code{\link{AIC}} value for each model is printed
+#' @param showAIC logical, if \code{TRUE}, the \code{\link{AIC}} value for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param showChi2 If \code{TRUE}, the p-value of the chi-squared value for each 
+#' @param showAICc logical, if \code{TRUE}, the second-order AIC value for each model 
+#'          is printed in the model summary. Default is \code{FALSE}.
+#' @param showChi2 logical, if \code{TRUE}, the p-value of the chi-squared value for each 
 #'          model's residual deviance against the null deviance is printed
 #'          in the model summary. Default is \code{FALSE}. A well-fitting model
 #'          with predictors should significantly differ from the null-model
 #'          (without predictors), thus, a p-value less than 0.05 indicates a
 #'          good model-fit.
-#' @param showHosLem If \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
+#' @param showHosLem logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
 #'          performed. A well-fitting model shows no significant difference between 
 #'          the model and the observed data, i.e. the reported p-values should be
 #'          greater than 0.05.
-#' @param showFamily If \code{TRUE}, the family object and link function for each fitted model
+#' @param showFamily logical, if \code{TRUE}, the family object and link function for each fitted model
 #'          are printed. Can be used in case you want to compare models with different link functions
 #'          and same predictors and response, to decide which model fits best. See \code{\link{family}}
 #'          for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
@@ -89,26 +91,15 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("starts_with"))
 #'          would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output. 
 #'          \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
 #'          is \code{NULL}, i.e. all estimates are printed.
-#' @param cellSpacing The inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
+#' @param cellSpacing numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 #'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 #'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
-#'          cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.
+#'          cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.
 #' @param cellGroupIndent Indent for table rows with grouped factor predictors. Only applies
 #'          if \code{group.pred} is \code{TRUE}.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#' 
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -260,49 +251,52 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("starts_with"))
 #' sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 #' 
 #' @import dplyr
+#' @importFrom stats nobs AIC confint coef logLik family
 #' @export
-sjt.glm <- function(..., 
-                    file=NULL, 
-                    labelPredictors=NULL, 
-                    labelDependentVariables=NULL, 
-                    stringPredictors="Predictors", 
-                    stringDependentVariables="Dependent Variables", 
-                    showHeaderStrings=FALSE,
-                    stringModel="Model",
-                    stringIntercept="(Intercept)",
-                    stringObservations="Observations",
-                    stringOR="OR",
-                    stringCI="CI",
-                    stringSE="std. Error",
-                    stringP="p",
-                    digits.est=2,
-                    digits.p=3,
-                    digits.ci=2,
-                    digits.se=2,
-                    digits.summary=3,
-                    exp.coef=TRUE,
-                    pvaluesAsNumbers=TRUE,
-                    boldpvalues=TRUE,
-                    showConfInt=TRUE,
-                    showStdError=FALSE,
-                    separateConfColumn=TRUE,
-                    newLineConf=TRUE,
-                    group.pred=TRUE,
-                    showAbbrHeadline=TRUE,
-                    showPseudoR=FALSE,
-                    showLogLik=FALSE,
-                    showAIC=FALSE,
-                    showChi2=FALSE,
+sjt.glm <- function(...,
+                    file = NULL,
+                    labelPredictors = NULL,
+                    labelDependentVariables = NULL,
+                    stringPredictors = "Predictors",
+                    stringDependentVariables = "Dependent Variables",
+                    showHeaderStrings = FALSE,
+                    stringModel = "Model",
+                    stringIntercept = "(Intercept)",
+                    stringObservations = "Observations",
+                    stringOR = "OR",
+                    stringCI = "CI",
+                    stringSE = "std. Error",
+                    stringP = "p",
+                    digits.est = 2,
+                    digits.p = 3,
+                    digits.ci = 2,
+                    digits.se = 2,
+                    digits.summary = 3,
+                    exp.coef = TRUE,
+                    pvaluesAsNumbers = TRUE,
+                    boldpvalues = TRUE,
+                    showConfInt = TRUE,
+                    showStdError = FALSE,
+                    separateConfColumn = TRUE,
+                    newLineConf = TRUE,
+                    group.pred = TRUE,
+                    showAbbrHeadline = TRUE,
+                    showPseudoR = FALSE,
+                    showLogLik = FALSE,
+                    showAIC = FALSE,
+                    showAICc = FALSE,
+                    showChi2 = FALSE,
                     showHosLem = FALSE,
-                    showFamily=FALSE,
-                    remove.estimates=NULL,
-                    cellSpacing=0.2,
-                    cellGroupIndent=0.6,
-                    encoding=NULL,
-                    CSS=NULL,
-                    useViewer=TRUE,
-                    no.output=FALSE,
-                    remove.spaces=TRUE) {
+                    showFamily = FALSE,
+                    remove.estimates = NULL,
+                    cellSpacing = 0.2,
+                    cellGroupIndent = 0.6,
+                    encoding = NULL,
+                    CSS = NULL,
+                    useViewer = TRUE,
+                    no.output = FALSE,
+                    remove.spaces = TRUE) {
+  
   # --------------------------------------------------------
   # check p-value-style option
   # --------------------------------------------------------
@@ -450,6 +444,13 @@ sjt.glm <- function(...,
     stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
   }
   # ------------------------
+  # should AICc be computed? Check for package
+  # ------------------------
+  if (showAICc && !requireNamespace("AICcmodavg", quietly = TRUE)) {
+    warning("Package 'AICcmodavg' needed to show AICc. Parameter 'showAICc' will be ignored.", call. = FALSE)
+    showAICc <- FALSE
+  }
+  # ------------------------
   # check for stepwise models, when fitted models
   # are mixed effects models
   # ------------------------
@@ -478,12 +479,12 @@ sjt.glm <- function(...,
     showICC <- FALSE
     # check if we have different amount of coefficients
     # in fitted models - if yes, we have e.g. stepwise models
-    sw.fit <- length(unique(sapply(input_list, function(x) length(coef(x))))) > 1
+    sw.fit <- length(unique(sapply(input_list, function(x) length(stats::coef(x))))) > 1
     # if all fitted models have same amount of coefficients, check
     # whether all coefficients have same name. if not, we have models
     # with different predictors (e.g. stepwise comparison)
     if (sw.fit == FALSE) {
-      all.coefs <- sapply(input_list, function(x) sort(names(coef(x))))
+      all.coefs <- sapply(input_list, function(x) sort(names(stats::coef(x))))
       sw.fit <- any(apply(all.coefs, 1, function(x) length(unique(x))) > 1)
     }
   }
@@ -504,11 +505,12 @@ sjt.glm <- function(...,
     # retrieve ci for model
     # -------------------------------------
     if (lmerob) {
-      confis <- lme4::confint.merMod(fit, method = "Wald")
+      # get cleaned CI
+      confis <- get_cleaned_ciMerMod(fit, T)
       coef.fit <- lme4::fixef(fit)
     } else {
-      confis <- confint(fit)
-      coef.fit <- coef(fit)
+      confis <- stats::confint(fit)
+      coef.fit <- stats::coef(fit)
     }
     # -------------------------------------
     # write data to data frame. we need names of
@@ -533,7 +535,7 @@ sjt.glm <- function(...,
       # p-values
       fit.df$pv <- round(get_lmerMod_pvalues(fit), digits.p)
       # standard error
-      fit.df$se <- sprintf("%.*f", digits.se, coef(summary(fit))[, "Std. Error"])
+      fit.df$se <- sprintf("%.*f", digits.se, stats::coef(summary(fit))[, "Std. Error"])
     } else {
       # p-values
       fit.df$pv <- round(summary(fit)$coefficients[, 4], digits.p)
@@ -559,7 +561,7 @@ sjt.glm <- function(...,
       }
       fit.df$pv <- sapply(fit.df$pv, function(x) {
         if (x < 0.05) {
-          if (x < 0.001) {
+          if (x < 0.001 && digits.p <= 3) {
             x <- sprintf("%s&lt;0.001%s", sb1, sb2)
           } else {
             x <- sprintf("%s%.*f%s", sb1, digits.p, x, sb2)
@@ -876,10 +878,6 @@ sjt.glm <- function(...,
     }
     page.content <- paste0(page.content, "\n  <tr>\n", sprintf("    <td class=\"%s leftalign\">%s</td>", indent.tag, labelPredictors[i]))
     # ---------------------------------------
-    # helper function, checks if string is empty
-    # ---------------------------------------
-    is_empty <- function(x) return(is.null(x) || nchar(x) == 0)
-    # ---------------------------------------
     # go through fitted model's statistics
     # ---------------------------------------
     for (j in 1:length(input_list)) {
@@ -889,11 +887,11 @@ sjt.glm <- function(...,
       # if we have empry cells (due to different predictors in models)
       # we don't print CI-separator strings and we don't print any esitmate
       # values - however, for proper display, we fill these values with "&nbsp;"
-      ci.sep.string <- ifelse(is_empty(ci.lo), "&nbsp;", "&nbsp;-&nbsp;")
+      ci.sep.string <- ifelse(sjmisc::is_empty(ci.lo), "&nbsp;", "&nbsp;-&nbsp;")
       # replace empty beta, se and p-values with &nbsp;
-      if (is_empty(joined.df[i + 1, (j - 1) * 5 + 2])) joined.df[i + 1, (j - 1) * 5 + 2] <- "&nbsp;"
-      if (is_empty(joined.df[i + 1, (j - 1) * 5 + 5])) joined.df[i + 1, (j - 1) * 5 + 5] <- "&nbsp;"
-      if (is_empty(joined.df[i + 1, (j - 1) * 5 + 6])) joined.df[i + 1, (j - 1) * 5 + 6] <- "&nbsp;"
+      if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 5 + 2])) joined.df[i + 1, (j - 1) * 5 + 2] <- "&nbsp;"
+      if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 5 + 5])) joined.df[i + 1, (j - 1) * 5 + 5] <- "&nbsp;"
+      if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 5 + 6])) joined.df[i + 1, (j - 1) * 5 + 6] <- "&nbsp;"
       # -------------------------
       # insert "separator column"
       # -------------------------
@@ -920,11 +918,12 @@ sjt.glm <- function(...,
         page.content <- paste0(page.content, sprintf("\n    <td class=\"tdata centeralign modelcolumn1\">%s", 
                                                      joined.df[i + 1, (j - 1) * 5 + 2]))
         # confidence interval in Beta-column
-        if (showConfInt && !is_empty(ci.lo)) page.content <- paste0(page.content, sprintf("%s(%s%s%s)", 
-                                                                                          linebreakstring, 
-                                                                                          ci.lo, 
-                                                                                          ci.sep.string, 
-                                                                                          ci.hi))
+        if (showConfInt && !sjmisc::is_empty(ci.lo)) page.content <- paste0(page.content, 
+                                                                            sprintf("%s(%s%s%s)", 
+                                                                                    linebreakstring, 
+                                                                                    ci.lo, 
+                                                                                    ci.sep.string, 
+                                                                                    ci.hi))
         # if p-values are not shown as numbers, insert them after beta-value
         if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("&nbsp;%s", 
                                                                             joined.df[i + 1, (j - 1) * 5 + 5]))
@@ -1026,7 +1025,7 @@ sjt.glm <- function(...,
     # insert "separator column"
     # -------------------------
     page.content <- paste0(page.content, "<td class=\"separatorcol firstsumrow\">&nbsp;</td>")
-    page.content <- paste(page.content, sprintf("%s%i</td>", colspanstringfirstrow, nobs(input_list[[i]])))
+    page.content <- paste(page.content, sprintf("%s%i</td>", colspanstringfirstrow, stats::nobs(input_list[[i]])))
   }
   page.content <- paste0(page.content, "\n  </tr>\n")
   # -------------------------------------
@@ -1065,7 +1064,7 @@ sjt.glm <- function(...,
       # insert "separator column"
       # -------------------------
       page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
-      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, -2 * as.vector(logLik(input_list[[i]]))))
+      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, -2 * as.vector(stats::logLik(input_list[[i]]))))
     }
     page.content <- paste0(page.content, "\n  </tr>\n")
   }
@@ -1079,7 +1078,21 @@ sjt.glm <- function(...,
       # insert "separator column"
       # -------------------------
       page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
-      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, AIC(input_list[[i]])))
+      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, stats::AIC(input_list[[i]])))
+    }
+    page.content <- paste0(page.content, "\n  </tr>\n")
+  }
+  # -------------------------------------
+  # Model-Summary: AICc
+  # -------------------------------------
+  if (showAICc) {
+    page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">AICc</td>")
+    for (i in 1:length(input_list)) {
+      # -------------------------
+      # insert "separator column"
+      # -------------------------
+      page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
+      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, AICcmodavg::AICc(input_list[[i]])))
     }
     page.content <- paste0(page.content, "\n  </tr>\n")
   }
@@ -1181,7 +1194,7 @@ sjt.glm <- function(...,
       # -------------------------
       page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
       if (lmerob) {
-        fam <- family(input_list[[i]])
+        fam <- stats::family(input_list[[i]])
       } else {
         fam <- input_list[[i]]$family
       }
@@ -1266,99 +1279,18 @@ sjt.glm <- function(...,
 }
 
 
-#' @title Show (and compare) generalized linear mixed models as HTML table
+#' @title Summary of generalized linear mixed models as HTML table
 #' @name sjt.glmer
 #' 
 #' @description Summarizes (multiple) fitted generalized linear mixed models (odds ratios, ci, p-values...)
 #'                as HTML table, or saves them as file. The fitted models may have different predictors,
 #'                e.g. when comparing different stepwise fitted models.
 #' 
-#' @param ... One or more mixed models fitted with \code{\link[lme4]{glmer}}.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param labelPredictors Labels of the predictor variables, provided as char vector.
-#' @param labelDependentVariables Labels of the dependent variables of all fitted models
-#'          which have been used as first parameter(s), provided as char vector.
-#' @param stringPredictors String constant used as headline for the predictor column.
-#'          Default is \code{"Predictors"}.
-#' @param stringDependentVariables String constant used as headline for the 
-#'          dependent variable columns. Default is \code{"Dependent Variables"}.
-#' @param showHeaderStrings If \code{TRUE}, the header strings \code{stringPredictors}
-#'          and \code{stringDependentVariables} are shown. By default, they're hidden.
-#' @param stringModel String constant used as headline for the model names in case no 
-#'          labels for the dependent variables are provided (see labelDependentVariables).
-#'          Default is \code{"Model"}.
-#' @param stringIntercept String constant used as headline for the Intercept row
-#'          default is \code{"Intercept"}.
-#' @param stringObservations String constant used in the summary row for the count of observation
-#'          (cases). Default is \code{"Observations"}.
-#' @param stringOR String used for the column heading of odds ratio values. Default is \code{"OR"}.
-#' @param stringCI String used for the column heading of confidence interval values. Default is \code{"CI"}.
-#' @param stringSE String used for the column heading of standard error values. Default is \code{"std. Error"}.
-#' @param stringP String used for the column heading of p values. Default is \code{"p"}.
-#' @param digits.est Amount of decimals for estimators.
-#' @param digits.p Amount of decimals for p-values.
-#' @param digits.ci Amount of decimals for confidence intervals.
-#' @param digits.se Amount of decimals for standard error.
-#' @param digits.summary Amount of decimals for values in model summary.
-#' @param exp.coef If \code{TRUE} (default), regression coefficients and confidence intervals are exponentiated
-#'          (odds ratios, \code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if you want the non-exponentiated coefficients
-#'          (log-odds) as they are provided by the \code{\link{summary}} function.
-#' @param pvaluesAsNumbers If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
-#'          p-values are indicated by asterisks.
-#' @param boldpvalues If \code{TRUE} (default), significant p-values are shown bold faced.
-#' @param showConfInt If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
-#'          \code{FALSE} to omit the CI in the table.
-#' @param showStdError If \code{TRUE}, the standard errors are also printed.
-#'          Default is \code{FALSE}.
-#' @param separateConfColumn if \code{TRUE}, the CI values are shown in a separate table column.
-#'          Default is \code{FALSE}.
-#' @param newLineConf If \code{TRUE} and \code{separateConfColumn} is \code{FALSE}, inserts a line break
-#'          between OR and CI values. If \code{FALSE}, CI values are printed in the same
-#'          line with OR values.
-#' @param showAbbrHeadline If \code{TRUE} (default), the table data columns have a headline with 
-#'          abbreviations for odds ratios, confidence interval and p-values.
-#' @param showLogLik If \code{TRUE}, the Log-Likelihood for each model is printed
-#'          in the model summary. Default is \code{FALSE}.
-#' @param showICC If \code{TRUE}, the intra-class-correlation for each model is printed
-#'          in the model summary.
-#' @param showAIC If \code{TRUE}, the \code{\link{AIC}} value for each model is printed
-#'          in the model summary. Default is \code{FALSE}.
-#' @param showHosLem If \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
-#'          performed. A well-fitting model shows no significant difference between 
-#'          the model and the observed data, i.e. the reported p-values should be
-#'          greater than 0.05.
-#' @param showFamily If \code{TRUE}, the family object and link function for each fitted model
-#'          are printed. Can be used in case you want to compare models with different link functions
-#'          and same predictors and response, to decide which model fits best. See \code{\link{family}}
-#'          for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
-#'          decision help for which model to choose.
-#' @param remove.estimates numeric vector with indices (order equals to row index of \code{coef(fit)}) 
-#'          or character vector with coefficient names that indicate which estimates should be removed
-#'          from the table output. The first estimate is the intercept, followed by the model predictors.
-#'          \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)} 
-#'          would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output. 
-#'          \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
-#'          is \code{NULL}, i.e. all estimates are printed.
-#' @param cellSpacing The inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
-#'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-#'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
-#'          cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#' @inheritParams sjt.glm
+#' @inheritParams sjt.frq
+#' 
+#' @param showICC logical, if \code{TRUE}, the intra-class-correlation for each 
+#'          model is printed in the model summary.
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -1401,52 +1333,64 @@ sjt.glm <- function(...,
 #'               
 #' # print summary table
 #' sjt.glmer(fit1, fit2)
+#' 
+#' # print summary table, using different table layout
 #' sjt.glmer(fit1, fit2,
 #'           showAIC = TRUE,
 #'           showConfInt = FALSE,
 #'           showStdError = TRUE,
-#'           pvaluesAsNumbers = FALSE)}
+#'           pvaluesAsNumbers = FALSE)
+#'           
+#' # print summary table
+#' sjt.glmer(fit1, fit2,
+#'           labelPredictors = c("Elder's gender (female)",
+#'                               "Hours of care per week",
+#'                               "Negative Impact",
+#'                               "Educational level (mid)",
+#'                               "Educational level (high)"))}
 #' 
 #' @export
-sjt.glmer <- function(..., 
-                     file=NULL, 
-                     labelPredictors=NULL, 
-                     labelDependentVariables=NULL, 
-                     stringPredictors="Predictors", 
-                     stringDependentVariables="Dependent Variables", 
-                     showHeaderStrings=FALSE,
-                     stringModel="Model",
-                     stringIntercept="(Intercept)",
-                     stringObservations="Observations",
-                     stringOR="OR",
-                     stringCI="CI",
-                     stringSE="std. Error",
-                     stringP="p",
-                     digits.est=2,
-                     digits.p=3,
-                     digits.ci=2,
-                     digits.se=2,
-                     digits.summary=3,
-                     exp.coef=TRUE,
-                     pvaluesAsNumbers=TRUE,
-                     boldpvalues=TRUE,
-                     showConfInt=TRUE,
-                     showStdError=FALSE,
-                     separateConfColumn=TRUE,
-                     newLineConf=TRUE,
-                     showAbbrHeadline=TRUE,
-                     showICC=TRUE,
-                     showLogLik=FALSE,
-                     showAIC=FALSE,
-                     showHosLem = FALSE,
-                     showFamily=FALSE,
-                     remove.estimates=NULL,
-                     cellSpacing=0.2,
-                     encoding=NULL,
-                     CSS=NULL,
-                     useViewer=TRUE,
-                     no.output=FALSE,
-                     remove.spaces=TRUE) {
+sjt.glmer <- function(...,
+                      file = NULL,
+                      labelPredictors = NULL,
+                      labelDependentVariables = NULL,
+                      stringPredictors = "Predictors",
+                      stringDependentVariables = "Dependent Variables",
+                      showHeaderStrings = FALSE,
+                      stringModel = "Model",
+                      stringIntercept = "(Intercept)",
+                      stringObservations = "Observations",
+                      stringOR = "OR",
+                      stringCI = "CI",
+                      stringSE = "std. Error",
+                      stringP = "p",
+                      digits.est = 2,
+                      digits.p = 3,
+                      digits.ci = 2,
+                      digits.se = 2,
+                      digits.summary = 3,
+                      exp.coef = TRUE,
+                      pvaluesAsNumbers = TRUE,
+                      boldpvalues = TRUE,
+                      showConfInt = TRUE,
+                      showStdError = FALSE,
+                      separateConfColumn = TRUE,
+                      newLineConf = TRUE,
+                      showAbbrHeadline = TRUE,
+                      showICC = TRUE,
+                      showLogLik = FALSE,
+                      showAIC = FALSE,
+                      showAICc = FALSE,
+                      showHosLem = FALSE,
+                      showFamily = FALSE,
+                      remove.estimates = NULL,
+                      cellSpacing = 0.2,
+                      encoding = NULL,
+                      CSS = NULL,
+                      useViewer = TRUE,
+                      no.output = FALSE,
+                      remove.spaces = TRUE) {
+  
   input_list <- list(...)
   return(sjt.glm(input_list, file = file, labelPredictors = labelPredictors, 
                  labelDependentVariables = labelDependentVariables, stringPredictors = stringPredictors, 
@@ -1460,8 +1404,8 @@ sjt.glmer <- function(...,
                  showConfInt = showConfInt, showStdError = showStdError, 
                  separateConfColumn = separateConfColumn, newLineConf = newLineConf, 
                  group.pred = FALSE, showAbbrHeadline = showAbbrHeadline, showPseudoR = showICC, 
-                 showLogLik = showLogLik, showAIC = showAIC, showChi2 = FALSE, showHosLem = showHosLem,
-                 showFamily = showFamily, remove.estimates = remove.estimates, 
+                 showLogLik = showLogLik, showAIC = showAIC, showAICc = showAICc, showChi2 = FALSE, 
+                 showHosLem = showHosLem, showFamily = showFamily, remove.estimates = remove.estimates, 
                  cellSpacing = cellSpacing, cellGroupIndent = 0, encoding = encoding, 
                  CSS = CSS, useViewer = useViewer, no.output = no.output, remove.spaces = remove.spaces))
 }

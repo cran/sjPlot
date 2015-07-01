@@ -1,5 +1,5 @@
 # bind global variables
-if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
+utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 
 #' @title Plot contingency tables
 #' @name sjp.xtab
@@ -11,119 +11,71 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' 
 #' @description Plot proportional crosstables (contingency tables) of two variables as ggplot diagram.
 #' 
-#' @param var The variable which proportions (percentage values) should be plotted. The percentage proportions
-#'          (within table row, table column or complete table, see parameter \code{tableIndex} of this variable) 
-#'          are plotted along the y-axis, the variable's categories on the x-axis.
-#' @param grp The grouping variable, where each value represents a single bar chart 
-#'          within each category of \code{var}.
-#' @param weightBy A weight factor that will be applied to weight all cases from \code{var}.
-#'          Must be a vector of same length as \code{var}. Default is \code{NULL}, so no weights are used.
-#' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
-#'          may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
-#'          cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString=" (weighted)"}.
-#' @param type The plot type. may be either \code{"b"}, \code{"bar"}, \code{"bars"} (default) for bar charts,
+#' @param x a vector of values (variable) describing the bars which make up the plot.
+#' @param grp grouping variable of same length as \code{x}, where \code{x} 
+#'          is grouped into the categories represented by \code{grp}.
+#' @param weightBy weight factor that will be applied to weight all cases from \code{x}.
+#'          Must be a vector of same length as \code{x}. Default is \code{NULL}, so no weights are used.
+#' @param type plot type. may be either \code{"b"}, \code{"bar"}, \code{"bars"} (default) for bar charts,
 #'          or \code{"l"}, \code{"line"}, \code{"lines"} for line diagram.
-#' @param tableIndex Indicates which data from the proportional table should be plotted. Use \code{"row"} for
+#' @param tableIndex indicates which data of the proportional table should be plotted. Use \code{"row"} for
 #'          calculating row percentages, \code{"col"} for column percentages and \code{"cell"} for cell percentages.
-#'          Only when \code{tableIndex} is \code{"col"}, an additional bar chart with the total sum of each column (i.e.
-#'          of each category on the x-axis) can be added with the parameter \code{showTotalColumn}.
-#' @param barPosition Indicates whether bars should be positioned side-by-side (default, or use \code{"dodge"} as
-#'          parameter) or stacked (use \code{"stack"} as parameter).
-#' @param hideLegend Indicates whether legend (guide) should be shown or not. Default is \code{FALSE}, thus
-#'          the legend is shown.
-#' @param reverseOrder Whether the categories along the x-axis should apper in reversed order or not.
-#' @param axisLimits.y A numeric vector of length two, defining lower and upper axis limits
-#'          of the y scale. By default, this parameter is set to \code{NULL}, i.e. the 
-#'          y-axis ranges from 0 to required maximum. Note that the values are percentages, so valid
-#'          range is between 0 and 1.
-#' @param title Title of the diagram, plotted above the whole diagram panel.
-#'          Use \code{NULL} to automatically detect variable names that will be used as title
-#'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
-#' @param legendTitle Title of the diagram's legend.
-#' @param axisLabels.x Labels for the x-axis breaks.
-#' @param legendLabels Labels for the guide/legend.
-#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
-#'          of same length as groups defined in \code{x}, or a specific color palette code (see below).
-#'          \itemize{
-#'            \item If not specified, the qualitative \code{"Paired"} color brewer palette will be used.
-#'            \item If \code{"gs"}, a greyscale will be used.
-#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-#'            \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00")}).
-#'          }
+#'          If \code{tableIndex = "col"}, an additional bar with the total sum of each column
+#'          can be added to the plot (see \code{showTotalColumn}).
+#' @param barPosition indicates whether bars should be positioned side-by-side (default)
+#'          or stacked (use \code{"stack"} as parameter).
+#' @param reverseOrder logical, whether categories along the x-axis should apper in reversed order or not.
+#' @param geom.colors user defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{x}, or a specific color palette code.
+#'          See 'Note' in \code{\link{sjp.grpfrq}}.
 #' @param geom.size size resp. width of the geoms (bar width).
-#' @param geom.spacing the spacing between geoms (i.e. bar spacing)
-#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
-#'          one line and when a line break is inserted into the title.
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
-#'          one line and when a line break is inserted.
-#' @param breakLegendTitleAt Wordwrap for diagram legend title. Determines how many chars of the legend's title 
-#'          are displayed in one line and when a line break is inserted.
-#' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are 
-#'          displayed in one line and when a line break is inserted.
-#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Valid values range from 0 to 1.
-#' @param lineDotSize Size of dots. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param smoothLines Prints a smooth line curve. Only applies, when parameter \code{type}
-#'          is set to \code{"lines"}.
-#' @param expand.grid If \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
-#'          axes and plotting region. Default is \code{FALSE}.
-#' @param showValueLabels Whether counts and percentage values should be plotted to each bar
-#' @param showCountValues If \code{TRUE} (default), count values are be plotted to each bar. If \code{FALSE},
-#'          count values are removed.
-#' @param showPercentageValues If \code{TRUE} (default), percentage values are be plotted to each bar, if \code{FALSE},
-#'          percentage-values are removed.
-#' @param jitterValueLabels If \code{TRUE}, the value labels on the bars will be "jittered", i.e. they have
-#'          alternating vertical positions to avoid overlapping of labels in case bars are
+#' @param lineDotSize dot size, only applies, when parameter \code{type = "lines"}.
+#' @param smoothLines prints a smooth line curve. Only applies, when parameter \code{type = "lines"}.
+#' @param jitterValueLabels logical, if \code{TRUE}, the value labels on the bars will be "jittered", 
+#'          i.e. they have alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
-#' @param labelPos Positioning of value labels. If \code{barPosition} is \code{"dodge"} 
+#' @param labelPos positioning of value labels. If \code{barPosition = "dodge"} 
 #'          (default), use either \code{"inside"} or \code{"outside"} (default) to put labels in-
 #'          or outside the bars. You may specify initial letter only. Use \code{"center"} 
 #'          to center labels (useful if label angle is changes via \code{\link{sjp.setTheme}}).
-#' @param stringTotal The string for the legend label when a total-column is added. Only applies
-#'          if \code{showTotalColumn} is \code{TRUE}. Default is \code{"Total"}.
-#' @param showCategoryLabels Whether x axis text (category names) should be shown or not.
-#' @param showTableSummary If \code{TRUE} (default), a summary of the cross tabulation with N, Chi-square (see \code{\link{chisq.test}}),
-#'          df, Cramer's V or Phi-value and p-value is printed to the upper right corner of the diagram. If a cell contains expected 
-#'          values lower than five (or lower than 10 if df is 1),
-#'          the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
-#'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
-#'          Only applies to bar-charts or dot-plots, i.e. when parameter \code{type} is either \code{"bars"} or \code{"dots"}.
-#' @param tableSummaryPos Position of the model summary which is printed when \code{showTableSummary} is \code{TRUE}. Default is
-#'          \code{"r"}, i.e. it's printed to the upper right corner. Use \code{"l"} for upper left corner.
-#' @param showTotalColumn if \code{tableIndex} is \code{"col"}, an additional bar chart with the sum within each category and
-#'          it's percentages will be added to each category.
-#' @param axisTitle.x A label for the x axis. useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the x axis.
-#'          Use \code{NULL} to automatically detect variable names that will be used as title
+#' @param stringTotal string for the legend label when a total-column is added. Only applies
+#'          if \code{showTotalColumn = TRUE}. Default is \code{"Total"}.
+#' @param showCategoryLabels whether x-axis text (category names) should be shown or not.
+#' @param showTotalColumn when \code{tableIndex = "col"}, an additional bar 
+#'          with the sum within each category and it's percentages will be added 
+#'          to each category.
+#' @param axisTitle.x title for the x-axis. Default is \code{NULL}, so variable name
+#'          of \code{x} will automatically be detected and used as axis title
 #'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
-#' @param axisTitle.y A label for the y axis. useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the y axis.
-#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
-#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @param axisTitle.y title for the y-axis. Default is \code{NULL}, so variable name
+#'          of \code{grp} will automatically be detected and used as axis title
+#'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#'          
+#' @inheritParams sjp.grpfrq
+#' 
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{mydf}).
 #' 
 #' @examples
 #' # create 4-category-items
-#' grp <- sample(1:4, 100, replace=TRUE)
+#' grp <- sample(1:4, 100, replace = TRUE)
 #' # create 3-category-items
-#' var <- sample(1:3, 100, replace=TRUE)
+#' x <- sample(1:3, 100, replace = TRUE)
 #' 
-#' # plot "cross tablulation" of var and grp
-#' sjp.xtab(var, grp)
+#' # plot "cross tablulation" of x and grp
+#' sjp.xtab(x, grp)
 #' 
 #' # plot "cross tablulation" of x and y, including labels
-#' sjp.xtab(var, grp, 
+#' sjp.xtab(x, grp, 
 #'          axisLabels.x = c("low", "mid", "high"),
 #'          legendLabels = c("Grp 1", "Grp 2", "Grp 3", "Grp 4"))
 #' 
-#' # plot "cross tablulation" of var and grp
+#' # plot "cross tablulation" of x and grp
 #' # as stacked proportional bars
-#' sjp.xtab(var, grp, 
+#' sjp.xtab(x, grp, 
 #'          tableIndex = "row", 
 #'          barPosition = "stack", 
+#'          showTableSummary = TRUE,
 #'          coord.flip = TRUE)
 #' 
 #' # example with vertical labels
@@ -135,7 +87,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' update_geom_defaults('text', list(hjust = -0.1))
 #' sjp.xtab(efc$e42dep, 
 #'          efc$e16sex,
-#'          showTableSummary = FALSE,
 #'          labelPos = "center")
 #' 
 #' # grouped bars with EUROFAMCARE sample dataset
@@ -178,55 +129,56 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("Perc", "Sum", "Count", "
 #' @import dplyr
 #' @import sjmisc
 #' @importFrom scales percent
+#' @importFrom stats na.omit
 #' @export
-sjp.xtab <- function(var,
-                    grp,
-                    title="", 
-                    legendTitle=NULL,
-                    weightBy=NULL,
-                    weightByTitleString=NULL,
-                    type="bars",
-                    tableIndex="col",
-                    reverseOrder=FALSE,
-                    axisLimits.y = NULL,
-                    axisLabels.x=NULL, 
-                    legendLabels=NULL,
-                    labelPos="outside",
-                    stringTotal="Total",
-                    breakTitleAt=50, 
-                    breakLabelsAt=15, 
-                    breakLegendTitleAt=20, 
-                    breakLegendLabelsAt=20,
-                    gridBreaksAt=0.2,
-                    geom.size=0.7,
-                    geom.spacing=0.1,
-                    geom.colors="Paired",
-                    barPosition="dodge",
-                    lineDotSize=3,
-                    smoothLines=FALSE,
-                    expand.grid=FALSE,
-                    showValueLabels=TRUE,
-                    jitterValueLabels=FALSE,
-                    showCountValues=TRUE,
-                    showPercentageValues=TRUE,
-                    showCategoryLabels=TRUE,
-                    showTableSummary=TRUE,
-                    tableSummaryPos="r",
-                    showTotalColumn=TRUE,
-                    hideLegend=FALSE,
-                    axisTitle.x=NULL,
-                    axisTitle.y=NULL,
-                    coord.flip=FALSE,
-                    printPlot=TRUE) {
+sjp.xtab <- function(x,
+                     grp,
+                     title = "",
+                     legendTitle = NULL,
+                     weightBy = NULL,
+                     weightByTitleString = NULL,
+                     type = "bars",
+                     tableIndex = "col",
+                     reverseOrder = FALSE,
+                     axisLimits.y = NULL,
+                     axisLabels.x = NULL,
+                     legendLabels = NULL,
+                     labelPos = "outside",
+                     stringTotal = "Total",
+                     breakTitleAt = 50,
+                     breakLabelsAt = 15,
+                     breakLegendTitleAt = 20,
+                     breakLegendLabelsAt = 20,
+                     gridBreaksAt = 0.2,
+                     geom.size = 0.7,
+                     geom.spacing = 0.1,
+                     geom.colors = "Paired",
+                     barPosition = "dodge",
+                     lineDotSize = 3,
+                     smoothLines = FALSE,
+                     expand.grid = FALSE,
+                     showValueLabels = TRUE,
+                     jitterValueLabels = FALSE,
+                     showCountValues = TRUE,
+                     showPercentageValues = TRUE,
+                     showCategoryLabels = TRUE,
+                     showTableSummary = FALSE,
+                     tableSummaryPos = "r",
+                     showTotalColumn = TRUE,
+                     hideLegend = FALSE,
+                     axisTitle.x = NULL,
+                     axisTitle.y = NULL,
+                     coord.flip = FALSE,
+                     printPlot = TRUE) {
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(axisLabels.x)) axisLabels.x <- sjmisc:::autoSetValueLabels(var)
+  if (is.null(axisLabels.x)) axisLabels.x <- sjmisc:::autoSetValueLabels(x)
   if (is.null(legendLabels)) legendLabels <- sjmisc:::autoSetValueLabels(grp)
-  if (is.null(axisTitle.x)) axisTitle.x <- sjmisc:::autoSetVariableLabels(var)
+  if (is.null(axisTitle.x)) axisTitle.x <- sjmisc:::autoSetVariableLabels(x)
   if (is.null(legendTitle)) legendTitle <- sjmisc:::autoSetVariableLabels(grp)  
   if (is.null(title)) {
-    t1 <- sjmisc:::autoSetVariableLabels(var)
+    t1 <- sjmisc:::autoSetVariableLabels(x)
     t2 <- sjmisc:::autoSetVariableLabels(grp)
     if (!is.null(t1) && !is.null(t2)) title <- paste0(t1, " by ", t2)
   }
@@ -239,12 +191,12 @@ sjp.xtab <- function(var,
   if (!is.null(title) && title == "") title <- NULL    
   # determine table index, i.e. if row-percentages, column-percentages
   # or cell-percentages should be displayed
-  tindex <- ifelse (tableIndex == "row", 1, 2)
+  tindex <- ifelse(tableIndex == "row", 1, 2)
   # --------------------------------------------------------
   # convert factor to numeric
   # --------------------------------------------------------
   if (is.factor(grp)) grp <- sjmisc::to_value(grp, keep.labels = F)
-  if (is.factor(var)) var <- sjmisc::to_value(var, keep.labels = F)
+  if (is.factor(x)) x <- sjmisc::to_value(x, keep.labels = F)
   # --------------------------------------------------------
   # We have several options to name the diagram type
   # Here we will reduce it to a unique value
@@ -269,8 +221,8 @@ sjp.xtab <- function(var,
   # handle zero-counts
   # -----------------------------------------------
   # Determine length of count and group var
-  grplen <- length(unique(na.omit(grp)))
-  countlen <- length(unique(na.omit(var)))
+  grplen <- length(unique(stats::na.omit(grp)))
+  countlen <- length(unique(stats::na.omit(x)))
   # if we have legend labels, we know the exact
   # amount of groups
   if (is.null(legendLabels)) {
@@ -290,9 +242,9 @@ sjp.xtab <- function(var,
   # and weight variable
   #---------------------------------------------------
   if (is.null(weightBy)) {
-    ftab <- table(var, grp)
+    ftab <- table(x, grp)
   } else {
-    ftab <- round(xtabs(weightBy ~ var + grp), 0)
+    ftab <- round(xtabs(weightBy ~ x + grp), 0)
   }
   # -----------------------------------------------
   # create proportional table so we have the percentage
@@ -321,11 +273,11 @@ sjp.xtab <- function(var,
   # -----------------------------------------------
   if (showTotalColumn) {
     # retrieve category counts / percentages, exclude missings of both category and count variable
-    dummy <- as.data.frame(prop.table(table(var[which(!is.na(grp))])))
+    dummy <- as.data.frame(prop.table(table(x[which(!is.na(grp))])))
     # "insert" dummy column
     dummy <- dummy[, c(1, 1, 2)]
     # bind sum score
-    dummy <- cbind(dummy, c(apply(ftab, 1, function(x) sum(x))))
+    dummy <- cbind(dummy, c(apply(ftab, 1, function(y) sum(y))))
     names(dummy) <- c("Count", "Group", "Perc", "Sum")
     # "modify" resp. correct the Group-column
     dummy$Group <- as.factor(rep(max(grp, na.rm = TRUE) + 1))
@@ -360,10 +312,10 @@ sjp.xtab <- function(var,
     miss <- sjmisc::to_value(allgroups[!allgroups %in% mydf$Group], keep.labels = F)
     # retrieve subset of all rows where group is from lowest group-value to 
     # missing group. Column 2 is the group-column
-    dummy1 <- mydf[apply(mydf, 1, function(x) all(x[2] < miss)), ]
+    dummy1 <- mydf[apply(mydf, 1, function(y) all(y[2] < miss)), ]
     # retrieve subset of all rows where group is from missing group to
     # highest group-value. Column 2 is the group-column
-    dummy2 <- mydf[apply(mydf, 1, function(x) all(x[2] > miss)), ]
+    dummy2 <- mydf[apply(mydf, 1, function(y) all(y[2] > miss)), ]
     # create dummy-data frame that contains the missing row with zero-values
     emptyrows <- data.frame(Count = c(1:countlen), 
                             Group = miss, 
@@ -431,7 +383,7 @@ sjp.xtab <- function(var,
     dplyr::arrange(Count)
   # add line-break char
   if (showPercentageValues && showCountValues) {
-    mydf$line.break <- ifelse (coord.flip == TRUE, ' ', '\n')
+    mydf$line.break <- ifelse(coord.flip == TRUE, ' ', '\n')
   } else {
     mydf$line.break <- ""
   }
@@ -533,7 +485,7 @@ sjp.xtab <- function(var,
       hpos = 1.2
     else
       hpos <- waiver()
-    hort <- ifelse (barPosition == "dodge", hpos, waiver())
+    hort <- ifelse(barPosition == "dodge", hpos, waiver())
   } else {
     hort <- waiver()
     if (labelPos == "outside" || labelPos == "o")
@@ -542,7 +494,7 @@ sjp.xtab <- function(var,
       vpos = 1.2
     else
       vpos <- waiver()
-    vert <- ifelse (barPosition == "dodge", vpos, waiver())
+    vert <- ifelse(barPosition == "dodge", vpos, waiver())
   }
   # check for jitter value labels
   if (jitterValueLabels) vert <- jvert
@@ -582,7 +534,7 @@ sjp.xtab <- function(var,
                                    vjust = vert,
                                    hjust = hort)
       } else if (showCountValues) {
-        ggvaluelabels <- geom_text(aes(y = ypos, label=sprintf("n=%i", Sum)),
+        ggvaluelabels <- geom_text(aes(y = ypos, label = sprintf("n=%i", Sum)),
                                    vjust = vert,
                                    hjust = hort)
       }
@@ -687,7 +639,7 @@ sjp.xtab <- function(var,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjpxtab",
-                       list(plot = baseplot,
-                            mydf = mydf)))
+  invisible(structure(class = "sjpxtab",
+                      list(plot = baseplot,
+                           mydf = mydf)))
 }

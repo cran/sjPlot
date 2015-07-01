@@ -3,9 +3,10 @@
 
 # function to create pretty breaks
 # for log-scales
+#' @importFrom grDevices axisTicks
 base_breaks <- function(n = 10) {
   function(x) {
-    axisTicks(log10(range(x, na.rm = TRUE)), log = TRUE, nint = n)
+    grDevices::axisTicks(log10(range(x, na.rm = TRUE)), log = TRUE, nint = n)
   }
 }
 
@@ -71,8 +72,10 @@ out.html.table <- function(no.output, file, knitr, toWrite, useViewer) {
 
 # Create frequency data frame of a variable
 # for sjp and sjt frq functions
+#' @importFrom stats na.omit
 create.frq.df <- function(varCount,
-                          labels,
+                          llabels,
+                          labelvalues,
                           breakLabelsAt,
                           order.frq = "none",
                           round.prz = 4,
@@ -89,89 +92,119 @@ create.frq.df <- function(varCount,
   df <- as.data.frame(table(varCount))
   # name columns
   names(df) <- c("y", "Freq")
-  # --------------------------------------------------------
-  # Define amount of category, include zero counts
-  # --------------------------------------------------------
-  # Zero counts of categories are not plotted by default just becaus
-  # these categories don't appear in the data. If we assume a
-  # "quasi-continuous" scale (categories from 1 to 4 etc.), we now
-  # identify the zero counts and add / insert them into the data frame.
-  # This enables us to plot zero counts as well.
-  # We guess the maximum amount of categories either by the amount
-  # of supplied category labels. If no category labels were passed
-  # as parameter, we assume that the maximum value found in the category
-  # columns represents the highest category number
-  catcount <- 0
-  catmin <- minval <- min(varCount, na.rm = TRUE)
-  # ----------------------------------------------
-  # check for axis start, depending on lowest value
-  # ----------------------------------------------
-  if (startAxisAt == "auto") {
-    startAxisAt <- as.numeric(catmin)
-    if (startAxisAt == 0) startAxisAt <- 1
-  }
-  # Factors have to be transformed into numeric values
-  # for continiuos x-axis-scale
-  df$y <- sjmisc::to_value(df$y, keep.labels = F)
-  # if categories start with zero, fix this here
-  if (min(df$y) == 0 && startAxisAt > 0) df$y <- df$y + 1
-  # get the highest answer category of "y", so we know where the
-  # range of the x-axis ends
-  if (!is.null(labels)) {
-    # check if we have much less labels than values
-    # so there might be a labelling mistake with
-    # the variable
-    if (length(labels) < length(unique(na.omit(varCount)))) {
-      warning("Variable has less labels than unique values. Output might be incorrect. Please check value labels.", call. = F)
+  #---------------------------------------------------
+  # do we have label values associated with value labels?
+  # if yes, we assume that these values are the range
+  # of valid values for varCount...
+  #---------------------------------------------------
+  if (!is.null(labelvalues)) {
+    # create column of label values
+    df.lv <- data.frame(labelvalues)
+    # find matching values in varCount for label values
+    df.lv$frq <- df$Freq[match(df.lv$labelvalues, df$y)]
+    # copy df
+    mydat <- df.lv
+    # name columns
+    names(mydat) <- c("var", "frq")
+    # replace NA with zero
+    mydat$frq[is.na(mydat$frq)] <- 0
+    # create dummy-catcout, for missings. see below
+    catcount <- max(mydat$var, na.rm = T)
+    # define minimum value
+    catmin <- minval <- min(varCount, na.rm = TRUE)
+    # wrap labels
+    if (!is.null(llabels)) {
+      llabels <- sjmisc::word_wrap(llabels, breakLabelsAt)
+    } else {
+      # If axisLabels.x were not defined, simply set numbers from 1 to
+      # amount of categories (=number of rows) in dataframe instead
+      llabels <- as.character(mydat$var)
     }
-    catcount <- startAxisAt + length(labels) - 1
   } else {
-    # determine maximum values
-    # first, check the total amount of different factor levels
-    catcount_1 <- length(unique(na.omit(varCount)))
-    # second, check the maximum factor level
-    catcount_2 <- max(varCount, na.rm = TRUE)
+    # --------------------------------------------------------
+    # Define amount of category, include zero counts
+    # --------------------------------------------------------
+    # Zero counts of categories are not plotted by default just becaus
+    # these categories don't appear in the data. If we assume a
+    # "quasi-continuous" scale (categories from 1 to 4 etc.), we now
+    # identify the zero counts and add / insert them into the data frame.
+    # This enables us to plot zero counts as well.
+    # We guess the maximum amount of categories either by the amount
+    # of supplied category labels. If no category labels were passed
+    # as parameter, we assume that the maximum value found in the category
+    # columns represents the highest category number
+    catcount <- 0
+    catmin <- minval <- min(varCount, na.rm = TRUE)
+    # ----------------------------------------------
+    # check for axis start, depending on lowest value
+    # ----------------------------------------------
+    if (startAxisAt == "auto") {
+      startAxisAt <- as.numeric(catmin)
+      if (startAxisAt == 0) startAxisAt <- 1
+    }
+    # Factors have to be transformed into numeric values
+    # for continuous x-axis-scale
+    df$y <- sjmisc::to_value(df$y, keep.labels = F)
     # if categories start with zero, fix this here
-    if (min(varCount, na.rm = TRUE) == 0) catcount_2 <- catcount_2 + 1
-    # catcount should contain the higher values, i.e. the maximum count of
-    # categories (factor levels) corresponds either to the highest factor level
-    # value or to the amount of different factor levels, depending on which one
-    # is larger
-    catcount <- ifelse(catcount_1 > catcount_2, catcount_1, catcount_2)
+    if (min(df$y) == 0 && startAxisAt > 0) df$y <- df$y + 1
+    # get the highest answer category of "y", so we know where the
+    # range of the x-axis ends
+    if (!is.null(llabels)) {
+      # check if we have much less labels than values
+      # so there might be a labelling mistake with
+      # the variable
+      if (length(llabels) < length(unique(stats::na.omit(varCount)))) {
+        warning("Variable has less labels than unique values. Output might be incorrect. Please check value labels.", call. = F)
+      }
+      catcount <- startAxisAt + length(llabels) - 1
+    } else {
+      # determine maximum values
+      # first, check the total amount of different factor levels
+      catcount_1 <- length(unique(stats::na.omit(varCount)))
+      # second, check the maximum factor level
+      catcount_2 <- max(varCount, na.rm = TRUE)
+      # if categories start with zero, fix this here
+      if (min(varCount, na.rm = TRUE) == 0) catcount_2 <- catcount_2 + 1
+      # catcount should contain the higher values, i.e. the maximum count of
+      # categories (factor levels) corresponds either to the highest factor level
+      # value or to the amount of different factor levels, depending on which one
+      # is larger
+      catcount <- ifelse(catcount_1 > catcount_2, catcount_1, catcount_2)
+    }
+    # Create a vector of zeros
+    frq <- rep(0, catcount)
+    # Replace the values in freq for those indices which equal dummyf$xa
+    # by dummyf$ya so that remaining indices are ones which you
+    # intended to insert
+    frq[df$y] <- df$Freq
+    # create new data frame. We now have a data frame with all
+    # variable categories abd their related counts, including
+    # zero counts, but no(!) missings!
+    mydat <- as.data.frame(cbind(var = startAxisAt:catcount,
+                                 frq = frq[startAxisAt:catcount]))
+    if (!is.null(llabels)) {
+      llabels <- sjmisc::word_wrap(llabels, breakLabelsAt)
+    } else {
+      # If axisLabels.x were not defined, simply set numbers from 1 to
+      # amount of categories (=number of rows) in dataframe instead
+      llabels <- c(startAxisAt:(nrow(mydat) + startAxisAt - 1))
+    }
   }
-  # Create a vector of zeros
-  frq <- rep(0, catcount)
-  # Replace the values in freq for those indices which equal dummyf$xa
-  # by dummyf$ya so that remaining indices are ones which you
-  # intended to insert
-  frq[df$y] <- df$Freq
-  # create new data frame. We now have a data frame with all
-  # variable categories abd their related counts, including
-  # zero counts, but no(!) missings!
-  mydat <- as.data.frame(cbind(var = startAxisAt:catcount,
-                               frq = frq[startAxisAt:catcount]))
   # caculate missings here
   missingcount <- length(which(is.na(varCount)))
-  if (!is.null(labels)) {
-    labels <- sjmisc::word_wrap(labels, breakLabelsAt)
-  } else {
-    # If axisLabels.x were not defined, simply set numbers from 1 to
-    # amount of categories (=number of rows) in dataframe instead
-    if (is.null(labels)) labels <- c(startAxisAt:(nrow(mydat) + startAxisAt - 1))
-  }
   # --------------------------------------------------------
   # Handle missings
   # --------------------------------------------------------
   # If missings are not removed, add an
   # "NA" to labels and a new row to data frame which contains the missings
   if (!na.rm) {
-    labels  <- c(labels, "NA")
+    llabels  <- c(llabels, "NA")
     mydat <- rbind(mydat, c(catcount + 1, missingcount))
     # also add a columns with percentage values of count distribution
     mydat <- data.frame(cbind(mydat, prz = c(round(100 * mydat$frq / length(varCount), round.prz))))
   } else {
     # also add a columns with percentage values of count distribution
-    mydat <- data.frame(cbind(mydat, prz = c(round(100 * mydat$frq / length(na.omit(varCount)), round.prz))))
+    mydat <- data.frame(cbind(mydat, prz = c(round(100 * mydat$frq / length(stats::na.omit(varCount)), round.prz))))
   }
   # --------------------------------------------------------
   # Order categories ascending or descending
@@ -180,12 +213,12 @@ create.frq.df <- function(varCount,
     ord <- order(mydat$frq, decreasing = (order.frq == "desc"))
     mydat$frq <- mydat$frq[ord]
     mydat$prz <- mydat$prz[ord]
-    labels <- labels[ord]
+    llabels <- llabels[ord]
   }
   # --------------------------------------------------------
   # add valid and cumulative percentages
   # --------------------------------------------------------
-  mydat$valid <- c(round(100 * mydat$frq / length(na.omit(varCount)), round.prz))
+  mydat$valid <- c(round(100 * mydat$frq / length(stats::na.omit(varCount)), round.prz))
   mydat$cumperc <- cumsum(mydat$valid)
   # --------------------------------------------------------
   # check if all categories are in table. if first category does not
@@ -193,26 +226,28 @@ create.frq.df <- function(varCount,
   # more value labels than data frame rows (i.e. more categories are expected
   # than appear in the data frame)
   # --------------------------------------------------------
-  dfc <- 1
-  while (length(labels) > nrow(mydat) && as.numeric(mydat$var[dfc]) > dfc) {
-    # insert "first" row which seems to be missing
-    mydat <- rbind(rep(0, ncol(mydat)), mydat)
-    # increase counter
-    dfc <- dfc + 1
-  }
-  # check if we modified mydat
-  if (dfc > 1) {
-    # set var
-    mydat$var <- c(1:nrow(mydat))
-    if (catmin != min(as.numeric(mydat$var), na.rm = T)) {
-      catmin <- min(as.numeric(mydat$var), na.rm = T)
+  if (is.null(labelvalues)) {
+    dfc <- 1
+    while (length(llabels) > nrow(mydat) && as.numeric(mydat$var[dfc]) > dfc) {
+      # insert "first" row which seems to be missing
+      mydat <- rbind(rep(0, ncol(mydat)), mydat)
+      # increase counter
+      dfc <- dfc + 1
+    }
+    # check if we modified mydat
+    if (dfc > 1) {
+      # set var
+      mydat$var <- c(1:nrow(mydat))
+      if (catmin != min(as.numeric(mydat$var), na.rm = T)) {
+        catmin <- min(as.numeric(mydat$var), na.rm = T)
+      }
     }
   }
   # -------------------------------------
   # return results
   # -------------------------------------
   invisible(structure(list(mydat = mydat,
-                           labels = labels,
+                           labels = llabels,
                            catmin = catmin,
                            minval = minval)))
 }
@@ -227,7 +262,7 @@ get.encoding <- function(encoding) {
     else
       encoding <- "Windows-1252"
   }
-  return (encoding)
+  return(encoding)
 }
 
 
@@ -237,16 +272,17 @@ is.brewer.pal <- function(pal) {
   bp.seq <- c("BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu",
               "YlGn", "YlGnBu", "YlOrBr", "YlOrRd", "Blues", "Greens", "Greys",
               "Oranges", "Purples", "Reds")
-  bp.div <- c("BrBG", "PiYg", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
+  bp.div <- c("BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
               "RdYlGn", "Spectral")
   bp.qul <- c("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
               "Set2", "Set3")
   bp <- c(bp.seq, bp.div, bp.qul)
-  return (any(bp == pal))
+  return(any(bp == pal))
 }
 
 
 # Calculate statistics of cross tabs
+#' @importFrom stats chisq.test fisher.test
 crosstabsum <- function(ftab) {
   # --------------------------------------------------------
   # check p-value-style option
@@ -258,7 +294,7 @@ crosstabsum <- function(ftab) {
     p_zero <- "0"
   }
   # calculate chi square value
-  chsq <- chisq.test(ftab)
+  chsq <- stats::chisq.test(ftab)
   tab <- sjmisc::table_values(ftab)
   fish <- NULL
   # check whether variables are dichotome or if they have more
@@ -266,7 +302,7 @@ crosstabsum <- function(ftab) {
   # the contingency coefficient
   if (nrow(ftab) > 2 || ncol(ftab) > 2) {
     # if minimum expected values below 5, compute fisher's exact test
-    if(min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(ftab, simulate.p.value = TRUE)
+    if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- stats::fisher.test(ftab, simulate.p.value = TRUE)
     # check whether fisher's test or chi-squared should be printed
     if (is.null(fish)) {
       if (chsq$p.value < 0.001) {
@@ -307,7 +343,7 @@ crosstabsum <- function(ftab) {
   # the degree of association
   } else {
     # if minimum expected values below 5, compute fisher's exact test
-    if(min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(ftab)
+    if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- stats::fisher.test(ftab)
     # check whether fisher's test or chi-squared should be printed
     if (is.null(fish)) {
       modsum <- as.character(as.expression(
@@ -485,11 +521,12 @@ Chisquare.glm <- function(rr, digits=3) {
 
 
 # compute model statistics for lm
+#' @importFrom stats pf AIC
 sju.modsum.lm <- function(fit) {
   # get F-statistics
   fstat <- summary(fit)$fstatistic
   # Calculate p-value for F-test
-  pval <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
+  pval <- stats::pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
   # indicate significance level by stars
   pan <- c("")
   if (pval < 0.001) {
@@ -507,7 +544,7 @@ sju.modsum.lm <- function(fit) {
                     ar2 = format(summary(fit)$adj.r.squared, digits = 3),
                     f = sprintf("%.2f", fstat[1]),
                     panval = pan,
-                    aic = sprintf("%.2f", AIC(fit))))))
+                    aic = sprintf("%.2f", stats::AIC(fit))))))
   return(modsum)
 }
 
@@ -521,6 +558,7 @@ sju.modsum.lm <- function(fit) {
 #         (prcomp(myData...))
 # - factors: the amount of factors. can be calculated from the
 #            below function "factorcount"
+#' @importFrom stats varimax
 varimaxrota <- function(data, factors) {
   # Faktorladungen berechnen
   # Die Faktorladungen erhält man durch Multiplikation der Eigenvektoren
@@ -533,7 +571,7 @@ varimaxrota <- function(data, factors) {
     ladb <- cbind(ladb, ladungen[, i])
   }
   # Varimax Rotation durchführen
-  varib <- varimax(ladb)
+  varib <- stats::varimax(ladb)
   return(varib)
 }
 
@@ -552,20 +590,21 @@ unlistlabels <- function(lab) {
 #' @name adjust_plot_range
 #'
 #' @description This method adjusts the y-range of a ggplot-object, which is useful when
-#'                value labels are outside of the plot region. A modified ggplot-object will
+#'                value labels are outside the plot region. A modified ggplot-object will
 #'                be returned with adjusted y-range so everything should be visible.
 #'                Note that this function only works on \code{scale_y_continuous}.
 #'
-#' @note Note that this function only works on \code{scale_y_continuous}.
+#' @note This function only works on \code{scale_y_continuous}.
 #'
-#' @references \href{http://www.r-bloggers.com/setting-axis-limits-on-ggplot-charts/}{r-bloggers.com}
+#' @references \href{http://blog.ouseful.info/2013/12/03/setting-axis-limits-on-ggplot-charts/}{OUseful.Info (2013)}
 #'
 #' @param gp A ggplot-object. Usually, this will be returned by most of this
 #'          package's plotting functions.
-#' @param upperMargin Defines the margin of the upper y bound of the plot. This value will
-#'          be multiplied with the total y range. Default is 1.05, which means that the upper
-#'          margin of the plot is about 5 percent of the "visible" plot area (i.e. the y-range
-#'          is 105 percent of the actual needed range to make all object visible).
+#' @param upperMargin Defines the new margin of the upper y-bound of the plot. This value will
+#'          be multiplied with \code{gp}'s current total y-range. Default is 1.05, which means
+#'          that the upper margin of the new plot's "visible" plot area will be increased
+#'          by 5 percent. (i.e. the y-range is 105 percent of the original range, 
+#'          in order to make all object visible).
 #' @return The same ggplot-object, with adjusted y-range, so all graphics and labels
 #'          should be visible.
 #'
@@ -599,13 +638,16 @@ adjust_plot_range <- function(gp, upperMargin=1.05) {
 }
 
 
+#' @importFrom stats reorder
 sjp.vif <- function(fit) {
   vifval <- NULL
+  vifplot <- NULL
+  mydat <- NULL
   # check if we have more than 1 term
   if (length(coef(fit)) > 2) {
     # variance inflation factor
     # claculate VIF
-    vifval <- vif(fit)
+    vifval <- car::vif(fit)
     if (is.matrix(vifval)) {
       val <- vifval[, 1]
     } else {
@@ -618,7 +660,7 @@ sjp.vif <- function(fit) {
     # check whether maxval exceeds the critical VIF-Limit
     # of 10. If so, set upper limit to max. value
     if (maxval >= upperLimit) upperLimit <- ceiling(maxval)
-    mydat <- data.frame(cbind(round(val, 2)))
+    mydat <- data.frame(vif = round(val, 2))
     # Neue Variable erstellen, damit die Ergebnisse sortiert werden
     # können (siehe reorder in ggplot-Funktion)
     mydat$vars <- row.names(mydat)
@@ -631,7 +673,7 @@ sjp.vif <- function(fit) {
     names(mydat) <- c("vif", "vars", "label")
     # grafik ausgeben, dabei die variablen der X-Achse nach aufsteigenden
     # VIF-Werten ordnen
-    plot(ggplot(mydat, aes(x = reorder(vars, vif), y = vif)) +
+    vifplot <- ggplot(mydat, aes(x = stats::reorder(vars, vif), y = vif)) +
       # Balken zeichnen. Stat=identity heißt, dass nicht die counts, sondern
       # die tatsächlichen Zahlenwerte (VIF-Werte) abgebildet werden sollen
       geom_bar(stat = "identity", width = 0.7, fill = "#80acc8") +
@@ -651,9 +693,13 @@ sjp.vif <- function(fit) {
       # maximale Obergrenze der Y-Achse setzen
       scale_y_continuous(limits = c(0, upperLimit), expand = c(0, 0)) +
       # Beschriftung der X-Achse (Variablenlabel) in 45-Grad-Winkel setzen
-      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = rel(1.2))))
+      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, size = rel(1.2)))
+    print(vifplot)
   }
-  invisible(vifval)  
+  invisible(structure(class = "sjpvif",
+                      list(plot = vifplot,
+                           df = mydat,
+                           vifval = vifval)))
 }
 
 
@@ -661,6 +707,7 @@ sjp.vif <- function(fit) {
 # confidence intervals
 sjs.frqci <- function(x) {
   ft <- as.numeric(unname(table(x)))
+  ind <- as.numeric(names(table(x)))
   n <- sum(ft, na.rm = T)
   rel_frq <- as.numeric(ft/n)
   ci <- 1.96 * sqrt(rel_frq * (1 - rel_frq)/n)
@@ -668,16 +715,18 @@ sjs.frqci <- function(x) {
   ci.l <- n * (rel_frq - ci)
   rel.ci.u <- rel_frq + ci
   rel.ci.l <- rel_frq - ci
-  mydat.frq <- data.frame(frq = ft,
+  mydat.frq <- data.frame(var = ind,
+                          frq = ft,
                           lower.ci = ci.l,
                           upper.ci = ci.u)
-  mydat.rel <- data.frame(rel.frq = rel_frq,
+  mydat.rel <- data.frame(var = ind,
+                          rel.frq = rel_frq,
                           rel.lower.ci = rel.ci.l,
                           rel.upper.ci = rel.ci.u)
 
-  invisible (structure(class = "sjs.frqci",
-                       list(mydat.frq = mydat.frq,
-                            mydat.rel = mydat.rel)))
+  invisible(structure(class = "sjs.frqci",
+                      list(mydat.frq = mydat.frq,
+                           mydat.rel = mydat.rel)))
 }
 
 
@@ -685,5 +734,5 @@ sju.rmspc <- function(html.table) {
   cleaned <- gsub("      <", "<", html.table, fixed = TRUE)
   cleaned <- gsub("    <", "<", cleaned, fixed = TRUE)
   cleaned <- gsub("  <", "<", cleaned, fixed = TRUE)
-  return (cleaned)
+  return(cleaned)
 }

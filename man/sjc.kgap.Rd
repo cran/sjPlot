@@ -8,10 +8,10 @@ sjc.kgap(x, max = 10, B = 100, SE.factor = 1, method = "Tibs2001SEmax",
   plotResults = TRUE)
 }
 \arguments{
-\item{x}{A matrix, where rows are observations and columns are individual dimensions,
+\item{x}{matrix, where rows are observations and columns are individual dimensions,
 to compute and plot the gap statistic (according to a uniform reference distribution).}
 
-\item{max}{The maximum number of clusters to consider, must be at least two. Default
+\item{max}{maximum number of clusters to consider, must be at least two. Default
 is 10.}
 
 \item{B}{integer, number of Monte Carlo ("bootstrap") samples. Default is 100.}
@@ -20,7 +20,7 @@ is 10.}
 number of clusters, Tibshirani et al. proposed the "1 S.E."-rule.
 Using an SE.factor f, the "f S.E."-rule is used, more generally.}
 
-\item{method}{A character string indicating how the "optimal" number of clusters,
+\item{method}{character string indicating how the "optimal" number of clusters,
 k^, is computed from the gap statistics (and their standard deviations),
 or more generally how the location k^ of the maximum of f[k] should be
 determined. Default is \code{"Tibs2001SEmax"}. Possible value are:
@@ -32,7 +32,7 @@ determined. Default is \code{"Tibs2001SEmax"}. Possible value are:
   \item \code{"globalSEmax"} (used in Dudoit and Fridlyand (2002), supposedly following Tibshirani's proposition) is the location of the first f() value which is not larger than the global maximum minus SE.factor * SE.f[], i.e, within an "f S.E." range of that maximum (see also SE.factor).
   }}
 
-\item{plotResults}{If \code{TRUE} (default), a graph visualiting the gap statistic will
+\item{plotResults}{logical, if \code{TRUE} (default), a graph visualiting the gap statistic will
          be plotted. Use \code{FALSE} to omit the plot.}
 }
 \value{
@@ -43,7 +43,7 @@ An object containing the used data frame for plotting, the ggplot object
 An implementation of the gap statistic algorithm from Tibshirani, Walther, and Hastie's
                "Estimating the number of clusters in a data set via the gap statistic".
                This function calls the \code{clusGap} function of the
-               \href{http://cran.r-project.org/web/packages/cluster/index.html}{cluster-package}
+               \href{http://cran.r-project.org/package=cluster}{cluster-package}
                to calculate the data for the plot.
 }
 \examples{
@@ -58,7 +58,7 @@ sjc.kgap(iris[,1:4])}
 \references{
 \itemize{
              \item Tibshirani R, Walther G, Hastie T (2001) Estimating the number of clusters in a data set via gap statistic. J. R. Statist. Soc. B, 63, Part 2, pp. 411-423
-             \item Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4. (\href{http://cran.r-project.org/web/packages/cluster/index.html}{web})
+             \item Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., Hornik, K.(2013). cluster: Cluster Analysis Basics and Extensions. R package version 1.14.4. (\href{http://cran.r-project.org/package=cluster}{web})
             }
 }
 \seealso{

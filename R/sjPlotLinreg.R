@@ -1,11 +1,13 @@
 # bind global variables
-if (getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "lower", "upper", "stdbeta", "p", "x", "ydiff", "y", "grp", ".stdresid", ".resid", ".fitted", "V1", "V2"))
+utils::globalVariables(c("vars", "Beta", "xv", "lower", "upper", "stdbeta", "p", "x", "ydiff", "y", "grp", ".stdresid", ".resid", ".fitted", "V1", "V2"))
 
 
 #' @title Plot estimates or predicted values of linear models
 #' @name sjp.lm
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm} for 
+#'            more details and examples of this function; use \code{\link{sjp.poly}}
+#'            to see which polynomial degree fits best for possible polynomial terms.
 #'
 #' @description Depending on the \code{type}, this function plots beta coefficients (estimates)
 #'                of linear regressions (including panel models fitted with the \code{plm} function
@@ -15,7 +17,11 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "l
 #'
 #' @details \itemize{
 #'            \item If \code{type = "lm"} and fitted model only has one predictor, no forest plot is shown. Instead, a regression line with confidence interval (in blue) is plotted by default, and a loess-smoothed line without confidence interval (in red) can be added if parameter \code{showLoess} is \code{TRUE}.
-#'            \item If \code{type = "pred"}, regression lines (slopes) with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and each of them is plotted against the response variable.
+#'            \item If \code{type = "pred"}, regression lines (slopes) with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and for each of them, the linear relationship is plotted against the response variable.
+#'            \item \code{type = "resid"} is similar to the \code{type = "pred"} option, however, each predictor is plotted against the residuals (instead of response).
+#'            \item If \code{type = "resp"}, the predicted values of the response for each observation is plotted, which mostly results in a single linear line.
+#'            \item \code{type = "eff"} computes the marginal effects for all predictors, using the \code{\link[effects]{allEffects}} function. I.e. for each predictor, the predicted values towards the response are plotted, with all remaining co-variates set to the mean. Due to possible different scales of predictors, a facted plot is printed (instead of plotting all lines in one plot). This function accepts following parameter: \code{fit}, \code{title}, \code{geom.size}, \code{showCI} and \code{printPlot}.
+#'            \item \code{type = "poly"} plots the marginal effects of polynomial terms in \code{fit}, using the \code{\link[effects]{effect}} function, but only for a selected polynomial term, which is specified with \code{poly.term}. This function helps undertanding the effect of polynomial terms by plotting the curvilinear relationships of response and quadratic, cubic etc. terms. This function accepts following parameter: \code{fit}, \code{poly.term}, \code{geom.colors}, \code{geom.size}, \code{axisTitle.x}, \code{showCI} and \code{printPlot}.
 #'            \item If \code{type = "ma"} (i.e. checking model assumptions), please note that only three parameters are relevant: \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.
 #'            \item If \code{type = "vif"}, the Variance Inflation Factors (check for multicollinearity) are plotted. As a rule of thumb, values below 5 are considered as good and indicate no multicollinearity, values between 5 and 10 may be tolerable. Values greater than 10 are not acceptable and indicate multicollinearity between model's predictors.
 #'            }
@@ -25,111 +31,61 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "l
 #'          \describe{
 #'            \item{\code{"lm"}}{(default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.}
 #'            \item{\code{"std"}}{for forest-plot like plot of standardized beta values. If the fitted model only contains one predictor, intercept and slope are plotted.}
-#'            \item{\code{"pred"}}{to plot regression lines for each single predictor of the fitted model.}
+#'            \item{\code{"pred"}}{to plot regression lines for each single predictor of the fitted model, against the response (linear relationship between each model term and response).}
+#'            \item{\code{"resid"}}{to plot regression lines for each single predictor of the fitted model, against the residuals (linear relationship between each model term and residuals). May be used for model diagnostics (see \url{https://www.otexts.org/fpp/5/4}).}
 #'            \item{\code{"resp"}}{to plot predicted values for the response. Use \code{showCI} parameter to plot standard errors as well.}
+#'            \item{\code{"eff"}}{to plot marginal effects of all terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms.}
+#'            \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples').}
 #'            \item{\code{"ma"}}{to check model assumptions. Note that only three parameters are relevant for this option \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.}
 #'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 #'          }
-#' @param title Diagram's title as string. Example: \code{title = c("my title")}
-#' @param sort.est Logical, determines whether estimates should be sorted by their values.
-#' @param axisLabels.x predictor label (independent variable) that is used for labelling the
-#'          axis. Passed as string.
-#'          Two things to consider:
+#' @param sort.est logical, determines whether estimates should be sorted according to their values.
+#' @param axisLabels.x name of predictor (independent variable) as string. Two things to consider:
 #'          \itemize{
-#'            \item Only used if fitted model has one predictor and \code{type = "lm"}.
-#'            \item If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a character vector with variable label strings. You can use it like this: \code{axisLabel.x = get_var_labels(efc)['quol_5']}
+#'            \item Only used if fitted model has only one predictor and \code{type = "lm"}.
+#'            \item If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a character vector with variable label strings. You can use it like this: \code{axisLabels.x = get_var_labels(efc)['quol_5']}
 #'          }
-#' @param axisLabels.y Labels of the predictor variables (independent vars) that are used for labelling the
-#'          axis. Passed as vector of strings.
-#'          Example: \code{axisLabels.y = c("Label1", "Label2", "Label3")}.
-#'          \strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
-#'          list object with label string. The labels may also be passed as list object. They will be coerced
-#'          to character vector automatically.
-#' @param showAxisLabels.y Whether x axis text (category names, predictor labels) should be shown (use \code{TRUE})
-#'          or not. Default is \code{TRUE}
-#' @param axisTitle.x A label for the x axis. Default is \code{"Estimates"}.
-#' @param axisLimits Defines the range of the axis where the beta coefficients and their confidence intervalls
+#' @param axisLabels.y labels or names of the predictor variables (independent vars). Must 
+#'          be a character vector of same length as independent variables. The labels 
+#'          may also be passed as list object; they will be coerced to character vector automatically.
+#' @param showAxisLabels.y logical, whether labels of independent variables should be shown or not.
+#' @param axisTitle.x title for the x-axis. Default is \code{"Estimates"}.
+#' @param axisLimits defines the range of the axis where coefficients and their confidence intervalls
 #'          are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-#'          the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.
-#' @param geom.colors User defined color palette for geoms. Must either be vector with two color values
-#'          or a specific color palette code (see below).
-#'          \itemize{
-#'            \item If not specified, the \code{"Set1"} color brewer palette will be used.
-#'            \item If \code{"gs"}, a greyscale will be used.
-#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-#'            \item Else specify your own color values as vector, e.g. \code{geom.colors = c("#f00000", "#00ff00")}.
-#'          }
+#'          the diagram has maximum zoom. Use your own values as vector of length two, indicating
+#'          lower and upper limit for the axis (for instance: \code{limits = c(-0.8, 0.8)}).
+#' @param geom.colors user defined color palette for geoms. Must either be vector with two color values
+#'          or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.
 #' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
-#' @param interceptLineType The linetype of the intercept line (zero point). Default is \code{2} (dashed line).
-#' @param interceptLineColor The color of the intercept line. Default value is \code{"grey70"}.
-#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
-#'          one line and when a line break is inserted into the title
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in
-#'          one line and when a line break is inserted
-#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.
-#' @param coord.flip If \code{TRUE} (default), predictors are plotted along the y-axis and estimate
+#' @param interceptLineType linetype of the intercept line (zero point). Default is \code{2} (dashed line).
+#' @param interceptLineColor color of the intercept line. Default value is \code{"grey70"}.
+#' @param coord.flip logical, if \code{TRUE} (default), predictors are plotted along the y-axis and estimate
 #'          values are plotted on the x-axis.
-#' @param showValueLabels Whether value labels should be plotted to each dot or not.
-#' @param labelDigits The amount of digits for rounding the estimations (see \code{showValueLabels}).
+#' @param showValueLabels logical, whether value labels should be plotted to each dot or not.
+#' @param labelDigits amount of digits for rounding the estimates (see \code{showValueLabels}).
 #'          Default is 2, i.e. estimates have 2 digits after decimal point.
-#' @param showPValueLabels Whether the significance levels of each coefficient should be appended
-#'          to values or not
-#' @param showModelSummary If \code{TRUE} (default), a summary of the regression model with
-#'          Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
-#'          of the diagram.
-#' @param lineColor The color of the regression line. Default is \code{"blue"}.
+#' @param showPValueLabels logical, whether the significance level of each coefficient 
+#'          should be appended to values or not.
+#' @param showModelSummary logical, if \code{TRUE}, a summary of the regression model with
+#'          Intercept, R-squared, F-Test and AIC-value is printed to the lower right corner
+#'          of the plot.
+#' @param showCI logical, if \code{TRUE} (default), a confidence region for the regression line
+#'          will be plotted. Only applies if \code{type = "lm"} and fitted model has 
+#'          only one predictor, or if \code{type = "pred"} or \code{type = "resid"}.
+#' @param showScatterPlot logical, if \code{TRUE} (default), a scatter plot of 
+#'          response and predictor values for each predictor of \code{fit} is plotted.
 #'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param showCI If \code{TRUE} (default), a confidence region for the regression line
-#'          will be plotted. Use \code{ciLevel} to specifiy the confidence level.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param ciLevel The confidence level of the confidence region. Only applies when
-#'          \code{showCI} is \code{TRUE}. Default is 0.95.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param pointAlpha The alpha values of the scatter plot's point-geoms.
-#'          Default is 0.2.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param pointColor The color of the scatter plot's point-geoms. Only applies when \code{showScatterPlot}
-#'          is \code{TRUE}. Default is \code{"black"}.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param showScatterPlot If \code{TRUE} (default), a scatter plot of response and predictor values
-#'          for each predictor of the fitted model \code{fit} is plotted.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param showLoess If \code{TRUE}, an additional loess-smoothed line is plotted.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"} or \code{type = "resp"}.
-#' @param loessLineColor The color of the loess-smoothed line. Default is \code{"red"}. Only applies, if
-#'          \code{showLoess} is \code{TRUE}.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"} or \code{type = "resp"}.
-#' @param showLoessCI If \code{TRUE}, a confidence region for the loess-smoothed line
-#'          will be plotted. Default is \code{FALSE}. Use \code{loessCiLevel} to specifiy the confidence level.
-#'          Only applies, if \code{showLoess} is \code{TRUE}.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"} or \code{type = "resp"}.
-#' @param loessCiLevel The confidence level of the loess-line's confidence region.
-#'          Only applies, if \code{showLoessCI} is \code{TRUE}. Default is 0.95.
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param useResiduals If \code{TRUE}, the residuals (instead of response) are plotted
-#'          against the predictor. May be used for model diagnostics
-#'          (see \url{https://www.otexts.org/fpp/5/4}).
-#'          Only applies if \code{type = "lm"} and fitted model has only one predictor,
-#'          or if \code{type = "pred"}.
-#' @param showOriginalModelOnly if \code{TRUE} (default), only the model assumptions of the fitted model
-#'          \code{fit} are plotted. if \code{FALSE}, the model assumptions of an updated model where outliers
-#'          are automatically excluded are also plotted.
+#'          or if \code{type = "pred"} or \code{type = "resid"}.
+#' @param showOriginalModelOnly logical, if \code{TRUE} (default), only model assumptions of
+#'          \code{fit} are plotted. if \code{FALSE}, model assumptions of an updated 
+#'          model where outliers are automatically excluded are also plotted.
 #'          Only applies if \code{type = "ma"}.
-#' @param completeDiagnostic if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
+#' @param completeDiagnostic logical, if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
 #'          Only applies if \code{type = "ma"}.
-#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#'          
+#' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.lmer
+#'          
 #' @return Depending on the \code{type}, in most cases (insisibily)
 #'           returns the ggplot-object with the complete plot (\code{plot})
 #'           as well as the data frame that was used for setting up the
@@ -158,8 +114,6 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "l
 #' data(efc)
 #' # fit model
 #' fit <- lm(neg_c_7 ~ quol_5, data=efc)
-#' # plot regression line
-#' sjp.lm(fit)
 #' # plot regression line with label strings
 #' sjp.lm(fit,
 #'        axisLabels.x = "Quality of life",
@@ -188,45 +142,61 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c("vars", "Beta", "xv", "l
 #' # --------------------------
 #' sjp.lm(fit, type = "ma")
 #'
+#' \dontrun{
+#' # --------------------------
+#' # plotting polynomial terms
+#' # --------------------------
+#' library(sjmisc)
+#' data(efc)
+#' # fit sample model
+#' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
+#' # "e17age" does not seem to be linear correlated to response
+#' # try to find appropiate polynomial. Grey line (loess smoothed)
+#' # indicates best fit. Looks like x^4 has the best fit.
+#' # (not checked for significance yet).
+#' sjp.poly(fit, "e17age", 2:4, showScatterPlot = FALSE)
+#' # fit new model
+#' fit <- lm(tot_sc_e ~ c12hour + e42dep +
+#'           e17age + I(e17age^2) + I(e17age^3) + I(e17age^4),
+#'           data = efc)
+#' # plot marginal effects of polynomial term
+#' sjp.lm(fit, type = "poly", poly.term = "e17age")}
+#'
 #' @import ggplot2
 #' @import sjmisc
 #' @importFrom car outlierTest crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot vif
+#' @importFrom stats model.matrix confint coef
 #' @export
 sjp.lm <- function(fit,
-                   type="lm",
-                   sort.est=TRUE,
-                   title=NULL,
-                   axisLabels.x=NULL,
-                   axisLabels.y=NULL,
-                   showAxisLabels.y=TRUE,
-                   axisTitle.x="Estimates",
-                   axisLimits=NULL,
-                   geom.colors="Set1",
-                   geom.size=3,
-                   interceptLineType=2,
-                   interceptLineColor="grey70",
-                   breakTitleAt=50,
-                   breakLabelsAt=25,
-                   gridBreaksAt=NULL,
-                   coord.flip=TRUE,
-                   showValueLabels=TRUE,
-                   labelDigits=2,
-                   showPValueLabels=TRUE,
-                   showModelSummary=TRUE,
-                   lineColor="blue",
-                   showCI=TRUE,
-                   ciLevel=0.95,
-                   pointAlpha=0.2,
-                   pointColor="black",
-                   showScatterPlot=TRUE,
-                   showLoess=FALSE,
-                   loessLineColor="red",
-                   showLoessCI=FALSE,
-                   loessCiLevel=0.95,
-                   useResiduals=FALSE,
-                   showOriginalModelOnly=TRUE,
-                   completeDiagnostic=FALSE,
-                   printPlot=TRUE) {
+                   type = "lm",
+                   sort.est = TRUE,
+                   title = NULL,
+                   axisLabels.x = NULL,
+                   axisLabels.y = NULL,
+                   showAxisLabels.y = TRUE,
+                   axisTitle.x = "Estimates",
+                   axisLimits = NULL,
+                   geom.colors = "Set1",
+                   geom.size = NULL,
+                   interceptLineType = 2,
+                   interceptLineColor = "grey70",
+                   breakTitleAt = 50,
+                   breakLabelsAt = 25,
+                   gridBreaksAt = NULL,
+                   coord.flip = TRUE,
+                   showValueLabels = TRUE,
+                   labelDigits = 2,
+                   showPValueLabels = TRUE,
+                   showModelSummary = FALSE,
+                   showCI = TRUE,
+                   pointAlpha = 0.2,
+                   showScatterPlot = TRUE,
+                   showLoess = FALSE,
+                   showLoessCI = FALSE,
+                   poly.term = NULL,
+                   showOriginalModelOnly = TRUE,
+                   completeDiagnostic = FALSE,
+                   printPlot = TRUE) {
   # -----------------------------------------------------------
   # remember length of predictor variables
   # -----------------------------------------------------------
@@ -247,52 +217,63 @@ sjp.lm <- function(fit,
   # this function requires a fitted model with only one predictor,
   # so check whether only one predictor was used
   # -----------------------------------------------------------
-  if (type == "lm" && predvars.length <= 2) {
+  if ((type == "lm" || type == "resid") && predvars.length <= 2) {
+    # reset default color setting, does not look that good.
+    if (geom.colors == "Set1") geom.colors <- NULL
     return(invisible(sjp.lm1(fit,
                              title,
                              breakTitleAt,
                              axisLabels.x,
                              axisLabels.y,
                              breakLabelsAt,
-                             lineColor,
+                             geom.colors,
                              showCI,
-                             ciLevel,
                              pointAlpha,
-                             pointColor,
                              showScatterPlot,
                              showLoess,
-                             loessLineColor,
                              showLoessCI,
-                             loessCiLevel,
                              showModelSummary,
-                             useResiduals,
+                             useResiduals = ifelse(type == "lm", FALSE, TRUE),
                              printPlot)))
   }
-  if (type == "pred") {
+  if (type == "pred" || type == "resid") {
+    # reset default color setting, does not look that good.
+    if (geom.colors == "Set1") geom.colors <- NULL
     return(invisible(sjp.reglin(fit,
                                 title,
                                 breakTitleAt,
-                                lineColor,
+                                geom.colors,
                                 showCI,
-                                ciLevel,
                                 pointAlpha,
-                                pointColor,
                                 showScatterPlot,
                                 showLoess,
-                                loessLineColor,
                                 showLoessCI,
-                                loessCiLevel,
-                                useResiduals,
+                                useResiduals = ifelse(type == "pred", FALSE, TRUE),
                                 printPlot)))
   }
   if (type == "resp") {
     return(invisible(sjp.lm.response.pred(fit,
+                                          geom.colors,
                                           showCI, 
                                           showLoess,
-                                          loessLineColor,
                                           showLoessCI,
-                                          loessCiLevel,
                                           printPlot)))
+  }
+  if (type == "poly") {
+    return(invisible(sjp.lm.poly(fit,
+                                 poly.term,
+                                 geom.colors,
+                                 geom.size,
+                                 axisTitle.x,
+                                 showCI, 
+                                 printPlot)))
+  }
+  if (type == "eff") {
+    return(invisible(sjp.lm.eff(fit,
+                                title,
+                                geom.size,
+                                showCI,
+                                printPlot)))
   }
   if (type == "ma") {
     return(invisible(sjp.lm.ma(fit,
@@ -302,6 +283,8 @@ sjp.lm <- function(fit,
   if (type == "vif") {
     return(invisible(sjp.vif(fit)))
   }
+  # check size parameter
+  if (is.null(geom.size)) geom.size <- 3
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -379,21 +362,21 @@ sjp.lm <- function(fit,
     tmp <- stdbv
     ps <- pstdbv
   } else {
-    if (1 == length(coefficients(fit)[-1])) {
+    if (1 == length(stats::coef(fit)[-1])) {
       tmp <- data.frame(
         # Append beta coefficients, [-1] means that the first
         # row (Intercept) will be removed / ignored
-        coefficients(fit)[-1],
+        stats::coef(fit)[-1],
         # append CI
-        confint(fit, level = 0.95)[-1, 1],
-        confint(fit, level = 0.95)[-1, 2])
+        stats::confint(fit, level = 0.95)[-1, 1],
+        stats::confint(fit, level = 0.95)[-1, 2])
     } else {
       tmp <- data.frame(cbind(
         # Append beta coefficients, [-1] means that the first
         # row (Intercept) will be removed / ignored
-        coefficients(fit)[-1],
+        stats::coef(fit)[-1],
         # append CI
-        confint(fit, level = 0.95)[-1, ]))
+        stats::confint(fit, level = 0.95)[-1, ]))
     }
   }
   # append p-values and standardized beta coefficients
@@ -501,12 +484,20 @@ sjp.lm <- function(fit,
 
 
 sjp.lm.response.pred <- function(fit,
+                                 geom.colors,
                                  show.se,
                                  showLoess,
-                                 loessLineColor,
                                  showLoessCI,
-                                 loessCiLevel,
                                  printPlot) {
+  # -----------------------------------------------------------
+  # check parameter
+  # -----------------------------------------------------------
+  geom.colors <- col_check(geom.colors, showLoess)
+  # -----------------------------------------------------------
+  # set color defaults
+  # -----------------------------------------------------------
+  lineColor <- geom.colors[1]
+  loessLineColor <- geom.colors[2]
   # ----------------------------
   # get predicted values for response
   # ----------------------------
@@ -524,13 +515,13 @@ sjp.lm.response.pred <- function(fit,
          y = "Predicted values",
          title = "Predicted value for model-response") +
     stat_smooth(method = "lm",
-                se = show.se)
+                se = show.se,
+                colour = lineColor)
   # ---------------------------------------------------------
   # Add Loess-Line
   # ---------------------------------------------------------
   if (showLoess) mp <- mp + stat_smooth(method = "loess",
                                         se = showLoessCI,
-                                        level = loessCiLevel,
                                         colour = loessLineColor)
   # --------------------------
   # plot plots
@@ -546,18 +537,29 @@ sjp.lm.response.pred <- function(fit,
 sjp.reglin <- function(fit,
                        title=NULL,
                        breakTitleAt=50,
-                       lineColor="blue",
+                       geom.colors = NULL,
                        showCI=TRUE,
-                       ciLevel=0.95,
                        pointAlpha=0.2,
-                       pointColor="black",
                        showScatterPlot=TRUE,
                        showLoess=TRUE,
-                       loessLineColor="red",
                        showLoessCI=FALSE,
-                       loessCiLevel=0.95,
                        useResiduals=FALSE,
                        printPlot=TRUE) {
+  # -----------------------------------------------------------
+  # check parameter
+  # -----------------------------------------------------------
+  geom.colors <- col_check(geom.colors, showLoess)
+  # -----------------------------------------------------------
+  # set color defaults
+  # -----------------------------------------------------------
+  if (showLoess) {
+    lineColor <- geom.colors[1]
+    loessLineColor <- geom.colors[2]
+    pointColor <- geom.colors[3]
+  } else {
+    lineColor <- geom.colors[1]
+    pointColor <- geom.colors[2]
+  }
   # -----------------------------------------------------------
   # retrieve amount of predictor variables and
   # retrieve column names of dataset so we can identify in which
@@ -565,17 +567,17 @@ sjp.reglin <- function(fit,
   # -----------------------------------------------------------
   if (any(class(fit) == "plm")) {
     # plm objects have different structure than (g)lm
-    fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), model.matrix(fit)))
+    fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), stats::model.matrix(fit)))
     depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
     # retrieve response vector
     resp <- as.vector(fit$model[, 1])
   } else if (any(class(fit) == "lmerMod") || any(class(fit) == "merModLmerTest")) {
-    fit_x <- data.frame(model.matrix(fit))
+    fit_x <- data.frame(stats::model.matrix(fit))
     # retrieve response vector
     resp <- lme4::getME(fit, "y")
     depvar.label <- attr(attr(attr(fit@frame, "terms"), "dataClasses"), "names")[1]
   } else {
-    fit_x <- data.frame(model.matrix(fit))
+    fit_x <- data.frame(stats::model.matrix(fit))
     depvar.label <- attr(attr(fit$terms, "dataClasses"), "names")[1]
     # retrieve response vector
     resp <- as.vector(fit$model[, 1])
@@ -619,7 +621,6 @@ sjp.reglin <- function(fit,
     reglinplot <- ggplot(mydat, aes(x = x, y = y)) +
       stat_smooth(method = "lm",
                   se = showCI,
-                  level = ciLevel,
                   colour = lineColor)
     # -----------------------------------------------------------
     # plot jittered values if requested
@@ -633,7 +634,6 @@ sjp.reglin <- function(fit,
       reglinplot <- reglinplot +
         stat_smooth(method = "loess",
                     se = showLoessCI,
-                    level = loessCiLevel,
                     colour = loessLineColor)
     }
     # -----------------------------------------------------------
@@ -661,6 +661,60 @@ sjp.reglin <- function(fit,
 }
 
 
+col_check <- function(geom.colors, showLoess) {
+  # define required length of color palette
+  collen <- ifelse(showLoess == TRUE, 3, 2)
+  if (is.null(geom.colors)) {
+    if (collen == 2)
+      geom.colors <- c("#1f78b4", "#404040")
+    else
+      geom.colors <- c("#1f78b4", "#e41a1c", "#404040")
+  } else if (is.brewer.pal(geom.colors[1])) {
+    geom.colors <- scales::brewer_pal(palette = geom.colors[1])(collen)
+  } else if (geom.colors[1] == "gs") {
+    geom.colors <- scales::grey_pal()(collen)
+  } else {
+    # do we have correct amount of colours?
+    if (length(geom.colors) != collen) {
+      # warn user abount wrong color palette
+      warning(sprintf("Insufficient length of color palette provided. %i color values needed.", collen), call. = F)
+      # set default
+      if (collen == 2)
+        geom.colors <- c("#1f78b4", "#404040")
+      else
+        geom.colors <- c("#1f78b4", "#e41a1c", "#404040")
+    }
+  }
+  return(geom.colors)
+}
+
+
+col_check2 <- function(geom.colors, collen) {
+  # --------------------------------------------
+  # check color parameter
+  # --------------------------------------------
+  # check for corrct color parameter
+  if (!is.null(geom.colors)) {
+    # check for color brewer palette
+    if (is.brewer.pal(geom.colors[1])) {
+      geom.colors <- scales::brewer_pal(palette = geom.colors[1])(collen)
+    } else if (geom.colors[1] == "gs") {
+      geom.colors <- scales::grey_pal()(collen)
+      # do we have correct amount of colours?
+    } else if (length(geom.colors) != collen) {
+      # warn user abount wrong color palette
+      warning(sprintf("Insufficient length of color palette provided. %i color values needed.", collen), call. = F)
+      # set default palette
+      geom.colors <- scales::brewer_pal(palette = "Set1")(collen)
+    }
+  } else {
+    geom.colors <- scales::brewer_pal(palette = "Set1")(collen)
+  }
+  return(geom.colors)
+}
+
+
+#' @importFrom stats fitted rstudent
 sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FALSE) {
   # ------------------------
   # check if suggested package is available
@@ -731,8 +785,8 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # ---------------------------------
   ggqqp <- function(fit, title.suffix = " (original model)") {
     sjp.setTheme(theme = "scatter")
-    mydf <- data.frame(x = sort(fitted(fit)),
-                       y = sort(rstudent(fit)))
+    mydf <- data.frame(x = sort(stats::fitted(fit)),
+                       y = sort(stats::rstudent(fit)))
     print(ggplot(mydf, aes(x = x, y = y)) +
             geom_point() +
             stat_smooth(method = "lm", se = FALSE) +
@@ -812,8 +866,14 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
     # Plot residuals against predictors
     # ---------------------------------
     sjp.setTheme(theme = "scatter")
-    sjp.reglin(linreg, title = "Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
-    if (modelOptmized) sjp.reglin(model, title = "Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", breakTitleAt=60, useResiduals = T)
+    sjp.reglin(linreg, 
+               title = "Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", 
+               breakTitleAt = 60, 
+               useResiduals = T)
+    if (modelOptmized) sjp.reglin(model, 
+                                  title = "Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly", 
+                                  breakTitleAt = 60, 
+                                  useResiduals = T)
     # ---------------------------------
     # Non-linearity
     # ---------------------------------
@@ -844,19 +904,30 @@ sjp.lm1 <- function(fit,
                    axisLabel.x=NULL,
                    axisLabel.y=NULL,
                    breakLabelsAt=20,
-                   lineColor="blue",
+                   geom.colors = NULL,
                    showCI=TRUE,
-                   ciLevel=0.95,
                    pointAlpha=0.2,
-                   pointColor="black",
                    showScatterPlot=TRUE,
                    showLoess=FALSE,
-                   loessLineColor="red",
                    showLoessCI=FALSE,
-                   loessCiLevel=0.95,
                    showModelSummary=TRUE,
                    useResiduals=FALSE,
                    printPlot=TRUE) {
+  # -----------------------------------------------------------
+  # check parameter
+  # -----------------------------------------------------------
+  geom.colors <- col_check(geom.colors, showLoess)
+  # -----------------------------------------------------------
+  # set color defaults
+  # -----------------------------------------------------------
+  if (showLoess) {
+    lineColor <- geom.colors[1]
+    loessLineColor <- geom.colors[2]
+    pointColor <- geom.colors[3]
+  } else {
+    lineColor <- geom.colors[1]
+    pointColor <- geom.colors[2]
+  }
   # -----------------------------------------------------------
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
@@ -871,7 +942,7 @@ sjp.lm1 <- function(fit,
   # so check whether only one predictor was used
   # -----------------------------------------------------------
   if (predvars.length > 2) {
-    stop("Only one predictor is allowed in fitted model. Formula y=b*x is plotted.", call.=FALSE)
+    stop("Only one predictor is allowed in fitted model. Formula y=b*x is plotted.", call. = FALSE)
   }
   # -----------------------------------------------------------
   # retrieve column names of dataset so we can identify in which
@@ -920,7 +991,6 @@ sjp.lm1 <- function(fit,
                        aes(x = x, y = y)) +
     stat_smooth(method = "lm",
                 se = showCI,
-                level = ciLevel,
                 colour = lineColor)
   # -----------------------------------------------------------
   # plot jittered values if requested
@@ -936,7 +1006,6 @@ sjp.lm1 <- function(fit,
     reglinplot <- reglinplot +
       stat_smooth(method = "loess",
                   se = showLoessCI,
-                  level = loessCiLevel,
                   colour = loessLineColor)
   }
   # -----------------------------------------------------------
@@ -956,7 +1025,202 @@ sjp.lm1 <- function(fit,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjplm1",
-                       list(plot = reglinplot,
-                            df = mydat)))
+  invisible(structure(class = "sjplm1",
+                      list(plot = reglinplot,
+                           df = mydat)))
+}
+
+
+sjp.lm.poly <- function(fit,
+                        poly.term,
+                        geom.colors,
+                        geom.size,
+                        axisTitle.x,
+                        showCI, 
+                        printPlot) {
+  # check size parameter
+  if (is.null(geom.size)) geom.size <- .8
+  # -------------------------------------
+  # retrieve model matrix
+  # -------------------------------------
+  mm <- stats::model.matrix(fit)
+  # -------------------------------------
+  # parameter check: poly.term required and
+  # polynomial must be found in model
+  # -------------------------------------
+  if (is.null(poly.term) || length(which(colnames(mm) == poly.term)) == 0) {
+    stop("'poly.term' not given, or not found in model. Please check name of polynomial term.", call. = FALSE)
+  }
+  # ------------------------
+  # check for color brewer palette
+  # ------------------------
+  if (is.brewer.pal(geom.colors[1])) {
+    geom.colors <- scales::brewer_pal(palette = geom.colors[1])(2)
+  } else if (geom.colors[1] == "gs") {
+    geom.colors <- scales::grey_pal()(2)
+  }
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("effects", quietly = TRUE)) {
+    stop("Package 'effects' needed for this function to work. Please install it.", call. = FALSE)
+  }
+  # --------------------------------------------
+  # retrieve labels
+  # --------------------------------------------
+  if (is.null(axisTitle.x) || axisTitle.x == "Estimates") axisTitle.x <- "Polynomial term"
+  # ------------------------
+  # compute marginal effects of polynomial
+  # ------------------------
+  xl <- list(x = sort(unique(stats::na.omit(mm[, poly.term]))))
+  names(xl) <- poly.term
+  eff <- effects::effect(poly.term, fit, xlevels = xl, KR = FALSE)
+  # ------------------------
+  # build data frame, with raw values
+  # from polynomial term, predicted response
+  # and lower/upper ci
+  # ------------------------
+  mydat <- data.frame(x = eff$x[[poly.term]], 
+                      y = eff$fit, 
+                      lower = eff$lower, 
+                      upper = eff$upper)
+  # base plot
+  polyplot <- ggplot(mydat, aes(x = x, y = y))
+  # show confidence region?
+  if (showCI) polyplot <- polyplot + geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .15)
+  # plot predicted effect of polynomial term
+  polyplot <- polyplot + 
+    geom_line(colour = geom.colors[1], size = geom.size) +
+    labs(x = axisTitle.x, y = "Response")
+  # print plot
+  if (printPlot) print(polyplot)
+  # return result
+  invisible(structure(class = "sjplmpoly",
+                      list(plot = polyplot,
+                           df = mydat)))
+}
+
+
+sjp.lm.eff <- function(fit,
+                       title,
+                       geom.size,
+                       showCI,
+                       printPlot) {
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("effects", quietly = TRUE)) {
+    stop("Package 'effects' needed for this function to work. Please install it.", call. = FALSE)
+  }
+  if ((any(class(fit) == "lmerMod" || any(class(fit) == "merModLmerTest"))) && !requireNamespace("lme4", quietly = TRUE)) {
+    stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
+  }
+  # ------------------------
+  # Retrieve response for automatic title
+  # ------------------------
+  if (any(class(fit) == "lmerMod") || any(class(fit) == "merModLmerTest")) {
+    # retrieve response vector
+    resp <- lme4::getME(fit, "y")
+    resp.col <- colnames(fit@frame)[1]
+  } else if (any(class(fit) == "lm")) {
+    # retrieve response vector
+    resp <- fit$model[[1]]
+    resp.col <- colnames(fit$model)[1]
+  }
+  # --------------------------------------------
+  # retrieve labels
+  # --------------------------------------------
+  axisTitle.y <- sjmisc:::autoSetVariableLabels(resp)
+  # no labels found? set default then
+  if (is.null(axisTitle.y)) axisTitle.y <- resp.col
+  # which title?
+  if (is.null(title)) title <- "Marginal effects of model predictors"
+  # ------------------------
+  # retrieve model matrix and all terms, 
+  # excluding intercept
+  # ------------------------
+  mm <- stats::model.matrix(fit)
+  all.terms <- colnames(stats::model.matrix(fit))[-1]
+  # ------------------------
+  # prepare getting unique values of predictors,
+  # which are passed to the allEffects-function
+  # ------------------------
+  xl <- list()
+  for (t in all.terms) {
+    # get unique values
+    dummy <- list(x = sort(unique(stats::na.omit(mm[, t]))))
+    # name list, needed for effect-function
+    names(dummy) <- t
+    # create list for "xlevels" parameter of allEffects fucntion
+    xl <- c(xl, dummy)
+  }
+  # ------------------------
+  # compute marginal effects for each model term
+  # ------------------------
+  eff <- effects::allEffects(fit, xlevels = xl, KR = FALSE)
+  # init final df
+  mydat <- data.frame()
+  # interaction term found?
+  int.found <- FALSE
+  # iterate all effects
+  for (i in 1:length(eff)) {
+    # get term, for which effects were calculated
+    t <- eff[[i]]$term
+    # check if we have interaction term
+    # these are ignored in this case.
+    if (length(grep(":", t, fixed = T)) == 0 && length(grep("*", t, fixed = T)) == 0) {
+      # ------------------------
+      # build data frame, with raw values
+      # from polynomial term, predicted response
+      # and lower/upper ci
+      # ------------------------
+      tmp <- data.frame(x = eff[[i]]$x[[t]], 
+                        y = eff[[i]]$fit, 
+                        lower = eff[[i]]$lower, 
+                        upper = eff[[i]]$upper,
+                        grp = t)
+      # make sure x is numeric
+      tmp$x <- sjmisc::to_value(tmp$x, keep.labels = F)
+      # do we already have data?
+      if (nrow(mydat) > 0) 
+        mydat <- rbind(mydat, tmp)
+      else
+        # else init data frame
+        mydat <- tmp
+    } else {
+      int.found <- TRUE
+    }
+  }
+  # continuous numbering of row names
+  rownames(mydat) <- c(1:nrow(mydat))
+  # ------------------------
+  # tell user that interaction terms are ignored
+  # ------------------------
+  if (int.found) {
+    message("Interaction terms in model have been ignored. Call 'sjp.int' to plot effects of interaction terms.")
+  }
+  # ------------------------
+  # how many different groups?
+  # ------------------------
+  grp.cnt <- length(unique(mydat$grp))
+  # check size parameter
+  if (is.null(geom.size)) geom.size <- .8
+  # ------------------------
+  # create plot
+  # ------------------------
+  eff.plot <- ggplot(mydat, aes(x = x, y = y))
+  # show confidence region?
+  if (showCI) eff.plot <- eff.plot + geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .15)
+  eff.plot <- eff.plot +
+    geom_line(size = geom.size) +
+    facet_wrap(~grp, ncol = round(sqrt(grp.cnt)), scales = "free_x") +
+    labs(x = NULL, y = axisTitle.y, title = title)
+  # ------------------------
+  # print plot?
+  # ------------------------
+  if (printPlot) print(eff.plot)
+  # return result
+  invisible(structure(class = "sjplmeff",
+                      list(plot = eff.plot,
+                           df = mydat)))
 }

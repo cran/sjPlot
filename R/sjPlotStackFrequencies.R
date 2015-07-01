@@ -12,56 +12,49 @@
 #' 
 #' @note Thanks to \href{http://www.clas.ufl.edu/users/forrest/}{Forrest Stevens} for bug fixes.
 #' 
-#' @param items A data frame with each column representing one likert-item.
-#' @param legendLabels A list or vector of strings that indicate the likert-scale-categories and which
-#'          appear as legend text.
-#' @param sort.frq Indicates whether the \code{items} should be ordered by
+#' @param items \code{\link{data.frame}} with each column representing one item.
+#' @param legendLabels list or vector of strings that indicate the items' categories.
+#'          WIll also appear as legend text.
+#' @param sort.frq indicates whether the \code{items} should be ordered by
 #'          by highest count of first or last category of \code{items}.
-#'          \itemize{
-#'            \item Use \code{"first.asc"} to order ascending by lowest count of first category,
-#'            \item \code{"first.desc"} to order descending by lowest count of first category,
-#'            \item \code{"last.asc"} to order ascending by lowest count of last category,
-#'            \item \code{"last.desc"} to order descending by lowest count of last category,
-#'            \item or \code{NULL} (default) for no sorting.
+#'          \describe{
+#'            \item{\code{"first.asc"}}{to order ascending by lowest count of first category,}
+#'            \item{\code{"first.desc"}}{to order descending by lowest count of first category,}
+#'            \item{\code{"last.asc"}}{to order ascending by lowest count of last category,}
+#'            \item{\code{"last.desc"}}{to order descending by lowest count of last category,}
+#'            \item{\code{NULL}}{(default) for no sorting.}
 #'          }
-#' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
+#' @param weightBy weight factor that will be applied to weight all cases from \code{items}.
 #'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.
-#' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
-#'          may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
-#'          cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString=" (weighted)"}.
-#' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param title Title of the diagram, plotted above the whole diagram panel.
-#' @param legendTitle Title of the diagram's legend.
-#' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
-#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
-#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code (see below).
-#'          \itemize{
-#'            \item If not specified, the sequential \code{"Blues"} color brewer palette will be used.
-#'            \item If \code{"gs"}, a greyscale will be used.
-#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-#'            \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00", "#8000f0")}).
-#'          }
+#' @param weightByTitleString suffix (as string) for the plot's title, if \code{weightBy} is specified,
+#'          e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so plot's 
+#'          title will not have a suffix when cases are weighted.
+#' @param hideLegend logical, indicates whether legend (guide) should be shown or not.
+#' @param title plot's title
+#' @param legendTitle title of plot's legend
+#' @param includeN logical, if \code{TRUE} (default), the N of each item is included into axis labels.
+#' @param geom.colors user defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code.
+#'          See 'Note' in \code{\link{sjp.grpfrq}}.
 #' @param geom.size size resp. width of the geoms (bar width)
-#' @param axisLabels.y Labels for the y-axis (the labels of the \code{items}). These parameters must
-#'          be passed as list! Example: \code{axisLabels.y=list(c("Q1", "Q2", "Q3"))}
+#' @param axisLabels.y character vector with labels for the y-axis (variable names 
+#'          of \code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}
 #'          Axis labels will automatically be detected, when they have
-#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
-#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
+#'          label attributes (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#' @param breakTitleAt determines how many chars of the title are displayed in
 #'          one line and when a line break is inserted into the title.
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
+#' @param breakLabelsAt determines how many chars of the category labels are displayed in 
 #'          one line and when a line break is inserted.
-#' @param breakLegendTitleAt Wordwrap for diagram legend title. Determines how many chars of the legend's title 
+#' @param breakLegendTitleAt determines how many chars of the legend's title 
 #'          are displayed in one line and when a line break is inserted.
-#' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are 
+#' @param breakLegendLabelsAt determines how many chars of the legend labels are 
 #'          displayed in one line and when a line break is inserted.
-#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Valid values range from 0 to 1.
-#' @param expand.grid If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
-#'          to the diagram's boundaries.
-#' @param axisTitle.x A label for the x axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the x axis.
-#' @param axisTitle.y A label for the y axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the y axis.
+#' @param gridBreaksAt set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
+#'          position a major grid is being printed. Valid values range from 0 to 1.
+#' @param expand.grid logical, if \code{TRUE} (default), the diagram has margins, 
+#'          i.e. the y-axis is not exceeded to the diagram's boundaries.
+#' @param axisTitle.x title for the x-axis. Default is \code{NULL} (no title).
+#' @param axisTitle.y title for the y-axis. Default is \code{NULL} (no title).
 #' @param showValueLabels Whether counts and percentage values should be plotted to each bar.
 #' @param labelDigits The amount of digits for rounding \code{value.labels}. Default is 1, 
 #'          i.e. value labels have 1 digit after decimal point.
@@ -98,10 +91,10 @@
 #' likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 #' 
 #' # create labels
-#' levels_4 <- list(c("Independent", 
-#'                    "Slightly dependent", 
-#'                    "Dependent", 
-#'                    "Severely dependent"))
+#' levels_4 <- c("Independent", 
+#'               "Slightly dependent", 
+#'               "Dependent", 
+#'               "Severely dependent")
 #' 
 #' # plot stacked frequencies of 5 (ordered) item-scales
 #' sjp.stackfrq(likert_4, legendLabels = levels_4)
@@ -125,11 +118,11 @@
 #' 
 #' # create value labels. We need just one variable of
 #' # the COPE-index scale because they have all the same
-#' # level / categorie / value labels
+#' # level / category / value labels
 #' levels <- vallabs['c82cop1']
 #' 
 #' # create item labels
-#' items <- list(varlabs[c(start:end)])
+#' items <- varlabs[c(start:end)]
 #' 
 #' sjp.stackfrq(efc[, c(start:end)], 
 #'              legendLabels = levels,
@@ -147,37 +140,38 @@
 #' @import dplyr
 #' @import sjmisc
 #' @importFrom scales percent
+#' @importFrom stats na.omit xtabs
 #' @export
 sjp.stackfrq <- function(items,
-                        legendLabels=NULL,
-                        sort.frq=NULL,
-                        weightBy=NULL,
-                        weightByTitleString=NULL,
-                        hideLegend=FALSE,
-                        title=NULL,
-                        legendTitle=NULL,
-                        includeN=TRUE,
-                        axisLabels.y=NULL,
-                        breakTitleAt=50, 
-                        breakLabelsAt=30, 
-                        breakLegendTitleAt=30, 
-                        breakLegendLabelsAt=28,
-                        gridBreaksAt=0.2,
-                        expand.grid=FALSE,
-                        geom.size=0.5, 
-                        geom.colors="Blues",
-                        axisTitle.x=NULL,
-                        axisTitle.y=NULL,
-                        showValueLabels=TRUE,
-                        labelDigits = 1,
-                        showPercentageAxis=TRUE,
-                        jitterValueLabels=FALSE,
-                        showItemLabels=TRUE,
-                        showSeparatorLine=FALSE,
-                        separatorLineColor="grey80",
-                        separatorLineSize=0.3,
-                        coord.flip=TRUE,
-                        printPlot=TRUE) {
+                         legendLabels = NULL,
+                         sort.frq = NULL,
+                         weightBy = NULL,
+                         weightByTitleString = NULL,
+                         hideLegend = FALSE,
+                         title = NULL,
+                         legendTitle = NULL,
+                         includeN = TRUE,
+                         axisLabels.y = NULL,
+                         breakTitleAt = 50,
+                         breakLabelsAt = 30,
+                         breakLegendTitleAt = 30,
+                         breakLegendLabelsAt = 28,
+                         gridBreaksAt = 0.2,
+                         expand.grid = FALSE,
+                         geom.size = 0.5,
+                         geom.colors = "Blues",
+                         axisTitle.x = NULL,
+                         axisTitle.y = NULL,
+                         showValueLabels = TRUE,
+                         labelDigits = 1,
+                         showPercentageAxis = TRUE,
+                         jitterValueLabels = FALSE,
+                         showItemLabels = TRUE,
+                         showSeparatorLine = FALSE,
+                         separatorLineColor = "grey80",
+                         separatorLineSize = 0.3,
+                         coord.flip = TRUE,
+                         printPlot = TRUE) {
   # --------------------------------------------------------
   # check param. if we have a single vector instead of
   # a data frame with several items, convert vector to data frame
@@ -231,11 +225,36 @@ sjp.stackfrq <- function(items,
   # --------------------------------------------------------
   if (is.null(axisLabels.y)) axisLabels.y <- colnames(items)
   # --------------------------------------------------------
-  # unlist labels
+  # unlist/ unname axis labels
   # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
-  if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
-  if (is.null(legendLabels)) legendLabels <- as.character(sort(unique(items[[1]])))
+  if (!is.null(axisLabels.y)) {
+    # unlist labels, if necessary, so we have a simple
+    # character vector
+    if (is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
+    # unname labels, if necessary, so we have a simple
+    # character vector
+    if (!is.null(names(axisLabels.y))) axisLabels.y <- as.vector(axisLabels.y)
+  } 
+  # --------------------------------------------------------
+  # unlist/ unname axis labels
+  # --------------------------------------------------------
+  if (!is.null(legendLabels)) {
+    # unlist labels, if necessary, so we have a simple
+    # character vector
+    if (is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
+    # unname labels, if necessary, so we have a simple
+    # character vector
+    if (!is.null(names(legendLabels))) legendLabels <- as.vector(legendLabels)
+  } 
+  if (is.null(legendLabels)) {
+    # if we have no legend labels, we iterate all data frame's
+    # columns to find all unique items of the data frame.
+    # In case one item has missing categories, this may be
+    # "compensated" by looking at all items, so we have the
+    # actual values of all items.
+    legendLabels <- as.character(sort(unique(unlist(
+      apply(items, 2, function(x) unique(stats::na.omit(x)))))))
+  }
   # --------------------------------------------------------
   # Check whether N of each item should be included into
   # axis labels
@@ -243,7 +262,7 @@ sjp.stackfrq <- function(items,
   if (includeN && !is.null(axisLabels.y)) {
     for (i in 1:length(axisLabels.y)) {
       axisLabels.y[i] <- paste(axisLabels.y[i], 
-                               sprintf(" (n=%i)", length(na.omit(items[, i]))), 
+                               sprintf(" (n=%i)", length(stats::na.omit(items[[i]]))), 
                                sep = "")
     }
   }
@@ -270,7 +289,7 @@ sjp.stackfrq <- function(items,
   # iterate item-list
   for (i in 1:ncol(items)) {
     # get each single items
-    variable <- items[ ,i]
+    variable <- items[[i]]
     # -----------------------------------------------
     # create proportional table so we have the percentage
     # values that should be used as y-value for the bar charts
@@ -282,7 +301,7 @@ sjp.stackfrq <- function(items,
     if (is.null(weightBy)) {
       df <- as.data.frame(prop.table(table(variable)))
     } else {
-      df <- as.data.frame(prop.table(round(xtabs(weightBy ~ variable), 0)))
+      df <- as.data.frame(prop.table(round(stats::xtabs(weightBy ~ variable), 0)))
     }
     # give columns names
     names(df) <- c("var", "prc")

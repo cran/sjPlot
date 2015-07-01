@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjTabOdds.R
 \name{sjt.glmer}
 \alias{sjt.glmer}
-\title{Show (and compare) generalized linear mixed models as HTML table}
+\title{Summary of generalized linear mixed models as HTML table}
 \usage{
 sjt.glmer(..., file = NULL, labelPredictors = NULL,
   labelDependentVariables = NULL, stringPredictors = "Predictors",
@@ -15,99 +15,106 @@ sjt.glmer(..., file = NULL, labelPredictors = NULL,
   pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
   showStdError = FALSE, separateConfColumn = TRUE, newLineConf = TRUE,
   showAbbrHeadline = TRUE, showICC = TRUE, showLogLik = FALSE,
-  showAIC = FALSE, showHosLem = FALSE, showFamily = FALSE,
-  remove.estimates = NULL, cellSpacing = 0.2, encoding = NULL,
-  CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  showAIC = FALSE, showAICc = FALSE, showHosLem = FALSE,
+  showFamily = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
+  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
-\item{...}{One or more mixed models fitted with \code{\link[lme4]{glmer}}.}
+\item{...}{one or more fitted generalized linear (mixed) models.}
 
-\item{file}{The destination file, which will be in html-format. If no filepath is specified,
-the file will be saved as temporary file and openend either in the RStudio View pane or
-in the default web browser.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{labelPredictors}{Labels of the predictor variables, provided as char vector.}
+\item{labelPredictors}{character vector with labels of predictor variables.
+If not \code{NULL}, \code{labelPredictors} will be used in the first
+table column with the predictors' names. See 'Examples'.}
 
-\item{labelDependentVariables}{Labels of the dependent variables of all fitted models
-which have been used as first parameter(s), provided as char vector.}
+\item{labelDependentVariables}{character vector with labels of dependent
+variables of all fitted models. See 'Examples'.}
 
-\item{stringPredictors}{String constant used as headline for the predictor column.
+\item{stringPredictors}{string constant used as headline for the predictor column.
 Default is \code{"Predictors"}.}
 
-\item{stringDependentVariables}{String constant used as headline for the
+\item{stringDependentVariables}{string constant used as headline for the
 dependent variable columns. Default is \code{"Dependent Variables"}.}
 
-\item{showHeaderStrings}{If \code{TRUE}, the header strings \code{stringPredictors}
+\item{showHeaderStrings}{logical, if \code{TRUE}, the header strings \code{stringPredictors}
 and \code{stringDependentVariables} are shown. By default, they're hidden.}
 
-\item{stringModel}{String constant used as headline for the model names in case no
-labels for the dependent variables are provided (see labelDependentVariables).
+\item{stringModel}{string constant used as headline for the model names in case no
+labels for the dependent variables are provided (see \code{labelDependentVariables}).
 Default is \code{"Model"}.}
 
-\item{stringIntercept}{String constant used as headline for the Intercept row
-default is \code{"Intercept"}.}
+\item{stringIntercept}{String constant used as headline for the Intercept row.
+Default is \code{"Intercept"}.}
 
-\item{stringObservations}{String constant used in the summary row for the count of observation
+\item{stringObservations}{string constant used in the summary row for the count of observation
 (cases). Default is \code{"Observations"}.}
 
-\item{stringOR}{String used for the column heading of odds ratio values. Default is \code{"OR"}.}
+\item{stringOR}{string used for the column heading of odds ratio values. Default is \code{"OR"}.}
 
-\item{stringCI}{String used for the column heading of confidence interval values. Default is \code{"CI"}.}
+\item{stringCI}{string used for the column heading of confidence interval values. Default is \code{"CI"}.}
 
-\item{stringSE}{String used for the column heading of standard error values. Default is \code{"std. Error"}.}
+\item{stringSE}{string used for the column heading of standard error values. Default is \code{"std. Error"}.}
 
-\item{stringP}{String used for the column heading of p values. Default is \code{"p"}.}
+\item{stringP}{string used for the column heading of p values. Default is \code{"p"}.}
 
-\item{digits.est}{Amount of decimals for estimators.}
+\item{digits.est}{amount of decimals for estimators}
 
-\item{digits.p}{Amount of decimals for p-values.}
+\item{digits.p}{amount of decimals for p-values}
 
-\item{digits.ci}{Amount of decimals for confidence intervals.}
+\item{digits.ci}{amount of decimals for confidence intervals}
 
-\item{digits.se}{Amount of decimals for standard error.}
+\item{digits.se}{amount of decimals for standard error}
 
-\item{digits.summary}{Amount of decimals for values in model summary.}
+\item{digits.summary}{amount of decimals for values in model summary}
 
-\item{exp.coef}{If \code{TRUE} (default), regression coefficients and confidence intervals are exponentiated
-(odds ratios, \code{\link{exp}(\link{coef}(fit))}. Use \code{FALSE} if you want the non-exponentiated coefficients
-(log-odds) as they are provided by the \code{\link{summary}} function.}
+\item{exp.coef}{logical, if \code{TRUE} (default), regression coefficients and
+confidence intervals are exponentiated. Use \code{FALSE} for
+non-exponentiated coefficients (log-odds) as provided by
+the \code{\link{summary}} function.}
 
-\item{pvaluesAsNumbers}{If \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
+\item{pvaluesAsNumbers}{logical, if \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
 p-values are indicated by asterisks.}
 
-\item{boldpvalues}{If \code{TRUE} (default), significant p-values are shown bold faced.}
+\item{boldpvalues}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
 
-\item{showConfInt}{If \code{TRUE} (default), the confidence intervall is also printed to the table. Use
+\item{showConfInt}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 \code{FALSE} to omit the CI in the table.}
 
-\item{showStdError}{If \code{TRUE}, the standard errors are also printed.
+\item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
 Default is \code{FALSE}.}
 
-\item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
+\item{separateConfColumn}{logical, if \code{TRUE}, the CI values are shown in a separate table column.
 Default is \code{FALSE}.}
 
-\item{newLineConf}{If \code{TRUE} and \code{separateConfColumn} is \code{FALSE}, inserts a line break
+\item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 between OR and CI values. If \code{FALSE}, CI values are printed in the same
 line with OR values.}
 
-\item{showAbbrHeadline}{If \code{TRUE} (default), the table data columns have a headline with
+\item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with
 abbreviations for odds ratios, confidence interval and p-values.}
 
-\item{showICC}{If \code{TRUE}, the intra-class-correlation for each model is printed
-in the model summary.}
+\item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each
+model is printed in the model summary.}
 
-\item{showLogLik}{If \code{TRUE}, the Log-Likelihood for each model is printed
+\item{showLogLik}{logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showAIC}{If \code{TRUE}, the \code{\link{AIC}} value for each model is printed
+\item{showAIC}{logical, if \code{TRUE}, the \code{\link{AIC}} value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showHosLem}{If \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
+\item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model
+is printed in the model summary. Default is \code{FALSE}.}
+
+\item{showHosLem}{logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
 performed. A well-fitting model shows no significant difference between
 the model and the observed data, i.e. the reported p-values should be
 greater than 0.05.}
 
-\item{showFamily}{If \code{TRUE}, the family object and link function for each fitted model
+\item{showFamily}{logical, if \code{TRUE}, the family object and link function for each fitted model
 are printed. Can be used in case you want to compare models with different link functions
 and same predictors and response, to decide which model fits best. See \code{\link{family}}
 for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
@@ -121,22 +128,23 @@ would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) f
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{cellSpacing}{The inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
+\item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
-cell spacing, which would be: \code{CSS=list(css.thead="padding:0.2cm;", css.tzdata="padding:0.2cm;")}.}
+cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
-\item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
+\item{encoding}{string, indicating the charset encoding used for variable and
+value labels. Default is \code{NULL}, so encoding will be auto-detected
+depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
-\item{no.output}{If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+\item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
 the viewer pane and not even saved to file. This option is useful when the html output
 should be used in \code{knitr} documents. The html output can be accessed via the return
 value.}
@@ -195,10 +203,20 @@ fit2 <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + education + (1|grp),
 
 # print summary table
 sjt.glmer(fit1, fit2)
+
+# print summary table, using different table layout
 sjt.glmer(fit1, fit2,
           showAIC = TRUE,
           showConfInt = FALSE,
           showStdError = TRUE,
-          pvaluesAsNumbers = FALSE)}
+          pvaluesAsNumbers = FALSE)
+
+# print summary table
+sjt.glmer(fit1, fit2,
+          labelPredictors = c("Elder's gender (female)",
+                              "Hours of care per week",
+                              "Negative Impact",
+                              "Educational level (mid)",
+                              "Educational level (high)"))}
 }
 

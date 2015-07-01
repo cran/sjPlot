@@ -7,15 +7,13 @@
 sjp.lm(fit, type = "lm", sort.est = TRUE, title = NULL,
   axisLabels.x = NULL, axisLabels.y = NULL, showAxisLabels.y = TRUE,
   axisTitle.x = "Estimates", axisLimits = NULL, geom.colors = "Set1",
-  geom.size = 3, interceptLineType = 2, interceptLineColor = "grey70",
+  geom.size = NULL, interceptLineType = 2, interceptLineColor = "grey70",
   breakTitleAt = 50, breakLabelsAt = 25, gridBreaksAt = NULL,
   coord.flip = TRUE, showValueLabels = TRUE, labelDigits = 2,
-  showPValueLabels = TRUE, showModelSummary = TRUE, lineColor = "blue",
-  showCI = TRUE, ciLevel = 0.95, pointAlpha = 0.2, pointColor = "black",
-  showScatterPlot = TRUE, showLoess = FALSE, loessLineColor = "red",
-  showLoessCI = FALSE, loessCiLevel = 0.95, useResiduals = FALSE,
-  showOriginalModelOnly = TRUE, completeDiagnostic = FALSE,
-  printPlot = TRUE)
+  showPValueLabels = TRUE, showModelSummary = FALSE, showCI = TRUE,
+  pointAlpha = 0.2, showScatterPlot = TRUE, showLoess = FALSE,
+  showLoessCI = FALSE, poly.term = NULL, showOriginalModelOnly = TRUE,
+  completeDiagnostic = FALSE, printPlot = TRUE)
 }
 \arguments{
 \item{fit}{fitted linear regression model (\code{\link{lm}}- or \code{plm}-object).}
@@ -24,143 +22,108 @@ sjp.lm(fit, type = "lm", sort.est = TRUE, title = NULL,
 \describe{
   \item{\code{"lm"}}{(default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.}
   \item{\code{"std"}}{for forest-plot like plot of standardized beta values. If the fitted model only contains one predictor, intercept and slope are plotted.}
-  \item{\code{"pred"}}{to plot regression lines for each single predictor of the fitted model.}
+  \item{\code{"pred"}}{to plot regression lines for each single predictor of the fitted model, against the response (linear relationship between each model term and response).}
+  \item{\code{"resid"}}{to plot regression lines for each single predictor of the fitted model, against the residuals (linear relationship between each model term and residuals). May be used for model diagnostics (see \url{https://www.otexts.org/fpp/5/4}).}
   \item{\code{"resp"}}{to plot predicted values for the response. Use \code{showCI} parameter to plot standard errors as well.}
+  \item{\code{"eff"}}{to plot marginal effects of all terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms.}
+  \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples').}
   \item{\code{"ma"}}{to check model assumptions. Note that only three parameters are relevant for this option \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.}
   \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 }}
 
-\item{sort.est}{Logical, determines whether estimates should be sorted by their values.}
+\item{sort.est}{logical, determines whether estimates should be sorted according to their values.}
 
-\item{title}{Diagram's title as string. Example: \code{title = c("my title")}}
+\item{title}{plot title as string. Example: \code{title = "my title"}.
+Use \code{NULL} to automatically detect variable names that will be used as title
+(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+no title is printed.}
 
-\item{axisLabels.x}{predictor label (independent variable) that is used for labelling the
-axis. Passed as string.
-Two things to consider:
+\item{axisLabels.x}{name of predictor (independent variable) as string. Two things to consider:
 \itemize{
-  \item Only used if fitted model has one predictor and \code{type = "lm"}.
-  \item If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a character vector with variable label strings. You can use it like this: \code{axisLabel.x = get_var_labels(efc)['quol_5']}
+  \item Only used if fitted model has only one predictor and \code{type = "lm"}.
+  \item If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_var_labels}} function, you receive a character vector with variable label strings. You can use it like this: \code{axisLabels.x = get_var_labels(efc)['quol_5']}
 }}
 
-\item{axisLabels.y}{Labels of the predictor variables (independent vars) that are used for labelling the
-axis. Passed as vector of strings.
-Example: \code{axisLabels.y = c("Label1", "Label2", "Label3")}.
-\strong{Note:} If you use the \code{\link[sjmisc]{read_spss}} function and the \code{\link[sjmisc]{get_val_labels}} function, you receive a
-list object with label string. The labels may also be passed as list object. They will be coerced
-to character vector automatically.}
+\item{axisLabels.y}{labels or names of the predictor variables (independent vars). Must
+be a character vector of same length as independent variables. The labels
+may also be passed as list object; they will be coerced to character vector automatically.}
 
-\item{showAxisLabels.y}{Whether x axis text (category names, predictor labels) should be shown (use \code{TRUE})
-or not. Default is \code{TRUE}}
+\item{showAxisLabels.y}{logical, whether labels of independent variables should be shown or not.}
 
-\item{axisTitle.x}{A label for the x axis. Default is \code{"Estimates"}.}
+\item{axisTitle.x}{title for the x-axis. Default is \code{"Estimates"}.}
 
-\item{axisLimits}{Defines the range of the axis where the beta coefficients and their confidence intervalls
+\item{axisLimits}{defines the range of the axis where coefficients and their confidence intervalls
 are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-the diagram has maximum zoom. Use your own values as 2-value-vector, for instance: \code{limits = c(-0.8, 0.8)}.}
+the diagram has maximum zoom. Use your own values as vector of length two, indicating
+lower and upper limit for the axis (for instance: \code{limits = c(-0.8, 0.8)}).}
 
-\item{geom.colors}{User defined color palette for geoms. Must either be vector with two color values
-or a specific color palette code (see below).
-\itemize{
-  \item If not specified, the \code{"Set1"} color brewer palette will be used.
-  \item If \code{"gs"}, a greyscale will be used.
-  \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-  \item Else specify your own color values as vector, e.g. \code{geom.colors = c("#f00000", "#00ff00")}.
-}}
+\item{geom.colors}{user defined color palette for geoms. Must either be vector with two color values
+or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.}
 
 \item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).}
 
-\item{interceptLineType}{The linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
+\item{interceptLineType}{linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
 
-\item{interceptLineColor}{The color of the intercept line. Default value is \code{"grey70"}.}
+\item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
 
-\item{breakTitleAt}{Wordwrap for diagram title. Determines how many chars of the title are displayed in
-one line and when a line break is inserted into the title}
+\item{breakTitleAt}{determines how many chars of the plot title are displayed in
+one line and when a line break is inserted into the title.}
 
-\item{breakLabelsAt}{Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in
-one line and when a line break is inserted}
+\item{breakLabelsAt}{determines how many chars of the category labels are displayed in
+one line and when a line break is inserted.}
 
-\item{gridBreaksAt}{Sets the breaks on the y axis, i.e. at every n'th position a major
-grid is being printed. Default is \code{NULL}, so \code{\link{pretty}} gridbeaks will be used.}
+\item{gridBreaksAt}{set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th
+position a major grid is being printed.}
 
-\item{coord.flip}{If \code{TRUE} (default), predictors are plotted along the y-axis and estimate
+\item{coord.flip}{logical, if \code{TRUE} (default), predictors are plotted along the y-axis and estimate
 values are plotted on the x-axis.}
 
-\item{showValueLabels}{Whether value labels should be plotted to each dot or not.}
+\item{showValueLabels}{logical, whether value labels should be plotted to each dot or not.}
 
-\item{labelDigits}{The amount of digits for rounding the estimations (see \code{showValueLabels}).
+\item{labelDigits}{amount of digits for rounding the estimates (see \code{showValueLabels}).
 Default is 2, i.e. estimates have 2 digits after decimal point.}
 
-\item{showPValueLabels}{Whether the significance levels of each coefficient should be appended
-to values or not}
+\item{showPValueLabels}{logical, whether the significance level of each coefficient
+should be appended to values or not.}
 
-\item{showModelSummary}{If \code{TRUE} (default), a summary of the regression model with
-Intercept, R-square, F-Test and AIC-value is printed to the lower right corner
-of the diagram.}
+\item{showModelSummary}{logical, if \code{TRUE}, a summary of the regression model with
+Intercept, R-squared, F-Test and AIC-value is printed to the lower right corner
+of the plot.}
 
-\item{lineColor}{The color of the regression line. Default is \code{"blue"}.
+\item{showCI}{logical, if \code{TRUE} (default), a confidence region for the regression line
+will be plotted. Only applies if \code{type = "lm"} and fitted model has
+only one predictor, or if \code{type = "pred"} or \code{type = "resid"}.}
+
+\item{pointAlpha}{alpha value of point-geoms in the scatter plots.
+Default is 0.2.}
+
+\item{showScatterPlot}{logical, if \code{TRUE} (default), a scatter plot of
+response and predictor values for each predictor of \code{fit} is plotted.
 Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+or if \code{type = "pred"} or \code{type = "resid"}.}
 
-\item{showCI}{If \code{TRUE} (default), a confidence region for the regression line
-will be plotted. Use \code{ciLevel} to specifiy the confidence level.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+\item{showLoess}{logical, if \code{TRUE}, an additional loess-smoothed line is plotted.
+For \code{\link{sjp.lmer}}, only applies \code{type = "fe.pred"} or
+\code{type = "fe.resid"}.}
 
-\item{ciLevel}{The confidence level of the confidence region. Only applies when
-\code{showCI} is \code{TRUE}. Default is 0.95.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+\item{showLoessCI}{logical, if \code{TRUE}, a confidence region for the loess-smoothed line
+will be plotted. Default is \code{FALSE}. Only applies, if \code{showLoess = TRUE}
+(and for \code{\link{sjp.lmer}}, only applies if \code{type = "fe.pred"}
+or \code{type = "fe.resid"}).}
 
-\item{pointAlpha}{The alpha values of the scatter plot's point-geoms.
-Default is 0.2.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
+\item{poly.term}{name of a polynomial term in \code{fit} as string. Needs to be
+         specified, if \code{type = "poly"}, in order to plot marginal effects
+         for polynomial terms. See 'Examples'.}
 
-\item{pointColor}{The color of the scatter plot's point-geoms. Only applies when \code{showScatterPlot}
-is \code{TRUE}. Default is \code{"black"}.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
-
-\item{showScatterPlot}{If \code{TRUE} (default), a scatter plot of response and predictor values
-for each predictor of the fitted model \code{fit} is plotted.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
-
-\item{showLoess}{If \code{TRUE}, an additional loess-smoothed line is plotted.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"} or \code{type = "resp"}.}
-
-\item{loessLineColor}{The color of the loess-smoothed line. Default is \code{"red"}. Only applies, if
-\code{showLoess} is \code{TRUE}.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"} or \code{type = "resp"}.}
-
-\item{showLoessCI}{If \code{TRUE}, a confidence region for the loess-smoothed line
-will be plotted. Default is \code{FALSE}. Use \code{loessCiLevel} to specifiy the confidence level.
-Only applies, if \code{showLoess} is \code{TRUE}.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"} or \code{type = "resp"}.}
-
-\item{loessCiLevel}{The confidence level of the loess-line's confidence region.
-Only applies, if \code{showLoessCI} is \code{TRUE}. Default is 0.95.
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
-
-\item{useResiduals}{If \code{TRUE}, the residuals (instead of response) are plotted
-against the predictor. May be used for model diagnostics
-(see \url{https://www.otexts.org/fpp/5/4}).
-Only applies if \code{type = "lm"} and fitted model has only one predictor,
-or if \code{type = "pred"}.}
-
-\item{showOriginalModelOnly}{if \code{TRUE} (default), only the model assumptions of the fitted model
-\code{fit} are plotted. if \code{FALSE}, the model assumptions of an updated model where outliers
-are automatically excluded are also plotted.
+\item{showOriginalModelOnly}{logical, if \code{TRUE} (default), only model assumptions of
+\code{fit} are plotted. if \code{FALSE}, model assumptions of an updated
+model where outliers are automatically excluded are also plotted.
 Only applies if \code{type = "ma"}.}
 
-\item{completeDiagnostic}{if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
-Only applies if \code{type = "ma"}.}
+\item{completeDiagnostic}{logical, if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
+         Only applies if \code{type = "ma"}.}
 
-\item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -180,7 +143,11 @@ Depending on the \code{type}, this function plots beta coefficients (estimates)
 \details{
 \itemize{
            \item If \code{type = "lm"} and fitted model only has one predictor, no forest plot is shown. Instead, a regression line with confidence interval (in blue) is plotted by default, and a loess-smoothed line without confidence interval (in red) can be added if parameter \code{showLoess} is \code{TRUE}.
-           \item If \code{type = "pred"}, regression lines (slopes) with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and each of them is plotted against the response variable.
+           \item If \code{type = "pred"}, regression lines (slopes) with confidence intervals for each single predictor of the fitted model are plotted, i.e. all predictors of the fitted model are extracted and for each of them, the linear relationship is plotted against the response variable.
+           \item \code{type = "resid"} is similar to the \code{type = "pred"} option, however, each predictor is plotted against the residuals (instead of response).
+           \item If \code{type = "resp"}, the predicted values of the response for each observation is plotted, which mostly results in a single linear line.
+           \item \code{type = "eff"} computes the marginal effects for all predictors, using the \code{\link[effects]{allEffects}} function. I.e. for each predictor, the predicted values towards the response are plotted, with all remaining co-variates set to the mean. Due to possible different scales of predictors, a facted plot is printed (instead of plotting all lines in one plot). This function accepts following parameter: \code{fit}, \code{title}, \code{geom.size}, \code{showCI} and \code{printPlot}.
+           \item \code{type = "poly"} plots the marginal effects of polynomial terms in \code{fit}, using the \code{\link[effects]{effect}} function, but only for a selected polynomial term, which is specified with \code{poly.term}. This function helps undertanding the effect of polynomial terms by plotting the curvilinear relationships of response and quadratic, cubic etc. terms. This function accepts following parameter: \code{fit}, \code{poly.term}, \code{geom.colors}, \code{geom.size}, \code{axisTitle.x}, \code{showCI} and \code{printPlot}.
            \item If \code{type = "ma"} (i.e. checking model assumptions), please note that only three parameters are relevant: \code{fit}, \code{completeDiagnostic} and \code{showOriginalModelOnly}. All other parameters are ignored.
            \item If \code{type = "vif"}, the Variance Inflation Factors (check for multicollinearity) are plotted. As a rule of thumb, values below 5 are considered as good and indicate no multicollinearity, values between 5 and 10 may be tolerable. Values greater than 10 are not acceptable and indicate multicollinearity between model's predictors.
            }
@@ -207,8 +174,6 @@ library(sjmisc)
 data(efc)
 # fit model
 fit <- lm(neg_c_7 ~ quol_5, data=efc)
-# plot regression line
-sjp.lm(fit)
 # plot regression line with label strings
 sjp.lm(fit,
        axisLabels.x = "Quality of life",
@@ -236,8 +201,30 @@ sjp.lm(fit,
 # plotting model assumptions
 # --------------------------
 sjp.lm(fit, type = "ma")
+
+\dontrun{
+# --------------------------
+# plotting polynomial terms
+# --------------------------
+library(sjmisc)
+data(efc)
+# fit sample model
+fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
+# "e17age" does not seem to be linear correlated to response
+# try to find appropiate polynomial. Grey line (loess smoothed)
+# indicates best fit. Looks like x^4 has the best fit.
+# (not checked for significance yet).
+sjp.poly(fit, "e17age", 2:4, showScatterPlot = FALSE)
+# fit new model
+fit <- lm(tot_sc_e ~ c12hour + e42dep +
+          e17age + I(e17age^2) + I(e17age^3) + I(e17age^4),
+          data = efc)
+# plot marginal effects of polynomial term
+sjp.lm(fit, type = "poly", poly.term = "e17age")}
 }
 \seealso{
-\href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm}
+\href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm} for
+           more details and examples of this function; use \code{\link{sjp.poly}}
+           to see which polynomial degree fits best for possible polynomial terms.
 }
 

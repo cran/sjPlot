@@ -4,7 +4,7 @@
 \alias{sjp.setTheme}
 \title{Set global theme options for sjp-functions}
 \usage{
-sjp.setTheme(title.color = "black", title.size = 1.3,
+sjp.setTheme(theme = NULL, title.color = "black", title.size = 1.3,
   title.align = "left", geom.outline.color = NULL,
   geom.outline.size = 0.1, geom.boxoutline.size = 0.5,
   geom.boxoutline.color = "black", geom.alpha = 1, geom.linetype = 1,
@@ -27,149 +27,10 @@ sjp.setTheme(title.color = "black", title.size = 1.3,
   legend.title.color = "black", legend.title.face = "bold",
   legend.backgroundcol = "white", legend.bordercol = "white",
   legend.item.backcol = "grey90", legend.item.bordercol = "white",
-  theme = NULL, base = theme_grey())
+  base = theme_grey())
 }
 \arguments{
-\item{title.color}{Color of the plot title. Default is \code{"black"}.}
-
-\item{title.size}{Size of the plot title. Default is 1.3.}
-
-\item{title.align}{Alignment of plot title. Must be one of \code{"left"} (default),
-\code{"center"} or \code{"right"}. You may use initial letter only.}
-
-\item{geom.outline.color}{Color of geom outline. Only applies, if \code{geom.outline.size}
-is larger than 0.}
-
-\item{geom.outline.size}{Size of the bar outlines. Default is 0.1. Use
-size of \code{0} to remove geom outline.}
-
-\item{geom.boxoutline.size}{Size of outlines and median bar especially for boxplots.
-Default is 0.5. Use size of \code{0} to remove boxplot outline.}
-
-\item{geom.boxoutline.color}{Color of outlines and median bar especially for boxplots.
-Only applies, if \code{geom.boxoutline.size} is larger than 0.}
-
-\item{geom.alpha}{Specify the transparancy (alpha value) of geoms}
-
-\item{geom.linetype}{Linetype of line geoms. Default is \code{1} (solid line).}
-
-\item{geom.errorbar.size}{Size (thickness) of error bars. Default is \code{0.8}}
-
-\item{geom.errorbar.linetype}{Linetype of error bars. Default is \code{1} (solid line).}
-
-\item{geom.label.color}{Color of geom's value and annotation labels.}
-
-\item{geom.label.size}{Size of geom's value and annotation labels.}
-
-\item{geom.label.alpha}{Alpha level of geom's value and annotation labels.}
-
-\item{geom.label.angle}{Angle of geom's value and annotation labels.}
-
-\item{axis.title.color}{Color of x- and y-axis title labels.}
-
-\item{axis.title.size}{Size of x- and y-axis title labels.}
-
-\item{axis.angle.x}{Angle for x-axis labels.}
-
-\item{axis.angle.y}{Angle for y-axis labels.}
-
-\item{axis.angle}{Angle for x- and y-axis labels. If set, overrides both \code{axis.angle.x} and \code{axis.angle.y}}
-
-\item{axis.textcolor.x}{Color for x-axis labels. If not specified, a default dark gray
-color palette will be used for the labels.}
-
-\item{axis.textcolor.y}{Color for y-axis labels. If not specified, a default dark gray
-color palette will be used for the labels.}
-
-\item{axis.textcolor}{Color for both x- and y-axis labels.
-If set, overrides both \code{axis.textcolor.x} and \code{axis.textcolor.y}}
-
-\item{axis.linecolor.x}{color of x-axis border.}
-
-\item{axis.linecolor.y}{color of y-axis border.}
-
-\item{axis.linecolor}{Color for both x- and y-axis borders.
-If set, overrides both \code{axis.linecolor.x} and \code{axis.linecolor.y}.}
-
-\item{axis.line.size}{Size (thickness) of axis lines. Only affected, if \code{axis.linecolor}
-is set.}
-
-\item{axis.textsize.x}{Size of x-axis labels.}
-
-\item{axis.textsize.y}{Size of y-axis labels.}
-
-\item{axis.textsize}{Size for both x- and y-axis labels.
-If set, overrides both \code{axis.textsize.x} and \code{axis.textsize.y}.}
-
-\item{axis.tickslen}{Length of axis tick marks}
-
-\item{axis.ticksol}{Color of axis tick marks.}
-
-\item{axis.ticksmar}{Margin between axis labels and tick marks.}
-
-\item{panel.backcol}{Color of the diagram's background.}
-
-\item{panel.bordercol}{Color of whole diagram border (panel border).}
-
-\item{panel.col}{Color of both diagram's border and background.
-If set, overrides both \code{panel.bordercol} and \code{panel.backcol}.}
-
-\item{panel.major.gridcol}{Color of the major grid lines of the diagram background.}
-
-\item{panel.minor.gridcol}{Color of the minor grid lines of the diagram background.}
-
-\item{panel.gridcol}{Color for both minor and major grid lines of the diagram background.
-If set, overrides both \code{panel.major.gridcol} and \code{panel.minor.gridcol}.}
-
-\item{panel.major.linetype}{Line type for major grid lines.}
-
-\item{panel.minor.linetype}{Line type for minor grid lines.}
-
-\item{plot.backcol}{Color of the plot's background.}
-
-\item{plot.bordercol}{Color of whole plot's border (panel border).}
-
-\item{plot.col}{Color of both plot's region border and background.
-If set, overrides both \code{plot.backcol} and \code{plot.bordercol}.}
-
-\item{legend.pos}{Position of the legend, if a legend is drawn.\cr
-\emph{legend outside plot} \cr
-Use \code{"bottom"}, \code{"top"}, \code{"left"}
-or \code{"right"} to position the legend above, below, on the left or right side of the diagram.
-Right positioning is default. \cr
-\emph{legend inside plot} \cr
-If \code{legend.inside} is \code{TRUE}, legend can be placed inside
-plot. Use \code{"top left"}, \code{"top right"}, \code{"bottom left"} and \code{"bottom right"}
-to position legend in any of these corners, or a two-element numeric vector with values from 0-1. \cr
-See also \code{legend.inside}.}
-
-\item{legend.just}{Justification of legend, relative to its position ("center" or
-two-element numeric vector with values from 0-1. By default (outside legend),
-justification is centered. If legend is inside and justification not specified,
-legend justification is set according to legend position.}
-
-\item{legend.inside}{Logical, use \code{TRUE} to put legend inside the plotting area. See \code{legend.pos}.}
-
-\item{legend.size}{Text size of the legend. Default is 1. Relative size, so recommended values are from 0.3 to
-2.5}
-
-\item{legend.color}{Color of the legend labels.}
-
-\item{legend.title.size}{Text size of the legend title.}
-
-\item{legend.title.color}{Color of the legend title.}
-
-\item{legend.title.face}{Font face of the legend title. By default, \code{"bold"} face is used.}
-
-\item{legend.backgroundcol}{Fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.}
-
-\item{legend.bordercol}{Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.}
-
-\item{legend.item.backcol}{Fill color of the legend's item-background. Default is \code{"grey90"}.}
-
-\item{legend.item.bordercol}{Color of the legend's item-border. Default is \code{"white"}.}
-
-\item{theme}{Specify pre-set themes (see 'Details'). Valid parameter for ggplot default-themes are:
+\item{theme}{specify pre-set themes (see 'Details'). Valid parameter for ggplot default-themes are for instance:
 \itemize{
   \item \code{theme_bw}
   \item \code{theme_classic}
@@ -179,24 +40,167 @@ legend justification is set according to legend position.}
   \item \code{theme_minimal}
 }
 Furthermore, there are some theme-presets, which can be used:
-\itemize{
-  \item \code{"blank"}: a theme with no grids and axes.
-  \item \code{"forest"}: a theme for forest plots, with no grids.
-  \item \code{"forestgrey"}: a theme for forest plots, with no grids, in "539" style.
-  \item \code{"538"}: a grey-scaled theme inspired by \href{http://fivethirtyeight.com}{538-charts}, adapted from \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{minimaxir.com}.
-  \item \code{"539"}: a slight modification of the 538-theme.
-  \item \code{"scatter"}: a theme for scatter plots in 539-theme-style.
-  \item \code{"538w"}, \code{"539w"} and \code{"scatterw"} for themes as described above, however all with white backgrounds.
-  \item \code{"blues"}: a blue-colored scheme based on the Blues color-brewer-palette.
-  \item \code{"greens"}: a green-colored scheme.
+\describe{
+  \item{\code{"blank"}}{a theme with no grids and axes.}
+  \item{\code{"forest"}}{a theme for forest plots, with no grids.}
+  \item{\code{"forestgrey"}}{a theme for forest plots, with no grids, in "539" style.}
+  \item{\code{"538"}}{a grey-scaled theme inspired by \href{http://fivethirtyeight.com}{538-charts}, adapted from \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{minimaxir.com}.}
+  \item{\code{"539"}}{a slight modification of the 538-theme.}
+  \item{\code{"scatter"}}{a theme for scatter plots in 539-theme-style.}
+  \item{\code{"538w"}, \code{"539w"}, \code{"scatterw"} and \code{"forestw"}}{for themes as described above, however all with white backgrounds.}
+  \item{\code{"blues"}}{a blue-colored scheme based on the Blues color-brewer-palette.}
+  \item{\code{"greens"}}{a green-colored scheme.}
 }}
 
-\item{base}{Base theme where theme is built on. By default, all
-         metrics from \code{theme_gray()} are used. See 'Details'}
+\item{title.color}{color of plot title. Default is \code{"black"}.}
+
+\item{title.size}{size of plot title. Default is 1.3.}
+
+\item{title.align}{alignment of plot title. Must be one of \code{"left"} (default),
+\code{"center"} or \code{"right"}. You may use initial letter only.}
+
+\item{geom.outline.color}{color of geom outline. Only applies, if \code{geom.outline.size}
+is larger than 0.}
+
+\item{geom.outline.size}{size of bar outlines. Default is 0.1. Use
+size of \code{0} to remove geom outline.}
+
+\item{geom.boxoutline.size}{size of outlines and median bar especially for boxplots.
+Default is 0.5. Use size of \code{0} to remove boxplot outline.}
+
+\item{geom.boxoutline.color}{color of outlines and median bar especially for boxplots.
+Only applies, if \code{geom.boxoutline.size} is larger than 0.}
+
+\item{geom.alpha}{specifies the transparancy (alpha value) of geoms}
+
+\item{geom.linetype}{linetype of line geoms. Default is \code{1} (solid line).}
+
+\item{geom.errorbar.size}{size (thickness) of error bars. Default is \code{0.8}}
+
+\item{geom.errorbar.linetype}{linetype of error bars. Default is \code{1} (solid line).}
+
+\item{geom.label.color}{color of geom's value and annotation labels}
+
+\item{geom.label.size}{size of geom's value and annotation labels}
+
+\item{geom.label.alpha}{alpha level of geom's value and annotation labels}
+
+\item{geom.label.angle}{angle of geom's value and annotation labels}
+
+\item{axis.title.color}{color of x- and y-axis title labels}
+
+\item{axis.title.size}{size of x- and y-axis title labels}
+
+\item{axis.angle.x}{angle for x-axis labels}
+
+\item{axis.angle.y}{angle for y-axis labels}
+
+\item{axis.angle}{angle for x- and y-axis labels. If set, overrides both \code{axis.angle.x} and \code{axis.angle.y}}
+
+\item{axis.textcolor.x}{color for x-axis labels. If not specified, a default dark gray
+color palette will be used for the labels.}
+
+\item{axis.textcolor.y}{color for y-axis labels. If not specified, a default dark gray
+color palette will be used for the labels.}
+
+\item{axis.textcolor}{color for both x- and y-axis labels.
+If set, overrides both \code{axis.textcolor.x} and \code{axis.textcolor.y}}
+
+\item{axis.linecolor.x}{color of x-axis border}
+
+\item{axis.linecolor.y}{color of y-axis border}
+
+\item{axis.linecolor}{color for both x- and y-axis borders.
+If set, overrides both \code{axis.linecolor.x} and \code{axis.linecolor.y}.}
+
+\item{axis.line.size}{size (thickness) of axis lines. Only affected, if \code{axis.linecolor}
+is set.}
+
+\item{axis.textsize.x}{size of x-axis labels}
+
+\item{axis.textsize.y}{size of y-axis labels}
+
+\item{axis.textsize}{size for both x- and y-axis labels.
+If set, overrides both \code{axis.textsize.x} and \code{axis.textsize.y}.}
+
+\item{axis.tickslen}{length of axis tick marks}
+
+\item{axis.ticksol}{color of axis tick marks}
+
+\item{axis.ticksmar}{margin between axis labels and tick marks}
+
+\item{panel.backcol}{color of the diagram's background}
+
+\item{panel.bordercol}{color of whole diagram border (panel border)}
+
+\item{panel.col}{color of both diagram's border and background.
+If set, overrides both \code{panel.bordercol} and \code{panel.backcol}.}
+
+\item{panel.major.gridcol}{color of the major grid lines of the diagram background}
+
+\item{panel.minor.gridcol}{color of the minor grid lines of the diagram background}
+
+\item{panel.gridcol}{color for both minor and major grid lines of the diagram background.
+If set, overrides both \code{panel.major.gridcol} and \code{panel.minor.gridcol}.}
+
+\item{panel.major.linetype}{line type for major grid lines}
+
+\item{panel.minor.linetype}{line type for minor grid lines}
+
+\item{plot.backcol}{color of the plot's background}
+
+\item{plot.bordercol}{color of whole plot's border (panel border)}
+
+\item{plot.col}{color of both plot's region border and background.
+If set, overrides both \code{plot.backcol} and \code{plot.bordercol}.}
+
+\item{legend.pos}{position of the legend, if a legend is drawn.
+\describe{
+  \item{\emph{legend outside plot}}{
+    Use \code{"bottom"}, \code{"top"}, \code{"left"} or \code{"right"}
+    to position the legend above, below, on the left or right side
+    of the diagram. Right positioning is default.
+  }
+  \item{\emph{legend inside plot}}{
+    If \code{legend.inside = TRUE}, legend can be placed inside
+    plot. Use \code{"top left"}, \code{"top right"}, \code{"bottom left"}
+    and \code{"bottom right"} to position legend in any of these corners,
+    or a two-element numeric vector with values from 0-1. See also
+    \code{legend.inside}.
+  }
+}}
+
+\item{legend.just}{justification of legend, relative to its position (\code{"center"} or
+two-element numeric vector with values from 0-1. By default (outside legend),
+justification is centered. If legend is inside and justification not specified,
+legend justification is set according to legend position.}
+
+\item{legend.inside}{logical, use \code{TRUE} to put legend inside the plotting area. See \code{legend.pos}.}
+
+\item{legend.size}{text size of the legend. Default is 1. Relative size, so
+recommended values are from 0.3 to 2.5}
+
+\item{legend.color}{color of the legend labels}
+
+\item{legend.title.size}{text size of the legend title}
+
+\item{legend.title.color}{color of the legend title}
+
+\item{legend.title.face}{font face of the legend title. By default, \code{"bold"} face is used.}
+
+\item{legend.backgroundcol}{fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.}
+
+\item{legend.bordercol}{color of the legend's border. Default is \code{"white"}, so no visible border is drawn.}
+
+\item{legend.item.backcol}{fill color of the legend's item-background. Default is \code{"grey90"}.}
+
+\item{legend.item.bordercol}{color of the legend's item-border. Default is \code{"white"}.}
+
+\item{base}{base theme where theme is built on. By default, all
+         metrics from \code{theme_gray()} are used. See 'Details'.}
 }
 \value{
-The customized theme object, or \code{NULL}, if a ggplot-theme
-          was used.
+The customized theme object, or \code{NULL}, if a ggplot-theme was used.
 }
 \description{
 Set global theme options for sjp-functions.
@@ -204,7 +208,7 @@ Set global theme options for sjp-functions.
 \details{
 If the \code{theme} parameter is one of the valid ggplot-themes, this theme
            will be used and all further parameters will be ignored. If you want to modify
-           a ggplot-theme, use \code{base = "theme_xy"} and then further parameters to
+           a ggplot-theme, use \code{base = "theme_xy"}, then further parameters to
            this function will be applied to the theme as well.
            \cr \cr
            If the \code{theme} parameter is one of sjPlot-pre-set-themes, you
@@ -225,9 +229,7 @@ sjp.setTheme()
 # legends of all plots inside
 sjp.setTheme(legend.pos = "top left",
              legend.inside = TRUE)
-sjp.xtab(efc$e42dep,
-         efc$e16sex,
-         showTableSummary = FALSE)
+sjp.xtab(efc$e42dep, efc$e16sex)
 
 # Use classic-theme. you may need to
 # load the ggplot2-library.
@@ -243,7 +245,6 @@ sjp.setTheme(geom.label.size = 3.5,
 update_geom_defaults('text', list(hjust = -0.1))
 sjp.xtab(efc$e42dep,
          efc$e16sex,
-         showTableSummary = FALSE,
          labelPos = "center")
 
 # Create own theme based on classic-theme
@@ -252,8 +253,7 @@ sjp.setTheme(base = theme_classic(),
              axis.textcolor = "#6699cc")
 sjp.frq(efc$e42dep)
 
-# use theme pre-set, taken from tutorial
-# http://minimaxir.com/2015/02/ggplot-tutorial/
+# use theme pre-set
 sjp.setTheme(theme = "538",
              geom.alpha = 0.8)
 library(ggplot2) # for custom base-line

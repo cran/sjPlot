@@ -1,4 +1,4 @@
-#' @title Show principal component analysis as HTML table
+#' @title Summary of principal component analysis as HTML table
 #' @name sjt.pca
 #' 
 #' @description Performes a principle component analysis on a data frame or matrix 
@@ -13,57 +13,37 @@
 #'            \item \code{\link{sjp.pca}}
 #'          }
 #' 
-#' @param data A data frame with factors (each columns one variable) that should be used 
+#' @param data data frame with factors (each columns one variable) that should be used 
 #'          to compute a PCA, or a \code{\link{prcomp}} object.
-#' @param numberOfFactors A predefined number of factors to use for the calculating the varimax
+#' @param numberOfFactors number of factors used for calculating the varimax
 #'          rotation. By default, this value is \code{NULL} and the amount of factors is
 #'          calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.
-#' @param factorLoadingTolerance Specifies the minimum difference a variable needs to have between
+#' @param factorLoadingTolerance specifies the minimum difference a variable needs to have between
 #'          factor loadings (components) in order to indicate a clear loading on just one factor and not
 #'          diffusing over all factors. For instance, a variable with 0.8, 0.82 and 0.84 factor loading 
 #'          on 3 possible factors can not be clearly assigned to just one factor and thus would be removed
 #'          from the principal component analysis. By default, the minimum difference of loading values
 #'          between the highest and 2nd highest factor should be 0.1
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param varlabels The item labels that are printed in the first column. If no item labels are
-#'          provided (default), the data frame's column names are used. Item labels must
-#'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
-#' @param title A table caption. By default, \emph{"Principal Component Analysis (with varimax rotation)"}
-#'          is used as the table's title.
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
-#'          one line and when a line break is inserted. Default is 20.
-#' @param digits The amount of digits used the values inside table cells.
-#'          Default is 2.
-#' @param showCronbachsAlpha If \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
+#' @param varlabels character vector with item labels that are printed in the first column. If no item labels are
+#'          provided (default), the data frame's column names are used.
+#' @param showCronbachsAlpha logical, if \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 #'          i.e. all variables with the highest loading for a factor are taken for the
 #'          reliability test. The result is an alpha value for each factor dimension.
 #'          Only applies when \code{data} is a data frame and no \code{\link{prcomp}} object.
-#' @param showMSA If \code{TRUE}, shows an additional column with the measure of sampling adequacy according
+#' @param showMSA logical, if \code{TRUE}, shows an additional column with the measure of sampling adequacy according
 #'          dor each component.
-#' @param showVariance If \code{TRUE}, the proportions of variances for each component as well as cumulative
+#' @param showVariance logical, if \code{TRUE}, the proportions of variances for each component as well as cumulative
 #'          variance are shown in the table footer.
-#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
-#'          background color.
-#' @param stringPov The string for the table row that contains the proportions of variances. By default, 
+#' @param stringPov string for the table row that contains the proportions of variances. By default, 
 #'          \emph{"Proportion of Variance"} will be used.
-#' @param stringCpov The string for the table row that contains the cumulative variances. By default, 
+#' @param stringCpov string for the table row that contains the cumulative variances. By default, 
 #'          \emph{"Cumulative Proportion"} will be used.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#' @inheritParams sjp.grpfrq
+#' @inheritParams sjt.df
+#' @inheritParams sjt.corr
+#'          
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -146,26 +126,27 @@
 #' sjt.pca(efc[, c(start:end)])}
 #' 
 #' @importFrom psych KMO
+#' @importFrom stats prcomp
 #' @export
-sjt.pca <- function (data,
-                     numberOfFactors=NULL,
-                     factorLoadingTolerance=0.1,
-                     file=NULL, 
-                     varlabels=NULL,
-                     title="Principal Component Analysis (with varimax rotation)",
-                     breakLabelsAt=40,
-                     digits=2,
-                     showCronbachsAlpha=TRUE,
-                     showMSA=FALSE,
-                     showVariance=FALSE,
-                     alternateRowColors=FALSE,
-                     stringPov="Proportion of Variance",
-                     stringCpov="Cumulative Proportion",
-                     encoding=NULL,
-                     CSS=NULL,
-                     useViewer=TRUE,
-                     no.output=FALSE,
-                     remove.spaces=TRUE) {
+sjt.pca <- function(data,
+                    numberOfFactors = NULL,
+                    factorLoadingTolerance = 0.1,
+                    file = NULL,
+                    varlabels = NULL,
+                    title = "Principal Component Analysis (with varimax rotation)",
+                    breakLabelsAt = 40,
+                    digits = 2,
+                    showCronbachsAlpha = TRUE,
+                    showMSA = FALSE,
+                    showVariance = FALSE,
+                    alternateRowColors = FALSE,
+                    stringPov = "Proportion of Variance",
+                    stringCpov = "Cumulative Proportion",
+                    encoding = NULL,
+                    CSS = NULL,
+                    useViewer = TRUE,
+                    no.output = FALSE,
+                    remove.spaces = TRUE) {
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -197,10 +178,10 @@ sjt.pca <- function (data,
     dataframeparam <- FALSE
     showMSA <- FALSE
   } else {
-    pcadata <- prcomp(na.omit(data), 
-                      retx = TRUE, 
-                      center = TRUE, 
-                      scale. = TRUE)
+    pcadata <- stats::prcomp(stats::na.omit(data), 
+                             retx = TRUE, 
+                             center = TRUE, 
+                             scale. = TRUE)
     dataframeparam <- TRUE
   }
   # -------------------------------------
@@ -251,21 +232,21 @@ sjt.pca <- function (data,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
-    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
-    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1)=='+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
-    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1)=='+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
-    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- ifelse(substring(CSS[['css.firsttablerow']],1,1)=='+', paste0(css.firsttablerow, substring(CSS[['css.firsttablerow']],2)), CSS[['css.firsttablerow']])
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1)=='+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
-    if (!is.null(CSS[['css.cronbach']])) css.cronbach <- ifelse(substring(CSS[['css.cronbach']],1,1)=='+', paste0(css.cronbach, substring(CSS[['css.cronbach']],2)), CSS[['css.cronbach']])
-    if (!is.null(CSS[['css.msa']])) css.msa <- ifelse(substring(CSS[['css.msa']],1,1)=='+', paste0(css.msa, substring(CSS[['css.msa']],2)), CSS[['css.msa']])
-    if (!is.null(CSS[['css.kmo']])) css.kmo <- ifelse(substring(CSS[['css.kmo']],1,1)=='+', paste0(css.kmo, substring(CSS[['css.kmo']],2)), CSS[['css.kmo']])
-    if (!is.null(CSS[['css.pov']])) css.pov <- ifelse(substring(CSS[['css.pov']],1,1)=='+', paste0(css.pov, substring(CSS[['css.pov']],2)), CSS[['css.pov']])
-    if (!is.null(CSS[['css.cpov']])) css.cpov <- ifelse(substring(CSS[['css.cpov']],1,1)=='+', paste0(css.cpov, substring(CSS[['css.cpov']],2)), CSS[['css.cpov']])
-    if (!is.null(CSS[['css.minval']])) css.minval <- ifelse(substring(CSS[['css.minval']],1,1)=='+', paste0(css.minval, substring(CSS[['css.minval']],2)), CSS[['css.minval']])
-    if (!is.null(CSS[['css.removable']])) css.removable <- ifelse(substring(CSS[['css.removable']],1,1)=='+', paste0(css.removable, substring(CSS[['css.removable']],2)), CSS[['css.removable']])
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']], 1, 1) == '+', paste0(css.table, substring(CSS[['css.table']], 2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']], 1, 1) == '+', paste0(css.thead, substring(CSS[['css.thead']], 2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']], 1, 1) == '+', paste0(css.tdata, substring(CSS[['css.tdata']], 2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']], 1, 1) == '+', paste0(css.caption, substring(CSS[['css.caption']], 2)), CSS[['css.caption']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']], 1, 1) == '+', paste0(css.centeralign, substring(CSS[['css.centeralign']], 2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']], 1, 1) == '+', paste0(css.arc, substring(CSS[['css.arc']], 2)), CSS[['css.arc']])
+    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- ifelse(substring(CSS[['css.firsttablerow']], 1, 1) == '+', paste0(css.firsttablerow, substring(CSS[['css.firsttablerow']], 2)), CSS[['css.firsttablerow']])
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']], 1, 1) == '+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']], 2)), CSS[['css.firsttablecol']])
+    if (!is.null(CSS[['css.cronbach']])) css.cronbach <- ifelse(substring(CSS[['css.cronbach']], 1, 1) == '+', paste0(css.cronbach, substring(CSS[['css.cronbach']], 2)), CSS[['css.cronbach']])
+    if (!is.null(CSS[['css.msa']])) css.msa <- ifelse(substring(CSS[['css.msa']], 1, 1) == '+', paste0(css.msa, substring(CSS[['css.msa']], 2)), CSS[['css.msa']])
+    if (!is.null(CSS[['css.kmo']])) css.kmo <- ifelse(substring(CSS[['css.kmo']], 1, 1) == '+', paste0(css.kmo, substring(CSS[['css.kmo']], 2)), CSS[['css.kmo']])
+    if (!is.null(CSS[['css.pov']])) css.pov <- ifelse(substring(CSS[['css.pov']], 1, 1) == '+', paste0(css.pov, substring(CSS[['css.pov']], 2)), CSS[['css.pov']])
+    if (!is.null(CSS[['css.cpov']])) css.cpov <- ifelse(substring(CSS[['css.cpov']], 1, 1) == '+', paste0(css.cpov, substring(CSS[['css.cpov']], 2)), CSS[['css.cpov']])
+    if (!is.null(CSS[['css.minval']])) css.minval <- ifelse(substring(CSS[['css.minval']], 1, 1) == '+', paste0(css.minval, substring(CSS[['css.minval']], 2)), CSS[['css.minval']])
+    if (!is.null(CSS[['css.removable']])) css.removable <- ifelse(substring(CSS[['css.removable']], 1, 1) == '+', paste0(css.removable, substring(CSS[['css.removable']], 2)), CSS[['css.removable']])
   }
   # ------------------------
   # set page style
@@ -329,7 +310,7 @@ sjt.pca <- function (data,
       # retrieve 2. highest loading
       max2load <- sort(rowval, TRUE)[2]
       # check difference between both
-      if (abs(maxload-max2load) < factorLoadingTolerance) {
+      if (abs(maxload - max2load) < factorLoadingTolerance) {
         # if difference is below the tolerance,
         # remeber row-ID so we can remove that items
         # for further PCA with updated data frame
@@ -338,7 +319,7 @@ sjt.pca <- function (data,
     }
     # return a vector with index numbers indicating which items
     # have unclear loadings
-    return (removers)
+    return(removers)
   }
   # --------------------------------------------------------
   # this function retrieves a list with the column index ("factor" index)
@@ -359,7 +340,7 @@ sjt.pca <- function (data,
     }
     # return a vector with index numbers indicating which items
     # loads the highest on which factor
-    return (itemloading)
+    return(itemloading)
   }
   # --------------------------------------------------------
   # this function calculates the cronbach's alpha value for
@@ -374,7 +355,7 @@ sjt.pca <- function (data,
     for (n in 1:length(unique(itemloadings))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- c(cbv, sjmisc::cronb(na.omit(dataframe[, which(itemloadings == n)])))
+      cbv <- c(cbv, sjmisc::cronb(stats::na.omit(dataframe[, which(itemloadings == n)])))
     }
     # cbv now contains the factor numbers and the related alpha values
     # for each "factor dimension scale"
@@ -456,7 +437,7 @@ sjt.pca <- function (data,
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(i %% 2 == 0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
     # write tr-tag with class-attributes
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell

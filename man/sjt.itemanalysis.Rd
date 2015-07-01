@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjTabItemAnalysis.R
 \name{sjt.itemanalysis}
 \alias{sjt.itemanalysis}
-\title{Show item analysis of an item scale as HTML table}
+\title{Summary of item analysis of an item scale as HTML table}
 \usage{
 sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
   scaleItems = FALSE, minValidRowMeanValue = 2, alternateRowColors = TRUE,
@@ -12,70 +12,69 @@ sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
   remove.spaces = TRUE)
 }
 \arguments{
-\item{df}{A data frame with items (from a scale)}
+\item{df}{data frame with items}
 
-\item{factor.groups}{If not \code{NULL}, the data frame \code{df} will be splitted into sub-groups,
+\item{factor.groups}{if not \code{NULL}, \code{df} will be splitted into sub-groups,
 where the item analysis is carried out for each of these groups. Must be a vector of same
 length as \code{ncol(df)}, where each item in this vector represents the group number of
-the related columns of \code{df}. See examples for more details.}
+the related columns of \code{df}. See 'Examples'.}
 
-\item{factor.groups.titles}{Titles for each factor group that will be used as table caption for each
+\item{factor.groups.titles}{titles for each factor group that will be used as table caption for each
 component-table. Must be a character vector of same length as \code{length(unique(factor.groups))}.
 Default is \code{"auto"}, which means that each table has a standard caption \emph{Component x}.
 Use \code{NULL} to suppress table captions.}
 
-\item{scaleItems}{If \code{TRUE}, the data frame's vectors will be scaled when calculating the
+\item{scaleItems}{logical, if \code{TRUE}, the data frame's vectors will be scaled when calculating the
 Cronbach's Alpha value (see \code{\link[sjmisc]{reliab_test}}). Recommended, when
 the variables have different measures / scales.}
 
-\item{minValidRowMeanValue}{the minimum amount of valid values to compute row means for index scores.
+\item{minValidRowMeanValue}{minimum amount of valid values to compute row means for index scores.
 Default is 2, i.e. the return values \code{index.scores} and \code{df.index.scores} are
 computed for those items that have at least \code{minValidRowMeanValue} per case (observation, or
 technically, row). See \code{mean_n} for details.}
 
-\item{alternateRowColors}{If \code{TRUE}, alternating rows are highlighted with a light gray
+\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{orderColumn}{Indicates a column, either by column name or by column index number,
-that should be orderd. Default order is ascending, which can be changed with
-\code{orderAscending} parameter. Default is \code{NULL}, hence the results of
-the item analysis are  printed with no specific order. See examples in
-\code{\link{sjt.df}} for further details.}
+\item{orderColumn}{indicates a column, either by column name or by column index number,
+that should be sorted. Default order is ascending, which can be changed with
+\code{orderAscending} parameter. Default is \code{NULL}, hence the data frame
+is printed with no specific order. See 'Examples'.}
 
-\item{orderAscending}{If \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
+\item{orderAscending}{logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
 data frame is ordered according to the specified column in an ascending order.
-Use \code{FALSE} to apply descending order. See examples in \code{\link{sjt.df}}
-for further details.}
+Use \code{FALSE} to apply descending order. See 'Examples'.}
 
-\item{showShapiro}{If \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
+\item{showShapiro}{logical, if \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
 See \code{\link{shapiro.test}} for details.}
 
-\item{showKurtosis}{If \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
+\item{showKurtosis}{logical, if \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
 and \code{\link[psych]{describe}} in the \code{psych}-package for more details.}
 
-\item{showCompCorrMat}{If \code{TRUE} (default), a correlation matrix of each component's
-index score is shown. Only applies if \code{factor.groups} is not \code{NULL} and \code{df} has
-more than one group. First, for each case (df's row), the sum of all variables (df's columns) is
-scaled (using the \code{\link{scale}}-function) and represents a "total score" for
-each component (a component is represented by each group of \code{factor.groups}).
-After that, each case (df's row) has a scales sum score for each component.
-Finally, a correlation of these "scale sum scores" is computed.}
+\item{showCompCorrMat}{logical, if \code{TRUE} (default), a correlation matrix of each component's
+         index score is shown. Only applies if \code{factor.groups} is not \code{NULL} and \code{df} has
+         more than one group. First, for each case (df's row), the sum of all variables (df's columns) is
+         scaled (using the \code{\link{scale}}-function) and represents a "total score" for
+         each component (a component is represented by each group of \code{factor.groups}).
+         After that, each case (df's row) has a scales sum score for each component.
+         Finally, a correlation of these "scale sum scores" is computed.}
 
-\item{file}{The destination file, which will be in html-format. If no filepath is specified (default),
-the file will be saved as temporary file and openend either in the RStudio View pane or
-in the default web browser.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
+\item{encoding}{string, indicating the charset encoding used for variable and
+value labels. Default is \code{NULL}, so encoding will be auto-detected
+depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
-\item{no.output}{If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+\item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
 the viewer pane and not even saved to file. This option is useful when the html output
 should be used in \code{knitr} documents. The html output can be accessed via the return
 value.}

@@ -1,4 +1,4 @@
-#' @title Show correlations as HTML table
+#' @title Summary of correlations as HTML table
 #' @name sjt.corr
 #' 
 #' @seealso \itemize{
@@ -10,38 +10,32 @@
 #'                a \code{\link{data.frame}} or a matrix with correlation coefficients 
 #'                as returned by the \code{\link{cor}}-function.
 #'                
-#' @param data a matrix with correlation coefficients as returned by the 
+#' @param data matrix with correlation coefficients as returned by the 
 #'          \code{\link{cor}}-function, or a \code{\link{data.frame}} of variables that
 #'          should be correlated.
-#' @param missingDeletion Indicates how missing values are treated. May be either
+#' @param missingDeletion indicates how missing values are treated. May be either
 #'          \code{"listwise"} or \code{"pairwise"} (default).
-#' @param corMethod Indicates the correlation computation method. May be one of
+#' @param corMethod indicates the correlation computation method. May be one of
 #'          \code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
-#' @param title A table caption as character. By default, \code{title} is \code{NULL}, hence no title will be used.
-#' @param showPValues Whether significance levels (p-values) of correlations should 
+#' @param showPValues logical, whether significance levels (p-values) of correlations should 
 #'          be printed or not. See 'Note'.
-#' @param pvaluesAsNumbers If \code{TRUE}, the significance levels (p-values) are printed as numbers.
+#' @param pvaluesAsNumbers logical, if \code{TRUE}, the significance levels (p-values) are printed as numbers.
 #'          if \code{FALSE} (default), asterisks are used. See 'Note'.
-#' @param fadeNS If \code{TRUE} (default), non-significant correlation-values appear faded (by using
+#' @param fade.ns logical, if \code{TRUE} (default), non-significant correlation-values appear faded (by using
 #'          a lighter grey text color). See 'Note'.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param varlabels The item labels that are printed along the first column/row. If no item labels are
-#'          provided (default), the data frame's column names are used. Item labels must
-#'          be a string vector, e.g.: \code{varlabels=c("Var 1", "Var 2", "Var 3")}.
-#'          varlabels are detected automatically if \code{data} is a \code{\link{data.frame}} where each variable has
-#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the variable labels are displayed in 
-#'          one line and when a line break is inserted. Default is 40.
-#' @param digits The amount of digits used the values inside table cells.
+#' @param varlabels character vector with item labels that are printed along the 
+#'          first column/row. If no item labels are provided (default), the 
+#'          data frame's column names are used. Item labels are detected automatically 
+#'          if \code{data} is a \code{\link{data.frame}} where variables have
+#'          label attributes (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#' @param digits amount of digits used the values inside table cells.
 #'          Default is 2.
-#' @param triangle Indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
+#' @param triangle indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
 #'          or both (use \code{"both"}) triangles of the correlation table is filled with values. Default
 #'          is \code{"both"}. You can specifiy the inital letter only.
-#' @param val.rm Specify a number between 0 and 1 to suppress the output of correlation values 
+#' @param val.rm specify a number between 0 and 1 to suppress the output of correlation values 
 #'          that are smaller than \code{val.rm}. The absolute correlation values are used, so
-#'          a correlation value of -.5 would be greater than \code{"val.rm=.4"} and thus not be
+#'          a correlation value of \code{-.5} would be greater than \code{val.rm = .4} and thus not be
 #'          omitted. By default, this parameter is \code{NULL}, hence all values are shown in the table.
 #'          If a correlation value is below the specified value of \code{val.rm}, it is still printed to
 #'          the HTML table, but made "invisible" with white foreground color. You can use the \code{CSS}
@@ -51,20 +45,11 @@
 #'          correlated items) that can be used to display content in the diagonal cells
 #'          where row and column item are identical (i.e. the "self-correlation"). By defauilt,
 #'          this parameter is \code{NULL} and the diagnal cells are empty.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#' @inheritParams sjt.df
+#' @inheritParams sjp.grpfrq
+#'          
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -76,7 +61,7 @@
 #'
 #' @note If \code{data} is a matrix with correlation coefficients as returned by 
 #'       the \code{\link{cor}}-function, p-values can't be computed.
-#'       Thus, \code{showPValues}, \code{pvaluesAsNumbers} and \code{fadeNS}
+#'       Thus, \code{showPValues}, \code{pvaluesAsNumbers} and \code{fade.ns}
 #'       only have an effect if \code{data} is a \code{\link{data.frame}}.
 #'       \cr \cr
 #'       Additionally, see 'Note' in \code{\link{sjt.frq}}.
@@ -141,6 +126,7 @@
 #'          val.rm = 0.3, 
 #'          CSS = list(css.valueremove = 'color:blue;'))}
 #' 
+#' @importFrom stats na.omit
 #' @export
 sjt.corr <- function(data,
                      missingDeletion = "pairwise",
@@ -148,7 +134,7 @@ sjt.corr <- function(data,
                      title = NULL,
                      showPValues = TRUE,
                      pvaluesAsNumbers = FALSE,
-                     fadeNS = TRUE,
+                     fade.ns = TRUE,
                      file = NULL, 
                      varlabels = NULL,
                      breakLabelsAt = 40,
@@ -192,7 +178,7 @@ sjt.corr <- function(data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(data[, i])
+      vn <- sjmisc:::autoSetVariableLabels(data[[i]])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
@@ -220,7 +206,7 @@ sjt.corr <- function(data,
     # missing deletion corresponds to
     # SPSS listwise
     if (missingDeletion == "listwise") {
-      data <- na.omit(data)
+      data <- stats::na.omit(data)
       corr <- cor(data, method = corMethod)
     } else {
       # missing deletion corresponds to
@@ -238,8 +224,8 @@ sjt.corr <- function(data,
       for (i in 1:ncol(df)) {
         pv <- c()
         for (j in 1:ncol(df)) {
-          test <- cor.test(df[, i], 
-                           df[, j], 
+          test <- cor.test(df[[i]], 
+                           df[[j]], 
                            alternative = "two.sided", 
                            method = corMethod)
           pv <- cbind(pv, round(test$p.value, 5))
@@ -436,7 +422,7 @@ sjt.corr <- function(data,
           # --------------------------------------------------------
           # check whether non significant values should be blurred
           # --------------------------------------------------------
-          if (fadeNS && !is.null(cpv)) {
+          if (fade.ns && !is.null(cpv)) {
             # set css-class-attribute
             if (cpv[i, j] >= 0.05) notsig <- " notsig"
           }

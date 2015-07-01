@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjTabMannWhitney.R
 \name{sjt.mwu}
 \alias{sjt.mwu}
-\title{Show Mann-Whitney-Test as HTML table}
+\title{Summary of Mann-Whitney-Test as HTML table}
 \usage{
 sjt.mwu(x, title = NULL, alternateRowColors = TRUE, file = NULL,
   encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
@@ -11,26 +11,27 @@ sjt.mwu(x, title = NULL, alternateRowColors = TRUE, file = NULL,
 \arguments{
 \item{x}{Results of a Mann-Whitney-U test, provided by \code{\link[sjmisc]{mwu}}. See examples.}
 
-\item{title}{A table caption. By default, \code{title} is \code{NULL}, hence no title will be used.}
+\item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
-\item{alternateRowColors}{If \code{TRUE}, alternating rows are highlighted with a light gray
+\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{file}{The destination file, which will be in html-format. If no filepath is specified,
-the file will be saved as temporary file and openend either in the RStudio View pane or
-in the default web browser.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{encoding}{The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).}
+\item{encoding}{string, indicating the charset encoding used for variable and
+value labels. Default is \code{NULL}, so encoding will be auto-detected
+depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
-\item{no.output}{If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+\item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
 the viewer pane and not even saved to file. This option is useful when the html output
 should be used in \code{knitr} documents. The html output can be accessed via the return
 value.}

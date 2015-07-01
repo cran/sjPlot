@@ -12,50 +12,37 @@
 #'                is \code{TRUE} and a description of the data frame is given,
 #'                using the \code{\link[psych]{describe}} function of the \code{psych} package.
 #'
-#' @param mydf A data frame that should be printed.
-#' @param describe If \code{TRUE} (default), a description of the data frame's variables is given.
-#'          The description is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
-#'          package. If this parameter is \code{FALSE}, the data frame's content (values) is shown.
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
+#' @param mydf data frame that should be printed as table
+#' @param describe logical, if \code{TRUE} (default), a description of the data frame's variables is given.
+#'          The description is retrieved from the \code{\link[psych]{describe}} function. 
+#'          If \code{describe = FALSE}, the data frame's content (values) is shown.
+#' @param alternateRowColors logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
-#' @param orderColumn Indicates a column, either by column name or by column index number,
+#' @param orderColumn indicates a column, either by column name or by column index number,
 #'          that should be sorted. Default order is ascending, which can be changed with
 #'          \code{orderAscending} parameter. Default is \code{NULL}, hence the data frame
-#'          is printed with no specific order. See examples for further details.
-#' @param orderAscending If \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
+#'          is printed with no specific order. See 'Examples'.
+#' @param orderAscending logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
 #'          data frame is ordered according to the specified column in an ascending order.
-#'          Use \code{FALSE} to apply descending order. See examples for further details.
-#' @param title A table caption. By default, \code{title} is \code{NULL}, hence no title will be used.
-#' @param stringVariable A string used for the first column name. Default is \code{"Variable"}.
-#' @param repeatHeader If \code{TRUE}, the header row will also be added at the bottom at the table. This might
+#'          Use \code{FALSE} to apply descending order. See 'Examples'.
+#' @param title table caption. By default, \code{title = NULL}, hence no title will be used.
+#' @param stringVariable string, label used for the first column name. Default is \code{"Variable"}.
+#' @param repeatHeader logical, if \code{TRUE}, the header row will also be added at the bottom at the table. This might
 #'          be helpful, if you have longer tables and want to see the column names at the end of the table as well.
-#' @param showType If \code{TRUE}, the variable type is shown in a separate row below the column
+#' @param showType logical, if \code{TRUE}, the variable type is shown in a separate row below the column
 #'          names.
-#' @param showRowNames If \code{TRUE} and \code{describe} is \code{false}, first table column contains row names
-#'          of data frame. Use \code{showRowNames=FALSE} to omit first table column with row names.
-#' @param showCommentRow If \code{TRUE}, an optional comment line can be added to the end / below
+#' @param showRowNames logical, if \code{TRUE} and \code{describe = FALSE}, 
+#'          first table column contains row names of data frame. Use 
+#'          \code{showRowNames = FALSE} to omit first table column with row names.
+#' @param showCommentRow logical, if \code{TRUE}, an optional comment line can be added to the end / below
 #'          the table. Use \code{commentString} to specify the comment.
-#' @param commentString A string that will be added to the end / below the table. Only
-#'          applies, if \code{showCommentRow} is \code{TRUE}.
-#' @param hideProgressBar If \code{TRUE}, the progress bar that is displayed when creating the
+#' @param commentString string that will be added to the end / below the table. Only
+#'          applies, if \code{showCommentRow = TRUE}.
+#' @param hideProgressBar logical, if \code{TRUE}, the progress bar that is displayed when creating the
 #'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
-#' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
-#'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
-#'          the viewer pane and not even saved to file. This option is useful when the html output
-#'          should be used in \code{knitr} documents. The html output can be accessed via the return
-#'          value.
-#' @param remove.spaces logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
-#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
-#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#'          
+#' @inheritParams sjt.frq
+#'          
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the data frame with the description information (\code{data}),
@@ -294,7 +281,7 @@ sjt.df <- function(mydf,
     # default row string
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(rcnt %% 2 == 0, " arc", "")
+    if (alternateRowColors) arcstring <- ifelse(sjmisc::is_even(rcnt), " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
     # first table cell is rowname
     if (showRowNames) page.content <- paste0(page.content, sprintf("    <td class=\"tdata leftalign firsttablecol%s\">%s</td>\n", arcstring, rnames[rcnt]))

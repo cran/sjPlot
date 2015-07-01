@@ -1,4 +1,4 @@
-#' @title Show frequencies as HTML table
+#' @title Summary of frequencies as HTML table
 #' @name sjt.frq
 #' 
 #' @description Shows (multiple) frequency tables as HTML file, or saves them as file.
@@ -8,43 +8,43 @@
 #'            \item \code{\link{sjp.frq}}
 #'          }
 #' 
-#' @param data The variables which frequencies should be printed as table. Either use a single variable
-#'          (vector) or a data frame where each column represents a variable (see examples).
-#' @param file The destination file, which will be in html-format. If no filepath is specified,
-#'          the file will be saved as temporary file and openend either in the RStudio View pane or
-#'          in the default web browser.
-#' @param weightBy A weight factor that will be applied to weight all cases from \code{data}.
+#' @param data variables which frequencies should be printed as table. Either use a single variable
+#'          (vector) or a data frame where each column represents a variable (see 'Examples').
+#' @param file destination file, if the output should be saved as file.
+#'          If \code{NULL} (default), the output will be saved as temporary file and 
+#'          openend either in the IDE's viewer pane or the default web browser.
+#' @param weightBy weight factor that will be applied to weight all cases from \code{data}.
 #'          Must be a vector of same length as \code{nrow(data)}. Default is \code{NULL}, so no weights are used.
-#' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the table caption
-#'          may indicate this with a remark. Default is \code{" (weightBy)"}, so table captions
-#'          of weighted data will have an additional title suffix.
-#' @param variableLabels A single character vector or a list of character vectors that indicate
-#'          the variable names of those variables from \code{data} and will be used as variable labels
+#' @param weightByTitleString suffix (as string) for the tabel caption, if \code{weightBy} is specified,
+#'          e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so
+#'          the table caption will not have a suffix when cases are weighted.
+#' @param variableLabels character vector or a list of character vectors that indicate
+#'          the variable names of \code{data} and will be used as variable labels
 #'          in the output. Note that if multiple variables
-#'          are supplied (as data frame), the variable labels must be supplied as \code{list} object
-#'          (see examples).
-#' @param valueLabels A list of character vectors that indicate the value labels of those variables 
-#'          from \code{data}. Note that if multiple variables are supplied (as data frame), the 
-#'          value labels must be supplied as nested \code{list} object (see examples).
-#' @param autoGroupAt A value indicating at which length of unique values a variable from \code{data}
-#'          is automatically grouped into smaller units (see \code{group_var}). Variables with large 
-#'          numbers of unique values may be too time consuming when a HTML table is created and R would
-#'          not respond any longer. Hence it's recommended to group such variables. Default value is 50,
-#'          i.e. variables with 50 and more unique values will be grouped using \code{group_var} with
-#'          \code{groupsize="auto"} parameter. By default, the maximum group count is 30. However, if
-#'          \code{autoGroupAt} is less than 30, \code{autoGroupAt} groups are built. Default value is \code{NULL},
-#'          i.e. auto-grouping is turned off.
-#' @param sort.frq Whether frequencies should be sorted or not. Use \code{"asc"} or \code{"ascending"}
-#'          to sort frequencies ascending, or \code{"decsc"} or \code{"desscending"} to sort
+#'          are supplied (if \code{data} is a \code{\link{data.frame}}), the variable 
+#'          labels must be supplied as \code{list} object (see 'Examples').
+#' @param valueLabels list of character vectors that indicate the value labels of  
+#'          \code{data}. Note that if multiple variables are supplied (if \code{data} is a \code{\link{data.frame}}), 
+#'          the value labels must be supplied as nested \code{list} object (see 'Examples').
+#' @param autoGroupAt numeric value, indicating at which length of unique values of \code{data}, 
+#'          automatic grouping into smaller units is done (see \code{\link[sjmisc]{group_var}}).
+#'          Variables with large numbers of unique values may be too time consuming when 
+#'          a HTML table is created and R would not respond any longer, or the resulting table 
+#'          would be to too long and confusing. Hence it's recommended to group such variables. 
+#'          If \code{autoGroupAt = 50} and \code{varCount} has more than 50 unique values,
+#'          it will be grouped (using the \code{\link[sjmisc]{group_var}} function). 
+#'          Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
+#'          See \code{\link[sjmisc]{group_var}} for examples on grouping.
+#' @param sort.frq whether frequencies should be sorted or not. Use \code{"asc"} or \code{"ascending"}
+#'          to sort frequencies ascending, or \code{"desc"} or \code{"descending"} to sort
 #'          frequencies in descending order. By default, \code{sort.frq} is \code{NULL}, i.e.
 #'          frequencies are ordered by values.
-#' @param alternateRowColors If \code{TRUE}, alternating rows are highlighted with a light gray
+#' @param alternateRowColors logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 #'          background color.
-#' @param stringValue String label for the very first table column containing the values (see
+#' @param stringValue label for the very first table column containing the values (see
 #'          \code{valueLabels}).
-#' @param stringCount String label for the first table data column containing the counts. Default is \code{"N"}.
-#' @param stringPerc String label for the second table data column containing the percentages, where the
-#'          count percentages include missing values.
+#' @param stringCount label for the first table data column containing the counts. Default is \code{"N"}.
+#' @param stringPerc label for the second table data column containing the raw percentages. Default is \code{"raw \%"}.
 #' @param stringValidPerc String label for the third data table column containing the valid percentages, i.e. the
 #'          count percentage value exluding possible missing values.
 #' @param stringCumPerc String label for the last table data column containing the cumulative percentages.
@@ -81,14 +81,15 @@
 #'          applies if \code{removeStringVectors} is \code{FALSE}.
 #' @param maxStringDist the allowed distance of string values in a character vector, which indicates
 #'          when two string values are merged because they are considered as close enough.
-#' @param encoding The charset encoding used for variable and value labels. Default is \code{NULL}, so encoding
-#'          will be auto-detected depending on your platform (\code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g.) German umlauts).
-#' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the 
+#' @param encoding string, indicating the charset encoding used for variable and 
+#'          value labels. Default is \code{NULL}, so encoding will be auto-detected 
+#'          depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).
+#' @param CSS \code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
 #'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
 #' @param useViewer If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
-#' @param no.output If \code{TRUE}, the html-output is neither opened in a browser nor shown in
+#' @param no.output logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
 #'          the viewer pane and not even saved to file. This option is useful when the html output
 #'          should be used in \code{knitr} documents. The html output can be accessed via the return
 #'          value.
@@ -107,7 +108,7 @@
 #' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
 #'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file=NULL}).
+#'         default behaviour (i.e. \code{file = NULL}).
 #' 
 #' @details \bold{How does the \code{CSS}-parameter work?}
 #'            \cr \cr
@@ -122,12 +123,12 @@
 #'          You can add style information to the default styles by using a + (plus-sign) as
 #'          initial character for the parameter attributes. Examples:
 #'          \itemize{
-#'            \item \code{css.table='border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary='font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.lasttablerow='border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-#'            \item \code{css.colnames='+color:green'} to add green color formatting to column names.
-#'            \item \code{css.arc='color:blue;'} for a blue text color each 2nd row.
-#'            \item \code{css.caption='+color:red;'} to add red font-color to the default table caption style.
+#'            \item \code{css.table = 'border:2px solid red;'} for a solid 2-pixel table border in red.
+#'            \item \code{css.summary = 'font-weight:bold;'} for a bold fontweight in the summary row.
+#'            \item \code{css.lasttablerow = 'border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
+#'            \item \code{css.colnames = '+color:green'} to add green color formatting to column names.
+#'            \item \code{css.arc = 'color:blue;'} for a blue text color each 2nd row.
+#'            \item \code{css.caption = '+color:red;'} to add red font-color to the default table caption style.
 #'          }
 #'          See further examples at \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
 #'          
@@ -137,31 +138,32 @@
 #' library(sjmisc)
 #' data(efc)
 #' 
-#' # retrieve value and variable labels
-#' variables <- get_var_labels(efc)
-#' values <- get_val_labels(efc)
-#' 
 #' # show frequencies of "e42dep" in RStudio Viewer Pane
 #' # or default web browser
 #' sjt.frq(efc$e42dep)
 #' 
 #' # plot and show frequency table of "e42dep" with labels
 #' sjt.frq(efc$e42dep,
-#'         variableLabels = variables['e42dep'],
-#'         valueLabels = values[['e42dep']])
+#'         variableLabels = "Dependency",
+#'         valueLabels = c("independent",
+#'                         "slightly dependent",
+#'                         "moderately dependent",
+#'                         "severely dependent"))
 #' 
 #' # plot frequencies of e42dep, e16sex and c172code in one HTML file
 #' # and show table in RStudio Viewer Pane or default web browser
 #' # Note that valueLabels of multiple variables have to be
 #' # list-objects
 #' sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code),
-#'         variableLabels = c(variables['e42dep'], 
-#'                            variables['e16sex'], 
-#'                            variables['c172code']),
-#'         valueLabels = list(values[['e42dep']], 
-#'                            values[['e16sex']], 
-#'                            values[['c172code']]))
-#' 
+#'         variableLabels = c("Dependency", 
+#'                            "Gender", 
+#'                            "Education"),
+#'         valueLabels = list(c("independent",
+#'                              "slightly dependent",
+#'                              "moderately dependent",
+#'                              "severely dependent"),
+#'                            c("male", "female"),
+#'                            c("low", "mid", "high")))
 #' 
 #' # -------------------------------
 #' # auto-detection of labels
@@ -173,8 +175,6 @@
 #' # plot larger scale including zero-counts
 #' # indicating median and quartiles
 #' sjt.frq(efc$neg_c_7,
-#'         variableLabels = variables['neg_c_7'],
-#'         valueLabels = values[['neg_c_7']],
 #'         highlightMedian = TRUE,
 #'         highlightQuartiles = TRUE)
 #' 
@@ -187,47 +187,46 @@
 #' # User defined style sheet
 #' # -------------------------------- 
 #' sjt.frq(efc$e42dep,
-#'         variableLabels = variables['e42dep'],
-#'         valueLabels = values[['e42dep']],
 #'         CSS = list(css.table = "border: 2px solid;",
 #'                    css.tdata = "border: 1px solid;",
 #'                    css.firsttablecol = "color:#003399; font-weight:bold;"))}
 #' 
 #' @importFrom psych describe
+#' @importFrom stats na.omit
 #' @import sjmisc
 #' @export
 sjt.frq <- function(data,
-                    file=NULL,
-                    weightBy=NULL,
-                    weightByTitleString=" (weighted)",
-                    variableLabels=NULL,
-                    valueLabels=NULL,
-                    autoGroupAt=NULL,
-                    sort.frq=NULL,
-                    alternateRowColors=FALSE,
-                    stringValue="value",
-                    stringCount="N",
-                    stringPerc="raw %",
-                    stringValidPerc="valid %",
-                    stringCumPerc="cumulative %",
-                    stringMissingValue="missings",
-                    highlightMedian=FALSE,
-                    highlightQuartiles=FALSE,
-                    skipZeroRows="auto",
-                    showSummary=TRUE,
-                    showSkew=FALSE,
-                    showKurtosis=FALSE,
-                    skewString="&gamma;",
-                    kurtosisString="&omega;",
-                    digits=2,
-                    removeStringVectors=TRUE,
-                    autoGroupStrings=TRUE,
-                    maxStringDist=3,
-                    encoding=NULL,
-                    CSS=NULL,
-                    useViewer=TRUE,
-                    no.output=FALSE,
-                    remove.spaces=TRUE) {
+                    file = NULL,
+                    weightBy = NULL,
+                    weightByTitleString = " (weighted)",
+                    variableLabels = NULL,
+                    valueLabels = NULL,
+                    autoGroupAt = NULL,
+                    sort.frq = NULL,
+                    alternateRowColors = FALSE,
+                    stringValue = "value",
+                    stringCount = "N",
+                    stringPerc = "raw %",
+                    stringValidPerc = "valid %",
+                    stringCumPerc = "cumulative %",
+                    stringMissingValue = "missings",
+                    highlightMedian = FALSE,
+                    highlightQuartiles = FALSE,
+                    skipZeroRows = "auto",
+                    showSummary = TRUE,
+                    showSkew = FALSE,
+                    showKurtosis = FALSE,
+                    skewString = "&gamma;",
+                    kurtosisString = "&omega;",
+                    digits = 2,
+                    removeStringVectors = TRUE,
+                    autoGroupStrings = TRUE,
+                    maxStringDist = 3,
+                    encoding = NULL,
+                    CSS = NULL,
+                    useViewer = TRUE,
+                    no.output = FALSE,
+                    remove.spaces = TRUE) {
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -325,10 +324,8 @@ sjt.frq <- function(data,
       # check if any strings found
       # remove string variables
       if (length(stringcolumns) > 0) data <- data[, -stringcolumns]
-    } else {
-      if (is.character(data)) {
-        stop("Parameter 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See parameter 'removeStringVectors' for details.", call. = FALSE)
-      }
+    } else if (is.character(data)) {
+      stop("Parameter 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See parameter 'removeStringVectors' for details.", call. = FALSE)
     }
   }
   # -------------------------------------
@@ -340,11 +337,14 @@ sjt.frq <- function(data,
     # iterate all columns
     for (i in 1:ncol(data)) {
       # check type
-      if (length(na.omit(data[[i]])) == 0) NAcolumns <- c(NAcolumns, i)
+      if (length(stats::na.omit(data[[i]])) == 0) NAcolumns <- c(NAcolumns, i)
     }
     # check if any NA-only variables found
     if (length(NAcolumns) > 0) {
-      message(sprintf("%i variables have been removed from output, because they contained only NA's: %s", length(NAcolumns), paste(colnames(data)[NAcolumns], collapse = "; ")))
+      message(sprintf("%i variables have been removed from output, because they contained only NA's: %s", 
+                      length(NAcolumns), 
+                      paste(colnames(data)[NAcolumns], 
+                            collapse = "; ")))
       data <- data[, -NAcolumns]
     }
   }
@@ -477,7 +477,7 @@ sjt.frq <- function(data,
       orivar <- var <- as.numeric(as.factor(data[[cnt]]))
     # here we have numeric or factor variables
     } else {
-      orivar <- var <- as.numeric(data[[cnt]])
+      orivar <- var <- sjmisc::to_value(data[[cnt]])
     }
     # -----------------------------------------------
     # check for length of unique values and skip if too long
@@ -497,6 +497,8 @@ sjt.frq <- function(data,
                                groupsize = "auto", 
                                asNumeric = TRUE, 
                                autoGroupCount = agcnt)
+      # set labels
+      var <- sjmisc::set_val_labels(var, valueLabels[[cnt]])
     }
     # retrieve summary
     varsummary <- summary(var)
@@ -510,6 +512,7 @@ sjt.frq <- function(data,
     #---------------------------------------------------
     df.frq <- create.frq.df(var, 
                             valueLabels[[cnt]], 
+                            sjmisc::get_values(var),
                             -1, 
                             sort.frq, 
                             weightBy = weightBy)
@@ -521,7 +524,7 @@ sjt.frq <- function(data,
       # retrieve range of values
       vonbis <- max(var, na.rm = T) - min(var, na.rm = T)
       # retrieve count of unique values
-      anzval <- na.omit(unique(var))
+      anzval <- stats::na.omit(unique(var))
       # check proportion of possible values and actual values
       # if we have more than 25% of zero-values, or if we have
       # in general a large variable range, skip zero-rows.
@@ -573,7 +576,7 @@ sjt.frq <- function(data,
         # init default values
         rowstring <- ""
         # init default value for alternating colors
-        if (alternateRowColors) rowstring <- ifelse(j %% 2 == 0, " arc", "")
+        if (alternateRowColors) rowstring <- ifelse(sjmisc::is_even(j), " arc", "")
         rowcss <- rowstring
         # check whether we have median row and whether it should be highlighted
         if (highlightMedian && ((j + df.frq$minval) == (var.median + 1))) {

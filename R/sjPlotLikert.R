@@ -1,5 +1,5 @@
 # bind global variables
-# if(getRversion() >= "2.15.1") utils::globalVariables(c("Freq", "ypos", "Question", "Response"))
+utils::globalVariables(c("offset"))
 
 #' @title Plot likert scales as centered stacked bars
 #' @name sjp.likert
@@ -10,28 +10,31 @@
 #' 
 #' @note Note that only even numbers of categories are possible to plot, so the "positive" 
 #'        and "negative" values can be splitted into two halfs. A neutral category (like "don't know")
-#'        can be used, but must be indicated by \code{cat.neutral}.
+#'        can be used, but must be indicated by \code{cat.neutral}. \cr \cr
+#'        The \code{catcount}-parameter indicates how many item categories are in the
+#'        Likert scale. Normally, this parameter can be ignored because the amount of 
+#'        valid categories is retrieved automatically. However, sometimes (for instance,
+#'        if a certain category is missing in all items), auto-detection of the amount
+#'        of categories fails. In such cases, specify the amount of categories
+#'        with the \code{catcount}-parameter.
 #' 
-#' @param items A data frame with each column representing one likert-item.
-#' @param catcount optional, the amount of categories of the items (e.g. \emph{"strongly disagree", 
-#'          "disagree", "agree" and "strongly agree"} would be \code{catcount=4}).
+#' @param items \code{\link{data.frame}} with each column representing one likert-item.
+#' @param catcount optional, amount of categories of \code{items} (e.g. \emph{"strongly disagree", 
+#'          "disagree", "agree"} and \emph{"strongly agree"} would be \code{catcount = 4}).
 #'          Note that this parameter only applies to "valid" answers, i.e. if you
 #'          have an additional neutral category (see \code{cat.neutral}) like \emph{"don't know"},
 #'          this won't count for \code{catcount} (e.g. "strongly disagree", 
 #'          "disagree", "agree", "strongly agree" and neutral category "don't know"
-#'          would still mean that \code{catcount=4}). \cr
-#'          \strong{Note:} Normally, this parameter can be ignored because the amount of valid categories
-#'          is retrieved automatically.
-#' @param cat.neutral If there's a neutral category (like "don't know" etc.), specify
-#'          the index number for this category. Else, set \code{cat.neutral=NULL} (default).
-#'          The frequencies of neutral categories are plotted as grey bars on the left side of
+#'          would still mean that \code{catcount = 4}). See 'Note'.
+#' @param cat.neutral if there's a neutral category (like "don't know" etc.), specify
+#'          the index number (value) for this category. Else, set \code{cat.neutral = NULL} (default).
+#'          The proportions of neutral category answers are plotted as grey bars on the left side of
 #'          the figure.
-#' @param weightBy A weight factor that will be applied to weight all cases from \code{items}.
-#'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.
-#' @param weightByTitleString If a weight factor is supplied via the parameter \code{weightBy}, the diagram's title
-#'          may indicate this with a remark. Default is \code{NULL}, so the diagram's title will not be modified when
-#'          cases are weighted. Use a string as parameter, e.g.: \code{weightByTitleString=" (weighted)"}
-#' @param sort.frq Indicates whether the items of \code{items} should be ordered by total sum of positive or negative answers.
+#' @param weightBy weight factor that will be applied to weight all cases of \code{items}.
+#'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, 
+#'          so no weights are used.
+#' @param sort.frq indicates whether the items of \code{items} should be ordered by 
+#'          total sum of positive or negative answers.
 #'          \describe{
 #'            \item{\code{"pos.asc"}}{to order ascending by sum of positive answers}
 #'            \item{\code{"pos.desc"}}{to order descending by sum of positive answers}
@@ -39,25 +42,17 @@
 #'            \item{\code{"neg.desc"}}{for sorting descending negative answers}
 #'            \item{\code{NULL}}{(default) for no sorting}
 #'          }
-#' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
-#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code (see below).
-#'          \itemize{
-#'            \item If not specified, the diverging \code{"BrBG"} color brewer palette will be used.
-#'            \item If \code{"gs"}, a greyscale will be used.
-#'            \item If \code{geom.colors} is any valid color brewer palette name, the related \href{http://colorbrewer2.org}{color brewer} palette will be used. Use \code{display.brewer.all()} from the \code{RColorBrewer} package to view all available palette names.
-#'            \item Else specify your own color values as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00", "#0080ff")}).
-#'          }
-#' @param reverse.colors If \code{TRUE}, the color scale from \code{geom.colors} will be reversed,
-#'          so positive and negative value switch colors.
-#' @param geom.size Width of bars. Recommended values for this parameter are from 0.4 to 1.5
-#' @param cat.neutral.color Color of the neutral category, if plotted (see \code{cat.neutral}).
-#' @param intercept.line.color Color of the vertical intercept line that divides positive and negative values.
-#' @param legendLabels A list or vector of strings that indicate the likert-scale-categories and which
-#'          appear as legend text.
-#' @param hideLegend Indicates whether legend (guide) should be shown or not.
-#' @param title Title of the diagram, plotted above the whole diagram panel.
-#' @param legendTitle Title of the diagram's legend.
-#' @param includeN If \code{TRUE} (default), the N of each item is included into axis labels.
+#' @param geom.colors user defined color palette for geoms. If specified, must either be vector with color values 
+#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code.
+#'          See 'Note' in \code{\link{sjp.grpfrq}}.
+#' @param reverse.colors logical, if \code{TRUE}, the color scale from \code{geom.colors} will be reversed,
+#'          so positive and negative values switch colors.
+#' @param geom.size width of bars. Recommended values for this parameter are from 0.4 to 1.5
+#' @param cat.neutral.color color of the neutral category, if plotted (see \code{cat.neutral}).
+#' @param intercept.line.color color of the vertical intercept line that divides positive and negative values.
+#' @param legendLabels list or character vector that indicate the names of the 
+#'          likert-scale-categories and which appear as legend text.
+#' @param includeN logical, if \code{TRUE} (default), the N of each item will be included in axis labels.
 #' @param value.labels determines style and position of percentage value labels on the bars:
 #'          \describe{
 #'            \item{\code{"show"}}{(default) shows percentage value labels in the middle of each category bar}
@@ -65,50 +60,39 @@
 #'            \item{\code{"sum.inside"}}{shows the sums of percentage values for both negative and positive values and prints them inside the end of each bar}
 #'            \item{\code{"sum.outide"}}{shows the sums of percentage values for both negative and positive values and prints them outside the end of each bar}
 #'          }
-#' @param showPercentageSign If \code{TRUE}, percentage signs on value labels are shown.
-#' @param labelDigits The amount of digits for rounding \code{value.labels}. Default is 1, 
+#' @param showPercentageSign logical, if \code{TRUE}, \%-signs for value labels are shown.
+#' @param labelDigits amount of digits for rounding \code{value.labels}. Default is 1, 
 #'          i.e. value labels have 1 digit after decimal point.
-#' @param showItemLabels Whether x axis text (category names) should be shown or not
-#' @param axisLabels.y a character vector with labels for the y-axis (the names of the 
+#' @param showItemLabels logical, whether x-axis text (category names) should be shown or not
+#' @param axisLabels.y character vector with labels for the y-axis (names of the 
 #'          \code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}.
 #'          Axis labels will automatically be detected, when they have
-#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}} for details).
-#' @param breakTitleAt Wordwrap for diagram title. Determines how many chars of the title are displayed in
-#'          one line and when a line break is inserted into the title.
-#' @param breakLabelsAt Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
-#'          one line and when a line break is inserted.
-#' @param breakLegendTitleAt Wordwrap for diagram legend title. Determines how many chars of the legend's title 
-#'          are displayed in one line and when a line break is inserted.
-#' @param breakLegendLabelsAt Wordwrap for diagram legend labels. Determines how many chars of the legend labels are 
-#'          displayed in one line and when a line break is inserted.
-#' @param gridRange Sets the limit of the x-axis-range. Default is 1, so the x-scale ranges
-#'          from zero to 100 percent on both sides from the center. You can use values beyond 1
-#'          (100 percent) in case bar labels are not printed because they exceed the axis range.
-#'          E.g. \code{gridRange=1.4} will set the axis from -140 to +140 percent, however, only
-#'          (valid) axis labels from -100 to +100 percent are printed. Neutral categories are
+#'          label attributes (see \code{\link[sjmisc]{set_var_labels}} for details).
+#' @param gridRange numeric, limits of the x-axis-range, as proportion of 100. 
+#'          Default is 1, so the x-scale ranges from zero to 100\% on 
+#'          both sides from the center. You can use values beyond 1
+#'          (100\%) in case bar labels are not printed because they exceed the axis range.
+#'          E.g. \code{gridRange = 1.4} will set the axis from -140 to +140\%, however, only
+#'          (valid) axis labels from -100 to +100\% are printed. Neutral categories are
 #'          adjusted to the most left limit.
-#' @param gridBreaksAt Sets the breaks on the y axis, i.e. at every n'th position a major
-#'          grid is being printed. Valid values range from 0 to 1.
-#' @param expand.grid If \code{TRUE} (default), the diagram has margins, i.e. the y-axis is not exceeded
-#'          to the diagram's boundaries.
-#' @param axisTitle.x label for the x-axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the x-axis.
-#' @param axisTitle.y label for the y-axis. Useful when plotting histograms with metric scales where no category labels
-#'          are assigned to the y-axis.
-#' @param coord.flip If \code{TRUE}, the x and y axis are swapped.
-#' @param printPlot If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#' @param axisTitle.x title for the x-axis. Default is \code{NULL} (no title).
+#' @param axisTitle.y title for the y-axis. Default is \code{NULL} (no title).
+#' 
+#' @inheritParams sjp.grpfrq
+#' 
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df.neg} for the negative values,
 #'           \code{df.pos} for the positive values and \code{df.neutral} for the neutral category values).
 #' 
 #' @examples
 #' # prepare data for dichotomous likert scale, 5 items
-#' likert_2 <- data.frame(as.factor(sample(1:2, 500, replace=TRUE, prob=c(0.3,0.7))),
-#'                        as.factor(sample(1:2, 500, replace=TRUE, prob=c(0.6,0.4))),
-#'                        as.factor(sample(1:2, 500, replace=TRUE, prob=c(0.25,0.75))),
-#'                        as.factor(sample(1:2, 500, replace=TRUE, prob=c(0.9,0.1))),
-#'                        as.factor(sample(1:2, 500, replace=TRUE, prob=c(0.35,0.65))))
+#' likert_2 <- data.frame(
+#'   as.factor(sample(1:2, 500, replace = TRUE, prob = c(0.3,0.7))),
+#'   as.factor(sample(1:2, 500, replace = TRUE, prob = c(0.6,0.4))),
+#'   as.factor(sample(1:2, 500, replace = TRUE, prob = c(0.25,0.75))),
+#'   as.factor(sample(1:2, 500, replace = TRUE, prob = c(0.9,0.1))),
+#'   as.factor(sample(1:2, 500, replace = TRUE, prob = c(0.35,0.65))))
+#'   
 #' # create labels
 #' levels_2 <- c("Agree", "Disagree")
 #'                        
@@ -131,11 +115,11 @@
 #' # prepare data for 6-category likert scale, 5 items
 #' likert_6 <- data.frame()
 #' 
-#' Q1 <- as.factor(sample(1:6, 500, replace=TRUE, prob=c(0.2,0.1,0.1,0.3,0.2,0.1)))
-#' Q2 <- as.factor(sample(1:6, 500, replace=TRUE, prob=c(0.15,0.15,0.3,0.1,0.1,0.2)))
-#' Q3 <- as.factor(sample(1:6, 500, replace=TRUE, prob=c(0.2,0.25,0.05,0.2,0.2,0.2)))
-#' Q4 <- as.factor(sample(1:6, 500, replace=TRUE, prob=c(0.2,0.1,0.1,0.4,0.1,0.1)))
-#' Q5 <- as.factor(sample(1:6, 500, replace=TRUE, prob=c(0.1,0.4,0.1,0.3,0.05,0.15)))
+#' Q1 <- as.factor(sample(1:6, 500, replace = TRUE, prob = c(0.2,0.1,0.1,0.3,0.2,0.1)))
+#' Q2 <- as.factor(sample(1:6, 500, replace = TRUE, prob = c(0.15,0.15,0.3,0.1,0.1,0.2)))
+#' Q3 <- as.factor(sample(1:6, 500, replace = TRUE, prob = c(0.2,0.25,0.05,0.2,0.2,0.2)))
+#' Q4 <- as.factor(sample(1:6, 500, replace = TRUE, prob = c(0.2,0.1,0.1,0.4,0.1,0.1)))
+#' Q5 <- as.factor(sample(1:6, 500, replace = TRUE, prob = c(0.1,0.4,0.1,0.3,0.05,0.15)))
 #' 
 #' likert_6 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 #'
@@ -175,7 +159,7 @@
 #' 
 #' @import ggplot2
 #' @import sjmisc
-#' @importFrom car recode
+#' @importFrom stats na.omit xtabs
 #' @export
 sjp.likert <- function(items,
                        catcount = NULL, 
@@ -207,8 +191,8 @@ sjp.likert <- function(items,
                        expand.grid = TRUE,
                        axisTitle.x = NULL,
                        axisTitle.y = NULL,
-                       coord.flip=TRUE,
-                       printPlot=TRUE) {
+                       coord.flip = TRUE,
+                       printPlot = TRUE) {
   # --------------------------------------------------------
   # check param. if we have a single vector instead of
   # a data frame with several items, convert vector to data frame
@@ -262,14 +246,27 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   if (is.null(axisLabels.y)) axisLabels.y <- colnames(items)
   # --------------------------------------------------------
-  # unlist labels
+  # unlist/ unname axis labels
   # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
-  if (!is.null(legendLabels) && is.list(legendLabels)) {
-    legendLabels <- unlistlabels(legendLabels)
-  }
+  if (!is.null(axisLabels.y)) {
+    # unlist labels, if necessary, so we have a simple
+    # character vector
+    if (is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
+    # unname labels, if necessary, so we have a simple
+    # character vector
+    if (!is.null(names(axisLabels.y))) axisLabels.y <- as.vector(axisLabels.y)
+  } 
+  # --------------------------------------------------------
+  # unlist/ unname axis labels
+  # --------------------------------------------------------
+  if (!is.null(legendLabels)) {
+    # unlist labels, if necessary, so we have a simple
+    # character vector
+    if (is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
+    # unname labels, if necessary, so we have a simple
+    # character vector
+    if (!is.null(names(legendLabels))) legendLabels <- as.vector(legendLabels)
+  } 
   # --------------------------------------------------------
   # determine catcount
   # --------------------------------------------------------
@@ -280,12 +277,35 @@ sjp.likert <- function(items,
     for (i in 1:ncol(items)) {
       # add new unique item values to catcount, so catcount
       # finally contains all unique values of items
-      catcount <- unique(c(catcount, unique(na.omit(items[, i]))))
+      catcount <- unique(c(catcount, unique(stats::na.omit(items[[i]]))))
     }
-    # length of catcount
-    catcount <- length(catcount)
-    # if catcount odd or even? make catcount even
-    if ((catcount %% 2) == 1) catcount <- catcount - 1
+    # remove neutral category
+    if (!is.null(cat.neutral)) catcount <- catcount[-which(catcount == cat.neutral)]
+    # detect range of valid categories, which
+    # then equals catcount
+    catcount <- max(catcount) - min(catcount) + 1
+    # check if category count matches category label count
+    if (!is.null(legendLabels)) {
+      # how many labels do we have?
+      # substract 1, if we have neutral category
+      lll <- length(legendLabels) - adding
+      # catcount and legend label count equal?
+      if (catcount < lll) {
+        # warn user that detected amount of categories and supplied legend labels
+        # are different.
+        warning("Length of labels for item categories 'legendLabels' differs from detected amount of categories. Use 'catcount' parameter to define amount of item categories, if plotting does not work.", call. = F)
+        # adjust catcount to length of legend labels, because
+        # we assume that labels represent the valid range of 
+        # item categories
+        catcount <- lll
+      }
+    }
+    # is catcount odd or even? make catcount even
+    if (sjmisc::is_odd(catcount)) {
+      # warn user about uneven category count
+      warning("Detected uneven category count in items. Dropping last category.", call. = F)
+      catcount <- catcount - 1
+    }
   }
   # --------------------------------------------------------
   # set legend labels, if we have none yet
@@ -307,18 +327,18 @@ sjp.likert <- function(items,
     # --------------------------------------------------------
     # convert to numeric values
     # --------------------------------------------------------
-    if (!is.numeric(items[ ,i])) {
+    if (!is.numeric(items[[i]])) {
       # --------------------------------------------------------
       # convert non-numeric factors to numeric values
       # --------------------------------------------------------
-      items[ ,i] <- sjmisc::to_value(items[ ,i], keep.labels = F)
+      items[[i]] <- sjmisc::to_value(items[[i]], keep.labels = F)
     }
     # --------------------------------------------------------
     # If we have neutral category in between and not as last
     # category, recode neutral category to last category
     # --------------------------------------------------------
     if (!is.null(cat.neutral) && cat.neutral <= catcount) {
-      items[, i] <- car::recode(items[, i], sprintf("%i=%i;%i=%i", 
+      items[[i]] <- sjmisc::rec(items[[i]], sprintf("%i=%i;%i=%i;else=copy", 
                                                     cat.neutral, 
                                                     catcount + 1, 
                                                     catcount + 1,
@@ -328,15 +348,15 @@ sjp.likert <- function(items,
     # If we don't plot neutral category, but item still contains
     # that category, replace it with NA
     # --------------------------------------------------------
-    if (is.null(cat.neutral) && max(items[, i], na.rm = T) > catcount)
+    if (is.null(cat.neutral) && max(items[[i]], na.rm = T) > catcount)
       items[[i]] <- sjmisc::set_na(items[[i]], catcount + 1)
     # --------------------------------------------------------
     # create proportional frequency table
     # --------------------------------------------------------
     if (is.null(weightBy)) {
-      tab <- round(prop.table(table(items[, i])), 3)
+      tab <- round(prop.table(table(items[[i]])), 3)
     } else {
-      tab <- round(prop.table(xtabs(weightBy ~ items[, i])), 3)
+      tab <- round(prop.table(stats::xtabs(weightBy ~ items[[i]])), 3)
     }
     # --------------------------------------------------------
     # retrieve category number and related frequencies
@@ -353,8 +373,17 @@ sjp.likert <- function(items,
     # --------------------------------------------------------
     if (ncol(freq.df) == 0) 
       freq.df <- as.data.frame(freq)
-    else
-      freq.df <- as.data.frame(cbind(freq.df, freq))
+    else {
+      # check for valid rows. if we hav missing categories
+      # in all items, parameter "catcount" must be set, because
+      # automatic detection of amount of categories does not
+      # work then.
+      if (length(freq) != nrow(freq.df))
+        stop("Could not determine amount of item categories. Please use parameter 'catcount'.", call. = F)
+      else
+        freq.df <- as.data.frame(cbind(freq.df, freq))
+    }
+      
   }
   # --------------------------------------------------------
   # Check whether N of each item should be included into
@@ -363,7 +392,7 @@ sjp.likert <- function(items,
   if (includeN && !is.null(axisLabels.y)) {
     for (i in 1:length(axisLabels.y)) {
       axisLabels.y[i] <- paste(axisLabels.y[i], 
-                               sprintf(" (n=%i)", length(na.omit(items[, i]))), 
+                               sprintf(" (n=%i)", length(stats::na.omit(items[[i]]))), 
                                sep = "")
     }
   }
@@ -512,7 +541,7 @@ sjp.likert <- function(items,
   # Set up grid breaks
   # --------------------------------------------------------
   gridbreaks <- round(c(seq(-gridRange, gridRange, by = gridBreaksAt)), 2)
-  gridlabs <- ifelse (abs(gridbreaks) > 1, "", paste0(c(abs(round(100 * gridbreaks))), "%"))
+  gridlabs <- ifelse(abs(gridbreaks) > 1, "", paste0(c(abs(round(100 * gridbreaks))), "%"))
   # --------------------------------------------------------
   # start plot here
   # --------------------------------------------------------
@@ -548,15 +577,15 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # should percentage value labels be printed?
   # --------------------------------------------------------
-  percsign <- mydat.pos$percsign <- mydat.neg$percsign <- ifelse (showPercentageSign == TRUE, "%", "")
+  percsign <- mydat.pos$percsign <- mydat.neg$percsign <- ifelse(showPercentageSign == TRUE, "%", "")
   if (nrow(mydat.dk) > 0) mydat.dk$percsign <- percsign
   # --------------------------------------------------------
   # creating value labels for cumulative percentages, so
   # zero-percentages are not printed
   # --------------------------------------------------------
-  ypos.sum.pos.lab  <- ifelse (ypos.sum.pos > 0, sprintf("%.*f%s", labelDigits, 100 * ypos.sum.pos, percsign), "")
-  ypos.sum.neg.lab  <- ifelse (ypos.sum.neg < 0, sprintf("%.*f%s", labelDigits, 100 * abs(ypos.sum.neg), percsign), "")
-  ypos.sum.dk.lab  <- ifelse (ypos.sum.dk > -1, sprintf("%.*f%s", labelDigits, 100 * (1 + ypos.sum.dk), percsign), "")
+  ypos.sum.pos.lab  <- ifelse(ypos.sum.pos > 0, sprintf("%.*f%s", labelDigits, 100 * ypos.sum.pos, percsign), "")
+  ypos.sum.neg.lab  <- ifelse(ypos.sum.neg < 0, sprintf("%.*f%s", labelDigits, 100 * abs(ypos.sum.neg), percsign), "")
+  ypos.sum.dk.lab  <- ifelse(ypos.sum.dk > -1, sprintf("%.*f%s", labelDigits, 100 * (1 + ypos.sum.dk), percsign), "")
   
   if (value.labels == "show") {
     # show them in middle of bar
@@ -586,7 +615,7 @@ sjp.likert <- function(items,
       annotate("text", x = xpos.sum.neg, y = ypos.sum.neg, hjust = hort.neg, label = ypos.sum.neg.lab)
     if (!is.null(cat.neutral)) {
       gp <- gp +
-        annotate("text", x = xpos.sum.dk, y = ypos.sum.dk + 1 -gridRange, hjust = hort.dk, label = ypos.sum.dk.lab)
+        annotate("text", x = xpos.sum.dk, y = ypos.sum.dk + 1 - gridRange, hjust = hort.dk, label = ypos.sum.dk.lab)
     }
   }
   # ---------------------------------------------------------
@@ -622,9 +651,9 @@ sjp.likert <- function(items,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjplikert",
-                       list(plot = gp,
-                            df.neg = mydat.neg,
-                            df.pos = mydat.pos,
-                            df.neutral = mydat.dk)))
+  invisible(structure(class = "sjplikert",
+                      list(plot = gp,
+                           df.neg = mydat.neg,
+                           df.pos = mydat.pos,
+                           df.neutral = mydat.dk)))
 }
