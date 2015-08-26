@@ -5,7 +5,7 @@ utils::globalVariables(c("starts_with"))
 #' @title Summary of linear regression as HTML table
 #' @name sjt.lm
 #' 
-#' @description Summarizes (multiple) fitted linear models (beta coefficients, std. beta values etc.)
+#' @description Summarizes (multiple) fitted linear models (coefficients, std. beta values etc.)
 #'                as HTML table, or saves them as file. The fitted models may have different predictors,
 #'                e.g. when comparing different stepwise fitted models.
 #'                
@@ -24,13 +24,13 @@ utils::globalVariables(c("starts_with"))
 #' @param showHeaderStrings logical, if \code{TRUE}, the header strings \code{stringPredictors}
 #'          and \code{stringDependentVariables} are shown. By default, they're hidden.
 #' @param stringModel string constant used as headline for the model names in case no 
-#'          labels for the dependent variables are provided (see labelDependentVariables).
+#'          labels for the dependent variables are provided (see \code{labelDependentVariables}).
 #'          Default is \code{"Model"}.
 #' @param stringIntercept string constant used as headline for the Intercept row.
 #'          Default is \code{"Intercept"}.
 #' @param stringObservations string constant used in the summary row for the count of observation
 #'          (cases). Default is \code{"Observations"}.
-#' @param stringB string used for the column heading of beta coefficients. Default is \code{"B"}.
+#' @param stringB string used for the column heading of estimates. Default is \code{"B"}.
 #' @param stringSB string used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.
 #' @param stringCI string used for the column heading of confidence interval values. Default is \code{"CI"}.
 #' @param stringSE string used for the column heading of standard error values. Default is \code{"std. Error"}.
@@ -38,11 +38,16 @@ utils::globalVariables(c("starts_with"))
 #' @param showEst logical, if \code{TRUE} (default), the estimates are printed.
 #' @param showConfInt logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 #'          \code{FALSE} to omit the CI in the table.
-#' @param showStdBeta logical, if \code{TRUE}, the standardized beta-coefficients are also printed.
-#'          Default is \code{FALSE}.
+#' @param showStdBeta indicates whether standardized beta-coefficients should 
+#'          also printed, and if yes, which type of standardization is done.
+#'          See 'Details'.
 #' @param showStdError logical, if \code{TRUE}, the standard errors are also printed.
 #'          Default is \code{FALSE}.
-#' @param digits.est amount of decimals for estimators
+#' @param ci.hyphen string, indicating the hyphen for confidence interval range.
+#'          May be an HTML entity. See 'Examples'.
+#' @param minus.sign string, indicating the minus sign for negative numbers.
+#'          May be an HTML entity. See 'Examples'.
+#' @param digits.est amount of decimals for estimates
 #' @param digits.p amount of decimals for p-values
 #' @param digits.ci amount of decimals for confidence intervals
 #' @param digits.se amount of decimals for standard error
@@ -53,36 +58,36 @@ utils::globalVariables(c("starts_with"))
 #' @param boldpvalues logical, if \code{TRUE} (default), significant p-values are shown bold faced.
 #' @param separateConfColumn if \code{TRUE}, the CI values are shown in a separate table column.
 #'          Default is \code{FALSE}.
-#' @param newLineConf logica, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
+#' @param newLineConf logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 #'          between B and CI values. If \code{FALSE}, CI values are printed in the same
-#'          line with B values.
+#'          line as B values.
 #' @param group.pred logical, if \code{TRUE} (default), automatically groups table rows with 
 #'          factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
 #'          be grouped, if the factor has more than two levels. Grouping means that a separate headline
 #'          row is inserted to the table just before the predictor values.
 #' @param showAbbrHeadline logical, if \code{TRUE} (default), the table data columns have a headline with 
-#'          abbreviations for beta- and std. beta-values, confidence interval and p-values.
+#'          abbreviations for estimates and std. beta-values, confidence interval and p-values.
 #' @param showR2 logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
 #'          in the model summary.
 #' @param showFStat If \code{TRUE}, the F-statistics for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param showAIC If \code{TRUE}, the AIC value for each model is printed
+#' @param showAIC logical, if \code{TRUE}, the AIC value for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param showAICc If \code{TRUE}, the second-order AIC value for each model 
+#' @param showAICc logical, if \code{TRUE}, the second-order AIC value for each model 
 #'          is printed in the model summary. Default is \code{FALSE}.
 #' @param remove.estimates numeric vector with indices (order equals to row index of \code{coef(fit)}) 
 #'          or character vector with coefficient names that indicate which estimates should be removed
 #'          from the table output. The first estimate is the intercept, followed by the model predictors.
 #'          \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)} 
-#'          would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output. 
+#'          would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output. 
 #'          \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
 #'          is \code{NULL}, i.e. all estimates are printed.
 #' @param cellSpacing numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 #'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-#'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
+#'          into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 #'          cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.
-#' @param cellGroupIndent Indent for table rows with grouped factor predictors. Only applies
-#'          if \code{group.pred} is \code{TRUE}.
+#' @param cellGroupIndent indent for table rows with grouped factor predictors. Only applies
+#'          if \code{group.pred = TRUE}.
 #'          
 #' @inheritParams sjt.frq
 #'          
@@ -97,7 +102,21 @@ utils::globalVariables(c("starts_with"))
 #'
 #' @note See 'Note' in \code{\link{sjt.frq}}.
 #'  
-#' @details See 'Details' in \code{\link{sjt.frq}}.
+#' @details Concerning the \code{showStdBeta} argument, \code{showStdBeta = "std"}
+#'            will print normal standardized estimates. \code{showStdBeta = "std2"},
+#'            however, standardization of estimates follows 
+#'            \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
+#'            suggestion, rescaling the estimates by dividing them by two standard 
+#'            deviations instead of just one. Resulting coefficients are then 
+#'            directly comparable for untransformed binary predictors. This type 
+#'            of standardization uses the \code{\link[arm]{standardize}}-function.
+#'            For backward compatibility reasons, \code{showStdBeta} also may be 
+#'            a logical value; if \code{TRUE}, normal standardized estimates are 
+#'            printed (same effect as \code{showStdBeta = "std"}). Use 
+#'            \code{showStdBeta = NULL} (default) or \code{showStdBeta = FALSE},
+#'            if standardized estimats should not be printed.
+#'            \cr \cr
+#'            Furthermore, see 'Details' in \code{\link{sjt.frq}}.
 #' 
 #' @examples
 #' \dontrun{
@@ -107,14 +126,10 @@ utils::globalVariables(c("starts_with"))
 #' library(sjmisc)
 #' data(efc)
 #' 
-#' # attach variable labels to each variable of the data
-#' # frame - useful for automatic label detection
-#' efc <- set_var_labels(efc, get_var_labels(efc))
-#' 
 #' # fit first model
-#' fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
+#' fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data = efc)
 #' # fit second model
-#' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
+#' fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data = efc)
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser
 #' # note that we don't need to specify labels for the predictors,
@@ -122,7 +137,7 @@ utils::globalVariables(c("starts_with"))
 #' sjt.lm(fit1, fit2)
 #' 
 #' # create and open HTML-table in RStudio Viewer Pane or web browser
-#' # in the following examples, we set labels via parameter
+#' # in the following examples, we set labels via argument
 #' sjt.lm(fit1, 
 #'        fit2, 
 #'        labelDependentVariables = c("Barthel-Index",
@@ -179,6 +194,8 @@ utils::globalVariables(c("starts_with"))
 #'                            "Carer's Sex", 
 #'                            "Educational Status"),
 #'        showStdBeta = TRUE, 
+#'        ci.hyphen = " to ",
+#'        minus.sign = "&minus;",
 #'        pvaluesAsNumbers = FALSE, 
 #'        separateConfColumn = FALSE)
 #' 
@@ -237,12 +254,8 @@ utils::globalVariables(c("starts_with"))
 #' library(sjmisc)
 #' data(efc)
 #' 
-#' # attach variable labels to each variable of the data
-#' # frame - useful for automatic label detection
-#' efc <- set_var_labels(efc, get_var_labels(efc))
-#' 
 #' # make education categorical
-#' efc$c172code <- to_fac(efc$c172code)
+#' efc$c172code <- to_factor(efc$c172code)
 #'     
 #' # fit first model again (with c172code as factor)
 #' fit1 <- lm(barthtot ~ c160age + c12hour + c172code + c161sex, data=efc)
@@ -260,21 +273,17 @@ utils::globalVariables(c("starts_with"))
 #' library(sjmisc)
 #' data(efc)
 #' 
-#' # attach variable labels to each variable of the data
-#' # frame - useful for automatic label detection
-#' efc <- set_var_labels(efc, get_var_labels(efc))
-#' 
 #' # make education categorical
-#' efc$c172code <- to_fac(efc$c172code)
+#' efc$c172code <- to_factor(efc$c172code)
 #' # make education categorical
-#' efc$e42dep <- to_fac(efc$e42dep)
+#' efc$e42dep <- to_factor(efc$e42dep)
 #' 
 #' # fit first model
-#' fit1 <- lm(neg_c_7 ~ c160age + c172code + c161sex, data=efc)
+#' fit1 <- lm(neg_c_7 ~ c160age + c172code + c161sex, data = efc)
 #' # fit second model
-#' fit2 <- lm(neg_c_7 ~ c160age + c172code + c161sex + c12hour, data=efc)
+#' fit2 <- lm(neg_c_7 ~ c160age + c172code + c161sex + c12hour, data = efc)
 #' # fit second model
-#' fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data=efc)
+#' fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data = efc)
 #'
 #' sjt.lm(fit1, fit2, fit3)
 #'
@@ -287,7 +296,8 @@ utils::globalVariables(c("starts_with"))
 #' # make cope-index categorical
 #' efc$c82cop1 <- to_fac(efc$c82cop1)
 #' # fit another model
-#' fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1, data=efc)
+#' fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1, 
+#'            data = efc)
 #'
 #' sjt.lm(fit1, fit2, fit4, fit3)
 #' 
@@ -324,7 +334,7 @@ utils::globalVariables(c("starts_with"))
 #'        CSS = list(css.modelcolumn4 = 'border-left:1px solid black;',
 #'                   css.modelcolumn5 = 'padding-right:50px;'))}
 #'                   
-#' @import dplyr
+#' @importFrom dplyr full_join slice
 #' @importFrom stats nobs AIC confint coef
 #' @export
 sjt.lm <- function(...,
@@ -344,8 +354,10 @@ sjt.lm <- function(...,
                    stringP = "p",
                    showEst = TRUE,
                    showConfInt = TRUE,
-                   showStdBeta = FALSE,
+                   showStdBeta = NULL,
                    showStdError = FALSE,
+                   ci.hyphen = "&nbsp;&ndash;&nbsp;",
+                   minus.sign = "&#45;",
                    digits.est = 2,
                    digits.p = 3,
                    digits.ci = 2,
@@ -379,13 +391,24 @@ sjt.lm <- function(...,
   } else {
     p_zero <- "0"
   }
+  
   # -------------------------------------
-  # check parameter
+  # check arguments
   # -------------------------------------
-  if (!showEst && !showStdBeta) {
+  # check default for standardized beta valies
+  if (is.null(showStdBeta) || showStdBeta == FALSE) 
+    showStdBetaValues <- FALSE
+  else
+    showStdBetaValues <- TRUE
+  # check if any estimates should be plotted?
+  if (!showEst && !showStdBetaValues) {
     warning("Either estimates ('showEst') or standardized betas ('showStdBeta') must be 'TRUE' to show table. Setting 'showEst' to 'TRUE'.", call. = F)
     showEst <- TRUE
   }
+  # check hyphen for ci-range
+  if (is.null(ci.hyphen)) ci.hyphen <- "&nbsp;&ndash;&nbsp;"
+  # replace space with protected space in ci-hyphen
+  ci.hyphen <- gsub(" ", "&nbsp;", ci.hyphen, fixed = TRUE)
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -525,7 +548,7 @@ sjt.lm <- function(...,
   # --------------------------------------------------------
   if (class(input_list[[1]]) == "list") input_list <- lapply(input_list[[1]], function(x) x)
   # -----------------------------------------------------------
-  # check parameter. No model-summary supported for plm-objects
+  # check argument. No model-summary supported for plm-objects
   # -----------------------------------------------------------
   if (any(class(input_list[[1]]) == "plm")) {
     # -----------------------------------------------------------
@@ -546,7 +569,7 @@ sjt.lm <- function(...,
   # should AICc be computed? Check for package
   # ------------------------
   if (showAICc && !requireNamespace("AICcmodavg", quietly = TRUE)) {
-    warning("Package 'AICcmodavg' needed to show AICc. Parameter 'showAICc' will be ignored.", call. = FALSE)
+    warning("Package 'AICcmodavg' needed to show AICc. Argument 'showAICc' will be ignored.", call. = FALSE)
     showAICc <- FALSE
   }
   
@@ -607,7 +630,7 @@ sjt.lm <- function(...,
     # -------------------------------------
     if (lmerob) {
       # get cleaned CI
-      confis <- get_cleaned_ciMerMod(fit, T)
+      confis <- get_cleaned_ciMerMod(fit, "lm", T)
       sbmer <- suppressWarnings(sjmisc::std_beta(fit)[-1, ])
       sbvals <- data.frame(beta = sbmer[, 1], 
                            ci.low = sbmer[, 1] - 1.96 * sbmer[, 2],
@@ -616,7 +639,10 @@ sjt.lm <- function(...,
       coef.fit <- lme4::fixef(fit)
     } else {
       confis <- stats::confint(fit)
-      sbvals <- suppressWarnings(sjmisc::std_beta(fit, include.ci = T))
+      if (!is.null(showStdBeta) && showStdBeta == "std2") 
+        sbvals <- suppressWarnings(sjmisc::std_beta(fit, include.ci = T, type = "std2"))
+      else
+        sbvals <- suppressWarnings(sjmisc::std_beta(fit, include.ci = T))
       coef.fit <- stats::coef(fit)
     }
     # -------------------------------------
@@ -651,12 +677,7 @@ sjt.lm <- function(...,
     # prepare p-values, either as * or as numbers
     # -------------------------------------
     if (!pvaluesAsNumbers) {
-      fit.df$pv <- sapply(fit.df$pv, function(x) {
-        if (x >= 0.05) x <- c("")
-        else if (x >= 0.01 && x < 0.05) x <- c("*")
-        else if (x >= 0.001 && x < 0.01) x <- c("**")
-        else if (x < 0.001) x <- c("***")
-      })
+      fit.df$pv <- sapply(fit.df$pv, function(x) x <- get_p_stars(x))
     } else {
       if (boldpvalues) {
         sb1 <- "<b>"
@@ -773,8 +794,8 @@ sjt.lm <- function(...,
   if (!showEst && separateConfColumn) headerColSpanFactor <- -1
   if (pvaluesAsNumbers) headerColSpanFactor <- headerColSpanFactor + 1
   if (separateConfColumn) headerColSpanFactor <- headerColSpanFactor + 1
-  if (showStdBeta) headerColSpanFactor <- headerColSpanFactor + 1
-  if (showStdBeta && separateConfColumn) headerColSpanFactor <- headerColSpanFactor + 1
+  if (showStdBetaValues) headerColSpanFactor <- headerColSpanFactor + 1
+  if (showStdBetaValues && separateConfColumn) headerColSpanFactor <- headerColSpanFactor + 1
   if (showStdError) headerColSpanFactor <- headerColSpanFactor + 1
   # now that we know how many columns each model needs,
   # we multiply columns per model with count of models, so we have
@@ -876,7 +897,7 @@ sjt.lm <- function(...,
       # show std. error
       if (showStdError) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames modelcolumn3\">%s</td>", stringSE))
       # show std. beta
-      if (showStdBeta) {
+      if (showStdBetaValues) {
         # confidence interval in separate column
         if (separateConfColumn) {
           page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign colnames modelcolumn4\">%s</td>", stringSB))
@@ -960,9 +981,10 @@ sjt.lm <- function(...,
                                                                             joined.df[1, (i - 1) * 8 + 5]))
         # if we have CI, start new table cell (CI in separate column)
         if (showConfInt) {
-          page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign %smodelcolumn2\">%s&nbsp;-&nbsp;%s</td>", 
+          page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign %smodelcolumn2\">%s%s%s</td>", 
                                                        tcb_class, 
                                                        joined.df[1, (i - 1) * 8 + 3], 
+                                                       ci.hyphen,
                                                        joined.df[1, (i - 1) * 8 + 4]))
         } else {
           page.content <- paste0(page.content, "</td>")
@@ -973,9 +995,10 @@ sjt.lm <- function(...,
                                                      tcb_class, 
                                                      joined.df[1, (i - 1) * 8 + 2]))
         # confidence interval in Beta-column
-        if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%s&nbsp;-&nbsp;%s)", 
+        if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%s%s%s)", 
                                                                       linebreakstring, 
                                                                       joined.df[1, (i - 1) * 8 + 3], 
+                                                                      ci.hyphen,
                                                                       joined.df[1, (i - 1) * 8 + 4]))
         # if p-values are not shown as numbers, insert them after beta-value
         if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("&nbsp;%s", 
@@ -988,11 +1011,11 @@ sjt.lm <- function(...,
                                                                    tcb_class, 
                                                                    joined.df[1, (i - 1) * 8 + 6]))
     # show std. beta
-    if (showStdBeta) page.content <- paste0(page.content, 
+    if (showStdBetaValues) page.content <- paste0(page.content, 
                                             sprintf("<td class=\"tdata centeralign %smodelcolumn4\">&nbsp;</td>", 
                                                     tcb_class))
     # show std. beta
-    if (showStdBeta && showConfInt && separateConfColumn) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign %smodelcolumn5\">&nbsp;</td>", 
+    if (showStdBetaValues && showConfInt && separateConfColumn) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign %smodelcolumn5\">&nbsp;</td>", 
                                                                                                        tcb_class))
     # show p-values as numbers in separate column
     if (pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("<td class=\"tdata centeralign %smodelcolumn6\">%s</td>", 
@@ -1034,10 +1057,10 @@ sjt.lm <- function(...,
         # retieve lower and upper ci
         ci.lo <- joined.df[i + 1, (j - 1) * 8 + 3]
         ci.hi <- joined.df[i + 1, (j - 1) * 8 + 4]
-        # if we have empry cells (due to different predictors in models)
+        # if we have empty cells (due to different predictors in models)
         # we don't print CI-separator strings and we don't print any esitmate
         # values - however, for proper display, we fill these values with "&nbsp;"
-        ci.sep.string <- ifelse(sjmisc::is_empty(ci.lo), "&nbsp;", "&nbsp;-&nbsp;")
+        ci.sep.string <- ifelse(sjmisc::is_empty(ci.lo), "&nbsp;", ci.hyphen)
         # replace empty beta, se and p-values with &nbsp;
         if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 8 + 2])) joined.df[i + 1, (j - 1) * 8 + 2] <- "&nbsp;"
         if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 8 + 5])) joined.df[i + 1, (j - 1) * 8 + 5] <- "&nbsp;"
@@ -1081,7 +1104,7 @@ sjt.lm <- function(...,
                                                sprintf("<td class=\"tdata centeralign modelcolumn3\">%s</td>", 
                                                        joined.df[i + 1, (j - 1) * 8 + 6]))
       # show std. beta
-      if (showStdBeta) {
+      if (showStdBetaValues) {
         # retieve lower and upper ci
         ci.lo <- joined.df[i + 1, (j - 1) * 8 + 8]
         ci.hi <- joined.df[i + 1, (j - 1) * 8 + 9]
@@ -1249,14 +1272,7 @@ sjt.lm <- function(...,
                  fstat[3],
                  lower.tail = FALSE)
       # indicate significance level by stars
-      pan <- c("")
-      if (pval < 0.001) {
-        pan <- c("***")
-      } else  if (pval < 0.01) {
-        pan <- c("**")
-      } else  if (pval < 0.05) {
-        pan <- c("*")
-      }
+      pan <- get_p_stars(pval)
       page.content <- paste(page.content, sprintf("    %s%.*f%s</td>\n", colspanstring, digits.summary, fstat[1], pan))
     }
     page.content <- paste(page.content, "  </tr>\n")
@@ -1295,6 +1311,10 @@ sjt.lm <- function(...,
   if (!pvaluesAsNumbers) page.content <- paste(page.content, sprintf("  <tr class=\"tdata annorow\">\n    <td class=\"tdata\">Notes</td><td class=\"tdata annostyle\" colspan=\"%i\"><em>* p&lt;%s.05&nbsp;&nbsp;&nbsp;** p&lt;%s.01&nbsp;&nbsp;&nbsp;*** p&lt;%s.001</em></td>\n  </tr>\n", headerColSpan, p_zero, p_zero, p_zero), sep = "")
   page.content <- paste0(page.content, "</table>\n")
   # -------------------------------------
+  # proper HTML-minus-signs
+  # -------------------------------------
+  page.content <- gsub("-", minus.sign, page.content, fixed = TRUE, useBytes = TRUE)
+  # -------------------------------------
   # finish table
   # -------------------------------------
   toWrite <- paste0(toWrite, page.content)
@@ -1309,37 +1329,37 @@ sjt.lm <- function(...,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.fixedparts, css.fixedparts, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.randomparts, css.randomparts, knitr, fixed = TRUE)
-  knitr <- gsub(tag.separatorcol, css.separatorcol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.colnames, css.colnames, knitr, fixed = TRUE)
-  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firstsumrow, css.firstsumrow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.labelcellborder, css.labelcellborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.topborder, css.topborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.depvarhead, css.depvarhead, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.topcontentborder, css.topcontentborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.noannorow, css.noannorow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.annorow, css.annorow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.annostyle, css.annostyle, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.grouprow, css.grouprow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.tgrpdata, css.tgrpdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn1, css.modelcolumn1, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn2, css.modelcolumn2, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn3, css.modelcolumn3, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn4, css.modelcolumn4, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn5, css.modelcolumn5, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn6, css.modelcolumn6, knitr, fixed = TRUE)
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.fixedparts, css.fixedparts, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.randomparts, css.randomparts, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.separatorcol, css.separatorcol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.colnames, css.colnames, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firstsumrow, css.firstsumrow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.labelcellborder, css.labelcellborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.topborder, css.topborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.depvarhead, css.depvarhead, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.topcontentborder, css.topcontentborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.noannorow, css.noannorow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.annorow, css.annorow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.annostyle, css.annostyle, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.grouprow, css.grouprow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.tgrpdata, css.tgrpdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn1, css.modelcolumn1, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn2, css.modelcolumn2, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn3, css.modelcolumn3, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn4, css.modelcolumn4, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn5, css.modelcolumn5, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn6, css.modelcolumn6, knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # remove spaces?
   # -------------------------------------
@@ -1372,7 +1392,7 @@ sjt.lm <- function(...,
 #' @name sjt.lmer
 #' 
 #' @description Summarizes (multiple) fitted linear mixed effects models 
-#'                (beta coefficients, std. beta values etc.)  as HTML table, 
+#'                (estimates, std. beta values etc.)  as HTML table, 
 #'                or saves them as file. The fitted models may have different 
 #'                predictors, e.g. when comparing different stepwise fitted models.
 #'                
@@ -1405,7 +1425,7 @@ sjt.lm <- function(...,
 #' 
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+#' levels(x = efc$grp) <- get_labels(efc$e15relat)
 #' efc$care.level <- as.factor(sjmisc::rec(efc$n4pstu, "0=0;1=1;2=2;3:4=4"))
 #' levels(x = efc$care.level) <- c("none", "I", "II", "III")
 #' 
@@ -1426,7 +1446,9 @@ sjt.lm <- function(...,
 #'               (1|carelevel), data = mydf)
 #' 
 #' # print summary table
-#' sjt.lmer(fit1, fit2)
+#' sjt.lmer(fit1, fit2,
+#'          ci.hyphen = " to ",
+#'          minus.sign = "&minus;")
 #' 
 #' sjt.lmer(fit1, fit2,
 #'          showAIC = TRUE,
@@ -1466,6 +1488,8 @@ sjt.lmer <- function(...,
                      showConfInt = TRUE,
                      showStdBeta = FALSE,
                      showStdError = FALSE,
+                     ci.hyphen = "&nbsp;&ndash;&nbsp;",
+                     minus.sign = "&#45;",
                      digits.est = 2,
                      digits.p = 3,
                      digits.ci = 2,
@@ -1495,6 +1519,7 @@ sjt.lmer <- function(...,
                 stringObservations = stringObservations, stringB = stringB, stringSB = stringSB, 
                 stringCI = stringCI, stringSE = stringSE, stringP = stringP, showEst = showEst,
                 showConfInt = showConfInt, showStdBeta = showStdBeta, showStdError = showStdError, 
+                ci.hyphen = ci.hyphen, minus.sign = minus.sign,
                 digits.est = digits.est, digits.p = digits.p, digits.ci = digits.ci,
                 digits.se = digits.se, digits.sb = digits.sb, digits.summary = digits.summary, 
                 pvaluesAsNumbers = pvaluesAsNumbers, boldpvalues = boldpvalues, 

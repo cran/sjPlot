@@ -3,7 +3,7 @@
 #' 
 #' @description Set global theme options for sjp-functions.
 #' 
-#' @param theme specify pre-set themes (see 'Details'). Valid parameter for ggplot default-themes are for instance:
+#' @param theme specify pre-set themes (see 'Details'). Valid argument for ggplot default-themes are for instance:
 #'        \itemize{
 #'          \item \code{theme_bw}
 #'          \item \code{theme_classic}
@@ -110,6 +110,7 @@
 #' @param legend.title.face font face of the legend title. By default, \code{"bold"} face is used.
 #' @param legend.bordercol color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
 #' @param legend.backgroundcol fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
+#' @param legend.item.size size of legend's item (legend key), in centimetres.
 #' @param legend.item.bordercol color of the legend's item-border. Default is \code{"white"}.
 #' @param legend.item.backcol fill color of the legend's item-background. Default is \code{"grey90"}.
 #' @param base base theme where theme is built on. By default, all 
@@ -117,17 +118,17 @@
 #' 
 #' @return The customized theme object, or \code{NULL}, if a ggplot-theme was used.
 #' 
-#' @details If the \code{theme} parameter is one of the valid ggplot-themes, this theme
-#'            will be used and all further parameters will be ignored. If you want to modify
-#'            a ggplot-theme, use \code{base = "theme_xy"}, then further parameters to
+#' @details If the \code{theme} argument is one of the valid ggplot-themes, this theme
+#'            will be used and all further arguments will be ignored. If you want to modify
+#'            a ggplot-theme, use \code{base = "theme_xy"}, then further arguments to
 #'            this function will be applied to the theme as well.
 #'            \cr \cr
-#'            If the \code{theme} parameter is one of sjPlot-pre-set-themes, you
-#'            can use further parameters for specific customization of the theme.
-#'            \emph{sjPlot-pre-set-themes won't work with the \code{base} parameter!}
-#'            The \code{base} parameter is only intended to select a ggplot-theme
+#'            If the \code{theme} argument is one of sjPlot-pre-set-themes, you
+#'            can use further arguments for specific customization of the theme.
+#'            \emph{sjPlot-pre-set-themes won't work with the \code{base} argument!}
+#'            The \code{base} argument is only intended to select a ggplot-theme
 #'            as base for further modifications (which can be triggered via the
-#'            various function parameters).
+#'            various function arguments).
 #' 
 #' @seealso \href{http://www.strengejacke.de/sjPlot/custplot/}{sjPlot manual: customize plot appearance}
 #' 
@@ -191,7 +192,7 @@ sjp.setTheme <- function(# base theme
                          theme = NULL,
                          # title defaults
                          title.color = "black",
-                         title.size = 1.3,
+                         title.size = 1.2,
                          title.align = "left",
                          # geom defaults
                          # geom.colors=NULL,
@@ -205,12 +206,12 @@ sjp.setTheme <- function(# base theme
                          geom.errorbar.linetype = 1,
                          # value labels
                          geom.label.color = NULL,
-                         geom.label.size = 4.5,
+                         geom.label.size = 4,
                          geom.label.alpha = 1,
                          geom.label.angle = 0,
                          # axis titles
                          axis.title.color = "grey30",
-                         axis.title.size = 1.2,
+                         axis.title.size = 1.1,
                          # axis text angle
                          axis.angle.x = 0,
                          axis.angle.y = 0,
@@ -225,8 +226,8 @@ sjp.setTheme <- function(# base theme
                          axis.linecolor = NULL,
                          axis.line.size = 0.5,
                          # axis text size
-                         axis.textsize.x = 1.1,
-                         axis.textsize.y = 1.1,
+                         axis.textsize.x = 1,
+                         axis.textsize.y = 1,
                          axis.textsize = NULL,
                          # axis ticks
                          axis.tickslen = NULL,
@@ -256,6 +257,7 @@ sjp.setTheme <- function(# base theme
                          legend.title.face = "bold",
                          legend.backgroundcol = "white",
                          legend.bordercol = "white",
+                         legend.item.size = NULL,
                          legend.item.backcol = "grey90",
                          legend.item.bordercol = "white",
                          base = theme_grey()) {
@@ -299,20 +301,20 @@ sjp.setTheme <- function(# base theme
     axis.linecolor.x  <- axis.linecolor.y <- axis.linecolor <- g.palette[col.ind]
     legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[col.ind]
     panel.major.gridcol <- g.palette[4]
-    title.color <- g.palette[9]
-    axis.textcolor <- g.palette[6]
-    axis.title.color <- g.palette[7]
-    if (is.null(geom.label.color)) geom.label.color <- g.palette[6]
-    legend.title.color <- g.palette[7]
-    legend.color <- g.palette[6]
+    if (missing(title.color)) title.color <- g.palette[9]
+    if (missing(axis.textcolor)) axis.textcolor <- g.palette[6]
+    if (missing(axis.title.color)) axis.title.color <- g.palette[7]
+    if (missing(geom.label.color) || is.null(geom.label.color)) geom.label.color <- g.palette[6]
+    if (missing(legend.title.color)) legend.title.color <- g.palette[7]
+    if (missing(legend.color)) legend.color <- g.palette[6]
     axis.tickslen <- 0
     # custom modifications
     title.align <- "center"
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
-    message("Theme '538' looks better with panel margins. You may want to use parameter 'expand.grid = TRUE' in sjp-functions.")
+    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    message("Theme '538' looks better with panel margins. You may want to use argument 'expand.grid = TRUE' in sjp-functions.")
   }  
   # ----------------------------------------  
   # check for grey-scaled 539 theme, which are
@@ -332,22 +334,22 @@ sjp.setTheme <- function(# base theme
       panel.major.gridcol <- panel.minor.gridcol <- g.palette[col.ind]
     }
     axis.linecolor <- NULL
-    if (is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[col.ind]
-    if (is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[9]
+    if (missing(axis.linecolor.y) || is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[col.ind]
+    if (missing(axis.linecolor.x) || is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[9]
     legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[col.ind]
-    title.color <- g.palette[9]
-    axis.textcolor <- g.palette[6]
-    axis.title.color <- g.palette[7]
-    if (is.null(geom.label.color)) geom.label.color <- g.palette[6]
-    legend.title.color <- g.palette[7]
-    legend.color <- g.palette[6]
+    if (missing(title.color)) title.color <- g.palette[9]
+    if (missing(axis.textcolor)) axis.textcolor <- g.palette[6]
+    if (missing(axis.title.color)) axis.title.color <- g.palette[7]
+    if (missing(geom.label.color) || is.null(geom.label.color)) geom.label.color <- g.palette[6]
+    if (missing(legend.title.color)) legend.title.color <- g.palette[7]
+    if (missing(legend.color)) legend.color <- g.palette[6]
     axis.tickslen <- 0
     # custom modifications
     title.align <- "center"
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
   }  
   # ----------------------------------------  
   # check for scatter, a theme with crossed
@@ -361,15 +363,15 @@ sjp.setTheme <- function(# base theme
     plot.backcol <- plot.bordercol <- plot.col <- g.palette[col.ind]
     panel.major.gridcol <- panel.minor.gridcol <- g.palette[4]
     axis.linecolor <- g.palette[5]
-    if (is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[col.ind]
-    if (is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[col.ind]
+    if (missing(axis.linecolor.y) || is.null(axis.linecolor.y)) axis.linecolor.y <- g.palette[col.ind]
+    if (missing(axis.linecolor.x) || is.null(axis.linecolor.x)) axis.linecolor.x <- g.palette[col.ind]
     legend.item.backcol <- legend.item.bordercol <- legend.backgroundcol <- legend.bordercol <- g.palette[col.ind]
-    title.color <- g.palette[9]
-    axis.textcolor <- g.palette[6]
-    axis.title.color <- g.palette[7]
-    if (is.null(geom.label.color)) geom.label.color <- g.palette[6]
-    legend.title.color <- g.palette[7]
-    legend.color <- g.palette[6]
+    if (missing(title.color)) title.color <- g.palette[9]
+    if (missing(axis.textcolor)) axis.textcolor <- g.palette[6]
+    if (missing(axis.title.color)) axis.title.color <- g.palette[7]
+    if (missing(geom.label.color) || is.null(geom.label.color)) geom.label.color <- g.palette[6]
+    if (missing(legend.title.color)) legend.title.color <- g.palette[7]
+    if (missing(legend.color)) legend.color <- g.palette[6]
     axis.tickslen <- 0
     # custom modifications
     panel.major.linetype <- panel.minor.linetype <- 2
@@ -377,7 +379,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
   }  
   if (!is.null(theme) && theme == "blues") {
     base <- theme_bw()
@@ -403,7 +405,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
   }  
   if (!is.null(theme) && theme == "greens") {
     base <- theme_bw()
@@ -430,7 +432,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
   }  
   # ----------------------------------------  
   # set defaults for geom label colors
@@ -584,6 +586,13 @@ sjp.setTheme <- function(# base theme
                                         fill = legend.item.backcol))
     }
     # ----------------------------------------
+    # set legend item size
+    # ----------------------------------------
+    if (!is.null(legend.item.size)) {
+      sjtheme <- sjtheme +
+        theme(legend.key.size = grid::unit(legend.item.size, "cm"))
+    }
+    # ----------------------------------------
     # set axis line colors, if defined
     # ----------------------------------------
     if (!is.null(axis.linecolor)) {
@@ -602,11 +611,11 @@ sjp.setTheme <- function(# base theme
     }
     if (!is.null(axis.tickslen)) {
       sjtheme <- sjtheme +
-        theme(axis.ticks.length = unit(axis.tickslen, "cm"))
+        theme(axis.ticks.length = grid::unit(axis.tickslen, "cm"))
     }
     if (!is.null(axis.ticksmar)) {
       sjtheme <- sjtheme +
-        theme(axis.ticks.margin = unit(axis.ticksmar, "cm"))
+        theme(axis.ticks.margin = grid::unit(axis.ticksmar, "cm"))
     }
     # ----------------------------------------
     # set plot colors, if defined
@@ -837,4 +846,108 @@ sj.setGeomColors <- function(plot,
     plot <- uselegendscale(plot, labels)
   }
   return(plot)
+}
+
+
+#' @title Save ggplot-figure for print publication
+#' @name save_plot
+#' 
+#' @description Convenient function to save the last ggplot-figure in
+#'                high quality for publication.
+#' 
+#' @param filename the name of the output file; filename must end with one
+#'          of the following acceptes file types: ".png", ".jpg" or ".tif".
+#' @param fig the plot that should be saved. By default, the last plot is saved.
+#' @param width the width of the figure, in centimetres
+#' @param height the height of the figure, in centimetres
+#' @param dpi resolution in dpi (dots per inch)
+#' @param label.size fontsize of value labels inside plot area
+#' @param axis.textsize fontsize of axis labels
+#' @param axis.titlesize fontsize of axis titles
+#' @param legend.textsize fontsize of legend labels
+#' @param legend.titlesize fontsize of legend title
+#' 
+#' @inheritParams sjp.setTheme
+#' 
+#' @note This is a convenient function with some default settings that should
+#'         come close to most of the needs for fontsize and scaling in figures
+#'         when saving them for printing or publishing. It uses cairographics
+#'         anti-aliasing (see \code{\link[grDevices]{png}}).
+#' 
+#' @import ggplot2
+#' @importFrom grDevices png jpeg tiff dev.off
+#' 
+#' @export
+save_plot <- function(filename,
+                      fig = ggplot2::last_plot(),
+                      width = 12,
+                      height = 9,
+                      dpi = 300,
+                      theme = "forestw",
+                      label.size = 2.4,
+                      axis.textsize = .8,
+                      axis.titlesize = .75,
+                      legend.textsize = .5,
+                      legend.titlesize = .6) {
+  # -------------------------
+  # get file extension
+  # -------------------------
+  ext <- tolower(substring(filename, 
+                           regexpr("\\.[^\\.]*$", filename) + 1, 
+                           nchar(filename)))
+  # -------------------------
+  # valid file ytpe?
+  # -------------------------
+  if (!ext %in% c("png", "jpg", "tif")) {
+    stop("filetype must be one of `.png`, `.jpg` or `.tif`.", call. = F)
+  }
+  # -------------------------
+  # set printable theme, adjust font sizes.
+  # this is the most critical point...
+  # -------------------------
+  # catch old theme
+  curtheme = ggplot2::theme_get()
+  sjp.setTheme(theme = theme, 
+               geom.label.color = "black",
+               axis.title.color = "black",
+               axis.textcolor = "black",
+               legend.title.color = "black",
+               legend.color = "black",
+               geom.label.size = label.size,
+               axis.textsize = axis.textsize,
+               axis.title.size = axis.titlesize,
+               legend.size = legend.textsize,
+               legend.title.size = legend.titlesize,
+               legend.item.size = .35)
+  # -------------------------
+  # prapare save
+  # -------------------------
+  if (ext == "png")
+    grDevices::png(filename = filename,
+        width = width,
+        height = height,
+        units = "cm",
+        res = dpi,
+        type = "cairo")
+  else if (ext == "jpg")
+    grDevices::jpeg(filename = filename,
+         width = width,
+         height = height,
+         units = "cm",
+         res = dpi,
+         type = "cairo")
+  else if (ext == "tif")
+    grDevices::tiff(filename = filename,
+                    width = width,
+                    height = height,
+                    units = "cm",
+                    res = dpi,
+                    type = "cairo")
+  
+  # print plot to device
+  print(fig)
+  # close device
+  grDevices::dev.off()  
+  # set back theme
+  ggplot2::theme_set(curtheme)
 }

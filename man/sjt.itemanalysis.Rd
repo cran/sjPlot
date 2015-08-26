@@ -38,7 +38,7 @@ background color.}
 
 \item{orderColumn}{indicates a column, either by column name or by column index number,
 that should be sorted. Default order is ascending, which can be changed with
-\code{orderAscending} parameter. Default is \code{NULL}, hence the data frame
+\code{orderAscending} argument. Default is \code{NULL}, hence the data frame
 is printed with no specific order. See 'Examples'.}
 
 \item{orderAscending}{logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
@@ -145,7 +145,7 @@ library(sjmisc)
 data(efc)
 
 # retrieve variable and value labels
-varlabs <- get_var_labels(efc)
+varlabs <- get_label(efc)
 
 # recveive first item of COPE-index scale
 start <- which(colnames(efc) == "c82cop1")
@@ -162,7 +162,6 @@ sjt.itemanalysis(mydf)
 # -------------------------------
 # auto-detection of labels
 # -------------------------------
-efc <- set_var_labels(efc, varlabs)
 sjt.itemanalysis(efc[, c(start:end)])
 
 # ---------------------------------------

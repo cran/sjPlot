@@ -9,11 +9,12 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   hideErrorBars = FALSE, showIntercept = TRUE,
   stringIntercept = "(Intercept)", sort.coef = NULL, pred.labels = NULL,
   axisTitle.x = NULL, axisTitle.y = NULL, interceptLineType = 2,
-  interceptLineColor = "grey70", showValueLabels = TRUE, labelDigits = 2,
-  showPValueLabels = TRUE, facet.grid = TRUE, free.scale = FALSE,
-  fade.ns = FALSE, show.se = TRUE, pointAlpha = 0.2,
-  showScatterPlot = TRUE, showLoess = FALSE, showLoessCI = FALSE,
-  poly.term = NULL, printPlot = TRUE)
+  interceptLineColor = "grey70", remove.estimates = NULL,
+  showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
+  facet.grid = TRUE, free.scale = FALSE, fade.ns = FALSE,
+  show.se = TRUE, pointAlpha = 0.2, showScatterPlot = TRUE,
+  showLoess = FALSE, showLoessCI = FALSE, poly.term = NULL,
+  printPlot = TRUE)
 }
 \arguments{
 \item{fit}{a fitted model as returned by the \code{\link[lme4]{lmer}}-function.}
@@ -28,6 +29,7 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
   \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
   \item{\code{"fe.ri"}}{for fixed effects slopes depending on the random intercept.}
+  \item{\code{"coef"}}{for joint (sum of) random and fixed effects coefficients for each explanatory variable for each level of each grouping factor as forst plot.}
   \item{\code{"resp"}}{to plot predicted values for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot.}
   \item{\code{"eff"}}{to plot marginal effects of all fixed terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms. See also 'Details' of \code{\link{sjp.lm}}.}
   \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples' here and 'Details' of \code{\link{sjp.lm}}).}
@@ -36,7 +38,7 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
 \item{vars}{numeric vector with column indices of selected variables or a character vector with
 variable names of selected variables from the fitted model, which should be used to plot
 fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability curves
-(for \code{\link[lme4]{glmer}}) of random intercepts. This parameter only
+(for \code{\link[lme4]{glmer}}) of random intercepts. This argument only
 applies if \code{type} is \code{"fe.pc"}, \code{"ri.pc"} or \code{"fe.ri"}.
 In this case, only those terms specified in \code{"vars"} will be plotted.}
 
@@ -50,13 +52,13 @@ so all random effects will be plotted.}
 If \code{type = "ri.pc"} or \code{type = "fe.ri"}, and \code{facet.grid = FALSE},
 an integrated plot of predicted probabilities of fixed effects resp. fixed
 effects slopes for each grouping level is plotted. To better find
-certain groups, use this parameter to emphasize these groups in the plot.
+certain groups, use this argument to emphasize these groups in the plot.
 See 'Examples'.}
 
 \item{title}{character vector with one or more labels that are used as plot title. If
 \code{type = "re"}, use the predictors' variable labels as titles.}
 
-\item{geom.size}{size of geoms (point size or line size, depending on \code{type}-parameter).}
+\item{geom.size}{size of geoms (point size or line size, depending on \code{type}-argument).}
 
 \item{geom.colors}{user defined color palette for geoms. Must either be vector with two color values
 or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.}
@@ -91,6 +93,11 @@ on the plot type is chosen.}
 \item{interceptLineType}{linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
 
 \item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
+
+\item{remove.estimates}{character vector with coefficient names that indicate
+which estimates should be removed from the plot.
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
+is \code{NULL}, i.e. all estimates are printed.}
 
 \item{showValueLabels}{logical, whether estimate values should be plotted to each dot or not.}
 
@@ -148,7 +155,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 By default, this function plots estimates (coefficients) with confidence
                intervalls of either fixed effects or random effects of linear mixed
                effects models (that have been fitted with the \code{\link[lme4]{lmer}}-function
-               of the \code{lme4} package). Furhermore, this function also plot
+               of the \pkg{lme4}-package). Furhermore, this function also plot
                predicted values or diagnostic plots.
 }
 \examples{
@@ -176,7 +183,7 @@ library(sjmisc)
 data(efc)
 # prepare group variable
 efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+levels(x = efc$grp) <- get_labels(efc$e15relat)
 # data frame for fitted model
 mydf <- data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
                    sex = as.factor(efc$c161sex),

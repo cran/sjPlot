@@ -82,16 +82,16 @@ utils::globalVariables(c("frq", "grp", "upper.ci", "lower.ci", "ia", "..density.
 #' @param normalCurveAlpha transparancy level (alpha value) of the normal curve. Only
 #'          applies if \code{showNormalCurve = TRUE}.
 #' @param axisTitle.x title for the x-axis. By default, the variable name will be 
-#'          automatically detected and used as title (see \code{\link[sjmisc]{set_var_labels}}) 
+#'          automatically detected and used as title (see \code{\link[sjmisc]{set_label}}) 
 #'          for details).
 #' @param axisTitle.y title for the y-axis. By default, this value is \code{NULL},
 #'          i.e. no title is printed.
 #' @param hist.skipZeros logical, if \code{TRUE}, zero counts (categories with no answer) 
 #'          in \code{varCount} are omitted when drawing histrograms, and the mapping 
 #'          is changed to \code{\link[ggplot2]{stat_bin}}. Only applies to  histograms. 
-#'          Use this parameter to get similar results to the default \code{\link[ggplot2]{qplot}} 
+#'          Use this argument to get similar results to the default \code{\link[ggplot2]{qplot}} 
 #'          or \code{\link[ggplot2]{geom_histogram}} histogram plots of ggplot. You may need
-#'          to adjust the \code{geom.size} parameter for better visual results 
+#'          to adjust the \code{geom.size} argument for better visual results 
 #'          (which, by ggplot-default, is 1/30 of the x-axis-range).
 #' @param autoGroupAt numeric value, indicating at which length of unique values of \code{varCount}, 
 #'          automatic grouping into smaller units is done (see \code{\link[sjmisc]{group_var}}).
@@ -103,7 +103,7 @@ utils::globalVariables(c("frq", "grp", "upper.ci", "lower.ci", "ia", "..density.
 #'          See \code{\link[sjmisc]{group_var}} for examples on grouping.
 #' @param labelPos string, indicating the position of value labels, when \code{coord.flip = TRUE}.
 #'          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
-#'          initial letter only. If \code{coord.flip = FALSE}, this parameter will
+#'          initial letter only. If \code{coord.flip = FALSE}, this argument will
 #'          be ignored.
 #'          
 #' @inheritParams sjp.grpfrq
@@ -143,8 +143,8 @@ utils::globalVariables(c("frq", "grp", "upper.ci", "lower.ci", "ia", "..density.
 #' # ---------------
 #' library(sjmisc)
 #' data(efc)
-#' efc.val <- get_val_labels(efc)
-#' efc.var <- get_var_labels(efc)
+#' efc.val <- get_labels(efc)
+#' efc.var <- get_label(efc)
 #' # you may use sjp.setTheme here to change axis textangle
 #' sjp.frq(as.factor(efc$e15relat), 
 #'         title = efc.var[['e15relat']],
@@ -252,7 +252,7 @@ sjp.frq <- function(varCount,
                     na.rm = TRUE,
                     printPlot = TRUE) {
   # --------------------------------------------------------
-  # try to automatically set labels is not passed as parameter
+  # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
   if (is.null(axisLabels.x)) axisLabels.x <- sjmisc:::autoSetValueLabels(varCount)
   if (is.null(interactionVarLabels) && !is.null(interactionVar)) interactionVarLabels <- sjmisc:::autoSetValueLabels(interactionVar)
@@ -264,22 +264,22 @@ sjp.frq <- function(varCount,
   if (!is.null(axisTitle.x) && axisTitle.x == "") axisTitle.x <- NULL
   if (!is.null(title) && title == "") title <- NULL    
   # --------------------------------------------------------
-  # check color parameter
+  # check color argument
   # --------------------------------------------------------
   if (is.null(geom.colors)) {
-    geom.colors <- waiver()
+    geom.colors <- ggplot2::waiver()
   } else if (length(geom.colors) > 1) {
     geom.colors <- geom.colors[1]
   }
-  # --------------------------------------------------------
-  # count variable may not be a factor!
-  # --------------------------------------------------------
-  if (is.factor(varCount)) varCount <- sjmisc::to_value(varCount)
   # --------------------------------------------------------
   # save label values. needed later to determine correct
   # amount of categories
   # --------------------------------------------------------
   labelvalues <- sjmisc::get_values(varCount)
+  # --------------------------------------------------------
+  # count variable may not be a factor!
+  # --------------------------------------------------------
+  if (is.factor(varCount)) varCount <- sjmisc::to_value(varCount, keep.labels = F)
   # --------------------------------------------------------
   # We have several options to name the plot type
   # Here we will reduce it to a unique value
@@ -292,7 +292,7 @@ sjp.frq <- function(varCount,
   if (type == "box" || type == "boxplot") type <- "boxplots"
   if (type == "v" || type == "violins") type <- "violin"
   if (expand.grid == TRUE) {
-    expand.grid <- waiver()
+    expand.grid <- ggplot2::waiver()
   } else {
     expand.grid <- c(0, 0)
   }
@@ -330,16 +330,18 @@ sjp.frq <- function(varCount,
     # group axis labels
     axisLabels.x <- sjmisc::group_labels(varCount, 
                                          groupsize = "auto", 
-                                         autoGroupCount = agcnt)
+                                         groupcount = agcnt)
     # group variable
     varCount <- sjmisc::group_var(varCount, 
                                   groupsize = "auto", 
-                                  asNumeric = TRUE, 
-                                  autoGroupCount = agcnt)
+                                  as.num = TRUE, 
+                                  groupcount = agcnt)
     # set label attributes
-    varCount <- sjmisc::set_val_labels(varCount, axisLabels.x)
+    varCount <- sjmisc::set_labels(varCount, axisLabels.x)
+    # --------------------------------------------------------
     # save label values. needed later to determine correct
     # amount of categories
+    # --------------------------------------------------------
     labelvalues <- sjmisc::get_values(varCount)
   }
   # --------------------------------------------------------
@@ -462,7 +464,8 @@ sjp.frq <- function(varCount,
       }
     } else {
       # ... or the amount of max. answers per category
-      upper_lim <- max(pretty(table(varCount)))
+      # add 5% margin to upper limit
+      upper_lim <- max(pretty(table(varCount) * 1.05))
     }
   }
   # --------------------------------------------------------
@@ -482,7 +485,7 @@ sjp.frq <- function(varCount,
   if (coord.flip) {
     # adjust vertical position for labels, based on whether percentage values
     # are shown or not
-    vert <- waiver() # ifelse((showPercentageValues == TRUE && showCountValues == TRUE), 0.5, 0.1)
+    vert <- ggplot2::waiver() # ifelse((showPercentageValues == TRUE && showCountValues == TRUE), 0.5, 0.1)
     if (labelPos == "inside" || labelPos == "i") {
       hort <- 1.1
     } else {
@@ -492,7 +495,7 @@ sjp.frq <- function(varCount,
     # adjust vertical position for labels, based on whether percentage values
     # are shown or not
     vert <- ifelse((showPercentageValues == TRUE && showCountValues == TRUE), -0.2, -0.6)
-    hort <- waiver()
+    hort <- ggplot2::waiver()
   }
   # --------------------------------------------------------
   # Set value labels
@@ -564,8 +567,8 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   maxx <- max(mydat$var) + 1
   if (is.null(gridBreaksAt)) {
-    gridbreaks <- waiver()
-    histgridbreaks <- waiver()
+    gridbreaks <- ggplot2::waiver()
+    histgridbreaks <- ggplot2::waiver()
   } else {
     gridbreaks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
     histgridbreaks <- c(seq(lower_lim, maxx, by = gridBreaksAt))
@@ -615,7 +618,7 @@ sjp.frq <- function(varCount,
       # show absolute and percentage value of each bar.
       ggvaluelabels +
       # print value labels to the x-axis.
-      # If parameter "axisLabels.x" is NULL, the category numbers (1 to ...) 
+      # If argument "axisLabels.x" is NULL, the category numbers (1 to ...) 
       # appear on the x-axis
       scale_x_discrete(labels = axisLabels.x)
     if (showCI) {
@@ -715,7 +718,7 @@ sjp.frq <- function(varCount,
       # base constructor
       if (hist.skipZeros) {
         x <- stats::na.omit(varCount)
-        if (geom.size < round(diff(range(x)) / 50)) message("Using very small binwidth. Consider adjusting \"geom.size\"-parameter.")
+        if (geom.size < round(diff(range(x)) / 50)) message("Using very small binwidth. Consider adjusting \"geom.size\" argument.")
         hist.dat <- data.frame(x)
         baseplot <- ggplot(mydat)
         basehist <- geom_histogram(data = hist.dat, 

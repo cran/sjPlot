@@ -44,8 +44,8 @@ view_spss <- function(x,
 #' 
 #' @param x \code{data.frame}, imported by \code{\link[sjmisc]{read_spss}},
 #'          \code{\link[sjmisc]{read_sas}} or \code{\link[sjmisc]{read_stata}} function,
-#'          or any similar labelled data frame (see \code{\link[sjmisc]{set_var_labels}}
-#'          and \code{\link[sjmisc]{set_val_labels}}).
+#'          or any similar labelled data frame (see \code{\link[sjmisc]{set_label}}
+#'          and \code{\link[sjmisc]{set_labels}}).
 #' @param showID logical, if \code{TRUE} (default), the variable ID is shown in the first column.
 #' @param showType logical, if \code{TRUE}, the variable type is shown in a separate column. Since
 #'          SPSS variable types are mostly \code{\link{numeric}} after import, this column
@@ -134,8 +134,8 @@ view_df <- function(x,
   # -------------------------------------
   # retrieve value and variable labels
   # -------------------------------------
-  df.var <- sjmisc::get_var_labels(x)
-  df.val <- sjmisc::get_val_labels(x)
+  df.var <- sjmisc::get_label(x)
+  df.val <- sjmisc::get_labels(x)
   # -------------------------------------
   # get row count and ID's
   # -------------------------------------
@@ -216,12 +216,11 @@ view_df <- function(x,
     page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, colnames(x)[index]))
     # type
     if (showType) {
-      vartype <- c("unknown type")
-      if (is.character(x[[index]])) vartype <- c("character")
-      else if (is.factor(x[[index]])) vartype <- c("factor")
-      else if (is.numeric(x[[index]])) vartype <- c("numeric")
-      else if (is.atomic(x[[index]])) vartype <- c("atomic")
-      page.content <- paste0(page.content, sprintf("    <td class=\"tdata%s\">%s</td>\n", arcstring, vartype))
+      vartype <- get.vartype(x[[index]])
+      page.content <- paste0(page.content, 
+                             sprintf("    <td class=\"tdata%s\">%s</td>\n", 
+                                     arcstring, 
+                                     vartype))
     }
     # label
     if (index <= length(df.var)) {
@@ -284,7 +283,7 @@ view_df <- function(x,
     # frequencies
     # ----------------------------
     if (showFreq) {
-      valstring <- c("")
+      valstring <- ""
       # check if we have a valid index
       if (index <= ncol(x) && !is.null(df.val[[index]])) {
         # create frequency table. same function as for
@@ -293,11 +292,14 @@ view_df <- function(x,
                               df.val[[index]], 
                               sjmisc::get_values(x[[index]]),
                               20)$mydat$frq
-        # ftab <- as.numeric(table(x[[index]]))
         # remove last value, which is N for NA
-        for (i in 1:(length(ftab) - 1)) {
-          valstring <- paste0(valstring, ftab[i])
-          if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
+        if (is.na(ftab)) {
+          valstring <- "<NA>"
+        } else {
+          for (i in 1:(length(ftab) - 1)) {
+            valstring <- paste0(valstring, ftab[i])
+            if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
+          }
         }
       } else {
         valstring <- ""
@@ -308,7 +310,7 @@ view_df <- function(x,
     # percentage of frequencies
     # ----------------------------
     if (showPerc) {
-      valstring <- c("")
+      valstring <- ""
       # check for valid indices
       if (index <= ncol(x) && !is.null(df.val[[index]])) {
         # create frequency table, but only get valid percentages
@@ -317,9 +319,13 @@ view_df <- function(x,
                               sjmisc::get_values(x[[index]]),
                               20)$mydat$valid
         # remove last value, which is a NA dummy
-        for (i in 1:(length(ftab) - 1)) {
-          valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
-          if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
+        if (is.na(ftab)) {
+          valstring <- "<NA>"
+        } else {
+          for (i in 1:(length(ftab) - 1)) {
+            valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
+            if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
+          }
         }
       } else {
         valstring <- ""
@@ -347,14 +353,14 @@ view_df <- function(x,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

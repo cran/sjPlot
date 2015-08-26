@@ -8,9 +8,9 @@ sjt.df(mydf, describe = TRUE, file = NULL, alternateRowColors = FALSE,
   orderColumn = NULL, orderAscending = TRUE, title = NULL,
   repeatHeader = FALSE, stringVariable = "Variable", showType = FALSE,
   showRowNames = TRUE, showCommentRow = FALSE,
-  commentString = "No comment...", hideProgressBar = FALSE,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+  commentString = "No comment...", big.mark = NULL,
+  hideProgressBar = FALSE, encoding = NULL, CSS = NULL,
+  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{mydf}{data frame that should be printed as table}
@@ -28,7 +28,7 @@ background color.}
 
 \item{orderColumn}{indicates a column, either by column name or by column index number,
 that should be sorted. Default order is ascending, which can be changed with
-\code{orderAscending} parameter. Default is \code{NULL}, hence the data frame
+\code{orderAscending} argument. Default is \code{NULL}, hence the data frame
 is printed with no specific order. See 'Examples'.}
 
 \item{orderAscending}{logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
@@ -54,6 +54,9 @@ the table. Use \code{commentString} to specify the comment.}
 
 \item{commentString}{string that will be added to the end / below the table. Only
 applies, if \code{showCommentRow = TRUE}.}
+
+\item{big.mark}{character; if not \code{NULL}, used as mark between every
+thousands decimals before (hence big) the decimal point}
 
 \item{hideProgressBar}{logical, if \code{TRUE}, the progress bar that is displayed when creating the
          table is hidden. Default in \code{FALSE}, hence the bar is visible.}
@@ -92,7 +95,7 @@ Invisibly returns
 \description{
 Shows description or the content of data frame (rows and columns) as HTML table,
                or saves it as file. Helpful if you want a quick overview of a data frame's
-               content. See parameter \code{describe} for details. By default, \code{describe}
+               content. See argument \code{describe} for details. By default, \code{describe}
                is \code{TRUE} and a description of the data frame is given,
                using the \code{\link[psych]{describe}} function of the \code{psych} package.
 }
@@ -134,6 +137,10 @@ sjt.df(efc[1:20, 1:5],
        orderColumn = 4,
        orderAscending = FALSE,
        describe = FALSE)
+
+# add big mark to thousands
+library(datasets)
+sjt.df(as.data.frame(WorldPhones), big.mark = ",")
 
 # ----------------------------------------------------------------
 # User defined style sheet

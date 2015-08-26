@@ -18,12 +18,12 @@ should be correlated.}
 
 \item{title}{plot title as string. Example: \code{title = "my title"}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 no title is printed.}
 
 \item{axisLabels}{labels for the x- andy y-axis. AxisLabels are detected automatically
 if \code{data} is a \code{\link{data.frame}} where variables have
-label attributes (see \code{\link[sjmisc]{set_var_labels}})
+label attributes (see \code{\link[sjmisc]{set_label}})
 for details).}
 
 \item{type}{indicates whether the geoms of correlation values should be plotted
@@ -47,7 +47,7 @@ the values labels are shown. Default is 3. Only applies when
 \item{geom.colors}{color palette for fillng the geoms. If not specified, the diverging color palette
          from the color brewer palettes (RdBu) is used, resulting in red colors for negative and blue colors
          for positive correlations, that become lighter the weaker the correlations are. Use any
-         color palette that is suitbale for the \code{scale_fill_gradientn} parameter of ggplot2.}
+         color palette that is suitbale for the \code{scale_fill_gradientn} argument of ggplot2.}
 
 \item{geom.size}{specifies the circle size factor. The circle size depends on the correlation
 value multiplicated with this factor. Default is 15.}
@@ -79,7 +79,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
           (\code{corr.matrix}).
 }
 \description{
-Plot correlation matrix as ellipses or tiles. Required parameter is either
+Plot correlation matrix as ellipses or tiles. Required argument is either
                a \code{\link{data.frame}} or a matrix with correlation coefficients
                as returned by the \code{\link{cor}}-function. In case of ellipses, the
                ellipses size indicates the strength of the correlation. Furthermore,
@@ -114,7 +114,7 @@ library(sjmisc)
 data(efc)
 
 # retrieve variable and value labels
-varlabs <- get_var_labels(efc)
+varlabs <- get_label(efc)
 
 # create data frame
 vars.index <- c(1, 4, 15, 19, 20, 21, 22, 24, 25)

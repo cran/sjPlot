@@ -1,14 +1,22 @@
 # bind global variables
 utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 
-#' @title Plot beta coefficients of multiple fitted lm's
+#' @title Plot coefficients of multiple fitted lm's
 #' @name sjp.lmm
 #' 
-#' @description Plot beta coefficients (estimates) with confidence intervalls of multiple fitted linear models
-#'                in one plot.
+#' @description Plot and compare coefficients (estimates) with confidence 
+#'                intervals of  multiple fitted linear models in one plot. 
+#'                Fitted models may have differing predictors, but only
+#'                in a "stepwise" sense.
 #'                
 #' @param ... one or more fitted lm-objects. May also be a \code{\link{list}}-object with 
 #'          fitted models, instead of separating each model with comma. See 'Examples'.
+#' @param type type of plot. Use one of following:
+#'          \describe{
+#'            \item{\code{"lm"}}{(default) for forest-plot like plot of estimates.}
+#'            \item{\code{"std"}}{for forest-plot like plot of standardized beta values.}
+#'            \item{\code{"std2"}}{for forest-plot like plot of standardized beta values, however, standardization is done by rescaling estimates by dividing them by two sd (see 'Details' in \code{\link{sjp.lm}}).}
+#'          }
 #' @param title diagram's title as string.
 #' @param legendDepVarTitle character vector used for the legend title.
 #'          Default is \code{"Dependent Variables"}.
@@ -39,7 +47,12 @@ utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 #' @inheritParams sjp.lm
 #' @inheritParams sjt.lm
 #' @inheritParams sjp.grpfrq
-#'           
+#'          
+#' @note The fitted models may have differing predictors, but only in a 
+#'         "stepwise" sense; i.e., models should share a common set of predictors,
+#'         while some models may have additional predictors (e.g. added via
+#'         the \code{\link[stats]{update}} function). See 'Examples'.
+#'             
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df}).
 #'          
@@ -56,9 +69,10 @@ utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 #' fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data = efc)
 #' 
 #' # plot multiple models
-#' sjp.lmm(fit1, fit2, fit3, facet.grid = TRUE, fade.ns = FALSE)
+#' sjp.lmm(fit1, fit2, fit3, facet.grid = TRUE)
 #' 
-#' # plot multiple models with legend labels and point shapes instead of value  labels
+#' # plot multiple models with legend labels and 
+#' # point shapes instead of value labels
 #' sjp.lmm(fit1, fit2, fit3,
 #'          axisLabels.y = c("Carer's Age",
 #'                           "Hours of Care", 
@@ -69,9 +83,12 @@ utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 #'                                      "Services used"),
 #'          showValueLabels = FALSE,
 #'          showPValueLabels = FALSE,
+#'          fade.ns = TRUE,
 #'          usePShapes = TRUE)
 #' 
-#' # plot multiple models from nested lists parameter
+#' # ------------------------------
+#' # plot multiple models from nested lists argument
+#' # ------------------------------
 #' all.models <- list()
 #' all.models[[1]] <- fit1
 #' all.models[[2]] <- fit2
@@ -79,11 +96,24 @@ utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 #' 
 #' sjp.lmm(all.models)
 #' 
+#' # ------------------------------
+#' # plot multiple models with different
+#' # predictors (stepwise inclusion),
+#' # standardi estimates
+#' # ------------------------------
+#' fit1 <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars)
+#' fit2 <- update(fit1, . ~ . + hp)
+#' fit3 <- update(fit2, . ~ . + am)
+#' 
+#' sjp.lmm(fit1, fit2, fit3, type = "std2")
+#' 
 #' @import ggplot2
 #' @import sjmisc
 #' @importFrom stats coef confint
+#' @importFrom dplyr slice
 #' @export
 sjp.lmm <- function(...,
+                    type = "lm",
                     title = NULL,
                     labelDependentVariables = NULL,
                     legendDepVarTitle = "Dependent Variables",
@@ -99,10 +129,11 @@ sjp.lmm <- function(...,
                     geom.size = 3,
                     geom.spacing = 0.4,
                     geom.colors = "Set1",
-                    fade.ns = TRUE,
+                    fade.ns = FALSE,
                     usePShapes = FALSE,
                     interceptLineType = 2,
                     interceptLineColor = "grey70",
+                    remove.estimates = NULL,
                     coord.flip = TRUE,
                     showIntercept = FALSE,
                     showAxisLabels.y = TRUE,
@@ -162,7 +193,26 @@ sjp.lmm <- function(...,
     # ----------------------------
     # retrieve beta's (lm)
     # ----------------------------
-    betas <- data.frame(stats::coef(fit), stats::confint(fit))
+    if (type == "std") {
+      # retrieve standardized betas
+      betas <- data.frame(rbind(data.frame(beta = 0, ci.low = 0, ci.hi = 0),
+                                suppressWarnings(sjmisc::std_beta(fit, include.ci = TRUE))))
+      # no intercept for std
+      showIntercept <- FALSE
+    } else if (type == "std2") {
+      # retrieve standardized betas
+      betas <- data.frame(rbind(data.frame(beta = 0, ci.low = 0, ci.hi = 0),
+                                sjmisc::std_beta(fit, include.ci = TRUE, type = "std2")))
+      # no intercept for std
+      showIntercept <- FALSE
+    } else {
+      # copy estimates to data frame
+      betas <- data.frame(stats::coef(fit), stats::confint(fit))
+    }
+    # ----------------------------
+    # give proper column names
+    # ----------------------------
+    colnames(betas) <- c("beta", "ci.low", "ci.hi")
     # ----------------------------
     # print p-values in bar charts
     # ----------------------------
@@ -173,7 +223,7 @@ sjp.lmm <- function(...,
     # p < 0.001 = ***
     # p < 0.01 = **
     # p < 0.05 = *
-    ov <- stats::coef(fit)
+    ov <- betas[, 1]
     # "ps" holds the p-value of the coefficients, including asterisks, as
     # string vector
     ps <- NULL
@@ -213,36 +263,51 @@ sjp.lmm <- function(...,
       }
     }  
     # ----------------------------
-    # check if user defined labels have been supplied
-    # if not, use variable names from data frame
-    # ----------------------------
-    if (is.null(axisLabels.y)) {
-      axisLabels.y <- row.names(betas)
-      #remove intercept from labels
-      if (!showIntercept) axisLabels.y <- axisLabels.y[-1]
-    }
-    # ----------------------------
     # bind p-values to data frame
     # ----------------------------
     betas <- data.frame(betas, ps, palpha, pointshapes, fitcnt)
     # set column names
     colnames(betas) <- c("beta", "lower", "upper", "p", "pa", "shape", "grp")
-    # set x-position
-    betas$xpos <- c(nrow(betas):1)
-    betas$xpos <- as.factor(betas$xpos)
     #remove intercept from df
     if (!showIntercept) betas <- betas[-1, ]
+    # add rownames
+    betas$term <- row.names(betas)
     # add data frame to final data frame
     finalbetas <- rbind(finalbetas, betas)
   }
-  # convert to factor
+  # ----------------------------
+  # check if user defined labels have been supplied
+  # if not, use variable names from data frame
+  # ----------------------------
+  # reverse x-pos, convert to factor
+  finalbetas$xpos <- sjmisc::to_value(as.factor(finalbetas$term), keep.labels = F)
   finalbetas$xpos <- as.factor(finalbetas$xpos)
   finalbetas$grp <- as.factor(finalbetas$grp)
   # convert to character
   finalbetas$shape <- as.character(finalbetas$shape)
-  # reverse axislabel order, so predictors appear from top to bottom
-  # as they appear in the console when typing "summary(fit)"
-  axisLabels.y <- rev(axisLabels.y)
+  # -------------------------------------------------
+  # remove any estimates from the output?
+  # -------------------------------------------------
+  if (!is.null(remove.estimates)) {
+    # get row indices of rows that should be removed
+    remrows <- c()
+    for (re in 1:length(remove.estimates)) {
+      remrows <- c(remrows, which(substr(row.names(finalbetas), 
+                                         start = 1, 
+                                         stop = nchar(remove.estimates[re])) == remove.estimates[re]))
+    }
+    # remember old rownames
+    keepnames <- row.names(finalbetas)[-remrows]
+    # remove rows
+    finalbetas <- dplyr::slice(finalbetas, c(1:nrow(finalbetas))[-remrows])
+    # set back rownames
+    row.names(finalbetas) <- keepnames
+  }
+  # set axis labels
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- unique(finalbetas$term)
+    axisLabels.y <- axisLabels.y[order(unique(finalbetas$xpos))]
+  }
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user defined range
@@ -274,12 +339,26 @@ sjp.lmm <- function(...,
   }
   if (!showAxisLabels.y) axisLabels.y <- c("")
   # --------------------------------------------------------
+  # prepare star and shape values. we just copy those values
+  # that are actually needed, so legend shapes are always 
+  # identical, independent whether model have only two 
+  # different p-levels or four.
+  # --------------------------------------------------------
+  shape.values <- c(1, 16, 17, 15)
+  star.values <- c("n.s.", "*", "**", "***")
+  shape.values <- shape.values[sort(as.numeric(unique(finalbetas$shape)))]
+  star.values <- star.values[sort(as.numeric(unique(finalbetas$shape)))]
+  # --------------------------------------------------------
   # body of plot
   # --------------------------------------------------------
   # The order of aesthetics matters in terms of ordering the error bars!
   # Using alpha-aes before colour would order error-bars according to
   # alpha-level instead of colour-aes.
-  plotHeader <- ggplot(finalbetas, aes(y = beta, x = xpos, colour = grp, alpha = pa))
+  plotHeader <- ggplot(finalbetas, aes(y = beta, 
+                                       x = xpos, 
+                                       group = grp, 
+                                       colour = grp, 
+                                       alpha = pa))
   # --------------------------------------------------------
   # start with dot-plotting here
   # first check, whether user wants different shapes for
@@ -297,8 +376,8 @@ sjp.lmm <- function(...,
                  size = geom.size, 
                  position = position_dodge(-geom.spacing)) +
       # and use a shape scale, in order to have a legend
-      scale_shape_manual(values = c(1, 16, 17, 15), 
-                         labels = c("n.s.", "*", "**", "***"))
+      scale_shape_manual(values = shape.values, 
+                         labels = star.values)
   } else {
     plotHeader <- plotHeader +
       geom_point(size = geom.size, position = position_dodge(-geom.spacing))

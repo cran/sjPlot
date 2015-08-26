@@ -27,7 +27,7 @@ is grouped into the categories represented by \code{grp}.}
 
 \item{title}{plot title as string. Example: \code{title = "my title"}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 no title is printed.}
 
 \item{legendTitle}{title of the plot legend, as string.}
@@ -50,13 +50,13 @@ can be added to the plot (see \code{showTotalColumn}).}
 \item{reverseOrder}{logical, whether categories along the x-axis should apper in reversed order or not.}
 
 \item{axisLimits.y}{numeric vector of length two, defining lower and upper axis limits
-of the y scale. By default, this parameter is set to \code{NULL}, i.e. the
+of the y scale. By default, this argument is set to \code{NULL}, i.e. the
 y-axis ranges from 0 to required maximum.}
 
 \item{axisLabels.x}{a character vector with labels for the x-axis breaks. \strong{Note:}
 Axis labels will be automatically detected, when data was either imported
 with \code{\link[sjmisc]{read_spss}} or has named factor levels
-(see 'Examples'). Else, specifiy parameter like this:
+(see 'Examples'). Else, specifiy argument like this:
 \code{axisLabels.x = c("Label1", "Label2", "Label3")}.
 The labels may also be passed as \code{\link{list}} object. They will be coerced
 to character vector automatically.}
@@ -83,7 +83,7 @@ are displayed in one line and when a line break is inserted.}
 \item{breakLegendLabelsAt}{determines how many chars of the legend labels are
 displayed in one line and when a line break is inserted.}
 
-\item{gridBreaksAt}{set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th
+\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th
 position a major grid is being printed.}
 
 \item{geom.size}{size resp. width of the geoms (bar width).}
@@ -95,11 +95,11 @@ of same length as groups defined in \code{x}, or a specific color palette code.
 See 'Note' in \code{\link{sjp.grpfrq}}.}
 
 \item{barPosition}{indicates whether bars should be positioned side-by-side (default)
-or stacked (use \code{"stack"} as parameter).}
+or stacked (use \code{"stack"} as argument).}
 
-\item{lineDotSize}{dot size, only applies, when parameter \code{type = "lines"}.}
+\item{lineDotSize}{dot size, only applies, when argument \code{type = "lines"}.}
 
-\item{smoothLines}{prints a smooth line curve. Only applies, when parameter \code{type = "lines"}.}
+\item{smoothLines}{prints a smooth line curve. Only applies, when argument \code{type = "lines"}.}
 
 \item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 axes and plotting region. Default is \code{FALSE}.}
@@ -126,7 +126,7 @@ values lower than five(or lower than 10 if df is 1), the Fisher's excact test
 (see \code{\link{fisher.test}}) is computed instead of Chi-squared test.
 If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo
 simulation is computed. Only applies to barcharts or dotplots, i.e.
-when parameter \code{type = "bars"} or \code{"dots"}.}
+when argument \code{type = "bars"} or \code{"dots"}.}
 
 \item{tableSummaryPos}{position of the model summary which is printed when \code{showTableSummary}
 is \code{TRUE}. Default is \code{"r"}, i.e. it's printed to the upper right corner.
@@ -140,11 +140,11 @@ to each category.}
 
 \item{axisTitle.x}{title for the x-axis. Default is \code{NULL}, so variable name
 of \code{x} will automatically be detected and used as axis title
-(see \code{\link[sjmisc]{set_var_labels}}) for details).}
+(see \code{\link[sjmisc]{set_label}}) for details).}
 
 \item{axisTitle.y}{title for the y-axis. Default is \code{NULL}, so variable name
          of \code{grp} will automatically be detected and used as axis title
-         (see \code{\link[sjmisc]{set_var_labels}}) for details).}
+         (see \code{\link[sjmisc]{set_label}}) for details).}
 
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
@@ -195,8 +195,8 @@ sjp.xtab(efc$e42dep,
 # dataset was importet from an SPSS-file,
 # see ?sjmisc::read_spss
 data(efc)
-efc.val <- get_val_labels(efc)
-efc.var <- get_var_labels(efc)
+efc.val <- get_labels(efc)
+efc.var <- get_label(efc)
 
 sjp.xtab(efc$e42dep,
          efc$e16sex,

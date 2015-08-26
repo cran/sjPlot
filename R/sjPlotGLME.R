@@ -10,7 +10,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #' @description By default, this function plots odds ratios (exponentiated coefficients) 
 #'                with confidence intervalls of either fixed effects or random effects of 
 #'                generalized linear mixed effects models (that have been fitted with the 
-#'                \code{\link[lme4]{glmer}}-function of the \code{lme4} package).
+#'                \code{\link[lme4]{glmer}}-function of the \pkg{lme4}-package).
 #'                Furthermore, this function also plots predicted probabilities or 
 #'                diagnostic plots.
 #'
@@ -29,7 +29,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #' @param vars numeric vector with column indices of selected variables or a character vector with
 #'          variable names of selected variables from the fitted model, which should be used to plot 
 #'          fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability curves 
-#'          (for \code{\link[lme4]{glmer}}) of random intercepts. This parameter only 
+#'          (for \code{\link[lme4]{glmer}}) of random intercepts. This argument only 
 #'          applies if \code{type} is \code{"fe.pc"}, \code{"ri.pc"} or \code{"fe.ri"}.
 #'          In this case, only those terms specified in \code{"vars"} will be plotted.
 #' @param ri.nr numeric vector. If \code{type = "re"}, \code{type = "ri.pc"} or \code{type = "fe.ri"},
@@ -41,7 +41,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #'          If \code{type = "ri.pc"} or \code{type = "fe.ri"}, and \code{facet.grid = FALSE}, 
 #'          an integrated plot of predicted probabilities of fixed effects resp. fixed 
 #'          effects slopes for each grouping level is plotted. To better find
-#'          certain groups, use this parameter to emphasize these groups in the plot.
+#'          certain groups, use this argument to emphasize these groups in the plot.
 #'          See 'Examples'.
 #' @param show.se logical, use \code{TRUE} to plot (depending on \code{type}) the standard
 #'          error for predicted values or confidence intervals for slope lines.
@@ -49,7 +49,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #'          \code{type = "re"}, use the predictors' variable labels as titles.
 #' @param geom.colors user defined color palette for geoms. Must either be vector with two color values
 #'          or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.
-#' @param geom.size size of geoms (point size or line size, depending on \code{type}-parameter).
+#' @param geom.size size of geoms (point size or line size, depending on \code{type}-argument).
 #' @param hideErrorBars logical, if \code{TRUE}, the error bars that indicate the confidence intervals of the odds ratios are not
 #'          shown.
 #' @param showIntercept logical, if \code{TRUE}, the intercept is included when plotting random or fixed effects.
@@ -85,6 +85,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #'          the grid has the same scale range.
 #'          
 #' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.lm
 #' 
 #' @return (Insisibily) returns
 #'          \itemize{
@@ -122,7 +123,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #' library(lme4)
 #' library(sjmisc)
 #' # create binary response
-#' sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dichBy = "md")
+#' sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "md")
 #' # fit model
 #' fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
 #'              sleepstudy,
@@ -139,7 +140,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #' efc$hi_qol <- dicho(efc$quol_5)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+#' levels(x = efc$grp) <- get_labels(efc$e15relat)
 #' # data frame for fitted model
 #' mydf <- data.frame(hi_qol = as.factor(efc$hi_qol),
 #'                    sex = as.factor(efc$c161sex),
@@ -171,6 +172,7 @@ utils::globalVariables(c("nQQ", "ci", "fixef", "fade", "lower.CI", "upper.CI", "
 #'           vars = "neg_c_7")
 #'
 #' @import ggplot2
+#' @importFrom dplyr slice
 #' @export
 sjp.glmer <- function(fit,
                       type = "re",
@@ -191,6 +193,7 @@ sjp.glmer <- function(fit,
                       free.scale = FALSE,
                       interceptLineType = 2,
                       interceptLineColor = "grey70",
+                      remove.estimates = NULL,
                       showValueLabels = TRUE,
                       labelDigits = 2,
                       showPValueLabels = TRUE,
@@ -219,6 +222,7 @@ sjp.glmer <- function(fit,
            axisTitle.y,
            interceptLineType,
            interceptLineColor,
+           remove.estimates,
            showValueLabels,
            labelDigits,
            showPValueLabels,
@@ -244,7 +248,7 @@ sjp.glmer <- function(fit,
 #' @description By default, this function plots estimates (coefficients) with confidence
 #'                intervalls of either fixed effects or random effects of linear mixed 
 #'                effects models (that have been fitted with the \code{\link[lme4]{lmer}}-function
-#'                of the \code{lme4} package). Furhermore, this function also plot 
+#'                of the \pkg{lme4}-package). Furhermore, this function also plot 
 #'                predicted values or diagnostic plots.
 #'
 #' @param fit a fitted model as returned by the \code{\link[lme4]{lmer}}-function.
@@ -258,6 +262,7 @@ sjp.glmer <- function(fit,
 #'            \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
 #'            \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
 #'            \item{\code{"fe.ri"}}{for fixed effects slopes depending on the random intercept.}
+#'            \item{\code{"coef"}}{for joint (sum of) random and fixed effects coefficients for each explanatory variable for each level of each grouping factor as forst plot.}
 #'            \item{\code{"resp"}}{to plot predicted values for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot.}
 #'            \item{\code{"eff"}}{to plot marginal effects of all fixed terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms. See also 'Details' of \code{\link{sjp.lm}}.}
 #'            \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples' here and 'Details' of \code{\link{sjp.lm}}).}
@@ -281,6 +286,7 @@ sjp.glmer <- function(fit,
 #'          
 #' @inheritParams sjp.glmer
 #' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.lm
 #' 
 #' @return (Insisibily) returns
 #'          \itemize{
@@ -314,7 +320,7 @@ sjp.glmer <- function(fit,
 #' data(efc)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+#' levels(x = efc$grp) <- get_labels(efc$e15relat)
 #' # data frame for fitted model
 #' mydf <- data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
 #'                    sex = as.factor(efc$c161sex),
@@ -403,16 +409,17 @@ sjp.lmer <- function(fit,
                      axisTitle.y = NULL,
                      interceptLineType = 2,
                      interceptLineColor = "grey70",
-                     showValueLabels=TRUE,
-                     labelDigits=2,
-                     showPValueLabels=TRUE,
+                     remove.estimates = NULL,
+                     showValueLabels = TRUE,
+                     labelDigits = 2,
+                     showPValueLabels = TRUE,
                      facet.grid = TRUE,
                      free.scale = FALSE,
                      fade.ns = FALSE,
                      show.se = TRUE,
-                     pointAlpha=0.2,
-                     showScatterPlot=TRUE,
-                     showLoess=FALSE,
+                     pointAlpha = 0.2,
+                     showScatterPlot = TRUE,
+                     showLoess = FALSE,
                      showLoessCI=FALSE,
                      poly.term = NULL,
                      printPlot = TRUE) {
@@ -438,6 +445,7 @@ sjp.lmer <- function(fit,
            axisTitle.y,
            interceptLineType,
            interceptLineColor,
+           remove.estimates,
            showValueLabels,
            labelDigits,
            showPValueLabels,
@@ -471,6 +479,7 @@ sjp.lme4  <- function(fit,
                       axisTitle.y,
                       interceptLineType,
                       interceptLineColor,
+                      remove.estimates,
                       showValueLabels,
                       labelDigits,
                       showPValueLabels,
@@ -500,8 +509,8 @@ sjp.lme4  <- function(fit,
   if (type != "re" && type != "fe" && type != "fe.std" && type != "fe.cor" &&
       type != "re.qq" && type != "fe.pc" && type != "ri.pc" && type != "fe.pred" &&
       type != "fe.prob" && type != "ri.prob" && type != "fe.ri" && type != "y.pc" && 
-      type != "fe.resid" && type != "poly" && type != "eff") {
-    warning("'type' must be one of 're', 'fe', 'fe.cor', 're.qq', 'fe.ri', 'fe.pc', 'fe.pred', 'fe.resid', 'poly', 'eff', 'y.pred', 'ri.pc', 'y.pc', 'y.prob', 'fe.std', 'fe.prob' or 'ri.prob'. Defaulting to 'fe' now.")
+      type != "fe.resid" && type != "poly" && type != "eff" && type != "coef") {
+    warning("'type' must be one of 're', 'fe', 'fe.cor', 're.qq', 'fe.ri', 'fe.pc', 'fe.pred', 'fe.resid', 'poly', 'eff', 'y.pred', 'ri.pc', 'y.pc', 'y.prob', 'coef', 'fe.std', 'fe.prob' or 'ri.prob'. Defaulting to 'fe' now.")
     type  <- "fe"
   }
   # ---------------------------------------
@@ -520,7 +529,7 @@ sjp.lme4  <- function(fit,
   # all effects
   # ---------------------------------------
   loops <- 1
-  if (type == "re" || type == "fe.ri" || type == "ri.pc") {
+  if (type == "re" || type == "fe.ri" || type == "ri.pc" || type == "coef") {
     # ---------------------------------------
     # get amount of random intercepts
     # ---------------------------------------
@@ -766,11 +775,15 @@ sjp.lme4  <- function(fit,
     # check whether random or fixed effects
     # should be plotted
     # ---------------------------------------
-    if (type == "re") {
+    if (type == "re" || type == "coef") {
       # ---------------------------------------
       # copy estimates of random effects
       # ---------------------------------------
-      mydf.ef <- as.data.frame(lme4::ranef(fit)[[lcnt]])
+      if (type == "coef") {
+        mydf.ef <- as.data.frame(coef(fit)[[lcnt]])
+      } else {
+        mydf.ef <- as.data.frame(lme4::ranef(fit)[[lcnt]])
+      }
       # ---------------------------------------
       # copy rownames as axis labels, if not set
       # ---------------------------------------
@@ -791,7 +804,11 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # retrieve standard errors, for ci
       # ---------------------------------------
-      se.fit <- arm::se.ranef(fit)[[lcnt]]
+      if (type == "coef") {
+        se.fit <- data.frame(t(sjmisc::se(fit)[[lcnt]]))
+      } else {
+        se.fit <- arm::se.ranef(fit)[[lcnt]]
+      }
       # ---------------------------------------
       # select random effects for each coefficient
       # ---------------------------------------
@@ -883,7 +900,7 @@ sjp.lme4  <- function(fit,
           warning("'type = fe.std' only works for linear models.", call. = F)
         }
         # get odds ratios and cleaned CI
-        mydf <- get_cleaned_ciMerMod(fit)
+        mydf <- get_cleaned_ciMerMod(fit, fun)
       } else {
         if (type == "fe.std") {
           tmpdf <- sjmisc::std_beta(fit)
@@ -894,7 +911,7 @@ sjp.lme4  <- function(fit,
           rownames(mydf) <- names(lme4::fixef(fit))
         } else {
           # get odds ratios and cleaned CI
-          mydf <- get_cleaned_ciMerMod(fit)
+          mydf <- get_cleaned_ciMerMod(fit, fun)
         }
       }
       # ----------------------------
@@ -930,15 +947,7 @@ sjp.lme4  <- function(fit,
       # ----------------------------
       if (showPValueLabels) {
         for (i in 1:length(pv)) {
-          if (is.na(pv[i])) {
-            ps[i] <- ""
-          } else if (pv[i] >= 0.01 && pv[i] < 0.05) {
-            ps[i] <- paste(ps[i], "*")
-          } else if (pv[i] >= 0.001 && pv[i] < 0.01) {
-            ps[i] <- paste(ps[i], "**")
-          } else if (pv[i] < 0.001) {
-            ps[i] <- paste(ps[i], "***")
-          }
+          ps[i] <- sjmisc::trim(paste(ps[i], get_p_stars(pv[i])))
         }
       }
       # bind p-values
@@ -957,6 +966,22 @@ sjp.lme4  <- function(fit,
       # show intercept?
       # ---------------------------------------
       if (!showIntercept) mydf <- mydf[-1, ]
+      # -------------------------------------------------
+      # remove any estimates from the output?
+      # -------------------------------------------------
+      if (!is.null(remove.estimates)) {
+        # get row indices of rows that should be removed
+        remrows <- match(remove.estimates, row.names(mydf))
+        # remember old rownames
+        keepnames <- row.names(mydf)[-remrows]
+        # remove rows
+        mydf <- dplyr::slice(mydf, c(1:nrow(mydf))[-remrows])
+        # set back rownames
+        row.names(mydf) <- keepnames
+        # remove labels?
+        if (!empty.pred.labels && length(pred.labels) > nrow(mydf))
+          pred.labels <- pred.labels[-remrows]
+      }
       # ---------------------------------------
       # copy rownames as axis labels, if not set
       # ---------------------------------------
@@ -976,7 +1001,7 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       if (!is.null(sort.coef)) {
         reihe <- order(mydf$OR)
-        mydf <- mydf[reihe,]
+        mydf <- mydf[reihe, ]
       }
       mydf$sorting <- reihe
     }
@@ -1157,7 +1182,7 @@ sjp.lme.feprobcurv <- function(fit,
                                vars,
                                geom.size,
                                printPlot) {
-  # check size parameter
+  # check size argument
   if (is.null(geom.size)) geom.size <- .7
   # ----------------------------
   # prepare additional plots, when metric
@@ -1467,15 +1492,15 @@ sjp.lme.response.probcurv <- function(fit,
   # get predicted values for response with and
   # without random effects
   # ----------------------------
-  pp.fe <- predict(fit, type = "response", re.form = NA)
-  pp.re <- predict(fit, type = "response", re.form = NULL)
+  pp.fe <- stats::predict(fit, type = "response", re.form = NA)
+  pp.re <- stats::predict(fit, type = "response", re.form = NULL)
   # ----------------------------
   # for glm, get probabilities
   # ----------------------------
-  if (fun == "glm") {
-    pp.fe <- plogis(pp.fe)
-    pp.re <- plogis(pp.re)
-  }
+  #   if (fun == "glm") {
+  #     pp.fe <- plogis(pp.fe)
+  #     pp.re <- plogis(pp.re)
+  #   }
   # ----------------------------
   # get predicted probabilities for 
   # response, including random effects
@@ -1539,7 +1564,7 @@ sjp.lme.feri <- function(fit,
                          emph.grp,
                          geom.size,
                          printPlot) {
-  # check size parameter
+  # check size argument
   if (is.null(geom.size)) geom.size <- .7
   # ----------------------------
   # retrieve term names, so we find the estimates in the
@@ -1683,7 +1708,7 @@ sjp.lme.reqq <- function(fit,
                      ID = factor(rep(rownames(re), ncol(re))[ord], levels = rownames(re)[ord]),
                      ind = gl(ncol(re), nrow(re), labels = names(re)),
                      grp = "1")
-  # check size parameter
+  # check size argument
   if (is.null(geom.size)) geom.size <- 3
   gp <- ggplot(pDf, aes(nQQ, y, colour = grp)) +
     facet_wrap(~ind, scales = "free") +
@@ -1760,7 +1785,7 @@ sjp.lme.fecor <- function(fit,
   )
   rownames(mydf) <- pred.labels
   colnames(mydf) <- pred.labels
-  # fix sort-parameter
+  # fix sort-argument
   if (!is.null(sort.coef) && sort.coef != TRUE)
     sort.coef <- FALSE
   else
@@ -1986,7 +2011,7 @@ sjp.glm.eff <- function(fit,
     dummy <- list(x = sort(unique(stats::na.omit(mm[, t]))))
     # name list, needed for effect-function
     names(dummy) <- t
-    # create list for "xlevels" parameter of allEffects fucntion
+    # create list for "xlevels" argument of allEffects fucntion
     xl <- c(xl, dummy)
   }
   # ------------------------
@@ -2038,7 +2063,7 @@ sjp.glm.eff <- function(fit,
   # how many different groups?
   # ------------------------
   grp.cnt <- length(unique(mydat$grp))
-  # check size parameter
+  # check size argument
   if (is.null(geom.size)) geom.size <- .7
   # ------------------------
   # create plot
@@ -2062,13 +2087,16 @@ sjp.glm.eff <- function(fit,
 }
 
 
-get_cleaned_ciMerMod <- function(fit, ci.only = FALSE) {
+get_cleaned_ciMerMod <- function(fit, fun, ci.only = FALSE) {
   # get odds ratios of fixed effects
   OR <- lme4::fixef(fit)
   # get condifence intervals, cleaned (variance CI removed via NA)
   CI <- lme4::confint.merMod(fit, method = "Wald", parm = "beta_")
   # create data frame
-  mydf <- data.frame(exp(cbind(OR, CI)))
+  if (fun == "lm")
+    mydf <- data.frame(cbind(OR, CI))
+  else
+    mydf <- data.frame(exp(cbind(OR, CI)))
   # only return ci?
   if (ci.only)
     return(as.data.frame(CI))

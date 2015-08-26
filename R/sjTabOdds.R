@@ -10,53 +10,14 @@ utils::globalVariables(c("starts_with"))
 #'                e.g. when comparing different stepwise fitted models.
 #' 
 #' @param ... one or more fitted generalized linear (mixed) models.
-#' @param labelPredictors character vector with labels of predictor variables.
-#'          If not \code{NULL}, \code{labelPredictors} will be used in the first
-#'          table column with the predictors' names. See 'Examples'.
-#' @param labelDependentVariables character vector with labels of dependent 
-#'          variables of all fitted models. See 'Examples'.
-#' @param stringPredictors string constant used as headline for the predictor column.
-#'          Default is \code{"Predictors"}.
-#' @param stringDependentVariables string constant used as headline for the 
-#'          dependent variable columns. Default is \code{"Dependent Variables"}.
-#' @param showHeaderStrings logical, if \code{TRUE}, the header strings \code{stringPredictors}
-#'          and \code{stringDependentVariables} are shown. By default, they're hidden.
-#' @param stringModel string constant used as headline for the model names in case no 
-#'          labels for the dependent variables are provided (see \code{labelDependentVariables}).
-#'          Default is \code{"Model"}.
-#' @param stringIntercept String constant used as headline for the Intercept row.
-#'          Default is \code{"Intercept"}.
-#' @param stringObservations string constant used in the summary row for the count of observation
-#'          (cases). Default is \code{"Observations"}.
 #' @param stringOR string used for the column heading of odds ratio values. Default is \code{"OR"}.
-#' @param stringCI string used for the column heading of confidence interval values. Default is \code{"CI"}.
-#' @param stringSE string used for the column heading of standard error values. Default is \code{"std. Error"}.
-#' @param stringP string used for the column heading of p values. Default is \code{"p"}.
-#' @param digits.est amount of decimals for estimators
-#' @param digits.p amount of decimals for p-values
-#' @param digits.ci amount of decimals for confidence intervals
-#' @param digits.se amount of decimals for standard error
-#' @param digits.summary amount of decimals for values in model summary
 #' @param exp.coef logical, if \code{TRUE} (default), regression coefficients and 
 #'          confidence intervals are exponentiated. Use \code{FALSE} for 
 #'          non-exponentiated coefficients (log-odds) as provided by 
 #'          the \code{\link{summary}} function.
-#' @param pvaluesAsNumbers logical, if \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
-#'          p-values are indicated by asterisks.
-#' @param boldpvalues logical, if \code{TRUE} (default), significant p-values are shown bold faced.
-#' @param showConfInt logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
-#'          \code{FALSE} to omit the CI in the table.
-#' @param showStdError logical, if \code{TRUE}, the standard errors are also printed.
-#'          Default is \code{FALSE}.
-#' @param separateConfColumn logical, if \code{TRUE}, the CI values are shown in a separate table column.
-#'          Default is \code{FALSE}.
 #' @param newLineConf logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 #'          between OR and CI values. If \code{FALSE}, CI values are printed in the same
 #'          line with OR values.
-#' @param group.pred logical, if \code{TRUE} (default), automatically groups table rows with 
-#'          factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
-#'          be grouped, if the factor has more than two levels. Grouping means that a separate headline
-#'          row is inserted to the table just before the predictor values.
 #' @param showAbbrHeadline logical, if \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for odds ratios, confidence interval and p-values.
 #' @param showPseudoR logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
@@ -65,10 +26,6 @@ utils::globalVariables(c("starts_with"))
 #'          (see \code{\link[sjmisc]{cod}}).
 #' @param showLogLik logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param showAIC logical, if \code{TRUE}, the \code{\link{AIC}} value for each model is printed
-#'          in the model summary. Default is \code{FALSE}.
-#' @param showAICc logical, if \code{TRUE}, the second-order AIC value for each model 
-#'          is printed in the model summary. Default is \code{FALSE}.
 #' @param showChi2 logical, if \code{TRUE}, the p-value of the chi-squared value for each 
 #'          model's residual deviance against the null deviance is printed
 #'          in the model summary. Default is \code{FALSE}. A well-fitting model
@@ -84,21 +41,9 @@ utils::globalVariables(c("starts_with"))
 #'          and same predictors and response, to decide which model fits best. See \code{\link{family}}
 #'          for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
 #'          decision help for which model to choose.
-#' @param remove.estimates numeric vector with indices (order equals to row index of \code{coef(fit)}) 
-#'          or character vector with coefficient names that indicate which estimates should be removed
-#'          from the table output. The first estimate is the intercept, followed by the model predictors.
-#'          \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)} 
-#'          would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output. 
-#'          \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
-#'          is \code{NULL}, i.e. all estimates are printed.
-#' @param cellSpacing numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
-#'          suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-#'          into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
-#'          cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.
-#' @param cellGroupIndent Indent for table rows with grouped factor predictors. Only applies
-#'          if \code{group.pred} is \code{TRUE}.
 #'          
 #' @inheritParams sjt.frq
+#' @inheritParams sjt.lm
 #' 
 #' @return Invisibly returns
 #'          \itemize{
@@ -136,7 +81,8 @@ utils::globalVariables(c("starts_with"))
 #'                                     "Infant Mortality"),
 #'         labelPredictors = c("Education", 
 #'                             "Examination", 
-#'                             "Catholic"))
+#'                             "Catholic"),
+#'          ci.hyphen = " to ")
 #' 
 #' # open HTML-table in RStudio Viewer Pane or web browser,
 #' # integrate CI in OR column
@@ -178,7 +124,7 @@ utils::globalVariables(c("starts_with"))
 #' # load efc sample data
 #' data(efc)
 #' # dichtomozize service usage by "service usage yes/no"
-#' efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
+#' efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, as.num = TRUE)
 #' # fit 3 models with different link-functions
 #' fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep, 
 #'             data=efc, 
@@ -221,14 +167,12 @@ utils::globalVariables(c("starts_with"))
 #' library(sjmisc)
 #' # load efc sample data
 #' data(efc)
-#' # set variable labels
-#' efc <- set_var_labels(efc, get_var_labels(efc))
 #' # dichtomozize service usage by "service usage yes/no"
-#' efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, asNum = TRUE)
+#' efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, as.num = TRUE)
 #' # make dependency categorical
 #' efc$e42dep <- to_fac(efc$e42dep)
 #' # fit model with "grouped" predictor
-#' fit <- glm(services ~ neg_c_7 + c161sex + e42dep, data=efc)
+#' fit <- glm(services ~ neg_c_7 + c161sex + e42dep, data = efc)
 #' 
 #' # automatic grouping of categorical predictors
 #' sjt.glm(fit)
@@ -237,20 +181,21 @@ utils::globalVariables(c("starts_with"))
 #' # ---------------------------------- 
 #' # compare models with different predictors
 #' # ---------------------------------- 
-#' fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour, data=efc)
-#' fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour + c172code, data=efc)
+#' fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour, data = efc)
+#' fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour + c172code, 
+#'             data = efc)
 #' 
 #' # print models with different predictors
 #' sjt.glm(fit, fit2, fit3)
 #' 
 #' efc$c172code <- to_fac(efc$c172code)
-#' fit2 <- glm(services ~ neg_c_7 + c161sex + c12hour, data=efc)
-#' fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data=efc)
+#' fit2 <- glm(services ~ neg_c_7 + c161sex + c12hour, data = efc)
+#' fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data = efc)
 #' 
 #' # print models with different predictors
 #' sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 #' 
-#' @import dplyr
+#' @importFrom dplyr full_join slice
 #' @importFrom stats nobs AIC confint coef logLik family
 #' @export
 sjt.glm <- function(...,
@@ -277,6 +222,7 @@ sjt.glm <- function(...,
                     boldpvalues = TRUE,
                     showConfInt = TRUE,
                     showStdError = FALSE,
+                    ci.hyphen = "&nbsp;&ndash;&nbsp;",
                     separateConfColumn = TRUE,
                     newLineConf = TRUE,
                     group.pred = TRUE,
@@ -306,6 +252,10 @@ sjt.glm <- function(...,
   } else {
     p_zero <- "0"
   }
+  # check hyphen for ci-range
+  if (is.null(ci.hyphen)) ci.hyphen <- "&nbsp;&ndash;&nbsp;"
+  # replace space with protected space in ci-hyphen
+  ci.hyphen <- gsub(" ", "&nbsp;", ci.hyphen, fixed = TRUE)
   # -------------------------------------
   # check encoding
   # -------------------------------------
@@ -447,7 +397,7 @@ sjt.glm <- function(...,
   # should AICc be computed? Check for package
   # ------------------------
   if (showAICc && !requireNamespace("AICcmodavg", quietly = TRUE)) {
-    warning("Package 'AICcmodavg' needed to show AICc. Parameter 'showAICc' will be ignored.", call. = FALSE)
+    warning("Package 'AICcmodavg' needed to show AICc. Argument 'showAICc' will be ignored.", call. = FALSE)
     showAICc <- FALSE
   }
   # ------------------------
@@ -506,7 +456,7 @@ sjt.glm <- function(...,
     # -------------------------------------
     if (lmerob) {
       # get cleaned CI
-      confis <- get_cleaned_ciMerMod(fit, T)
+      confis <- get_cleaned_ciMerMod(fit, "glm", T)
       coef.fit <- lme4::fixef(fit)
     } else {
       confis <- stats::confint(fit)
@@ -546,12 +496,7 @@ sjt.glm <- function(...,
     # prepare p-values, either as * or as numbers
     # -------------------------------------
     if (!pvaluesAsNumbers) {
-      fit.df$pv <- sapply(fit.df$pv, function(x) {
-        if (x >= 0.05) x <- c("")
-        else if (x >= 0.01 && x < 0.05) x <- c("*")
-        else if (x >= 0.001 && x < 0.01) x <- c("**")
-        else if (x < 0.001) x <- c("***")
-      })
+      fit.df$pv <- sapply(fit.df$pv, function(x) x <- get_p_stars(x))
     } else {
       if (boldpvalues) {
         sb1 <- "<b>"
@@ -825,9 +770,10 @@ sjt.glm <- function(...,
       if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("&nbsp;%s", joined.df[1, (i - 1) * 5 + 5]))
       # if we have CI, start new table cell (CI in separate column)
       if (showConfInt) {
-        page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign %smodelcolumn2\">%s&nbsp;-&nbsp;%s</td>", 
+        page.content <- paste0(page.content, sprintf("</td><td class=\"tdata centeralign %smodelcolumn2\">%s%s%s</td>", 
                                                      tcb_class, 
                                                      joined.df[1, (i - 1) * 5 + 3], 
+                                                     ci.hyphen,
                                                      joined.df[1, (i - 1) * 5 + 4]))
       } else {
         page.content <- paste0(page.content, "</td>")
@@ -838,9 +784,10 @@ sjt.glm <- function(...,
                                                    tcb_class, 
                                                    joined.df[1, (i - 1) * 5 + 2]))
       # confidence interval in Beta-column
-      if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%s&nbsp;-&nbsp;%s)", 
+      if (showConfInt) page.content <- paste0(page.content, sprintf("%s(%s%s%s)", 
                                                                     linebreakstring, 
                                                                     joined.df[1, (i - 1) * 5 + 3], 
+                                                                    ci.hyphen,
                                                                     joined.df[1, (i - 1) * 5 + 4]))
       # if p-values are not shown as numbers, insert them after beta-value
       if (!pvaluesAsNumbers) page.content <- paste0(page.content, sprintf("&nbsp;%s", joined.df[1, (i - 1) * 5 + 5]))
@@ -887,7 +834,7 @@ sjt.glm <- function(...,
       # if we have empry cells (due to different predictors in models)
       # we don't print CI-separator strings and we don't print any esitmate
       # values - however, for proper display, we fill these values with "&nbsp;"
-      ci.sep.string <- ifelse(sjmisc::is_empty(ci.lo), "&nbsp;", "&nbsp;-&nbsp;")
+      ci.sep.string <- ifelse(sjmisc::is_empty(ci.lo), "&nbsp;", ci.hyphen)
       # replace empty beta, se and p-values with &nbsp;
       if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 5 + 2])) joined.df[i + 1, (j - 1) * 5 + 2] <- "&nbsp;"
       if (sjmisc::is_empty(joined.df[i + 1, (j - 1) * 5 + 5])) joined.df[i + 1, (j - 1) * 5 + 5] <- "&nbsp;"
@@ -1222,35 +1169,35 @@ sjt.glm <- function(...,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.fixedparts, css.fixedparts, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.randomparts, css.randomparts, knitr, fixed = TRUE)
-  knitr <- gsub(tag.separatorcol, css.separatorcol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.colnames, css.colnames, knitr, fixed = TRUE)
-  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firstsumrow, css.firstsumrow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.labelcellborder, css.labelcellborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.topborder, css.topborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.depvarhead, css.depvarhead, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.topcontentborder, css.topcontentborder, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.noannorow, css.noannorow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.annorow, css.annorow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.annostyle, css.annostyle, knitr, fixed = TRUE)
-  knitr <- gsub(tag.grouprow, css.grouprow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.tgrpdata, css.tgrpdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn1, css.modelcolumn1, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn2, css.modelcolumn2, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn3, css.modelcolumn3, knitr, fixed = TRUE)
-  knitr <- gsub(tag.modelcolumn4, css.modelcolumn4, knitr, fixed = TRUE)
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.fixedparts, css.fixedparts, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.randomparts, css.randomparts, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.separatorcol, css.separatorcol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.colnames, css.colnames, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firstsumrow, css.firstsumrow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.labelcellborder, css.labelcellborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.topborder, css.topborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.depvarhead, css.depvarhead, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.topcontentborder, css.topcontentborder, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.noannorow, css.noannorow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.annorow, css.annorow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.annostyle, css.annostyle, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.grouprow, css.grouprow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.tgrpdata, css.tgrpdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn1, css.modelcolumn1, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn2, css.modelcolumn2, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn3, css.modelcolumn3, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.modelcolumn4, css.modelcolumn4, knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # remove spaces?
   # -------------------------------------
@@ -1314,7 +1261,7 @@ sjt.glm <- function(...,
 #' efc$hi_qol <- dicho(efc$quol_5)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+#' levels(x = efc$grp) <- get_labels(efc$e15relat)
 #' # data frame for fitted model
 #' mydf <- data.frame(hi_qol = as.factor(efc$hi_qol),
 #'                    sex = as.factor(efc$c161sex),
@@ -1332,7 +1279,8 @@ sjt.glm <- function(...,
 #'               family = binomial("logit"))
 #'               
 #' # print summary table
-#' sjt.glmer(fit1, fit2)
+#' sjt.glmer(fit1, fit2,
+#'           ci.hyphen = " to ")
 #' 
 #' # print summary table, using different table layout
 #' sjt.glmer(fit1, fit2,
@@ -1374,6 +1322,7 @@ sjt.glmer <- function(...,
                       boldpvalues = TRUE,
                       showConfInt = TRUE,
                       showStdError = FALSE,
+                      ci.hyphen = "&nbsp;&ndash;&nbsp;",
                       separateConfColumn = TRUE,
                       newLineConf = TRUE,
                       showAbbrHeadline = TRUE,
@@ -1402,7 +1351,7 @@ sjt.glmer <- function(...,
                  digits.se = digits.se, digits.summary = digits.summary, exp.coef = exp.coef,
                  pvaluesAsNumbers = pvaluesAsNumbers, boldpvalues = boldpvalues, 
                  showConfInt = showConfInt, showStdError = showStdError, 
-                 separateConfColumn = separateConfColumn, newLineConf = newLineConf, 
+                 ci.hyphen = ci.hyphen, separateConfColumn = separateConfColumn, newLineConf = newLineConf, 
                  group.pred = FALSE, showAbbrHeadline = showAbbrHeadline, showPseudoR = showICC, 
                  showLogLik = showLogLik, showAIC = showAIC, showAICc = showAICc, showChi2 = FALSE, 
                  showHosLem = showHosLem, showFamily = showFamily, remove.estimates = remove.estimates, 

@@ -27,7 +27,7 @@ sjp.frq(varCount, title = "", weightBy = NULL, weightByTitleString = NULL,
 
 \item{title}{plot title as string. Example: \code{title = "my title"}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 no title is printed.}
 
 \item{weightBy}{weight factor that will be applied to weight all cases of \code{varCount}.
@@ -60,9 +60,9 @@ categories are not sorted by frequency. Use \code{"asc"} or
   \code{type = "dots"} and \code{type = "boxplots"}, which may be abbreviated
   with \code{type = "dot"} and \code{type = "box"}}
 
-\item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
+\item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} argument).
 Note that  bar and bin widths mostly need smaller values than dot sizes (i.e. if \code{type = "dots"}).
-By default, \code{geom.size = NULL}, which means that this parameter is automatically
+By default, \code{geom.size = NULL}, which means that this argument is automatically
 adjusted depending on the plot type.}
 
 \item{geom.colors}{user defined color for geoms, e.g. \code{geom.colors = "#0080ff"}.}
@@ -70,7 +70,7 @@ adjusted depending on the plot type.}
 \item{axisLabels.x}{a character vector with labels for the x-axis breaks. \strong{Note:}
 Axis labels will be automatically detected, when data was either imported
 with \code{\link[sjmisc]{read_spss}} or has named factor levels
-(see 'Examples'). Else, specifiy parameter like this:
+(see 'Examples'). Else, specifiy argument like this:
 \code{axisLabels.x = c("Label1", "Label2", "Label3")}.
 The labels may also be passed as \code{\link{list}} object. They will be coerced
 to character vector automatically.}
@@ -82,13 +82,13 @@ when having interaction variables included. These labels replace the
 is not \code{NULL}.}
 
 \item{axisLimits.x}{numeric vector of length two, defining lower and upper axis limits
-of the x scale. By default, this parameter is set to \code{NULL}, i.e. the
+of the x scale. By default, this argument is set to \code{NULL}, i.e. the
 x-axis fits to the required range to plot all data. \strong{Note} that limiting
 the x-axis-range may result in warnings from \code{ggplot} due to values
 outside this range that could not be plotted.}
 
 \item{axisLimits.y}{numeric vector of length two, defining lower and upper axis limits
-of the y scale. By default, this parameter is set to \code{NULL}, i.e. the
+of the y scale. By default, this argument is set to \code{NULL}, i.e. the
 y-axis ranges from 0 to required maximum.}
 
 \item{breakTitleAt}{determines how many chars of the plot title are displayed in
@@ -97,7 +97,7 @@ one line and when a line break is inserted into the title.}
 \item{breakLabelsAt}{determines how many chars of the category labels are displayed in
 one line and when a line break is inserted.}
 
-\item{gridBreaksAt}{set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th
+\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th
 position a major grid is being printed.}
 
 \item{innerBoxPlotWidth}{width of the inner box plot that is plotted inside of violin plots. Only applies
@@ -172,7 +172,7 @@ applies if \code{showNormalCurve = TRUE}.}
 applies if \code{showNormalCurve = TRUE}.}
 
 \item{axisTitle.x}{title for the x-axis. By default, the variable name will be
-automatically detected and used as title (see \code{\link[sjmisc]{set_var_labels}})
+automatically detected and used as title (see \code{\link[sjmisc]{set_label}})
 for details).}
 
 \item{axisTitle.y}{title for the y-axis. By default, this value is \code{NULL},
@@ -186,9 +186,9 @@ is larger than 1 and hence no bars plotted for these values in such cases.}
 \item{hist.skipZeros}{logical, if \code{TRUE}, zero counts (categories with no answer)
 in \code{varCount} are omitted when drawing histrograms, and the mapping
 is changed to \code{\link[ggplot2]{stat_bin}}. Only applies to  histograms.
-Use this parameter to get similar results to the default \code{\link[ggplot2]{qplot}}
+Use this argument to get similar results to the default \code{\link[ggplot2]{qplot}}
 or \code{\link[ggplot2]{geom_histogram}} histogram plots of ggplot. You may need
-to adjust the \code{geom.size} parameter for better visual results
+to adjust the \code{geom.size} argument for better visual results
 (which, by ggplot-default, is 1/30 of the x-axis-range).}
 
 \item{autoGroupAt}{numeric value, indicating at which length of unique values of \code{varCount},
@@ -204,7 +204,7 @@ See \code{\link[sjmisc]{group_var}} for examples on grouping.}
 
 \item{labelPos}{string, indicating the position of value labels, when \code{coord.flip = TRUE}.
          Can be either \code{"inside"} or \code{"outside"} (default). You may specify
-         initial letter only. If \code{coord.flip = FALSE}, this parameter will
+         initial letter only. If \code{coord.flip = FALSE}, this argument will
          be ignored.}
 
 \item{na.rm}{logical, if \code{TRUE}, missings are not included in the frequency plot.}
@@ -256,8 +256,8 @@ sjp.frq(ChickWeight$Diet)
 # ---------------
 library(sjmisc)
 data(efc)
-efc.val <- get_val_labels(efc)
-efc.var <- get_var_labels(efc)
+efc.val <- get_labels(efc)
+efc.var <- get_label(efc)
 # you may use sjp.setTheme here to change axis textangle
 sjp.frq(as.factor(efc$e15relat),
         title = efc.var[['e15relat']],

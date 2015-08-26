@@ -4,7 +4,8 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 #' @title Plot odds ratios (forest plots) of multiple fitted glm's
 #' @name sjp.glmm
 #' 
-#' @description Plot odds ratios (forest plots) of multiple fitted glm's with confidence intervalls in one plot.
+#' @description Plot and compare odds ratios (forest plots) of multiple fitted 
+#'                glm's with confidence intervals in one plot.
 #' 
 #' @param ... one or more fitted glm-objects. May also be a \code{\link{list}}-object with 
 #'          fitted models, instead of separating each model with comma. See 'Examples'.
@@ -13,6 +14,11 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 #' @inheritParams sjp.glm
 #' @inheritParams sjp.lm
 #' @inheritParams sjp.grpfrq
+#'          
+#' @note The fitted models may have differing predictors, but only in a 
+#'         "stepwise" sense; i.e., models should share a common set of predictors,
+#'         while some models may have additional predictors (e.g. added via
+#'         the \code{\link[stats]{update}} function). See 'Examples'.
 #'          
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df}).
@@ -33,7 +39,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 #'               family = binomial(link = "logit"))
 #' 
 #' # plot multiple models
-#' sjp.glmm(fitOR1, fitOR2, fitOR3, facet.grid = TRUE, fade.ns = FALSE)
+#' sjp.glmm(fitOR1, fitOR2, fitOR3, facet.grid = TRUE)
 #' 
 #' # plot multiple models with legend labels and point shapes instead of value  labels
 #' sjp.glmm(fitOR1, fitOR2, fitOR3,
@@ -42,15 +48,46 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 #'                                      "Agriculture"),
 #'          showValueLabels = FALSE,
 #'          showPValueLabels = FALSE,
+#'          fade.ns = TRUE,
 #'          usePShapes = TRUE)
 #' 
-#' # plot multiple models from nested lists parameter
+#' # plot multiple models from nested lists argument
 #' all.models <- list()
 #' all.models[[1]] <- fitOR1
 #' all.models[[2]] <- fitOR2
 #' all.models[[3]] <- fitOR3
 #' 
 #' sjp.glmm(all.models)
+#' 
+#' 
+#' # -------------------------------
+#' # Predictors for negative impact
+#' # of care. Data from the EUROFAMCARE
+#' # sample dataset
+#' # -------------------------------
+#' library(sjmisc)
+#' data(efc)
+#' 
+#' # create binary response
+#' y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
+#' # create dummy variables for educational status
+#' edu.mid <- ifelse(efc$c172code == 2, 1, 0)
+#' edu.high <- ifelse(efc$c172code == 3, 1, 0)
+#' # create data frame for fitted model
+#' mydat <- data.frame(y = as.factor(y),
+#'                     sex = as.factor(efc$c161sex),
+#'                     dep = as.factor(efc$e42dep),
+#'                     barthel = as.numeric(efc$barthtot),
+#'                     edu.mid = as.factor(edu.mid),
+#'                     edu.hi = as.factor(edu.high))
+#' 
+#' fit1 <- glm(y ~ sex + edu.mid + edu.hi, 
+#'             data = mydat, 
+#'             family = binomial(link = "logit"))
+#' fit2 <- update(fit1, . ~ . + barthel)
+#' fit3 <- update(fit2, . ~ . + dep)
+#' 
+#' sjp.glmm(fit1, fit2, fit3)
 #' 
 #' @import ggplot2
 #' @import sjmisc
@@ -73,10 +110,11 @@ sjp.glmm <- function(...,
                      geom.size = 3,
                      geom.spacing = 0.4,
                      geom.colors = "Set1",
-                     fade.ns = TRUE,
+                     fade.ns = FALSE,
                      usePShapes = FALSE,
                      interceptLineType = 2,
                      interceptLineColor = "grey70",
+                     remove.estimates = NULL,
                      coord.flip = TRUE,
                      showIntercept = FALSE,
                      showAxisLabels.y = TRUE,
@@ -194,36 +232,51 @@ sjp.glmm <- function(...,
       }
     }  
     # ----------------------------
-    # check if user defined labels have been supplied
-    # if not, use variable names from data frame
-    # ----------------------------
-    if (is.null(axisLabels.y)) {
-      axisLabels.y <- row.names(odds)
-      #remove intercept from labels
-      if (!showIntercept) axisLabels.y <- axisLabels.y[-1]
-    }
-    # ----------------------------
     # bind p-values to data frame
     # ----------------------------
     odds <- data.frame(odds, ps, palpha, pointshapes, fitcnt)
     # set column names
     colnames(odds) <- c("OR", "lower", "upper", "p", "pa", "shape", "grp")
-    # set x-position
-    odds$xpos <- c(nrow(odds):1)
-    odds$xpos <- as.factor(odds$xpos)
+    # add rownames
+    odds$term <- row.names(odds)
     #remove intercept from df
     if (!showIntercept) odds <- odds[-1, ]
     # add data frame to final data frame
     finalodds <- rbind(finalodds, odds)
   }
-  # convert to factor
+  # ----------------------------
+  # check if user defined labels have been supplied
+  # if not, use variable names from data frame
+  # ----------------------------
+  # reverse x-pos, convert to factor
+  finalodds$xpos <- sjmisc::to_value(as.factor(finalodds$term), keep.labels = F)
   finalodds$xpos <- as.factor(finalodds$xpos)
   finalodds$grp <- as.factor(finalodds$grp)
   # convert to character
   finalodds$shape <- as.character(finalodds$shape)
-  # reverse axislabel order, so predictors appear from top to bottom
-  # as they appear in the console when typing "summary(fit)"
-  axisLabels.y <- rev(axisLabels.y)
+  # -------------------------------------------------
+  # remove any estimates from the output?
+  # -------------------------------------------------
+  if (!is.null(remove.estimates)) {
+    # get row indices of rows that should be removed
+    remrows <- c()
+    for (re in 1:length(remove.estimates)) {
+      remrows <- c(remrows, which(substr(row.names(finalodds), 
+                                         start = 1, 
+                                         stop = nchar(remove.estimates[re])) == remove.estimates[re]))
+    }
+    # remember old rownames
+    keepnames <- row.names(finalodds)[-remrows]
+    # remove rows
+    finalodds <- dplyr::slice(finalodds, c(1:nrow(finalodds))[-remrows])
+    # set back rownames
+    row.names(finalodds) <- keepnames
+  }
+  # set axis labels
+  if (is.null(axisLabels.y)) {
+    axisLabels.y <- unique(finalodds$term)
+    axisLabels.y <- axisLabels.y[order(unique(finalodds$xpos))]
+  }
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user defined range
@@ -243,7 +296,7 @@ sjp.glmm <- function(...,
     if (showValueLabels || showPValueLabels) upper_lim <- upper_lim + 0.1
     # give warnings when auto-limits are very low/high
     if ((lower_lim < 0.1) || (upper_lim > 100)) {
-      warning("Exp. coefficients and/or exp. confidence intervals may be out of printable bounds. Consider using \"axisLimits\" parameter!")
+      warning("Exp. coefficients and/or exp. confidence intervals may be out of printable bounds. Consider using \"axisLimits\" argument!")
     }
   } else {
     # Here we have user defind axis range
@@ -257,12 +310,26 @@ sjp.glmm <- function(...,
   ticks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
   if (!showAxisLabels.y) axisLabels.y <- c("")
   # --------------------------------------------------------
+  # prepare star and shape values. we just copy those values
+  # that are actually needed, so legend shapes are always 
+  # identical, independent whether model have only two 
+  # different p-levels or four.
+  # --------------------------------------------------------
+  shape.values <- c(1, 16, 17, 15)
+  star.values <- c("n.s.", "*", "**", "***")
+  shape.values <- shape.values[sort(as.numeric(unique(finalodds$shape)))]
+  star.values <- star.values[sort(as.numeric(unique(finalodds$shape)))]
+  # --------------------------------------------------------
   # body of plot
   # --------------------------------------------------------
   # The order of aesthetics matters in terms of ordering the error bars!
   # Using alpha-aes before colour would order error-bars according to
   # alpha-level instead of colour-aes.
-  plotHeader <- ggplot(finalodds, aes(y = OR, x = xpos, colour = grp, alpha = pa))
+  plotHeader <- ggplot(finalodds, aes(y = OR, 
+                                      x = xpos, 
+                                      group = grp,
+                                      colour = grp, 
+                                      alpha = pa))
   # --------------------------------------------------------
   # start with dot-plotting here
   # first check, whether user wants different shapes for
@@ -280,8 +347,8 @@ sjp.glmm <- function(...,
                  size = geom.size, 
                  position = position_dodge(-geom.spacing)) +
       # and use a shape scale, in order to have a legend
-      scale_shape_manual(values = c(1, 16, 17, 15), 
-                         labels = c("n.s.", "*", "**", "***"))
+      scale_shape_manual(values = shape.values, 
+                         labels = star.values)
   } else {
     plotHeader <- plotHeader +
       geom_point(size = geom.size, 
@@ -340,7 +407,7 @@ sjp.glmm <- function(...,
   # --------------------------------------------------------
   # flip coordinates?
   # --------------------------------------------------------
-  if (coord.flip)  plotHeader <- plotHeader + coord_flip()
+  if (coord.flip) plotHeader <- plotHeader + coord_flip()
   if (facet.grid) plotHeader <- plotHeader + facet_grid(~grp)
   # ---------------------------------------------------------
   # set geom colors

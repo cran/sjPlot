@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("pv"))
+utils::globalVariables("pv")
 
 
 #' @title Plot One-Way-Anova tables
@@ -22,7 +22,7 @@ utils::globalVariables(c("pv"))
 #' @param type plot type, whether group means should be plotted as \code{"dots"} (aka forest plots, default)
 #'          or as \code{"bars"}
 #' @param hideErrorBars logical, if \code{TRUE}, the error bars that indicate the confidence intervals of the group means are not
-#'          shown. Only applies if parameter \code{type} is \code{"bars"}. Default value is \code{FALSE}.
+#'          shown. Only applies if argument \code{type} is \code{"bars"}. Default value is \code{FALSE}.
 #' @param axisLabels.y character vector, indicating the value labels of \code{grpVar} that 
 #'          are used for labelling the axis. See 'Examples'.
 #' @param reverseOrder logical, if \code{TRUE}, the order of categories (groups) is reversed.
@@ -64,8 +64,8 @@ utils::globalVariables(c("pv"))
 #' 
 #' 
 #' data(efc)
-#' efc.val <- get_val_labels(efc)
-#' efc.var <- get_var_labels(efc)
+#' efc.val <- get_labels(efc)
+#' efc.var <- get_label(efc)
 #' sjp.aov1(efc$c12hour,
 #'          as.factor(efc$e42dep),
 #'          axisLabels.y = efc.val['e42dep'],
@@ -75,7 +75,6 @@ utils::globalVariables(c("pv"))
 #' # -------------------------------------------------
 #' # auto-detection of value labels and variable names
 #' # -------------------------------------------------
-#' efc <- set_var_labels(efc, efc.var)
 #' sjp.aov1(efc$c12hour,
 #'          efc$e42dep)
 #' 
@@ -83,7 +82,7 @@ utils::globalVariables(c("pv"))
 #' # however, if you dare to, adjust
 #' # 'geom.size'...
 #' sjp.aov1(efc$c12hour,
-#'          as.factor(efc$c172code),
+#'          efc$c172code,
 #'          axisLabels.y = efc.val['c172code'],
 #'          title = efc.var[['c12hour']],
 #'          type = "bars",
@@ -152,7 +151,7 @@ sjp.aov1 <- function(depVar,
   if (type == "dot" || type == "d") type <- "dots"
   if (type == "bar" || type == "b") type <- "bars"
   if (expand.grid == TRUE) 
-    expand.grid <- waiver()
+    expand.grid <- ggplot2::waiver()
   else
     expand.grid <- c(0, 0)
   # --------------------------------------------------------
@@ -223,14 +222,7 @@ sjp.aov1 <- function(depVar,
     # p-value for F-test
     pval <- summary(fit)[[1]]['Pr(>F)'][1, 1]
     # indicate significance level by stars
-    pan <- c("")
-    if (pval < 0.001) {
-      pan <- c("***")
-    } else if (pval < 0.01) {
-      pan <- c("**")
-    } else if (pval < 0.05) {
-      pan <- c("*")
-    }
+    pan <- get_p_stars(pval)
     # create mathematical term
     modsum <- as.character(as.expression(
       substitute(italic(SS[B]) == ssb * "," ~~ italic(SS[W]) == ssw * "," ~~ R^2 == mr2 * "," ~~ "adj." * R^2 == ar2 * "," ~~ "F" == f * panval,
@@ -245,7 +237,7 @@ sjp.aov1 <- function(depVar,
   # print coefficients and p-values in plot
   # ----------------------------
   # init data column for p-values
-  ps <- c(round(means,labelDigits))
+  ps <- c(round(means, labelDigits))
   # if no values should be shown, clear
   # vector now
   if (!showValueLabels) ps <- rep(c(""), length(ps))
@@ -254,13 +246,7 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   if (showPValueLabels) {
     for (i in 1:length(means.p)) {
-      if (means.p[i] < 0.001) {
-        ps[i] <- paste(ps[i], "***")
-      } else if (means.p[i] >= 0.001 && means.p[i] < 0.01) {
-        ps[i] <- paste(ps[i], "**")
-      } else if (means.p[i] >= 0.01 && means.p[i] < 0.05) {
-        ps[i] <- paste(ps[i], "*")
-      }
+      ps[i] <- get_p_stars(means.p[i])
     }  
   }
   # --------------------------------------------------------

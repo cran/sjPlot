@@ -10,15 +10,16 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   showHeaderStrings = FALSE, stringIntercept = "(Intercept)",
   stringObservations = "Observations", stringB = "B",
   stringSB = "std. Beta", stringCI = "CI", stringSE = "std. Error",
-  stringP = "p", showEst = TRUE, showConfInt = TRUE,
-  showStdBeta = FALSE, showStdError = FALSE, digits.est = 2,
-  digits.p = 3, digits.ci = 2, digits.se = 2, digits.sb = 2,
-  digits.summary = 3, pvaluesAsNumbers = TRUE, boldpvalues = TRUE,
-  separateConfColumn = TRUE, newLineConf = TRUE, group.pred = TRUE,
-  showAbbrHeadline = TRUE, showR2 = TRUE, showFStat = FALSE,
-  showAIC = FALSE, showAICc = FALSE, remove.estimates = NULL,
-  cellSpacing = 0.2, cellGroupIndent = 0.6, encoding = NULL, CSS = NULL,
-  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  stringP = "p", showEst = TRUE, showConfInt = TRUE, showStdBeta = NULL,
+  showStdError = FALSE, ci.hyphen = "&nbsp;&ndash;&nbsp;",
+  minus.sign = "&#45;", digits.est = 2, digits.p = 3, digits.ci = 2,
+  digits.se = 2, digits.sb = 2, digits.summary = 3,
+  pvaluesAsNumbers = TRUE, boldpvalues = TRUE, separateConfColumn = TRUE,
+  newLineConf = TRUE, group.pred = TRUE, showAbbrHeadline = TRUE,
+  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, showAICc = FALSE,
+  remove.estimates = NULL, cellSpacing = 0.2, cellGroupIndent = 0.6,
+  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted linear (mixed) models.}
@@ -41,7 +42,7 @@ Default is \code{"Predictors"}.}
 dependent variable columns. Default is \code{"Dependent Variables"}.}
 
 \item{stringModel}{string constant used as headline for the model names in case no
-labels for the dependent variables are provided (see labelDependentVariables).
+labels for the dependent variables are provided (see \code{labelDependentVariables}).
 Default is \code{"Model"}.}
 
 \item{showHeaderStrings}{logical, if \code{TRUE}, the header strings \code{stringPredictors}
@@ -53,7 +54,7 @@ Default is \code{"Intercept"}.}
 \item{stringObservations}{string constant used in the summary row for the count of observation
 (cases). Default is \code{"Observations"}.}
 
-\item{stringB}{string used for the column heading of beta coefficients. Default is \code{"B"}.}
+\item{stringB}{string used for the column heading of estimates. Default is \code{"B"}.}
 
 \item{stringSB}{string used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.}
 
@@ -68,13 +69,20 @@ Default is \code{"Intercept"}.}
 \item{showConfInt}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 \code{FALSE} to omit the CI in the table.}
 
-\item{showStdBeta}{logical, if \code{TRUE}, the standardized beta-coefficients are also printed.
-Default is \code{FALSE}.}
+\item{showStdBeta}{indicates whether standardized beta-coefficients should
+also printed, and if yes, which type of standardization is done.
+See 'Details'.}
 
 \item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
 Default is \code{FALSE}.}
 
-\item{digits.est}{amount of decimals for estimators}
+\item{ci.hyphen}{string, indicating the hyphen for confidence interval range.
+May be an HTML entity. See 'Examples'.}
+
+\item{minus.sign}{string, indicating the minus sign for negative numbers.
+May be an HTML entity. See 'Examples'.}
+
+\item{digits.est}{amount of decimals for estimates}
 
 \item{digits.p}{amount of decimals for p-values}
 
@@ -94,9 +102,9 @@ p-values are indicated by asterisks.}
 \item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
 Default is \code{FALSE}.}
 
-\item{newLineConf}{logica, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
+\item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 between B and CI values. If \code{FALSE}, CI values are printed in the same
-line with B values.}
+line as B values.}
 
 \item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with
 factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
@@ -104,7 +112,7 @@ be grouped, if the factor has more than two levels. Grouping means that a separa
 row is inserted to the table just before the predictor values.}
 
 \item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with
-abbreviations for beta- and std. beta-values, confidence interval and p-values.}
+abbreviations for estimates and std. beta-values, confidence interval and p-values.}
 
 \item{showR2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
 in the model summary.}
@@ -112,27 +120,27 @@ in the model summary.}
 \item{showFStat}{If \code{TRUE}, the F-statistics for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showAIC}{If \code{TRUE}, the AIC value for each model is printed
+\item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showAICc}{If \code{TRUE}, the second-order AIC value for each model
+\item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model
 is printed in the model summary. Default is \code{FALSE}.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)})
 or character vector with coefficient names that indicate which estimates should be removed
 from the table output. The first estimate is the intercept, followed by the model predictors.
 \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)}
-would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output.
+would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output.
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
 \item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
+into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
-\item{cellGroupIndent}{Indent for table rows with grouped factor predictors. Only applies
-         if \code{group.pred} is \code{TRUE}.}
+\item{cellGroupIndent}{indent for table rows with grouped factor predictors. Only applies
+         if \code{group.pred = TRUE}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and
 value labels. Default is \code{NULL}, so encoding will be auto-detected
@@ -165,12 +173,26 @@ Invisibly returns
            for further use.
 }
 \description{
-Summarizes (multiple) fitted linear models (beta coefficients, std. beta values etc.)
+Summarizes (multiple) fitted linear models (coefficients, std. beta values etc.)
                as HTML table, or saves them as file. The fitted models may have different predictors,
                e.g. when comparing different stepwise fitted models.
 }
 \details{
-See 'Details' in \code{\link{sjt.frq}}.
+Concerning the \code{showStdBeta} argument, \code{showStdBeta = "std"}
+           will print normal standardized estimates. \code{showStdBeta = "std2"},
+           however, standardization of estimates follows
+           \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
+           suggestion, rescaling the estimates by dividing them by two standard
+           deviations instead of just one. Resulting coefficients are then
+           directly comparable for untransformed binary predictors. This type
+           of standardization uses the \code{\link[arm]{standardize}}-function.
+           For backward compatibility reasons, \code{showStdBeta} also may be
+           a logical value; if \code{TRUE}, normal standardized estimates are
+           printed (same effect as \code{showStdBeta = "std"}). Use
+           \code{showStdBeta = NULL} (default) or \code{showStdBeta = FALSE},
+           if standardized estimats should not be printed.
+           \cr \cr
+           Furthermore, see 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
 See 'Note' in \code{\link{sjt.frq}}.
@@ -183,14 +205,10 @@ See 'Note' in \code{\link{sjt.frq}}.
 library(sjmisc)
 data(efc)
 
-# attach variable labels to each variable of the data
-# frame - useful for automatic label detection
-efc <- set_var_labels(efc, get_var_labels(efc))
-
 # fit first model
-fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data=efc)
+fit1 <- lm(barthtot ~ c160age + c12hour + c161sex + c172code, data = efc)
 # fit second model
-fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
+fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data = efc)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser
 # note that we don't need to specify labels for the predictors,
@@ -198,7 +216,7 @@ fit2 <- lm(neg_c_7 ~ c160age + c12hour + c161sex + c172code, data=efc)
 sjt.lm(fit1, fit2)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser
-# in the following examples, we set labels via parameter
+# in the following examples, we set labels via argument
 sjt.lm(fit1,
        fit2,
        labelDependentVariables = c("Barthel-Index",
@@ -255,6 +273,8 @@ sjt.lm(fit1,
                            "Carer's Sex",
                            "Educational Status"),
        showStdBeta = TRUE,
+       ci.hyphen = " to ",
+       minus.sign = "&minus;",
        pvaluesAsNumbers = FALSE,
        separateConfColumn = FALSE)
 
@@ -313,12 +333,8 @@ sjt.lm(fit1,
 library(sjmisc)
 data(efc)
 
-# attach variable labels to each variable of the data
-# frame - useful for automatic label detection
-efc <- set_var_labels(efc, get_var_labels(efc))
-
 # make education categorical
-efc$c172code <- to_fac(efc$c172code)
+efc$c172code <- to_factor(efc$c172code)
 
 # fit first model again (with c172code as factor)
 fit1 <- lm(barthtot ~ c160age + c12hour + c172code + c161sex, data=efc)
@@ -336,21 +352,17 @@ sjt.lm(fit1,
 library(sjmisc)
 data(efc)
 
-# attach variable labels to each variable of the data
-# frame - useful for automatic label detection
-efc <- set_var_labels(efc, get_var_labels(efc))
-
 # make education categorical
-efc$c172code <- to_fac(efc$c172code)
+efc$c172code <- to_factor(efc$c172code)
 # make education categorical
-efc$e42dep <- to_fac(efc$e42dep)
+efc$e42dep <- to_factor(efc$e42dep)
 
 # fit first model
-fit1 <- lm(neg_c_7 ~ c160age + c172code + c161sex, data=efc)
+fit1 <- lm(neg_c_7 ~ c160age + c172code + c161sex, data = efc)
 # fit second model
-fit2 <- lm(neg_c_7 ~ c160age + c172code + c161sex + c12hour, data=efc)
+fit2 <- lm(neg_c_7 ~ c160age + c172code + c161sex + c12hour, data = efc)
 # fit second model
-fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data=efc)
+fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data = efc)
 
 sjt.lm(fit1, fit2, fit3)
 
@@ -363,7 +375,8 @@ sjt.lm(fit1, fit2, fit3)
 # make cope-index categorical
 efc$c82cop1 <- to_fac(efc$c82cop1)
 # fit another model
-fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1, data=efc)
+fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1,
+           data = efc)
 
 sjt.lm(fit1, fit2, fit4, fit3)
 

@@ -9,10 +9,11 @@ sjp.glm(fit, type = "dots", sortOdds = TRUE, title = NULL,
   breakTitleAt = 50, breakLabelsAt = 25, gridBreaksAt = 0.5,
   transformTicks = TRUE, geom.size = NULL, geom.colors = "Set1",
   hideErrorBars = FALSE, interceptLineType = 2,
-  interceptLineColor = "grey70", coord.flip = TRUE, showIntercept = FALSE,
-  showAxisLabels.y = TRUE, showValueLabels = TRUE, labelDigits = 2,
-  showPValueLabels = TRUE, showModelSummary = FALSE, facet.grid = TRUE,
-  show.se = FALSE, showOriginalModelOnly = TRUE, printPlot = TRUE)
+  interceptLineColor = "grey70", remove.estimates = NULL,
+  coord.flip = TRUE, showIntercept = FALSE, showAxisLabels.y = TRUE,
+  showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
+  showModelSummary = FALSE, facet.grid = TRUE, show.se = FALSE,
+  showOriginalModelOnly = TRUE, printPlot = TRUE)
 }
 \arguments{
 \item{fit}{fitted generalized linear model (\code{\link{glm}}- or \code{logistf}-object).}
@@ -24,7 +25,7 @@ sjp.glm(fit, type = "dots", sortOdds = TRUE, title = NULL,
   \item{\code{"prob"}}{(or \code{"pc"}) to plot predicted probabilities for each model term, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
   \item{\code{"eff"}}{to plot marginal effects of predicted probabilities for each model term, where all remaining co-variates are set to the mean (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
   \item{\code{"y.pc"}}{(or \code{"y.prob"}) to plot predicted probabilities for the response. See 'Details'.}
-  \item{\code{"ma"}}{to check model assumptions. Note that only two parameters are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other parameters are ignored.}
+  \item{\code{"ma"}}{to check model assumptions. Note that only two arguments are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other arguments are ignored.}
   \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 }}
 
@@ -33,7 +34,7 @@ to lowest last. Use \code{FALSE} if you don't want to change the order of the pr
 
 \item{title}{plot title as string. Example: \code{title = "my title"}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 no title is printed.}
 
 \item{axisLabels.y}{labels or names of the predictor variables (independent vars). Must
@@ -42,10 +43,9 @@ may also be passed as list object; they will be coerced to character vector auto
 
 \item{axisTitle.x}{string; title for the x-axis.}
 
-\item{axisLimits}{defines the range of the axis where odds ratios and their confidence intervalls
-are drawn. By default, the limits range from the lowest confidence interval to the highest one, so
-the diagram has maximum zoom. Use your own values as vector of length two, indicating
-lower and upper limit for the axis (for instance: \code{limits = c(-0.8, 0.8)}).}
+\item{axisLimits}{numeric vector of length 2, defining the range of the plot axis.
+By default, the limits range from the lowest confidence interval to the
+highest, so plot has maximum zoom.}
 
 \item{breakTitleAt}{determines how many chars of the plot title are displayed in
 one line and when a line break is inserted into the title.}
@@ -53,7 +53,7 @@ one line and when a line break is inserted into the title.}
 \item{breakLabelsAt}{determines how many chars of the category labels are displayed in
 one line and when a line break is inserted.}
 
-\item{gridBreaksAt}{set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th
+\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th
 position a major grid is being printed.}
 
 \item{transformTicks}{logical, if \code{TRUE}, the grid lines have exponential
@@ -62,18 +62,23 @@ one panel grid to the next. If \code{FALSE}, grids are
 plotted on every \code{gridBreaksAt}'s position, thus the grid lines become narrower with
 higher odds ratio values.}
 
-\item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).}
+\item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} argument).}
 
 \item{geom.colors}{color palette for geoms. Must either be vector with two color values
 or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.}
 
 \item{hideErrorBars}{logical, if \code{TRUE}, the error bars that indicate the
 confidence intervals of the odds ratios are not shown. Only applies
-if parameter \code{type = "bars"}. Default value is \code{FALSE}.}
+if argument \code{type = "bars"}. Default value is \code{FALSE}.}
 
 \item{interceptLineType}{linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
 
 \item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
+
+\item{remove.estimates}{character vector with coefficient names that indicate
+which estimates should be removed from the plot.
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
+is \code{NULL}, i.e. all estimates are printed.}
 
 \item{coord.flip}{logical, if \code{TRUE} (default), predictors are plotted along the y-axis and estimate
 values are plotted on the x-axis.}
@@ -113,25 +118,25 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 }
 \value{
 (Invisibly) returns various objects, depending on
-          the \code{type}-parameter:
+          the \code{type}-argument:
         \describe{
          \item{\code{type = "dots" or "bars"}}{
            \itemize{
-             \item \code{mydf} - data frame used for the plot
+             \item \code{df} - data frame used for the plot
              \item \code{plot} - plot as ggplot-object
            }
          }
          \item{\code{type = "prob" or "eff"}}{
            \itemize{
-             \item \code{mydf.mp} - data frame used for predicted probability plots
+             \item \code{df.mp} - data frame used for predicted probability plots
              \item \code{plot.mp} - predicted probability plots as ggplot-objects
-             \item \code{mydf.facet} - data frame used for faceted predicted probability plots
+             \item \code{df.facet} - data frame used for faceted predicted probability plots
              \item \code{plot.facet} - facted predicted probability plots as ggplot-objects
            }
          }
          \item{\code{type = "y.pc"}}{
            \itemize{
-             \item \code{mydf} - data frame used for the plot
+             \item \code{df} - data frame used for the plot
              \item \code{plot} - plot as ggplot-object
              \item \code{mean.pp} - mean value of the predicted probabilities for the response
            }
@@ -150,7 +155,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 }
 \description{
 Plot odds ratios (exponentiated coefficients) with confidence intervalls as bar chart or dot plot.
-               Depending on the \code{type} parameter, this function may also plot model
+               Depending on the \code{type} argument, this function may also plot model
                assumptions for generalized linear models, or predicted probabilities
                of coefficients.
 }
@@ -167,7 +172,7 @@ Plot odds ratios (exponentiated coefficients) with confidence intervalls as bar 
            Corresponds to \code{\link{plogis}(\link{predict}(fit, type = "terms") + attr(predict, "constant"))}.}
            \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
            of the response are computed, based on the \code{\link{predict.glm}}
-           method. Corresponds to \code{\link{plogis}(\link{predict}(fit, type = "response"))}.}
+           method. Corresponds to \code{\link{predict}(fit, type = "response")}.}
          }
 }
 \examples{
@@ -193,7 +198,7 @@ sjp.glm(fitOR, type = "bars", geom.size = .3)
 library(sjmisc)
 data(efc)
 # retrieve predictor variable labels
-labs <- get_var_labels(efc)
+labs <- get_label(efc)
 predlab <- c(labs[['c161sex']],
              paste0(labs[['e42dep']], " (slightly)"),
              paste0(labs[['e42dep']], " (moderate)"),

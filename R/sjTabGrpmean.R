@@ -13,7 +13,7 @@
 #'          so no weights are used.
 #' @param rowLabels a character vector of same length as \code{varGrp} unqiue values. In short: the
 #'          value labels of \code{varGrp}. Used to name table rows. By default, row labels
-#'          are automatically detected if set by \code{\link[sjmisc]{set_val_labels}}.
+#'          are automatically detected if set by \code{\link[sjmisc]{set_labels}}.
 #' @param digits amount of digits for table values.
 #' @param digits.summary amount of digits for summary statistics (Anova).
 #' 
@@ -52,18 +52,18 @@
 #' @import sjmisc
 #' @importFrom stats na.omit lm
 #' @export
-sjt.grpmean <- function(varCount, 
-                        varGrp, 
+sjt.grpmean <- function(varCount,
+                        varGrp,
                         weightBy = NULL,
-                        rowLabels=NULL, 
-                        digits=2,
+                        rowLabels = NULL,
+                        digits = 2,
                         digits.summary = 3,
-                        file=NULL,
-                        encoding=NULL,
-                        CSS=NULL,
-                        useViewer=TRUE,
-                        no.output=FALSE,
-                        remove.spaces=TRUE) {
+                        file = NULL,
+                        encoding = NULL,
+                        CSS = NULL,
+                        useViewer = TRUE,
+                        no.output = FALSE,
+                        remove.spaces = TRUE) {
   # --------------------------------------------------------
   # check p-value-style option
   # --------------------------------------------------------
@@ -139,7 +139,7 @@ sjt.grpmean <- function(varCount,
                 cbind(mean = sprintf("%.*f", digits, mw),
                       N = length(stats::na.omit(varCount[varGrp == indices[i]])),
                       sd = sprintf("%.*f", digits, sd(varCount[varGrp == indices[i]], na.rm = TRUE)),
-                      se = sprintf("%.*f", digits, sjmisc::std_e(varCount[varGrp == indices[i]])),
+                      se = sprintf("%.*f", digits, sjmisc::se(varCount[varGrp == indices[i]])),
                       p = pval[i]))
   }
   # --------------------------------------
@@ -159,7 +159,7 @@ sjt.grpmean <- function(varCount,
               cbind(mean = sprintf("%.*f", digits, mw),
                     N = length(stats::na.omit(varCount)),
                     sd = sprintf("%.*f", digits, sd(varCount, na.rm = TRUE)),
-                    se = sprintf("%.*f", digits, sjmisc::std_e(varCount)),
+                    se = sprintf("%.*f", digits, sjmisc::se(varCount)),
                     p = ""))
   # --------------------------------------
   # fix row labels, if empty or NULL
@@ -180,6 +180,7 @@ sjt.grpmean <- function(varCount,
   pvalstring <- ifelse(pval < 0.001, 
                        sprintf("p&lt;%s.001", p_zero), 
                        sub("0", p_zero, sprintf("p=%.*f", digits.summary, pval)))
+  eta <- sub("0", p_zero, sprintf("&eta;=%.*f", digits.summary, sqrt(r2)))
   # --------------------------------------
   # print data frame to html table
   # --------------------------------------
@@ -195,8 +196,8 @@ sjt.grpmean <- function(varCount,
                  hideProgressBar = TRUE,
                  commentString = gsub("=0.", 
                                       paste0("=", p_zero, "."), 
-                                      sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; F=%.*f &middot; %s",
-                                              digits.summary, r2, digits.summary, r2.adj, digits.summary, fstat, pvalstring),
+                                      sprintf("<strong>Anova:</strong> R<sup>2</sup>=%.*f &middot; adj. R<sup>2</sup>=%.*f &middot; %s &middot; F=%.*f &middot; %s",
+                                              digits.summary, r2, digits.summary, r2.adj, eta, digits.summary, fstat, pvalstring),
                                       fixed = TRUE),
                  remove.spaces = remove.spaces)
   # -------------------------------------

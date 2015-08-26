@@ -23,14 +23,14 @@ utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 #'          If \code{tableIndex = "col"}, an additional bar with the total sum of each column
 #'          can be added to the plot (see \code{showTotalColumn}).
 #' @param barPosition indicates whether bars should be positioned side-by-side (default)
-#'          or stacked (use \code{"stack"} as parameter).
+#'          or stacked (use \code{"stack"} as argument).
 #' @param reverseOrder logical, whether categories along the x-axis should apper in reversed order or not.
 #' @param geom.colors user defined color palette for geoms. If specified, must either be vector with color values 
 #'          of same length as groups defined in \code{x}, or a specific color palette code.
 #'          See 'Note' in \code{\link{sjp.grpfrq}}.
 #' @param geom.size size resp. width of the geoms (bar width).
-#' @param lineDotSize dot size, only applies, when parameter \code{type = "lines"}.
-#' @param smoothLines prints a smooth line curve. Only applies, when parameter \code{type = "lines"}.
+#' @param lineDotSize dot size, only applies, when argument \code{type = "lines"}.
+#' @param smoothLines prints a smooth line curve. Only applies, when argument \code{type = "lines"}.
 #' @param jitterValueLabels logical, if \code{TRUE}, the value labels on the bars will be "jittered", 
 #'          i.e. they have alternating vertical positions to avoid overlapping of labels in case bars are
 #'          very short. Default is \code{FALSE}.
@@ -46,10 +46,10 @@ utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 #'          to each category.
 #' @param axisTitle.x title for the x-axis. Default is \code{NULL}, so variable name
 #'          of \code{x} will automatically be detected and used as axis title
-#'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#'          (see \code{\link[sjmisc]{set_label}}) for details).
 #' @param axisTitle.y title for the y-axis. Default is \code{NULL}, so variable name
 #'          of \code{grp} will automatically be detected and used as axis title
-#'          (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#'          (see \code{\link[sjmisc]{set_label}}) for details).
 #'          
 #' @inheritParams sjp.grpfrq
 #' 
@@ -93,8 +93,8 @@ utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 #' # dataset was importet from an SPSS-file,
 #' # see ?sjmisc::read_spss
 #' data(efc)
-#' efc.val <- get_val_labels(efc)
-#' efc.var <- get_var_labels(efc)
+#' efc.val <- get_labels(efc)
+#' efc.var <- get_label(efc)
 #' 
 #' sjp.xtab(efc$e42dep,
 #'          efc$e16sex,
@@ -126,7 +126,7 @@ utils::globalVariables(c("Perc", "Sum", "Count", "Group", "line.break"))
 #'
 #'
 #' @import ggplot2
-#' @import dplyr
+#' @importFrom dplyr group_by mutate arrange
 #' @import sjmisc
 #' @importFrom scales percent
 #' @importFrom stats na.omit
@@ -171,7 +171,7 @@ sjp.xtab <- function(x,
                      coord.flip = FALSE,
                      printPlot = TRUE) {
   # --------------------------------------------------------
-  # try to automatically set labels is not passed as parameter
+  # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
   if (is.null(axisLabels.x)) axisLabels.x <- sjmisc:::autoSetValueLabels(x)
   if (is.null(legendLabels)) legendLabels <- sjmisc:::autoSetValueLabels(grp)
@@ -204,7 +204,7 @@ sjp.xtab <- function(x,
   if (type == "b" || type == "bar") type <- c("bars")
   if (type == "l" || type == "line") type <- c("lines")
   if (expand.grid == TRUE) {
-    expand.grid <- waiver()
+    expand.grid <- ggplot2::waiver()
   } else {
     expand.grid <- c(0, 0)
   }
@@ -294,7 +294,7 @@ sjp.xtab <- function(x,
   # This enables us to plot zero counts as well.
   # We guess the maximum amount of categories either by the amount
   # of supplied category labels. If no category labels were passed
-  # as parameter, we assume that the maximum value found in the category
+  # as argument, we assume that the maximum value found in the category
   # columns represents the highest category number
   # -----------------------------------------------
   # Handle zero-counts in group-variable
@@ -405,7 +405,7 @@ sjp.xtab <- function(x,
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
-  # Check whether we have any labels passed as parameter
+  # Check whether we have any labels passed as argument
   if (is.null(legendLabels)) {
     # if not, use category text of group variable as legend text
     if (!showTotalColumn) {
@@ -476,7 +476,7 @@ sjp.xtab <- function(x,
   # define vertical position for labels
   # --------------------------------------------------------
   if (coord.flip) {
-    # if we flip coordinates, we have to use other parameters
+    # if we flip coordinates, we have to use other arguments
     # than for the default layout
     vert <- 0.35
     if (labelPos == "outside" || labelPos == "o")
@@ -484,17 +484,17 @@ sjp.xtab <- function(x,
     else if (labelPos == "inside" || labelPos == "i")
       hpos = 1.2
     else
-      hpos <- waiver()
-    hort <- ifelse(barPosition == "dodge", hpos, waiver())
+      hpos <- ggplot2::waiver()
+    hort <- ifelse(barPosition == "dodge", hpos, ggplot2::waiver())
   } else {
-    hort <- waiver()
+    hort <- ggplot2::waiver()
     if (labelPos == "outside" || labelPos == "o")
       vpos = -0.4
     else if (labelPos == "inside" || labelPos == "i")
       vpos = 1.2
     else
-      vpos <- waiver()
-    vert <- ifelse(barPosition == "dodge", vpos, waiver())
+      vpos <- ggplot2::waiver()
+    vert <- ifelse(barPosition == "dodge", vpos, ggplot2::waiver())
   }
   # check for jitter value labels
   if (jitterValueLabels) vert <- jvert
@@ -546,7 +546,7 @@ sjp.xtab <- function(x,
   # Set up grid breaks
   # --------------------------------------------------------
   if (is.null(gridBreaksAt)) {
-    gridbreaks <- waiver()
+    gridbreaks <- ggplot2::waiver()
   } else {
     gridbreaks <- c(seq(0, upper_lim, by = gridBreaksAt))
   }
@@ -611,7 +611,7 @@ sjp.xtab <- function(x,
          y = axisTitle.y, 
          fill = legendTitle) +
     # print value labels to the x-axis.
-    # If parameter "axisLabels.x" is NULL, the category numbers (1 to ...) 
+    # If argument "axisLabels.x" is NULL, the category numbers (1 to ...) 
     # appear on the x-axis
     scalex +
     # set Y-axis, depending on the calculated upper y-range.

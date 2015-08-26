@@ -8,7 +8,7 @@
 #'              
 #' @description Shows description or the content of data frame (rows and columns) as HTML table,
 #'                or saves it as file. Helpful if you want a quick overview of a data frame's 
-#'                content. See parameter \code{describe} for details. By default, \code{describe} 
+#'                content. See argument \code{describe} for details. By default, \code{describe} 
 #'                is \code{TRUE} and a description of the data frame is given,
 #'                using the \code{\link[psych]{describe}} function of the \code{psych} package.
 #'
@@ -20,7 +20,7 @@
 #'          background color.
 #' @param orderColumn indicates a column, either by column name or by column index number,
 #'          that should be sorted. Default order is ascending, which can be changed with
-#'          \code{orderAscending} parameter. Default is \code{NULL}, hence the data frame
+#'          \code{orderAscending} argument. Default is \code{NULL}, hence the data frame
 #'          is printed with no specific order. See 'Examples'.
 #' @param orderAscending logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
 #'          data frame is ordered according to the specified column in an ascending order.
@@ -38,6 +38,8 @@
 #'          the table. Use \code{commentString} to specify the comment.
 #' @param commentString string that will be added to the end / below the table. Only
 #'          applies, if \code{showCommentRow = TRUE}.
+#' @param big.mark character; if not \code{NULL}, used as mark between every 
+#'          thousands decimals before (hence big) the decimal point
 #' @param hideProgressBar logical, if \code{TRUE}, the progress bar that is displayed when creating the
 #'          table is hidden. Default in \code{FALSE}, hence the bar is visible.
 #'          
@@ -90,6 +92,10 @@
 #'        orderAscending = FALSE, 
 #'        describe = FALSE)
 #' 
+#' # add big mark to thousands
+#' library(datasets)
+#' sjt.df(as.data.frame(WorldPhones), big.mark = ",")
+#' 
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
@@ -99,6 +105,7 @@
 #'                   css.tdata = "border-top: 1px solid;",
 #'                   css.arc = "color:blue;"))}
 #'
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
 sjt.df <- function(mydf,
                    describe = TRUE,
@@ -113,6 +120,7 @@ sjt.df <- function(mydf,
                    showRowNames = TRUE,
                    showCommentRow = FALSE,
                    commentString = "No comment...",
+                   big.mark = NULL,
                    hideProgressBar = FALSE,
                    encoding = NULL,
                    CSS = NULL,
@@ -127,7 +135,7 @@ sjt.df <- function(mydf,
   # -------------------------------------
   encoding <- get.encoding(encoding)
   if (!is.data.frame(mydf)) {
-    stop("Parameter needs to be a data frame!", call. = FALSE)
+    stop("argument needs to be a data frame!", call. = FALSE)
   }
   # -------------------------------------
   # Description?
@@ -145,6 +153,15 @@ sjt.df <- function(mydf,
                        mydf[, 3:ncol(mydf)])
     # proper column name
     colnames(mydf)[4] <- "missings (percentage)"
+    # want to insert a thousands big mark?
+    if (!is.null(big.mark)) {
+      mydf <- as.data.frame(apply(mydf, 2,
+                                  function(x)
+                                    if (max(x, na.rm = T) > 999)
+                                      prettyNum(x, big.mark = ",")
+                                  else
+                                    x))
+    }
   }
   # -------------------------------------
   # Order data set if requested
@@ -159,7 +176,7 @@ sjt.df <- function(mydf,
     # check for correct range
     if (is.numeric(orderColumn) && orderColumn > 0 && orderColumn <= ncol(mydf)) {
       # retrieve order
-      rfolge <- order(mydf[, orderColumn])
+      rfolge <- order(mydf[[orderColumn]])
       # reverse order?
       if (!orderAscending) rfolge <- rev(rfolge)
       # sort dataframe
@@ -239,21 +256,6 @@ sjt.df <- function(mydf,
   # -------------------------------------
   if (!is.null(title)) page.content <- paste0(page.content, sprintf("  <caption>%s</caption>\n", title))
   # -------------------------------------
-  # helper function to retrieve type
-  # of variables
-  # -------------------------------------
-  get.vartype <- function(x) {
-    vt <- c("unknown type")
-    if (is.character(x)) vt <- c("character")
-    else if (is.ordered(x)) vt <- c("ordinal")
-    else if (is.factor(x)) vt <- c("categorical")
-    else if (is.integer(x)) vt <- c("numeric")
-    else if (is.double(x)) vt <- c("numeric-double")
-    else if (is.numeric(x)) vt <- c("numeric")
-    else if (is.atomic(x)) vt <- c("atomic")
-    return(vt)
-  }
-  # -------------------------------------
   # header row
   # -------------------------------------
   page.content <- paste0(page.content, "  <tr>\n")
@@ -271,9 +273,9 @@ sjt.df <- function(mydf,
   # -------------------------------------
   # create progress bar
   # -------------------------------------
-  if (!hideProgressBar) pb <- txtProgressBar(min = 0, 
-                                             max = rowcnt, 
-                                             style = 3)
+  if (!hideProgressBar) pb <- utils::txtProgressBar(min = 0, 
+                                                    max = rowcnt, 
+                                                    style = 3)
   # -------------------------------------
   # subsequent rows
   # -------------------------------------
@@ -290,7 +292,7 @@ sjt.df <- function(mydf,
       page.content <- paste0(page.content, sprintf("    <td class=\"tdata centertalign%s\">%s</td>\n", arcstring, mydf[rcnt, ccnt]))
     }
     # update progress bar
-    if (!hideProgressBar) setTxtProgressBar(pb, rcnt)
+    if (!hideProgressBar) utils::setTxtProgressBar(pb, rcnt)
     # close row tag
     page.content <- paste0(page.content, "</tr>\n")
   }
@@ -336,21 +338,21 @@ sjt.df <- function(mydf,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)
-  knitr <- gsub(tag.comment, css.comment, knitr, fixed = TRUE)
-  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)
-  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.centertalign, css.centertalign, knitr, fixed = TRUE)
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.comment, css.comment, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.centertalign, css.centertalign, knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # remove spaces?
   # -------------------------------------
@@ -366,11 +368,43 @@ sjt.df <- function(mydf,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjtdf",
-                       list(data = mydf,
-                            page.style = page.style,
-                            page.content = page.content,
-                            output.complete = toWrite,
-                            knitr = knitr)))
+  invisible(structure(class = "sjtdf",
+                      list(data = mydf,
+                           page.style = page.style,
+                           page.content = page.content,
+                           output.complete = toWrite,
+                           knitr = knitr)))
 }
-                     
+
+
+# -------------------------------------
+# helper function to retrieve type
+# of variables
+# -------------------------------------
+#' @importFrom methods is
+get.vartype <- function(x) {
+  vt <- c("unknown type")
+  if (methods::is(x, "Date"))
+    vt <- c("date")
+  else if (inherits(x, "POSIXct"))
+    vt <- c("POSIXct")
+  else if (inherits(x, "POSIXlt"))
+    vt <- c("POSIXlt")
+  else if (inherits(x, "POSIXt"))
+    vt <- c("POSIXt")
+  else if (is.character(x))
+    vt <- c("character")
+  else if (is.ordered(x))
+    vt <- c("ordinal")
+  else if (is.factor(x))
+    vt <- c("categorical")
+  else if (is.integer(x))
+    vt <- c("numeric")
+  else if (is.double(x))
+    vt <- c("numeric-double")
+  else if (is.numeric(x))
+    vt <- c("numeric")
+  else if (is.atomic(x))
+    vt <- c("atomic")
+  return(vt)
+}

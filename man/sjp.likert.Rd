@@ -21,7 +21,7 @@ sjp.likert(items, catcount = NULL, cat.neutral = NULL, weightBy = NULL,
 
 \item{catcount}{optional, amount of categories of \code{items} (e.g. \emph{"strongly disagree",
 "disagree", "agree"} and \emph{"strongly agree"} would be \code{catcount = 4}).
-Note that this parameter only applies to "valid" answers, i.e. if you
+Note that this argument only applies to "valid" answers, i.e. if you
 have an additional neutral category (see \code{cat.neutral}) like \emph{"don't know"},
 this won't count for \code{catcount} (e.g. "strongly disagree",
 "disagree", "agree", "strongly agree" and neutral category "don't know"
@@ -50,7 +50,7 @@ total sum of positive or negative answers.
   \item{\code{NULL}}{(default) for no sorting}
 }}
 
-\item{geom.size}{width of bars. Recommended values for this parameter are from 0.4 to 1.5}
+\item{geom.size}{width of bars. Recommended values for this argument are from 0.4 to 1.5}
 
 \item{geom.colors}{user defined color palette for geoms. If specified, must either be vector with color values
 of same length as groups defined in \code{legendLabels}, or a specific color palette code.
@@ -83,7 +83,7 @@ likert-scale-categories and which appear as legend text.}
 
 \item{title}{plot title as string. Example: \code{title = "my title"}.
 Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 no title is printed.}
 
 \item{legendTitle}{title of the plot legend, as string.}
@@ -95,7 +95,7 @@ no title is printed.}
 \item{axisLabels.y}{character vector with labels for the y-axis (names of the
 \code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}.
 Axis labels will automatically be detected, when they have
-label attributes (see \code{\link[sjmisc]{set_var_labels}} for details).}
+label attributes (see \code{\link[sjmisc]{set_label}} for details).}
 
 \item{breakTitleAt}{determines how many chars of the plot title are displayed in
 one line and when a line break is inserted into the title.}
@@ -117,7 +117,7 @@ E.g. \code{gridRange = 1.4} will set the axis from -140 to +140\%, however, only
 (valid) axis labels from -100 to +100\% are printed. Neutral categories are
 adjusted to the most left limit.}
 
-\item{gridBreaksAt}{set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th
+\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th
 position a major grid is being printed.}
 
 \item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
@@ -144,12 +144,12 @@ Plot likert scales as centered stacked bars.
 Note that only even numbers of categories are possible to plot, so the "positive"
        and "negative" values can be splitted into two halfs. A neutral category (like "don't know")
        can be used, but must be indicated by \code{cat.neutral}. \cr \cr
-       The \code{catcount}-parameter indicates how many item categories are in the
-       Likert scale. Normally, this parameter can be ignored because the amount of
+       The \code{catcount}-argument indicates how many item categories are in the
+       Likert scale. Normally, this argument can be ignored because the amount of
        valid categories is retrieved automatically. However, sometimes (for instance,
        if a certain category is missing in all items), auto-detection of the amount
        of categories fails. In such cases, specify the amount of categories
-       with the \code{catcount}-parameter.
+       with the \code{catcount}-argument.
 }
 \examples{
 # prepare data for dichotomous likert scale, 5 items

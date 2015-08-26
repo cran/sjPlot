@@ -20,10 +20,10 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'          title will not have a suffix when cases are weighted.
 #' @param interactionVar an interaction variable which can be used for box plots. Divides each category indicated
 #'          by \code{varGroup} into the factors of \code{interactionVar}, so that each category of \code{varGroup}
-#'          is subgrouped into \code{interactionVar}'s categories. Only applies when parameter \code{type}
+#'          is subgrouped into \code{interactionVar}'s categories. Only applies when argument \code{type}
 #'          is \code{box} or \code{violin} (resp. their alternative strings like \code{"boxplot"}, \code{"boxplots"} or \code{"v"}).
 #' @param barPosition indicates whether bars should be positioned side-by-side (default)
-#'          or stacked (use \code{"stack"} as parameter).
+#'          or stacked (use \code{"stack"} as argument).
 #'          If \code{type = "histogram"}, you can use either \code{"dodge"} (default value), 
 #'          which displays the bars side-by-side, or \code{"identity"}, which results in 
 #'          overlaying bars. In the latter case, it's recommended to adjust the 
@@ -41,25 +41,25 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'            \code{type = "boxplots"}, which may be abbreviated \code{type = "box"}
 #' @param hideLegend logical, indicates whether legend (guide) should be shown or not.
 #' @param axisLimits.x numeric vector of length two, defining lower and upper axis limits
-#'          of the x scale. By default, this parameter is set to \code{NULL}, i.e. the 
+#'          of the x scale. By default, this argument is set to \code{NULL}, i.e. the 
 #'          x-axis fits to the required range to plot all data. \strong{Note} that limiting
 #'          the x-axis-range may result in warnings from \code{ggplot} due to values
 #'          outside this range that could not be plotted.
 #' @param axisLimits.y numeric vector of length two, defining lower and upper axis limits
-#'          of the y scale. By default, this parameter is set to \code{NULL}, i.e. the 
+#'          of the y scale. By default, this argument is set to \code{NULL}, i.e. the 
 #'          y-axis ranges from 0 to required maximum.
 #' @param facet.grid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
-#'          bar charts. Ideal for larger amount of groups. This parameter wraps a single panel into 
+#'          bar charts. Ideal for larger amount of groups. This argument wraps a single panel into 
 #'          \code{varGroup} amount of panels, i.e. each group is represented within a new panel.
 #' @param title plot title as string. Example: \code{title = "my title"}.
 #'          Use \code{NULL} to automatically detect variable names that will be used as title
-#'          (see \code{\link[sjmisc]{set_var_labels}}) for details). If \code{title = ""},
+#'          (see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
 #'          no title is printed.
 #' @param legendTitle title of the plot legend, as string.
 #' @param axisLabels.x a character vector with labels for the x-axis breaks. \strong{Note:} 
 #'          Axis labels will be automatically detected, when data was either imported 
 #'          with \code{\link[sjmisc]{read_spss}} or has named factor levels 
-#'          (see 'Examples'). Else, specifiy parameter like this:
+#'          (see 'Examples'). Else, specifiy argument like this:
 #'          \code{axisLabels.x = c("Label1", "Label2", "Label3")}.
 #'          The labels may also be passed as \code{\link{list}} object. They will be coerced
 #'          to character vector automatically.
@@ -77,7 +77,7 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'          are displayed in one line and when a line break is inserted.
 #' @param breakLegendLabelsAt determines how many chars of the legend labels are 
 #'          displayed in one line and when a line break is inserted.
-#' @param gridBreaksAt set breaks for the y-axis, i.e. at every \code{gridBreaksAt}'th 
+#' @param gridBreaksAt set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
 #'          position a major grid is being printed.
 #' @param innerBoxPlotWidth width of the inner box plot that is plotted inside of violin plots. Only applies 
 #'          if \code{type = "violins"}. Default value is 0.15
@@ -85,12 +85,12 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'          when \code{type = "violins"} or \code{"boxplots"}.
 #' @param geom.colors User defined color palette for geoms. If specified, must either be vector with color values 
 #'          of same length as groups defined in \code{varGroup}, or a specific color brewer palette code (see 'Note').
-#' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} parameter).
+#' @param geom.size size resp. width of the geoms (bar width or point size, depending on \code{type} argument).
 #'          Note that  bar and bin widths mostly need smaller values than dot sizes (i.e. if \code{type = "dots"}).
-#'          By default, \code{geom.size = NULL}, which means that this parameter is automatically
+#'          By default, \code{geom.size = NULL}, which means that this argument is automatically
 #'          adjusted depending on the plot type.
 #' @param geom.spacing the spacing between geoms (i.e. bar spacing)
-#' @param smoothLines prints a smooth line curve. Only applies, when parameter \code{type = "lines"}.
+#' @param smoothLines prints a smooth line curve. Only applies, when argument \code{type = "lines"}.
 #' @param expand.grid logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 #'          axes and plotting region. Default is \code{FALSE}.
 #' @param showValueLabels logical, whether count and percentage values should be plotted to each bar. Default
@@ -119,7 +119,7 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'          (see \code{\link{fisher.test}}) is computed instead of Chi-squared test. 
 #'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo 
 #'          simulation is computed. Only applies to barcharts or dotplots, i.e. 
-#'          when parameter \code{type = "bars"} or \code{"dots"}.
+#'          when argument \code{type = "bars"} or \code{"dots"}.
 #' @param showGroupCount logical, if \code{TRUE}, the count within each group is added 
 #'          to the category labels (e.g. \code{"Cat 1 (n=87)"}). Default value is \code{FALSE}.
 #' @param tableSummaryPos position of the model summary which is printed when \code{showTableSummary} 
@@ -131,11 +131,11 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #'          \code{showMeanIntercept = TRUE}.
 #' @param axisTitle.x title for the x-axis. By default, \code{""} is used, i.e. no title
 #'          is printed. If \code{axisTitle.x = NULL}, the variable name will be 
-#'          automatically detected and used as title (see \code{\link[sjmisc]{set_var_labels}}) 
+#'          automatically detected and used as title (see \code{\link[sjmisc]{set_label}}) 
 #'          for details).
 #' @param axisTitle.y title for the-y axis. By default, \code{""} is used, i.e. no title
 #'          is printed. If \code{axisTitle.y = NULL}, variable name will be automatically 
-#'          detected and used as title (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#'          detected and used as title (see \code{\link[sjmisc]{set_label}}) for details).
 #' @param autoGroupAt numeric value, indicating at which length of unique values of \code{varCount}, 
 #'          automatic grouping into smaller units is done (see \code{\link[sjmisc]{group_var}}).
 #'          If \code{varCount} has large numbers of unique values, there may be too many bars 
@@ -161,7 +161,7 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #' 
 #' @note \code{geom.colors} may be a acharacter vector of color values 
 #'         in hex-format, or a name of a \href{http://colorbrewer2.org}{color brewer} palette.
-#'         Following options are valid for the \code{geom.colors} parameter:
+#'         Following options are valid for the \code{geom.colors} argument:
 #'         \itemize{
 #'            \item If not specified, a default color brewer palette will be used, which is suitable for the plot style (i.e. diverging for likert scales, qualitative for grouped bars etc.).
 #'            \item If \code{"gs"}, a greyscale will be used.
@@ -173,8 +173,8 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #' # histrogram with EUROFAMCARE sample dataset
 #' library(sjmisc)
 #' data(efc)
-#' efc.val <- get_val_labels(efc)
-#' efc.var <- get_var_labels(efc)
+#' efc.val <- get_labels(efc)
+#' efc.var <- get_label(efc)
 #' sjp.grpfrq(efc$e17age,
 #'            efc$e16sex,
 #'            title = efc.var['e17age'],
@@ -222,7 +222,7 @@ utils::globalVariables(c("ypos", "wb", "ia", "mw", "stddev", "count"))
 #' 
 #' @import ggplot2
 #' @import sjmisc
-#' @import dplyr
+#' @importFrom dplyr group_by mutate arrange
 #' @importFrom stats na.omit xtabs wilcox.test
 #' @export
 sjp.grpfrq <- function(varCount,
@@ -232,7 +232,7 @@ sjp.grpfrq <- function(varCount,
                        interactionVar = NULL,
                        type = "bars",
                        geom.size = NULL,
-                       geom.spacing = 0.4,
+                       geom.spacing = 0.15,
                        geom.colors = "Paired",
                        hideLegend = FALSE,
                        facet.grid = FALSE,
@@ -292,7 +292,7 @@ sjp.grpfrq <- function(varCount,
   if (type == "box" || type == "boxplot") type <- "boxplots"
   if (type == "v" || type == "violins") type <- "violin"
   if (expand.grid == TRUE) {
-    expand.grid <- waiver()
+    expand.grid <- ggplot2::waiver()
   } else {
     expand.grid <- c(0, 0)
   }
@@ -301,7 +301,7 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   if (is.null(geom.size)) {
     if (type == "bars") 
-      geom.size <- .6
+      geom.size <- .7
     else if (type == "dots") 
       geom.size <- 3
     else if (type == "histogram") 
@@ -320,7 +320,7 @@ sjp.grpfrq <- function(varCount,
     warning("'interactionVar' only applies to boxplots and violinplots (see 'type') and will be ignored.", call. = F)
   }
   # --------------------------------------------------------
-  # try to automatically set labels is not passed as parameter
+  # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
   if (is.null(axisLabels.x)) {
     axisLabels.x <- sjmisc:::autoSetValueLabels(varCount)
@@ -361,12 +361,12 @@ sjp.grpfrq <- function(varCount,
     # group axis labels
     axisLabels.x <- sjmisc::group_labels(varCount, 
                                          groupsize = "auto", 
-                                         autoGroupCount = agcnt)
+                                         groupcount = agcnt)
     # group variable
     varCount <- sjmisc::group_var(varCount, 
                                   groupsize = "auto", 
-                                  asNumeric = TRUE, 
-                                  autoGroupCount = agcnt)
+                                  as.num = TRUE, 
+                                  groupcount = agcnt)
   }
   # --------------------------------------------------------
   # unlist labels
@@ -384,7 +384,7 @@ sjp.grpfrq <- function(varCount,
   # This enables us to plot zero counts as well.
   # We guess the maximum amount of categories either by the amount
   # of supplied category labels. If no category labels were passed
-  # as parameter, we assume that the maximum value found in the category
+  # as argument, we assume that the maximum value found in the category
   # columns represents the highest category number
   # -----------------------------------------------
   # handle zero-counts
@@ -479,7 +479,7 @@ sjp.grpfrq <- function(varCount,
     # --------------------------------------------------------
     if (!na.rm) {
       # get amount of missings
-      frq <- length(which(is.na(varCount[which(varGroup == i)])))
+      frq <- sum(is.na(varCount[which(varGroup == as.numeric(dfgrp$Var1[i]))]))
       # create data frame
       tmpdf <- data.frame(cbind(count = catcount + 1, 
                                 group, 
@@ -557,9 +557,9 @@ sjp.grpfrq <- function(varCount,
   mydat$texty <- sjmisc::to_value(mydat$prz, keep.labels = F)
   # add half of Percentage values as new y-position for stacked bars
   # mydat <- ddply(mydat, "count", transform, ypos = cumsum(frq) - 0.5*frq)
-  mydat <- mydat %>% 
-    dplyr::group_by(count) %>% 
-    dplyr::mutate(ypos = cumsum(frq) - 0.5 * frq) %>% 
+  mydat <- mydat %>%
+    dplyr::group_by(count) %>%
+    dplyr::mutate(ypos = cumsum(frq) - 0.5 * frq) %>%
     dplyr::arrange(count)
   # --------------------------------------------------------
   # If we have boxplots, use different data frame structure
@@ -660,7 +660,7 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
-  # Check whether we have any labels passed as parameter
+  # Check whether we have any labels passed as argument
   # if not, use category text of group variable as legend text
   if (is.null(legendLabels)) legendLabels <- c(dfgrp$Var1)
   # wrap legend text lines
@@ -760,10 +760,10 @@ sjp.grpfrq <- function(varCount,
     # else calculate upper y-axis-range depending
     # on the amount of cases...
     } else if (barPosition == "stack") {
-      upper_lim <- max(pretty(table(varCount)))
+      upper_lim <- max(pretty(table(varCount) * 1.05))
     } else {
       # ... or the amount of max. answers per category
-      upper_lim <- max(pretty(table(varCount, varGroup)))
+      upper_lim <- max(pretty(table(varCount, varGroup) * 1.05))
     }
   }
   # --------------------------------------------------------
@@ -771,7 +771,7 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   # define vertical position for labels
   if (coord.flip) {
-    # if we flip coordinates, we have to use other parameters
+    # if we flip coordinates, we have to use other arguments
     # than for the default layout
     vert <- ifelse(type == "dots", 0.45, 0.35)
     if (labelPos == "inside" || labelPos == "i") {
@@ -780,11 +780,11 @@ sjp.grpfrq <- function(varCount,
       hort <- -0.1
     }
   } else {
-    hort <- waiver()
+    hort <- ggplot2::waiver()
     if (labelPos == "inside" || labelPos == "i") {
       vert <- 1.1
     } else if (barPosition == "stack" || labelPos == "center" || labelPos == "c") {
-      vert <- waiver()
+      vert <- ggplot2::waiver()
     } else if (showPercentageValues && showCountValues) {
       # value labels need a different vertical adjustement, depending on
       # whether we plot dots or bars
@@ -853,7 +853,7 @@ sjp.grpfrq <- function(varCount,
     # ---------------------------------------------------------
     if (facet.grid) {
       # ---------------------------------------------------------
-      # if we want percentage values, we have different sprintf-parameters
+      # if we want percentage values, we have different sprintf-arguments
       # ---------------------------------------------------------
       if (showPercentageValues && showCountValues) {
         ggvaluelabels <-  geom_text(aes(x = count, 
@@ -944,7 +944,7 @@ sjp.grpfrq <- function(varCount,
   # Set up grid breaks
   # --------------------------------------------------------
   if (is.null(gridBreaksAt)) {
-    gridbreaks <- waiver()
+    gridbreaks <- ggplot2::waiver()
   } else {
     gridbreaks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
   }
@@ -1146,7 +1146,7 @@ sjp.grpfrq <- function(varCount,
          fill = legendTitle,
          colour = legendTitle) +
     # print value labels to the x-axis.
-    # If parameter "axisLabels.x" is NULL, the category numbers (1 to ...) 
+    # If argument "axisLabels.x" is NULL, the category numbers (1 to ...) 
     # appear on the x-axis
     scalex +
     # set Y-axis, depending on the calculated upper y-range.

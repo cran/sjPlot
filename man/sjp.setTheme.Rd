@@ -4,18 +4,18 @@
 \alias{sjp.setTheme}
 \title{Set global theme options for sjp-functions}
 \usage{
-sjp.setTheme(theme = NULL, title.color = "black", title.size = 1.3,
+sjp.setTheme(theme = NULL, title.color = "black", title.size = 1.2,
   title.align = "left", geom.outline.color = NULL,
   geom.outline.size = 0.1, geom.boxoutline.size = 0.5,
   geom.boxoutline.color = "black", geom.alpha = 1, geom.linetype = 1,
   geom.errorbar.size = 0.7, geom.errorbar.linetype = 1,
-  geom.label.color = NULL, geom.label.size = 4.5, geom.label.alpha = 1,
+  geom.label.color = NULL, geom.label.size = 4, geom.label.alpha = 1,
   geom.label.angle = 0, axis.title.color = "grey30",
-  axis.title.size = 1.2, axis.angle.x = 0, axis.angle.y = 0,
+  axis.title.size = 1.1, axis.angle.x = 0, axis.angle.y = 0,
   axis.angle = NULL, axis.textcolor.x = "grey30",
   axis.textcolor.y = "grey30", axis.textcolor = NULL,
   axis.linecolor.x = NULL, axis.linecolor.y = NULL, axis.linecolor = NULL,
-  axis.line.size = 0.5, axis.textsize.x = 1.1, axis.textsize.y = 1.1,
+  axis.line.size = 0.5, axis.textsize.x = 1, axis.textsize.y = 1,
   axis.textsize = NULL, axis.tickslen = NULL, axis.ticksol = NULL,
   axis.ticksmar = NULL, panel.backcol = NULL, panel.bordercol = NULL,
   panel.col = NULL, panel.major.gridcol = NULL,
@@ -26,11 +26,11 @@ sjp.setTheme(theme = NULL, title.color = "black", title.size = 1.3,
   legend.color = "black", legend.title.size = 1,
   legend.title.color = "black", legend.title.face = "bold",
   legend.backgroundcol = "white", legend.bordercol = "white",
-  legend.item.backcol = "grey90", legend.item.bordercol = "white",
-  base = theme_grey())
+  legend.item.size = NULL, legend.item.backcol = "grey90",
+  legend.item.bordercol = "white", base = theme_grey())
 }
 \arguments{
-\item{theme}{specify pre-set themes (see 'Details'). Valid parameter for ggplot default-themes are for instance:
+\item{theme}{specify pre-set themes (see 'Details'). Valid argument for ggplot default-themes are for instance:
 \itemize{
   \item \code{theme_bw}
   \item \code{theme_classic}
@@ -192,6 +192,8 @@ recommended values are from 0.3 to 2.5}
 
 \item{legend.bordercol}{color of the legend's border. Default is \code{"white"}, so no visible border is drawn.}
 
+\item{legend.item.size}{size of legend's item (legend key), in centimetres.}
+
 \item{legend.item.backcol}{fill color of the legend's item-background. Default is \code{"grey90"}.}
 
 \item{legend.item.bordercol}{color of the legend's item-border. Default is \code{"white"}.}
@@ -206,17 +208,17 @@ The customized theme object, or \code{NULL}, if a ggplot-theme was used.
 Set global theme options for sjp-functions.
 }
 \details{
-If the \code{theme} parameter is one of the valid ggplot-themes, this theme
-           will be used and all further parameters will be ignored. If you want to modify
-           a ggplot-theme, use \code{base = "theme_xy"}, then further parameters to
+If the \code{theme} argument is one of the valid ggplot-themes, this theme
+           will be used and all further arguments will be ignored. If you want to modify
+           a ggplot-theme, use \code{base = "theme_xy"}, then further arguments to
            this function will be applied to the theme as well.
            \cr \cr
-           If the \code{theme} parameter is one of sjPlot-pre-set-themes, you
-           can use further parameters for specific customization of the theme.
-           \emph{sjPlot-pre-set-themes won't work with the \code{base} parameter!}
-           The \code{base} parameter is only intended to select a ggplot-theme
+           If the \code{theme} argument is one of sjPlot-pre-set-themes, you
+           can use further arguments for specific customization of the theme.
+           \emph{sjPlot-pre-set-themes won't work with the \code{base} argument!}
+           The \code{base} argument is only intended to select a ggplot-theme
            as base for further modifications (which can be triggered via the
-           various function parameters).
+           various function arguments).
 }
 \examples{
 \dontrun{

@@ -34,10 +34,10 @@ is detected automatically. If \code{x} is a vector, \code{fun} defaults
 to \code{"lm"}.}
 
 \item{axisTitle.x}{A label for the x axis. Use \code{NULL} to automatically detect
-variable names that will be used as title (see \code{\link[sjmisc]{set_var_labels}}) for details).}
+variable names that will be used as title (see \code{\link[sjmisc]{set_label}}) for details).}
 
 \item{axisTitle.y}{A label for the y axis. Use \code{NULL} to automatically detect
-variable names that will be used as title (see \code{\link[sjmisc]{set_var_labels}}) for details).}
+variable names that will be used as title (see \code{\link[sjmisc]{set_label}}) for details).}
 
 \item{showScatterPlot}{If \code{TRUE} (default), a scatter plot of response and predictor values
 for each predictor of the fitted model \code{fit} is plotted.
@@ -67,9 +67,12 @@ or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.}
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
-(insisibily) returns the ggplot-object with the complete plot (\code{plot})
-          as well as the data frame that was used for setting up the
-          ggplot-object (\code{df}).
+(insisibily) returns
+          \describe{
+           \item{\code{plot}}{the ggplot-object with the complete plot}
+           \item{\code{df}}{the data frame that was used for setting up the ggplot-object}
+           \item{\code{cutpoints}}{a data frame that indicates x-values and predicted y-values of each direction change in the loess curvature}
+          }
 }
 \description{
 This function plots a scatter plot of a term \code{poly.term}
@@ -89,7 +92,7 @@ For each polynomial degree, a simple linear regression on \code{x} (resp.
            finding the best fitting polynomial. \cr \cr
            This function evaluates raw polynomials, \emph{not orthogonal} polynomials.
            Polynomials are computed using the \code{\link{poly}} function,
-           with parameter \code{raw = TRUE}. \cr \cr
+           with argument \code{raw = TRUE}. \cr \cr
            To find out which polynomial degree fits best to the data, a loess-smoothed
            line can be added (with \code{showLoess = TRUE}). The polynomial curves
            that comes closest to the loess-smoothed line should be the best

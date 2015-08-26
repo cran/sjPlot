@@ -13,12 +13,12 @@ sjt.glmer(..., file = NULL, labelPredictors = NULL,
   stringP = "p", digits.est = 2, digits.p = 3, digits.ci = 2,
   digits.se = 2, digits.summary = 3, exp.coef = TRUE,
   pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
-  showStdError = FALSE, separateConfColumn = TRUE, newLineConf = TRUE,
-  showAbbrHeadline = TRUE, showICC = TRUE, showLogLik = FALSE,
-  showAIC = FALSE, showAICc = FALSE, showHosLem = FALSE,
-  showFamily = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+  showStdError = FALSE, ci.hyphen = "&nbsp;&ndash;&nbsp;",
+  separateConfColumn = TRUE, newLineConf = TRUE, showAbbrHeadline = TRUE,
+  showICC = TRUE, showLogLik = FALSE, showAIC = FALSE, showAICc = FALSE,
+  showHosLem = FALSE, showFamily = FALSE, remove.estimates = NULL,
+  cellSpacing = 0.2, encoding = NULL, CSS = NULL, useViewer = TRUE,
+  no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted generalized linear (mixed) models.}
@@ -47,7 +47,7 @@ and \code{stringDependentVariables} are shown. By default, they're hidden.}
 labels for the dependent variables are provided (see \code{labelDependentVariables}).
 Default is \code{"Model"}.}
 
-\item{stringIntercept}{String constant used as headline for the Intercept row.
+\item{stringIntercept}{string constant used as headline for the Intercept row.
 Default is \code{"Intercept"}.}
 
 \item{stringObservations}{string constant used in the summary row for the count of observation
@@ -61,7 +61,7 @@ Default is \code{"Intercept"}.}
 
 \item{stringP}{string used for the column heading of p values. Default is \code{"p"}.}
 
-\item{digits.est}{amount of decimals for estimators}
+\item{digits.est}{amount of decimals for estimates}
 
 \item{digits.p}{amount of decimals for p-values}
 
@@ -87,7 +87,10 @@ p-values are indicated by asterisks.}
 \item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
 Default is \code{FALSE}.}
 
-\item{separateConfColumn}{logical, if \code{TRUE}, the CI values are shown in a separate table column.
+\item{ci.hyphen}{string, indicating the hyphen for confidence interval range.
+May be an HTML entity. See 'Examples'.}
+
+\item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
 Default is \code{FALSE}.}
 
 \item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
@@ -103,7 +106,7 @@ model is printed in the model summary.}
 \item{showLogLik}{logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showAIC}{logical, if \code{TRUE}, the \code{\link{AIC}} value for each model is printed
+\item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
 \item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model
@@ -115,22 +118,22 @@ the model and the observed data, i.e. the reported p-values should be
 greater than 0.05.}
 
 \item{showFamily}{logical, if \code{TRUE}, the family object and link function for each fitted model
-are printed. Can be used in case you want to compare models with different link functions
-and same predictors and response, to decide which model fits best. See \code{\link{family}}
-for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
-decision help for which model to choose.}
+         are printed. Can be used in case you want to compare models with different link functions
+         and same predictors and response, to decide which model fits best. See \code{\link{family}}
+         for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
+         decision help for which model to choose.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)})
 or character vector with coefficient names that indicate which estimates should be removed
 from the table output. The first estimate is the intercept, followed by the model predictors.
 \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)}
-would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output.
+would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output.
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
 \item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
+into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and
@@ -184,7 +187,7 @@ data(efc)
 efc$hi_qol <- dicho(efc$quol_5)
 # prepare group variable
 efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+levels(x = efc$grp) <- get_labels(efc$e15relat)
 # data frame for fitted model
 mydf <- data.frame(hi_qol = as.factor(efc$hi_qol),
                    sex = as.factor(efc$c161sex),
@@ -202,7 +205,8 @@ fit2 <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + education + (1|grp),
               family = binomial("logit"))
 
 # print summary table
-sjt.glmer(fit1, fit2)
+sjt.glmer(fit1, fit2,
+          ci.hyphen = " to ")
 
 # print summary table, using different table layout
 sjt.glmer(fit1, fit2,

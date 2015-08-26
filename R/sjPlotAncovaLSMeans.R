@@ -1,26 +1,27 @@
 # bind global variables
 utils::globalVariables(c("xn", "vld", "l.ci", "u.ci"))
 
+#' @importFrom dplyr filter
 sjp.emm <- function(fit,
-                    swapPredictors=FALSE,
-                    plevel=0.05,
-                    title=NULL,
-                    geom.colors="Set1",
-                    axisTitle.x=NULL,
-                    axisTitle.y=NULL,
-                    axisLabels.x=NULL,
-                    legendTitle=NULL,
-                    legendLabels=NULL,
-                    showValueLabels=FALSE,
-                    valueLabel.digits=2,
-                    showCI=FALSE,
-                    breakTitleAt=50,
-                    breakLegendTitleAt=20,
-                    breakLegendLabelsAt=20,
-                    axisLimits.y=NULL,
-                    gridBreaksAt=NULL,
+                    swapPredictors = FALSE,
+                    plevel = 0.05,
+                    title = NULL,
+                    geom.colors = "Set1",
+                    axisTitle.x = NULL,
+                    axisTitle.y = NULL,
+                    axisLabels.x = NULL,
+                    legendTitle = NULL,
+                    legendLabels = NULL,
+                    showValueLabels = FALSE,
+                    valueLabel.digits = 2,
+                    showCI = FALSE,
+                    breakTitleAt = 50,
+                    breakLegendTitleAt = 20,
+                    breakLegendLabelsAt = 20,
+                    axisLimits.y = NULL,
+                    gridBreaksAt = NULL,
                     facet.grid = FALSE,
-                    printPlot=TRUE) {
+                    printPlot = TRUE) {
   # ------------------------
   # check if suggested packages are available
   # ------------------------
@@ -46,7 +47,7 @@ sjp.emm <- function(fit,
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
-  if (is.null(gridBreaksAt)) gridbreaks.y <- waiver()
+  if (is.null(gridBreaksAt)) gridbreaks.y <- ggplot2::waiver()
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------
@@ -95,6 +96,7 @@ sjp.emm <- function(fit,
   # but only those with a specific p-level
   intnames <- c()
   for (i in 1:length(it.pos)) {
+    if (is.na(pval[it.pos[i]])) pval[it.pos[i]] <- 1
     if (pval[it.pos[i]] < plevel) {
       intnames <- c(intnames, cf[it.pos[i]])
     }
@@ -169,6 +171,15 @@ sjp.emm <- function(fit,
                           emm[7],
                           rep(valueLabel.digits, times = nrow(emm[1])))
       colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
+      # -----------------------------------------------------------
+      # remove missings
+      # -----------------------------------------------------------
+      if (anyNA(intdf$y)) {
+        # warn user
+        warning("fitted model had estimates with missing values. Output may be incomplete.", call. = F)
+        # remove missings
+        intdf <- dplyr::filter(intdf, !is.na(y))
+      }
       # -----------------------------------------------------------
       # convert df-values to numeric
       # -----------------------------------------------------------
@@ -335,7 +346,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, axisTi
   # -----------------------------------------------------------
   # parameter check
   # -----------------------------------------------------------
-  if (is.null(gridBreaksAt)) gridbreaks.y <- waiver()
+  if (is.null(gridBreaksAt)) gridbreaks.y <- ggplot2::waiver()
   # --------------------------------------------------------
   # unlist labels
   # --------------------------------------------------------

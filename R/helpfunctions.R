@@ -83,6 +83,17 @@ create.frq.df <- function(varCount,
                           startAxisAt = "auto",
                           weightBy = NULL) {
   #---------------------------------------------------
+  # variable with only mising?
+  #---------------------------------------------------
+  if (length(stats::na.omit(varCount)) == 0) {
+    mydat <- data.frame(var = NA,
+                        frq = NA,
+                        prz = NA,
+                        valid = NA,
+                        cumperc = NA)
+    return(invisible(structure(list(mydat = mydat))))
+  }
+  #---------------------------------------------------
   # weight variable
   #---------------------------------------------------
   if (!is.null(weightBy)) varCount <- sjmisc::weight(varCount, weightBy)
@@ -91,7 +102,7 @@ create.frq.df <- function(varCount,
   #---------------------------------------------------
   df <- as.data.frame(table(varCount))
   # name columns
-  names(df) <- c("y", "Freq")
+  colnames(df) <- c("y", "Freq")
   #---------------------------------------------------
   # do we have label values associated with value labels?
   # if yes, we assume that these values are the range
@@ -120,7 +131,7 @@ create.frq.df <- function(varCount,
       # amount of categories (=number of rows) in dataframe instead
       llabels <- as.character(mydat$var)
     }
-  } else {
+  } else if (!is.character(varCount)) {
     # --------------------------------------------------------
     # Define amount of category, include zero counts
     # --------------------------------------------------------
@@ -131,7 +142,7 @@ create.frq.df <- function(varCount,
     # This enables us to plot zero counts as well.
     # We guess the maximum amount of categories either by the amount
     # of supplied category labels. If no category labels were passed
-    # as parameter, we assume that the maximum value found in the category
+    # as argument, we assume that the maximum value found in the category
     # columns represents the highest category number
     catcount <- 0
     catmin <- minval <- min(varCount, na.rm = TRUE)
@@ -189,9 +200,14 @@ create.frq.df <- function(varCount,
       # amount of categories (=number of rows) in dataframe instead
       llabels <- c(startAxisAt:(nrow(mydat) + startAxisAt - 1))
     }
+  } else {
+    mydat <- df
+    colnames(mydat) <- c("var", "frq")
+    catmin <- minval <- min(varCount, na.rm = TRUE)
+    catcount <- length(unique(stats::na.omit(varCount)))
   }
   # caculate missings here
-  missingcount <- length(which(is.na(varCount)))
+  missingcount <- sum(is.na(varCount))
   # --------------------------------------------------------
   # Handle missings
   # --------------------------------------------------------
@@ -397,7 +413,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
           # if not, save found factor variable name
           found.factors <- c(found.factors, fac.name)
           # save factor name
-          lab <- unname(sjmisc::get_var_labels(fit.var))
+          lab <- unname(sjmisc::get_label(fit.var))
           # any label?
           if (is.null(lab)) lab <- colnames(fit$model)[grp.cnt]
           # determins startindex
@@ -483,7 +499,7 @@ retrieveModelLabels <- function(models) {
           # get amount of levels
           pvar.len <- length(levels(pvar))
           # get value labels, if any
-          pvar.lab <- sjmisc::get_val_labels(pvar)
+          pvar.lab <- sjmisc::get_labels(pvar)
           # have any labels, and have we same amount of labels
           # as factor levels?
           if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
@@ -528,14 +544,7 @@ sju.modsum.lm <- function(fit) {
   # Calculate p-value for F-test
   pval <- stats::pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
   # indicate significance level by stars
-  pan <- c("")
-  if (pval < 0.001) {
-    pan <- c("***")
-  } else  if (pval < 0.01) {
-    pan <- c("**")
-  } else  if (pval < 0.05) {
-    pan <- c("*")
-  }
+  pan <- get_p_stars(pval)
   # create mathematical term
   modsum <- as.character(as.expression(
     substitute(beta[0] == a * "," ~~ R^2 == r2 * "," ~~ "adj. " * R^2 == ar2 * "," ~~ "F" == f*panval * "," ~~ "AIC" == aic,
@@ -731,8 +740,22 @@ sjs.frqci <- function(x) {
 
 
 sju.rmspc <- function(html.table) {
-  cleaned <- gsub("      <", "<", html.table, fixed = TRUE)
-  cleaned <- gsub("    <", "<", cleaned, fixed = TRUE)
-  cleaned <- gsub("  <", "<", cleaned, fixed = TRUE)
+  cleaned <- gsub("      <", "<", html.table, fixed = TRUE, useBytes = TRUE)
+  cleaned <- gsub("    <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
+  cleaned <- gsub("  <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
   return(cleaned)
+}
+
+
+get_p_stars <- function(pval) {
+  pan <- ""
+  if (is.na(pval))
+    pan <- ""
+  else if (pval < 0.001)
+    pan <- "***"
+  else if (pval < 0.01)
+    pan <- "**"
+  else if (pval < 0.05)
+    pan <- "*"
+  return(invisible(pan))
 }

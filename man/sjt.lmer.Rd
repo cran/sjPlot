@@ -11,7 +11,8 @@ sjt.lmer(..., file = NULL, labelPredictors = NULL,
   stringObservations = "Observations", stringB = "B",
   stringSB = "std. Beta", stringCI = "CI", stringSE = "std. Error",
   stringP = "p", showEst = TRUE, showConfInt = TRUE,
-  showStdBeta = FALSE, showStdError = FALSE, digits.est = 2,
+  showStdBeta = FALSE, showStdError = FALSE,
+  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
   digits.p = 3, digits.ci = 2, digits.se = 2, digits.sb = 2,
   digits.summary = 3, pvaluesAsNumbers = TRUE, boldpvalues = TRUE,
   separateConfColumn = TRUE, newLineConf = TRUE, showAbbrHeadline = TRUE,
@@ -40,7 +41,7 @@ Default is \code{"Predictors"}.}
 dependent variable columns. Default is \code{"Dependent Variables"}.}
 
 \item{stringModel}{string constant used as headline for the model names in case no
-labels for the dependent variables are provided (see labelDependentVariables).
+labels for the dependent variables are provided (see \code{labelDependentVariables}).
 Default is \code{"Model"}.}
 
 \item{showHeaderStrings}{logical, if \code{TRUE}, the header strings \code{stringPredictors}
@@ -52,7 +53,7 @@ Default is \code{"Intercept"}.}
 \item{stringObservations}{string constant used in the summary row for the count of observation
 (cases). Default is \code{"Observations"}.}
 
-\item{stringB}{string used for the column heading of beta coefficients. Default is \code{"B"}.}
+\item{stringB}{string used for the column heading of estimates. Default is \code{"B"}.}
 
 \item{stringSB}{string used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.}
 
@@ -67,13 +68,20 @@ Default is \code{"Intercept"}.}
 \item{showConfInt}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
 \code{FALSE} to omit the CI in the table.}
 
-\item{showStdBeta}{logical, if \code{TRUE}, the standardized beta-coefficients are also printed.
-Default is \code{FALSE}.}
+\item{showStdBeta}{indicates whether standardized beta-coefficients should
+also printed, and if yes, which type of standardization is done.
+See 'Details'.}
 
 \item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
 Default is \code{FALSE}.}
 
-\item{digits.est}{amount of decimals for estimators}
+\item{ci.hyphen}{string, indicating the hyphen for confidence interval range.
+May be an HTML entity. See 'Examples'.}
+
+\item{minus.sign}{string, indicating the minus sign for negative numbers.
+May be an HTML entity. See 'Examples'.}
+
+\item{digits.est}{amount of decimals for estimates}
 
 \item{digits.p}{amount of decimals for p-values}
 
@@ -93,33 +101,33 @@ p-values are indicated by asterisks.}
 \item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
 Default is \code{FALSE}.}
 
-\item{newLineConf}{logica, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
+\item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
 between B and CI values. If \code{FALSE}, CI values are printed in the same
-line with B values.}
+line as B values.}
 
 \item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with
-abbreviations for beta- and std. beta-values, confidence interval and p-values.}
+abbreviations for estimates and std. beta-values, confidence interval and p-values.}
 
 \item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each
 model is printed in the model summary.}
 
-\item{showAIC}{If \code{TRUE}, the AIC value for each model is printed
+\item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
-\item{showAICc}{If \code{TRUE}, the second-order AIC value for each model
+\item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model
 is printed in the model summary. Default is \code{FALSE}.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)})
 or character vector with coefficient names that indicate which estimates should be removed
 from the table output. The first estimate is the intercept, followed by the model predictors.
 \emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)}
-would remove the 2nd to the 4th estimate (1st to 3d predictor after intercept) from the output.
+would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output.
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
 \item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
-into Office documents. This is a convenient parameter for the \code{CSS} parameter for changing
+into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and
@@ -154,7 +162,7 @@ Invisibly returns
 }
 \description{
 Summarizes (multiple) fitted linear mixed effects models
-               (beta coefficients, std. beta values etc.)  as HTML table,
+               (estimates, std. beta values etc.)  as HTML table,
                or saves them as file. The fitted models may have different
                predictors, e.g. when comparing different stepwise fitted models.
 }
@@ -172,7 +180,7 @@ data(efc)
 
 # prepare group variable
 efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+levels(x = efc$grp) <- get_labels(efc$e15relat)
 efc$care.level <- as.factor(sjmisc::rec(efc$n4pstu, "0=0;1=1;2=2;3:4=4"))
 levels(x = efc$care.level) <- c("none", "I", "II", "III")
 
@@ -193,7 +201,9 @@ fit3 <- lmer(neg_c_7 ~ sex + c12hour + education + barthel +
               (1|carelevel), data = mydf)
 
 # print summary table
-sjt.lmer(fit1, fit2)
+sjt.lmer(fit1, fit2,
+         ci.hyphen = " to ",
+         minus.sign = "&minus;")
 
 sjt.lmer(fit1, fit2,
          showAIC = TRUE,

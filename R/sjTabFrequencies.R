@@ -63,21 +63,23 @@
 #' @param showSummary If \code{TRUE} (default), a summary row with total and valid N as well as mean and
 #'          standard deviation is shown.
 #' @param showSkew If \code{TRUE}, the variable's skewness is added to the summary.
-#'          The skewness is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
-#'          package.
+#'          The skewness is retrieved from the \code{\link[psych]{describe}}-function 
+#'          of the \pkg{psych}-package.
 #' @param showKurtosis If \code{TRUE}, the variable's kurtosis is added to the summary.
-#'          The kurtosis is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
-#'          package.
-#' @param skewString A character string, which is used as header for the skew column (see \code{showSkew})).
-#'          Default is lower case Greek gamma.
-#' @param kurtosisString A character string, which is used as header for the kurtosis column (see \code{showKurtosis})).
-#'          Default is lower case Greek omega.
+#'          The kurtosis is retrieved from the \code{\link[psych]{describe}}-function 
+#'          of the \pkg{psych}-package.
+#' @param skewString A character string, which is used as header for the skew 
+#'          column (see \code{showSkew})). Default is lower case Greek gamma.
+#' @param kurtosisString A character string, which is used as header for the 
+#'          kurtosis column (see \code{showKurtosis})). Default is lower case 
+#'          Greek omega.
 #' @param digits amount of digits used for table values. Default is 2.
 #' @param removeStringVectors If \code{TRUE} (default), character vectors / string variables will be removed from
 #'          \code{data} before frequency tables are computed.
-#' @param autoGroupStrings if \code{TRUE} (default), string values in character vectors (string variables) are automatically
-#'          grouped based on their similarity. The similarity is estimated with the \code{stringdist} package.
-#'          You can specify a distance-measure via \code{maxStringDist} parameter. This parameter only
+#' @param autoGroupStrings if \code{TRUE} (default), string values in character 
+#'          vectors (string variables) are automatically grouped based on their 
+#'          similarity. The similarity is estimated with the \pkg{stringdist}-package.
+#'          You can specify a distance-measure via \code{maxStringDist} argument. This argument only
 #'          applies if \code{removeStringVectors} is \code{FALSE}.
 #' @param maxStringDist the allowed distance of string values in a character vector, which indicates
 #'          when two string values are merged because they are considered as close enough.
@@ -105,23 +107,23 @@
 #'            }
 #'            for further use.
 #'          
-#' @note The HTML tables can either be saved as file and manually opened (specify parameter \code{file}) or
+#' @note The HTML tables can either be saved as file and manually opened (specify argument \code{file}) or
 #'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
 #'         or opened with the default web browser. Displaying resp. opening a temporary file is the
 #'         default behaviour (i.e. \code{file = NULL}).
 #' 
-#' @details \bold{How does the \code{CSS}-parameter work?}
+#' @details \bold{How does the \code{CSS}-argument work?}
 #'            \cr \cr
 #'            With the \code{CSS}-paramater, the visual appearance of the tables
 #'            can be modified. To get an overview of all style-sheet-classnames 
 #'            that are used in this function, see return value \code{page.style} for details. 
-#'            Parameters for this list have following syntax:
+#'            Arguments for this list have following syntax:
 #'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as parameter name and
+#'            \item the class-names with \code{"css."}-prefix as argument name and
 #'            \item each style-definition must end with a semicolon
 #'          } 
 #'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the parameter attributes. Examples:
+#'          initial character for the argument attributes. Examples:
 #'          \itemize{
 #'            \item \code{css.table = 'border:2px solid red;'} for a solid 2-pixel table border in red.
 #'            \item \code{css.summary = 'font-weight:bold;'} for a bold fontweight in the summary row.
@@ -325,7 +327,7 @@ sjt.frq <- function(data,
       # remove string variables
       if (length(stringcolumns) > 0) data <- data[, -stringcolumns]
     } else if (is.character(data)) {
-      stop("Parameter 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See parameter 'removeStringVectors' for details.", call. = FALSE)
+      stop("argument 'data' is a single string vector, where string vectors should be removed. No data to compute frequency table left. See argument 'removeStringVectors' for details.", call. = FALSE)
     }
   }
   # -------------------------------------
@@ -468,6 +470,11 @@ sjt.frq <- function(data,
   # -------------------------------------
   for (cnt in 1:nvar) {
     # -----------------------------------------------
+    # save variable values. these values may change when converting
+    # factors to numeric, so save these values before
+    # -----------------------------------------------
+    var.values <- sjmisc::get_values(data[[cnt]])
+    # -----------------------------------------------
     # prepare data: create frequencies and weight them,
     # if requested. put data into a data frame
     #---------------------------------------------------
@@ -477,7 +484,9 @@ sjt.frq <- function(data,
       orivar <- var <- as.numeric(as.factor(data[[cnt]]))
     # here we have numeric or factor variables
     } else {
-      orivar <- var <- sjmisc::to_value(data[[cnt]])
+      # convert to numeric
+      orivar <- var <- sjmisc::to_value(data[[cnt]], 
+                                        keep.labels = F)
     }
     # -----------------------------------------------
     # check for length of unique values and skip if too long
@@ -491,14 +500,16 @@ sjt.frq <- function(data,
       # group labels
       valueLabels[[cnt]] <- sjmisc::group_labels(var, 
                                                  groupsize = "auto", 
-                                                 autoGroupCount = agcnt)
+                                                 groupcount = agcnt)
       # group variable
       var <- sjmisc::group_var(var, 
                                groupsize = "auto", 
-                               asNumeric = TRUE, 
-                               autoGroupCount = agcnt)
+                               as.num = TRUE, 
+                               groupcount = agcnt)
       # set labels
-      var <- sjmisc::set_val_labels(var, valueLabels[[cnt]])
+      var <- sjmisc::set_labels(var, valueLabels[[cnt]])
+      # need to get new values again
+      var.values <- sjmisc::get_values(var)
     }
     # retrieve summary
     varsummary <- summary(var)
@@ -512,7 +523,7 @@ sjt.frq <- function(data,
     #---------------------------------------------------
     df.frq <- create.frq.df(var, 
                             valueLabels[[cnt]], 
-                            sjmisc::get_values(var),
+                            var.values,
                             -1, 
                             sort.frq, 
                             weightBy = weightBy)
@@ -704,24 +715,24 @@ sjt.frq <- function(data,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)
-  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.qrow, css.qrow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.mdrow, css.mdrow, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.abstand, css.abstand, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firsttablerow, css.firsttablerow, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.leftalign, css.leftalign, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.lasttablerow, css.lasttablerow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.qrow, css.qrow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.mdrow, css.mdrow, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.abstand, css.abstand, knitr, fixed = TRUE, useBytes = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------

@@ -10,9 +10,9 @@ sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   stringIntercept = "(Intercept)", sort.coef = NULL, pred.labels = NULL,
   axisTitle.x = NULL, axisTitle.y = NULL, facet.grid = TRUE,
   free.scale = FALSE, interceptLineType = 2,
-  interceptLineColor = "grey70", showValueLabels = TRUE, labelDigits = 2,
-  showPValueLabels = TRUE, fade.ns = FALSE, show.se = FALSE,
-  printPlot = TRUE)
+  interceptLineColor = "grey70", remove.estimates = NULL,
+  showValueLabels = TRUE, labelDigits = 2, showPValueLabels = TRUE,
+  fade.ns = FALSE, show.se = FALSE, printPlot = TRUE)
 }
 \arguments{
 \item{fit}{a fitted model as returned by the \code{\link[lme4]{glmer}}-function.}
@@ -32,7 +32,7 @@ sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
 \item{vars}{numeric vector with column indices of selected variables or a character vector with
 variable names of selected variables from the fitted model, which should be used to plot
 fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability curves
-(for \code{\link[lme4]{glmer}}) of random intercepts. This parameter only
+(for \code{\link[lme4]{glmer}}) of random intercepts. This argument only
 applies if \code{type} is \code{"fe.pc"}, \code{"ri.pc"} or \code{"fe.ri"}.
 In this case, only those terms specified in \code{"vars"} will be plotted.}
 
@@ -46,13 +46,13 @@ so all random effects will be plotted.}
 If \code{type = "ri.pc"} or \code{type = "fe.ri"}, and \code{facet.grid = FALSE},
 an integrated plot of predicted probabilities of fixed effects resp. fixed
 effects slopes for each grouping level is plotted. To better find
-certain groups, use this parameter to emphasize these groups in the plot.
+certain groups, use this argument to emphasize these groups in the plot.
 See 'Examples'.}
 
 \item{title}{character vector with one or more labels that are used as plot title. If
 \code{type = "re"}, use the predictors' variable labels as titles.}
 
-\item{geom.size}{size of geoms (point size or line size, depending on \code{type}-parameter).}
+\item{geom.size}{size of geoms (point size or line size, depending on \code{type}-argument).}
 
 \item{geom.colors}{user defined color palette for geoms. Must either be vector with two color values
 or a specific color palette code. See 'Note' in \code{\link{sjp.grpfrq}}.}
@@ -95,6 +95,11 @@ an integrated (faceted) single graph.}
 
 \item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
 
+\item{remove.estimates}{character vector with coefficient names that indicate
+which estimates should be removed from the plot.
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
+is \code{NULL}, i.e. all estimates are printed.}
+
 \item{showValueLabels}{logical, whether estimate values should be plotted to each dot or not.}
 
 \item{labelDigits}{numeric, amount of digits for rounding the estimates (see \code{showValueLabels}).
@@ -123,7 +128,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 By default, this function plots odds ratios (exponentiated coefficients)
                with confidence intervalls of either fixed effects or random effects of
                generalized linear mixed effects models (that have been fitted with the
-               \code{\link[lme4]{glmer}}-function of the \code{lme4} package).
+               \code{\link[lme4]{glmer}}-function of the \pkg{lme4}-package).
                Furthermore, this function also plots predicted probabilities or
                diagnostic plots.
 }
@@ -158,7 +163,7 @@ Thanks go to Robert Reijntjes from Leiden University Medical Center for sharing
 library(lme4)
 library(sjmisc)
 # create binary response
-sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dichBy = "md")
+sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "md")
 # fit model
 fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
              sleepstudy,
@@ -175,7 +180,7 @@ data(efc)
 efc$hi_qol <- dicho(efc$quol_5)
 # prepare group variable
 efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_val_labels(efc$e15relat)
+levels(x = efc$grp) <- get_labels(efc$e15relat)
 # data frame for fitted model
 mydf <- data.frame(hi_qol = as.factor(efc$hi_qol),
                    sex = as.factor(efc$c161sex),

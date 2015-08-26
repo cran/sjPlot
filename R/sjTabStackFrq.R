@@ -18,7 +18,7 @@
 #' @param title table caption.
 #' @param varlabels list or vector of strings with variable names. If not specified, row names of \code{items}
 #'          will be used, resp. variable labels will automatically be detected, when they have
-#'          a variable label attribute (see \code{\link[sjmisc]{set_var_labels}}) for details).
+#'          a variable label attribute (see \code{\link[sjmisc]{set_label}}) for details).
 #' @param breakLabelsAt determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param valuelabels list or vector of strings that category/value labels, which
@@ -41,11 +41,8 @@
 #' @param showNA logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
 #' @param labelNA The label for the missing column/row.
 #' @param showSkew logical, if \code{TRUE}, an additional column with each item's skewness is printed.
-#'          The skewness is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
-#'          package.
-#' @param showKurtosis logical, if \code{TRUE}, an additional column with each item's kurtosis is printed.
-#'          The kurtosis is retrieved from the \code{\link[psych]{describe}} function of the \code{psych}
-#'          package.
+#'          The skewness is retrieved from the \code{\link[psych]{describe}}-function 
+#'          of the \pkg{psych}-package.
 #' @param digits.stats amount of digits for rounding the skewness and kurtosis valuess.
 #'          Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.
 #' @param skewString string, which is used as header for the skew column (see \code{showSkew})).
@@ -55,6 +52,7 @@
 #'          
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
+#' @inheritParams sjt.itemanalysis
 #'          
 #' @return Invisibly returns
 #'          \itemize{
@@ -483,21 +481,21 @@ sjt.stackfrq <- function(items,
   # -------------------------------------
   # set style attributes for main table tags
   # -------------------------------------
-  knitr <- gsub("class=", "style=", knitr, fixed = TRUE)
-  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE)
-  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE)
+  knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------
-  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE)
-  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE)
-  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE)
-  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.ncol, css.ncol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.skewcol, css.skewcol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.kurtcol, css.kurtcol, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE)  
-  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE)  
+  knitr <- gsub(tag.tdata, css.tdata, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.thead, css.thead, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.centeralign, css.centeralign, knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub(tag.firsttablecol, css.firsttablecol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.ncol, css.ncol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.skewcol, css.skewcol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.kurtcol, css.kurtcol, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.summary, css.summary, knitr, fixed = TRUE, useBytes = TRUE)  
+  knitr <- gsub(tag.arc, css.arc, knitr, fixed = TRUE, useBytes = TRUE)  
   # -------------------------------------
   # remove spaces?
   # -------------------------------------
