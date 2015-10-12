@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 1.8.3
-Date: 2015-08-26
+Version: 1.8.4
+Date: 2015-10-12
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales, effects plots of regression models (including interaction terms) and much more.
@@ -16,6 +16,6 @@ Suggests: AICcmodavg, arm, cluster, effects, lme4, lmerTest, lmtest,
 URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
 NeedsCompilation: no
-Packaged: 2015-08-26 20:50:09 UTC; danielludecke
+Packaged: 2015-10-12 10:31:13 UTC; Luedeke
 Repository: CRAN
-Date/Publication: 2015-08-26 23:46:45
+Date/Publication: 2015-10-12 13:46:33

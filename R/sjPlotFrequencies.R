@@ -279,7 +279,11 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   # count variable may not be a factor!
   # --------------------------------------------------------
-  if (is.factor(varCount)) varCount <- sjmisc::to_value(varCount, keep.labels = F)
+  if (is.factor(varCount)) {
+    if (is.null(labelvalues) && is.ordered(varCount)) 
+      labelvalues <- sjmisc::get_values(sjmisc::to_value(varCount))
+    varCount <- sjmisc::to_value(varCount, keep.labels = F)
+  }
   # --------------------------------------------------------
   # We have several options to name the plot type
   # Here we will reduce it to a unique value
@@ -301,17 +305,19 @@ sjp.frq <- function(varCount,
   # --------------------------------------------------------
   if (is.null(geom.size)) {
     if (type == "bars") 
-      geom.size <- 0.7
+      geom.size <- .7
     else if (type == "dots") 
       geom.size <- 3
-    else if (type == "hist") 
+    else if (type == "histogram") 
       geom.size <- .7
     else if (type == "line") 
       geom.size <- .8
-    else if (type == "box") 
+    else if (type == "boxplots") 
       geom.size <- .3
     else if (type == "violin") 
       geom.size <- .3
+    else
+      geom.size <- .7
   }
   #---------------------------------------------------
   # check whether variable should be auto-grouped

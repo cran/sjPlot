@@ -104,6 +104,12 @@ create.frq.df <- function(varCount,
   # name columns
   colnames(df) <- c("y", "Freq")
   #---------------------------------------------------
+  # non-numeric factors need to be converted
+  #---------------------------------------------------
+  if (is.factor(varCount) && !sjmisc::is_num_fac(varCount)) {
+    varCount <- as.character(varCount)
+  }
+  #---------------------------------------------------
   # do we have label values associated with value labels?
   # if yes, we assume that these values are the range
   # of valid values for varCount...
@@ -200,6 +206,12 @@ create.frq.df <- function(varCount,
       # amount of categories (=number of rows) in dataframe instead
       llabels <- c(startAxisAt:(nrow(mydat) + startAxisAt - 1))
     }
+    # check if we have more labels than values?
+    if (length(llabels) > length(unique(stats::na.omit(varCount)))) {
+      # if yes, copy only those labels that are assumed to
+      # appear in the final data frame
+      llabels <- llabels[startAxisAt:catcount]
+    }
   } else {
     mydat <- df
     colnames(mydat) <- c("var", "frq")
@@ -271,9 +283,20 @@ create.frq.df <- function(varCount,
 
 # check character encoding for HTML-tables
 # (sjt-functions)
-get.encoding <- function(encoding) {
+get.encoding <- function(encoding, data = NULL) {
   if (is.null(encoding)) {
-    if (.Platform$OS.type == "unix")
+    if (!is.null(data) && is.data.frame(data)) {
+      # get variable label
+      labs <- sjmisc::get_label(data[[1]])
+      # check if vectors of data frame have 
+      # any valid label. else, default to utf-8
+      if (!is.null(labs) && is.character(labs))
+        encoding <- Encoding(sjmisc::get_label(data[[1]]))
+      else
+        encoding <- "UTF-8"
+      # unknown encoding? default to utf-8
+      if (encoding == "unknown") encoding <- "UTF-8"
+    } else if (.Platform$OS.type == "unix")
       encoding <- "UTF-8"
     else
       encoding <- "Windows-1252"
@@ -398,16 +421,28 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
   for (k in 1:length(models)) {
     # get model
     fit <- models[[k]]
+    # ------------------------
+    # do we have a merMod object?
+    # ------------------------
+    if (length(grep("merMod", class(fit), fixed = T)) > 0) {
+      # if yes, get number of fixed effects
+      no_fixef <- length(attr(attr(fit@frame, "terms"), "predvars.fixed")) - 1
+      # then copy only fixed effects columns
+      fmodel <- fit@frame[, 1:no_fixef]
+    } else {
+      # else copy model matrix
+      fmodel <- fit$model
+    }
     # retrieve all factors from model
-    for (grp.cnt in 1:ncol(fit$model)) {
+    for (grp.cnt in 1:ncol(fmodel)) {
       # get variable
-      fit.var <- fit$model[, grp.cnt]
+      fit.var <- fmodel[, grp.cnt]
       # is factor? and has more than two levels?
       # (otherwise, only one category would appear in
       # coefficients, so no grouping needed anyway)
       if (is.factor(fit.var) && length(levels(fit.var)) > 2) {
         # get factor name
-        fac.name <- colnames(fit$model)[grp.cnt]
+        fac.name <- colnames(fmodel)[grp.cnt]
         # check whether we already have this factor
         if (!any(found.factors == fac.name)) {
           # if not, save found factor variable name
@@ -415,7 +450,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
           # save factor name
           lab <- unname(sjmisc::get_label(fit.var))
           # any label?
-          if (is.null(lab)) lab <- colnames(fit$model)[grp.cnt]
+          if (is.null(lab)) lab <- colnames(fmodel)[grp.cnt]
           # determins startindex
           index <- grp.cnt + add.index - 1
           index.add <- length(levels(fit.var)) - 2
@@ -612,7 +647,7 @@ unlistlabels <- function(lab) {
 #' @param upperMargin Defines the new margin of the upper y-bound of the plot. This value will
 #'          be multiplied with \code{gp}'s current total y-range. Default is 1.05, which means
 #'          that the upper margin of the new plot's "visible" plot area will be increased
-#'          by 5 percent. (i.e. the y-range is 105 percent of the original range, 
+#'          by 5 percent. (i.e. the y-range is 105 percent of the original range,
 #'          in order to make all object visible).
 #' @return The same ggplot-object, with adjusted y-range, so all graphics and labels
 #'          should be visible.
@@ -696,8 +731,8 @@ sjp.vif <- function(fit) {
       # als X-Achsenbeschriftung die Variablennamen setzen
       scale_x_discrete(labels = mydat$label) +
       # Keine weiteren Titel an X- und Y-Achse angeben
-      labs(title = "Variance Inflation Factors (multicollinearity)", 
-           x = NULL, 
+      labs(title = "Variance Inflation Factors (multicollinearity)",
+           x = NULL,
            y = NULL) +
       # maximale Obergrenze der Y-Achse setzen
       scale_y_continuous(limits = c(0, upperLimit), expand = c(0, 0)) +
