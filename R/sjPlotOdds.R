@@ -43,14 +43,15 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #' @param showModelSummary logical, if \code{TRUE}, a summary of the regression model with
 #'          Intercept, R-squared, F-Test and AIC-value is printed to the lower right corner
 #'          of the plot.
-#' @param show.se logical, use \code{TRUE} to plot (depending on \code{type}) the standard
-#'          error for probability curves (predicted probabilities).
+#' @param show.ci logical, use \code{TRUE} to plot (depending on \code{type}) 
+#'          the confidence interval for probability curves (predicted probabilities).
 #' @param facet.grid logical, \code{TRUE} when each plot should be plotted separately instead of
 #'          an integrated (faceted) single graph. Only applies, if \code{type = "prob"}.
 #' @param showOriginalModelOnly logical, if \code{TRUE} (default) and \code{type = "ma"}, 
 #'          only the model assumptions of \code{fit} are plotted.
 #'          If \code{FALSE}, the model assumptions of an updated model where outliers
 #'          are automatically excluded are also plotted.
+#' @param show.se Deprecated; use \code{show.ci} instead.
 #'          
 #' @inheritParams sjp.lm
 #' @inheritParams sjp.grpfrq
@@ -70,7 +71,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #'              \item \code{df.mp} - data frame used for predicted probability plots
 #'              \item \code{plot.mp} - predicted probability plots as ggplot-objects
 #'              \item \code{df.facet} - data frame used for faceted predicted probability plots
-#'              \item \code{plot.facet} - facted predicted probability plots as ggplot-objects
+#'              \item \code{plot.facet} - faceted predicted probability plots as ggplot-objects
 #'            }
 #'          }
 #'          \item{\code{type = "y.pc"}}{
@@ -96,7 +97,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #'            \item{\code{type = "prob"}}{(or \code{"pc"}), the predicted probabilities
 #'            are based on the intercept's estimate and each specific term's estimate.
 #'            All other co-variates are set to zero (i.e. ignored), which corresponds
-#'            to \code{\link{plogis}(b0 + bx * x)} (where \code{x} is the logit-estimate).}
+#'            to \code{\link{plogis}(b0 + bi * xi)} (where \code{xi} is the logit-estimate).}
 #'            \item{\code{type = "eff"}}{the predicted probabilities
 #'            are based on the \code{\link{predict.glm}} method, where predicted values 
 #'            are "centered", i.e. remaining co-variates are set to the mean.
@@ -194,9 +195,17 @@ sjp.glm <- function(fit,
                     showPValueLabels = TRUE,
                     showModelSummary = FALSE,
                     facet.grid = TRUE,
-                    show.se = FALSE,
+                    show.ci = FALSE,
                     showOriginalModelOnly = TRUE,
-                    printPlot = TRUE) {
+                    printPlot = TRUE,
+                    show.se = FALSE) {
+  # -----------------------------------
+  # warn, if deprecated param is used
+  # -----------------------------------
+  if (!missing(show.se)) {
+    warning("argument 'show.se' is deprecated; please use 'show.ci' instead.")
+    show.ci <- show.se
+  }
   # --------------------------------------------------------
   # check param
   # --------------------------------------------------------
@@ -216,23 +225,25 @@ sjp.glm <- function(fit,
   # --------------------------------------------------------
   if (type == "prob" || type == "pc") {
     return(invisible(sjp.glm.pc(fit,
-                                show.se,
+                                show.ci,
                                 type = "prob",
                                 geom.size,
+                                remove.estimates,
                                 facet.grid,
                                 printPlot)))
   }
   if (type == "eff") {
     return(invisible(sjp.glm.pc(fit,
-                                show.se,
+                                show.ci,
                                 type = "eff",
                                 geom.size,
+                                remove.estimates,
                                 facet.grid,
                                 printPlot)))
   }
   if (type == "y.pc" || type == "y.prob") {
     return(invisible(sjp.glm.response.probcurv(fit,
-                                               show.se,
+                                               show.ci,
                                                geom.size,
                                                printPlot)))
   }
@@ -572,9 +583,10 @@ sjp.glm <- function(fit,
 
 #' @importFrom stats plogis predict coef
 sjp.glm.pc <- function(fit,
-                       show.se,
+                       show.ci,
                        type,
                        geom.size,
+                       remove.estimates,
                        facet.grid,
                        printPlot) {
   # check size argument
@@ -592,6 +604,15 @@ sjp.glm.pc <- function(fit,
   # retrieve term names, so we find the estimates in the
   # coefficients list
   fit.term.names <- names(attr(fit$terms, "dataClasses"))[-1]
+  # ------------------------
+  # remove estimates?
+  # ------------------------
+  if (!is.null(remove.estimates)) {
+    remcols <- match(remove.estimates, fit.term.names)
+    # remember old rownames
+    if (!sjmisc::is_empty(remcols))
+      fit.term.names <- fit.term.names[-remcols]
+  }
   # ----------------------------
   # loop through all coefficients
   # ----------------------------
@@ -670,8 +691,8 @@ sjp.glm.pc <- function(fit,
         labs(x = axisLabels.mp[i], 
              y = "Predicted Probability") +
         stat_smooth(method = "glm", 
-                    family = "binomial", 
-                    se = show.se,
+                    method.args = list(family = "binomial"), 
+                    se = show.ci,
                     size = geom.size) +
         coord_cartesian(ylim = c(0, 1))
       # add plot to list
@@ -689,8 +710,8 @@ sjp.glm.pc <- function(fit,
         scale_colour_manual(values = brewer_pal(palette = "Set1")(length(axisLabels.mp)),
                             labels = axisLabels.mp) +
         stat_smooth(method = "glm", 
-                    family = "binomial", 
-                    se = show.se,
+                    method.args = list(family = "binomial"), 
+                    se = show.ci,
                     size = geom.size) +
         coord_cartesian(ylim = c(0, 1)) +
         facet_wrap(~grp,
@@ -725,7 +746,7 @@ sjp.glm.pc <- function(fit,
 
 
 sjp.glm.response.probcurv <- function(fit,
-                                      show.se,
+                                      show.ci,
                                       geom.size,
                                       printPlot) {
   # check size argument
@@ -747,8 +768,8 @@ sjp.glm.response.probcurv <- function(fit,
          y = "Predicted Probability",
          title = "Predicted Probabilities for model-response") +
     stat_smooth(method = "glm", 
-                family = "binomial", 
-                se = show.se,
+                method.args = list(family = "binomial"), 
+                se = show.ci,
                 size = geom.size) +
     # cartesian coord still plots range of se, even
     # when se exceeds plot range.
@@ -775,18 +796,19 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # get AIC-Value
   aic <- logreg$aic
   # maximum loops
-  maxloops <- 10
+  maxloops <- 5
   maxcnt <- maxloops
   # remember how many cases have been removed
   removedcases <- 0
+  outlier <- c()
   loop <- TRUE
   # start loop
   while (loop == TRUE) {
     # get outliers of model
-    ol <- car::outlierTest(model)
+    # ol <- car::outlierTest(model)
     # retrieve variable numbers of outliers
-    vars <- as.numeric(attr(ol$p, "names"))
-    # update model by removing outliers
+    # vars <- as.numeric(attr(ol$p, "names"))
+    vars <- as.numeric(names(which(car::outlierTest(model, cutoff = Inf, n.max = Inf)$bonf.p < 1)))    # update model by removing outliers
     dummymodel <- stats::update(model, subset = -c(vars))
     # retrieve new AIC-value
     dummyaic <- dummymodel$aic
@@ -804,12 +826,14 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
       aic <- dummyaic
       # count removed cases
       removedcases <- removedcases + length(vars)
+      # add outliers to final return value
+      outlier <- c(outlier, vars)
     }
   }
   # ---------------------------------
   # print steps from original to updated model
   # ---------------------------------
-  message(sprintf(("Removed %i cases during %i step(s).\nAIC-value of original model: %.2f\nAIC-value of updated model: %.2f\n"),
+  message(sprintf(("Removed %i cases during %i step(s).\nAIC-value of original model: %.2f\nAIC-value of updated model:  %.2f\n"),
                   removedcases,
                   maxloops - (maxcnt + 1),
                   logreg$aic,
@@ -893,5 +917,8 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   sjp.glm(logreg, title = "Original model")
   if (!showOriginalModelOnly) sjp.glm(model, title = "Updated model")
   # return updated model
-  return(model)
+  # return updated model
+  invisible(structure(list(class = "sjp.glm.ma",
+                           model = model,
+                           outlier = outlier)))
 }

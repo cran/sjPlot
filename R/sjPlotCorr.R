@@ -137,7 +137,8 @@ sjp.corr <- function(data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(data[[i]])
+      vn <- sjmisc::get_label(data[[i]],
+                              def.value = get_var_name(deparse(substitute(data[[i]]))))
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         axisLabels <- c(axisLabels, vn)
@@ -251,12 +252,14 @@ sjp.corr <- function(data,
   orderedCorr <- tidyr::gather(data.frame(orderedCorr), 
                                "var", 
                                "value", 
-                               1:ncol(orderedCorr))
+                               1:ncol(orderedCorr),
+                               factor_key = TRUE)
   # orderedCorr <- melt(orderedCorr)
   if (!is.null(cpvalues)) cpvalues <- tidyr::gather(data.frame(cpvalues), 
                                                     "var", 
                                                     "value", 
-                                                    1:ncol(cpvalues))
+                                                    1:ncol(cpvalues),
+                                                    factor_key = TRUE)
   # if (!is.null(cpvalues)) cpvalues <- melt(cpvalues)
   # bind additional information like order for x- and y-axis
   # as well as the size of plotted points

@@ -10,8 +10,6 @@
 #'              
 #' @param var.row variable that should be displayed in the table rows.
 #' @param var.col variable that should be displayed in the table columns.
-#' @param var.grp optional grouping variable that splits the data into several groups,
-#'          depending on the amount of categories. See 'Examples'.
 #' @param weightBy weight factor that will be applied to weight all cases.
 #'          Must be a vector of same length as \code{var.row}. Default is \code{NULL}, so no weights are used.
 #' @param digits amount of digits used for the percentage values inside table cells.
@@ -37,7 +35,6 @@
 #' @param showColPerc logical, if \code{TRUE}, column percentage values are shown
 #' @param showObserved logical, if \code{TRUE}, observed values are shown
 #' @param showExpected logical, if \code{TRUE}, expected values are also shown
-#' @param showTotalN logical, if \code{TRUE}, column and row sums are also shown, even if \code{showObserved} is \code{FALSE}
 #' @param showHorizontalLine logical, if \code{TRUE}, data rows are separated with a horizontal line
 #' @param showSummary logical, if \code{TRUE} (default), a summary row with Chi-square statistics (see \code{\link{chisq.test}}),
 #'          Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
@@ -84,7 +81,7 @@
 #' data(efc)
 #' efc.labels <- get_labels(efc)
 #' 
-#' # print simple cross table w/o labels
+#' # print simple cross table with labels
 #' \dontrun{
 #' sjt.xtab(efc$e16sex, efc$e42dep)
 #'          
@@ -100,39 +97,14 @@
 #' 
 #' # print minimal cross table with labels, total col/row highlighted
 #' sjt.xtab(efc$e16sex, efc$e42dep, 
-#'          variableLabels = c("Elder's gender", "Elder's dependency"),
-#'          valueLabels = list(efc.labels[['e16sex']], efc.labels[['e42dep']]),
 #'          showHorizontalLine = FALSE,
 #'          showCellPerc = FALSE,
 #'          highlightTotal = TRUE)
 #' 
-#' # -------------------------------
-#' # auto-detection of labels
-#' # -------------------------------
-#' # print cross table with labels and all percentages
-#' sjt.xtab(efc$e16sex, efc$e42dep,
-#'          showRowPerc = TRUE, 
-#'          showColPerc = TRUE)
-#' 
-#' # print cross table with labels and all percentages, including
-#' # grouping variable
-#' sjt.xtab(efc$e16sex, efc$e42dep, efc$c161sex, 
-#'          variableLabels=c("Elder's gender", 
-#'                           "Elder's dependency",
-#'                           "Carer's gender"), 
-#'          valueLabels=list(efc.labels[['e16sex']],
-#'                           efc.labels[['e42dep']],
-#'                           efc.labels[['c161sex']]),
-#'          showRowPerc = TRUE, 
-#'          showColPerc = TRUE)
-#'
 #' # ---------------------------------------------------------------- 
 #' # User defined style sheet
 #' # ---------------------------------------------------------------- 
 #' sjt.xtab(efc$e16sex, efc$e42dep, 
-#'          variableLabels = c("Elder's gender", "Elder's dependency"),
-#'          valueLabels = list(efc.labels[['e16sex']], 
-#'                             efc.labels[['e42dep']]),
 #'          CSS = list(css.table = "border: 2px solid;",
 #'                     css.tdata = "border: 1px solid;",
 #'                     css.horline = "border-bottom: double blue;"))}
@@ -142,7 +114,6 @@
 #' @export
 sjt.xtab <- function(var.row,
                      var.col,
-                     var.grp = NULL,
                      weightBy = NULL,
                      digits = 1,
                      file = NULL,
@@ -156,7 +127,6 @@ sjt.xtab <- function(var.row,
                      showRowPerc = FALSE,
                      showColPerc = FALSE,
                      showExpected = FALSE,
-                     showTotalN = FALSE,
                      showHorizontalLine = FALSE,
                      showSummary = TRUE,
                      showLegend = FALSE,
@@ -190,177 +160,52 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   encoding <- get.encoding(encoding)
   # --------------------------------------------------------
-  # try to automatically set labels is not passed as parameter
+  # get variable name
   # --------------------------------------------------------
-  if (is.null(valueLabels)) {
-    valueLabels <- list()
-    # --------------------------------------------------------
-    # row value labels
-    # --------------------------------------------------------
-    vl <- sjmisc:::autoSetValueLabels(var.row)
-    if (is.null(vl)) vl <- sort(unique(stats::na.omit(var.row)))
-    valueLabels[[1]] <- vl
-    # --------------------------------------------------------
-    # column value labels
-    # --------------------------------------------------------
-    vl <- sjmisc:::autoSetValueLabels(var.col)
-    if (is.null(vl)) vl <- sort(unique(stats::na.omit(var.col)))
-    valueLabels[[2]] <- vl
-    # --------------------------------------------------------
-    # group value labels
-    # --------------------------------------------------------
-    if (!is.null(var.grp)) {
-      vl <- sjmisc:::autoSetValueLabels(var.grp)
-      if (is.null(vl)) vl <- sort(unique(stats::na.omit(var.grp)))
-      valueLabels[[3]] <- vl
-    }
-  }
-  # -------------------------------------
-  # list conversion needed here. in case value labels
-  # of only one variable were detected, "valueLabels" is now
-  # of type "character", thus length would differ from "valueLabels"'s
-  # length if it were a list. needed below.
-  # -------------------------------------
-  if (!is.null(valueLabels) && !is.list(valueLabels)) valueLabels <- list(valueLabels)
+  var.name.row <- get_var_name(deparse(substitute(var.row)))
+  var.name.col <- get_var_name(deparse(substitute(var.col)))
+  # --------------------------------------------------------
+  # create cross table of frequencies and percentages
+  # --------------------------------------------------------
+  mydat <- create.xtab.df(var.row,
+                          var.col,
+                          round.prz = digits,
+                          na.rm = !showNA,
+                          weightBy = weightBy)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
   if (is.null(variableLabels)) {
-    variableLabels <- c()
-    vn1 <- sjmisc:::autoSetVariableLabels(var.row)
-    vn2 <- sjmisc:::autoSetVariableLabels(var.col)
-    if (!is.null(vn1) && !is.null(vn2)) variableLabels <- c(vn1, vn2)
-    if (!is.null(var.grp)) {
-      vn3 <- sjmisc:::autoSetVariableLabels(var.grp)
-      if (!is.null(vn3)) variableLabels <- c(variableLabels, vn3)
-    }
+    variableLabels <- c(sjmisc::get_label(var.row, def.value = var.name.row),
+                        sjmisc::get_label(var.col, def.value = var.name.col))
   }
+  s.var.row <- variableLabels[1]
+  s.var.col <- variableLabels[2]
   # -------------------------------------
   # init variable labels
   # -------------------------------------
-  s.var.row <- s.var.col <- s.var.grp <- NULL
-  if (!is.null(variableLabels)) {
-    s.var.row <- ifelse(length(variableLabels) > 0, variableLabels[1], "var.row")
-    s.var.col <- ifelse(length(variableLabels) > 1, variableLabels[2], "var.col")
-    s.var.grp <- ifelse(length(variableLabels) > 2, variableLabels[3], "var.grp")
-  } else {
-    s.var.row <- "var.row"
-    s.var.col <- "var.col"
-    s.var.grp <- "var.grp"
-  }
-  # check length of variable labels and split longer strings at into new lines
-  if (!is.null(s.var.row)) s.var.row <- sjmisc::word_wrap(s.var.row, breakVariableLabelsAt, "<br>")
-  if (!is.null(s.var.col)) s.var.col <- sjmisc::word_wrap(s.var.col, breakVariableLabelsAt, "<br>")
-  if (!is.null(s.var.grp)) s.var.grp <- sjmisc::word_wrap(s.var.grp, breakVariableLabelsAt, "<br>")
+  labels.var.row <- sjmisc::word_wrap(mydat$labels.cnt, breakVariableLabelsAt, "<br>")
+  labels.var.col <- sjmisc::word_wrap(mydat$labels.grp, breakVariableLabelsAt, "<br>")
+  # add "total"
+  labels.var.row <- c(labels.var.row, stringTotal)
+  labels.var.col <- c(labels.var.col)
   # -------------------------------------
-  # compute xtab
+  # compute table counts and percentages
   # -------------------------------------
-  # check if we have missings or not
+  tab <- mydat$mydat[, -1]
+  tab$total <- unname(rowSums(tab))
+  tab <- rbind(tab, unname(colSums(tab)))
+  tab.cell <- mydat$proptab.cell
+  tab.row <- mydat$proptab.row
+  tab.row$total <- tab.cell$total
+  tab.col <- mydat$proptab.col
+  tab.col <- rbind(tab.col, tab.cell[nrow(tab.cell), ])
+  tab.expected <- sjmisc::table_values(ftable(as.matrix(tab)))$expected
   # -------------------------------------
-  if (showNA) {
-    # check if we have weights or not
-    if (is.null(weightBy)) {
-      # check if we have groupings or not
-      if (is.null(var.grp)) {
-        tab <- stats::ftable(stats::xtabs(~ addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
-        coladd <- 3
-      } else {
-        tab <- stats::ftable(stats::xtabs(~ addNA(var.grp) + addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
-        coladd <- 4
-      }
-    } else {
-      # check if we have groupings or not
-      if (is.null(var.grp)) {
-        tab <- stats::ftable(stats::xtabs(weightBy ~ addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
-        coladd <- 3
-      } else {
-        tab <- stats::ftable(stats::xtabs(weightBy ~ addNA(var.grp) + addNA(as.factor(var.row)) + addNA(as.factor(var.col))))
-        coladd <- 4
-      }
-      # round integer
-      tab <- round(tab)
-    }
+  # determine total number of columns and rows
   # -------------------------------------
-  # no missings to show here
-  # -------------------------------------
-  } else {
-    # check if we have weights or not
-    if (is.null(weightBy)) {
-      # check if we have groupings or not
-      if (is.null(var.grp)) {
-        tab <- stats::ftable(stats::xtabs(~ as.factor(var.row) + as.factor(var.col)))
-        coladd <- 2
-      } else {
-        tab <- stats::ftable(stats::xtabs(~ var.grp + as.factor(var.row) + as.factor(var.col)))
-        coladd <- 3
-      }
-    } else {
-      # check if we have groupings or not
-      if (is.null(var.grp)) {
-        tab <- stats::ftable(stats::xtabs(weightBy ~ as.factor(var.row) + as.factor(var.col)))
-        coladd <- 2
-      } else {
-        tab <- stats::ftable(stats::xtabs(weightBy ~ var.grp + as.factor(var.row) + as.factor(var.col)))
-        coladd <- 3
-      }
-      # round integer
-      tab <- round(tab)
-    }
-  }
-  # -------------------------------------
-  # compute table percentages
-  # -------------------------------------
-  tab.values <- sjmisc::table_values(tab, digits)
-  tab.cell <- tab.values$cell
-  tab.row <- tab.values$row
-  tab.col <- tab.values$col
-  tab.expected <- tab.values$expected
-  # -------------------------------------
-  # determine total number of columns
-  # we have an optional column for the grouping variable,
-  # a column for var.row labels and the columns for the
-  # var.col data. Finally, we have a "total" column
-  # -------------------------------------
-  totalncol <- ncol(tab) + coladd
-  # -------------------------------------
-  # init value labels
-  # -------------------------------------
-  labels.var.row <- labels.var.grp <- labels.var.col <- NULL
-  # -------------------------------------
-  # check how many value labels have been supplied
-  # and set value labels
-  # -------------------------------------
-  if (length(valueLabels) > 0) {
-    labels.var.row <- valueLabels[[1]]
-  } else {
-    labels.var.row <- seq_along(unique(stats::na.omit(var.row)))
-  }
-  if (length(valueLabels) > 1) {
-    labels.var.col <- valueLabels[[2]]
-  } else {
-    labels.var.col <- seq_along(unique(stats::na.omit(var.col)))
-  }
-  if (length(valueLabels) > 2) {
-    labels.var.grp <- valueLabels[[3]]
-  } else {
-    if (is.null(var.grp)) {
-      labels.var.grp <- NULL
-    } else {
-      labels.var.grp <- seq_along(unique(stats::na.omit(var.grp)))
-    }
-  }
-  # ------------------------------------------
-  # add label for missing colum
-  # ------------------------------------------
-  if (showNA) {
-    labels.var.col <- c(labels.var.col, labelNA)
-    labels.var.row <- c(labels.var.row, labelNA)
-    if (!is.null(labels.var.grp)) labels.var.grp <- c(labels.var.grp, labelNA)
-  }
-  # check length of variable labels and split longer strings at into new lines
-  if (!is.null(labels.var.row)) labels.var.row <- sjmisc::word_wrap(labels.var.row, breakValueLabelsAt, "<br>")
-  if (!is.null(labels.var.col)) labels.var.col <- sjmisc::word_wrap(labels.var.col, breakValueLabelsAt, "<br>")
-  if (!is.null(labels.var.grp)) labels.var.grp <- sjmisc::word_wrap(labels.var.grp, breakValueLabelsAt, "<br>")
+  totalncol <- ncol(tab)
+  totalnrow <- nrow(tab)
   # -------------------------------------
   # table init
   # -------------------------------------
@@ -393,7 +238,7 @@ sjt.xtab <- function(var.row,
   css.tdata <- "padding:0.2cm;"
   css.firstcolborder <- "border-bottom:1px solid;"
   css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
-  css.leftalign <- ifelse(showObserved & showTotalN, "text-align:left; vertical-align:top;", "text-align:left; vertical-align:middle;")
+  css.leftalign <- "text-align:left; vertical-align:middle;"
   css.centeralign <- "text-align:center;"
   css.lasttablerow <- ifelse(highlightTotal == TRUE, sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
   css.totcol <- ifelse(highlightTotal == TRUE, sprintf(" background-color:%s;", highlightColor), "")
@@ -437,12 +282,6 @@ sjt.xtab <- function(var.row,
   page.content <- "<table>\n"
   page.content <- paste(page.content, "  <tr>\n")
   # -------------------------------------
-  # check whether we have additional grouping column
-  # -------------------------------------
-  if (!is.null(var.grp)) {
-    page.content <- paste(page.content, sprintf("    <th class=\"thead firstcolborder\" rowspan=\"2\">%s</th>\n", s.var.grp))
-  }
-  # -------------------------------------
   # column with row-variable-name
   # -------------------------------------
   page.content <- paste(page.content, sprintf("    <th class=\"thead firstcolborder\" rowspan=\"2\">%s</th>\n", s.var.row))
@@ -469,49 +308,30 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # table content
   # -------------------------------------
-  # retrieve index colums of group var, if we have any
-  # if we have a grouping variable, we need to know at
-  # which row a new category of group starts
-  # -------------------------------------
-  if (is.null(var.grp)) {
-    group.var.rows <- NULL
-  } else {
-    group.var.rows <- seq(1, nrow(tab), by = length(labels.var.row))
-  }
-  # -------------------------------------
-  # if we have group vars, we need a repeating counter vor row value labels
-  # -------------------------------------
-  if (!is.null(group.var.rows)) {
-    rowlabelcnt <- rep(1:length(labels.var.row), length(group.var.rows))
-  } else {
-    rowlabelcnt <- 1:length(labels.var.row)
-  }
+  rowlabelcnt <- 1:length(labels.var.row)
   # -------------------------------------
   # iterate all table data rows
   # -------------------------------------
-  for (irow in 1:nrow(tab)) {
+  for (irow in 1:totalnrow) {
     # -------------------------------------
     # start new table row
     # -------------------------------------
     page.content <- paste(page.content, "\n  <tr>")
     # -------------------------------------
-    # check for group var label, resp. if group var
-    # starts with current row
-    # -------------------------------------
-    if (any(group.var.rows == irow)) {
-      page.content <- paste(page.content, 
-                            sprintf("\n    <td class=\"tdata leftalign\" rowspan=\"%i\">%s</td>",
-                                    length(labels.var.row), 
-                                    labels.var.grp[which(group.var.rows == irow)]))
-    }
-    # -------------------------------------
     # set row variable label
     # -------------------------------------
-    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata leftalign\">%s</td>", labels.var.row[rowlabelcnt[irow]]))
+    if (irow == totalnrow) 
+      css_last_row <- "lasttablerow tothi "
+    else
+      css_last_row <- " "
+    page.content <- paste(page.content, 
+                          sprintf("\n    <td class=\"tdata %sleftalign\">%s</td>", 
+                                  css_last_row,
+                                  labels.var.row[rowlabelcnt[irow]]))
     # -------------------------------------
     # iterate all data columns
     # -------------------------------------
-    for (icol in 1:ncol(tab)) {
+    for (icol in 1:totalncol) {
       cellstring <- ""
       # -------------------------------------
       # first table cell data contains observed values
@@ -529,7 +349,7 @@ sjt.xtab <- function(var.row,
       # -------------------------------------
       if (showRowPerc) {
         if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-        cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", tab.row[irow, icol],percSign), sep = "")
+        cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", tab.row[irow, icol], percSign), sep = "")
       }
       # -------------------------------------
       # if we have col-percentage, add percentage value to table cell
@@ -550,115 +370,9 @@ sjt.xtab <- function(var.row,
       # -------------------------------------
       page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign horline\">%s</td>", cellstring), sep = "")
     }
-    # -------------------------------------
-    # after all data columns have been printed,
-    # add a total column
-    # -------------------------------------
-    cellstring <- ""
-    # -------------------------------------
-    # first table cell data contains observed values
-    # -------------------------------------
-    if (showObserved || showTotalN) {
-      cellstring <- sprintf("<span class=\"td_n\">%i</span>", rowSums(tab)[irow])
-    }
-    # if we have expected values, add them to table cell
-    if (showExpected) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_ex\">%s</span>", rowSums(tab.expected)[irow]), sep = "")
-    }
-    # if we have row-percentage, add percentage value to table cell
-    if (showRowPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", hundret, percSign), sep = "")
-    }
-    # if we have col-percentage, add percentage value to table cell
-    if (showColPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_cl\">%s%s</span>", rowSums(tab.cell)[irow], percSign), sep = "")
-    }
-    # if we have cell-percentage, add percentage value to table cell
-    if (showCellPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_c\">%s%s</span>", rowSums(tab.cell)[irow], percSign), sep = "")
-    }
-    # write table cell data
-    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign totcol horline\">%s</td>", cellstring), sep = "")
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
   }
-  # ------------------------------
-  # start new table row
-  # this row contains the total row with sums for all columns
-  # ------------------------------
-  page.content <- paste(page.content, "\n  <tr>\n    ", sep = "")
-  # check whether we have group-var, and if not, apply colspan
-  if (!is.null(var.grp)) {
-    page.content <- paste(page.content, sprintf("<td class=\"tdata lasttablerow leftalign tothi\" colspan=\"2\">%s</td>", stringTotal), sep = "")
-  } else {
-    page.content <- paste(page.content, sprintf("<td class=\"tdata lasttablerow leftalign tothi\">%s</td>", stringTotal), sep = "")
-  }
-  # --------------------------
-  # iterate all data columns
-  # --------------------------
-  for (icol in 1:ncol(tab)) {
-    cellstring <- ""
-    # -------------------------------------
-    # add total row, first table cell data contains observed values
-    # -------------------------------------
-    if (showObserved || showTotalN) cellstring <- sprintf("<span class=\"td_n\">%i</span>", colSums(tab)[icol])
-    # calculate total percentage value
-    cellpercval <- round(100 * colSums(tab)[icol] / sum(tab), digits)
-    # if we have expected values, add them to table cell
-    if (showExpected) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_ex\">%s</span>", colSums(tab.expected)[icol]), sep = "")
-    }
-    # if we have row-percentage, add percentage value to table cell
-    if (showRowPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", cellpercval, percSign), sep = "")
-    }
-    # if we have col-percentage, add percentage value to table cell
-    if (showColPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_cl\">%s%s</span>", hundret, percSign), sep = "")
-    }
-    # if we have cell-percentage, add percentage value to table cell
-    if (showCellPerc) {
-      if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-      cellstring <- paste(cellstring, sprintf("<span class=\"td_c\">%s%s</span>", cellpercval, percSign), sep = "")
-    }
-    page.content <- paste(page.content, sprintf("\n    <td class=\"tdata lasttablerow centeralign\">%s</td>", cellstring), sep = "")
-  }
-  # --------------------------
-  # the lower right table cell contains the complete
-  # total values, i.e. all percentages are 100%
-  # --------------------------
-  cellstring <- ""
-  # -------------------------------------
-  # add total row, first table cell data contains observed values
-  # -------------------------------------
-  if (showObserved || showTotalN) cellstring <- sprintf("%s", sum(tab))
-  if (showExpected) {
-    if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-    cellstring <- paste(cellstring, sprintf("%s", sum(tab.expected)), sep = "")
-  }
-  if (showColPerc) {
-    if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-    cellstring <- paste(cellstring, sprintf("%s%s", hundret, percSign), sep = "")
-  }
-  if (showRowPerc) {
-    if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-    cellstring <- paste(cellstring, sprintf("%s%s", hundret, percSign), sep = "")
-  }
-  if (showCellPerc) {
-    if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-    cellstring <- paste(cellstring, sprintf("%s%s", hundret, percSign), sep = "")
-  }
-  # write table cell data
-  page.content <- paste(page.content, sprintf("\n    <td class=\"tdata lasttablerow centeralign\">%s</td>", cellstring), sep = "")
-  # close table row
-  page.content <- paste(page.content, "\n  </tr>\n")
   # -------------------------------------
   # table summary
   # -------------------------------------
@@ -685,7 +399,7 @@ sjt.xtab <- function(var.row,
     # create summary row
     if (is.null(fish)) {
       pvalstring <- ifelse(chsq$p.value < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.3f", chsq$p.value)))
-      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", totalncol, chsq$statistic, chsq$parameter, kook, pvalstring), sep = "")
+      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", totalncol + 1, chsq$statistic, chsq$parameter, kook, pvalstring), sep = "")
     } else {
       pvalstring <- ifelse(fish$p.value < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.3f", fish$p.value)))
       page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's %s &middot; df=%i &middot; %s</td>", totalncol, pvalstring, chsq$parameter, kook), sep = "")
@@ -798,7 +512,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = "sjtxtab",
+  invisible(structure(class = c("sjTable", "sjtxtab"),
                       list(page.style = page.style,
                            page.content = page.content,
                            output.complete = toWrite,

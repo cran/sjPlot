@@ -164,7 +164,8 @@
 #' update_geom_defaults('text', list(hjust = -0.1))
 #' sjp.xtab(efc$e42dep, 
 #'          efc$e16sex,
-#'          labelPos = "center")
+#'          vjust = "center",
+#'          hjust = "center")
 #' 
 #' # Create own theme based on classic-theme
 #' sjp.setTheme(base = theme_classic(),
@@ -185,7 +186,6 @@
 #'              colour = "black")}
 #' 
 #' @import ggplot2
-#' @importFrom grid unit
 #' @importFrom scales brewer_pal grey_pal
 #' @export
 sjp.setTheme <- function(# base theme
@@ -313,7 +313,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
     message("Theme '538' looks better with panel margins. You may want to use argument 'expand.grid = TRUE' in sjp-functions.")
   }  
   # ----------------------------------------  
@@ -349,7 +349,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
   }  
   # ----------------------------------------  
   # check for scatter, a theme with crossed
@@ -379,7 +379,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
   }  
   if (!is.null(theme) && theme == "blues") {
     base <- theme_bw()
@@ -405,7 +405,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
   }  
   if (!is.null(theme) && theme == "greens") {
     base <- theme_bw()
@@ -432,7 +432,7 @@ sjp.setTheme <- function(# base theme
     axis.title.x.vjust <- -1
     axis.title.y.vjust <- 1.5
     title.vjust <- 1.75
-    plot.margins <- grid::unit(c(1, .5, 1, 0.5), "cm")
+    plot.margins <- unit(c(1, .5, 1, 0.5), "cm")
   }  
   # ----------------------------------------  
   # set defaults for geom label colors
@@ -590,7 +590,7 @@ sjp.setTheme <- function(# base theme
     # ----------------------------------------
     if (!is.null(legend.item.size)) {
       sjtheme <- sjtheme +
-        theme(legend.key.size = grid::unit(legend.item.size, "cm"))
+        theme(legend.key.size = unit(legend.item.size, "cm"))
     }
     # ----------------------------------------
     # set axis line colors, if defined
@@ -611,11 +611,11 @@ sjp.setTheme <- function(# base theme
     }
     if (!is.null(axis.tickslen)) {
       sjtheme <- sjtheme +
-        theme(axis.ticks.length = grid::unit(axis.tickslen, "cm"))
+        theme(axis.ticks.length = unit(axis.tickslen, "cm"))
     }
     if (!is.null(axis.ticksmar)) {
       sjtheme <- sjtheme +
-        theme(axis.ticks.margin = grid::unit(axis.ticksmar, "cm"))
+        theme(axis.ticks.margin = unit(axis.ticksmar, "cm"))
     }
     # ----------------------------------------
     # set plot colors, if defined
@@ -734,19 +734,16 @@ sj.theme_geoms <- function(geom.alpha,
   
   # Geoms that only require a default colour.
   updateGeoms(c('abline', 
-                'jitter', 
                 'point', 
                 'density', 
                 'errorbar', 
                 'errorbarh', 
-                'freqpoly', 
                 'hline', 
                 'line', 
                 'area', 
                 'tile', 
                 'dotplot', 
-                'bar', 
-                'histogram'), list(alpha = geom.alpha))
+                'bar'), list(alpha = geom.alpha))
   
   update_geom_defaults('text', list(size = geom.label.size, 
                                     colour = geom.label.color,
@@ -754,21 +751,16 @@ sj.theme_geoms <- function(geom.alpha,
                                     angle = geom.label.angle))
   
   # Special geoms.
-  update_geom_defaults('boxplot', list(size = geom.boxoutline.size, colour = geom.boxoutline.color, alpha = geom.alpha, outlier.colour = NA))
+  update_geom_defaults('boxplot', list(size = geom.boxoutline.size, colour = geom.boxoutline.color, alpha = geom.alpha))
   update_geom_defaults('line', list(linetype = geom.linetype))
   updateGeoms(c('errorbar', 'errorbarh'), list(size = geom.errorbar.size, linetype = geom.errorbar.linetype))
-  
-  if (!is.null(geom.outline.color)) 
-    updateGeoms(c('histogram', 'bar', 'dotplot', 'area', 'tile'), list(size = geom.outline.size, colour = geom.outline.color))
-  else
-    updateGeoms(c('histogram', 'bar', 'dotplot', 'area', 'tile'), list(size = 0, colour = NA))  
 }
 
 
 sj.setGeomColors <- function(plot, 
                              geom.colors, 
                              pal.len, 
-                             show.guide = TRUE, 
+                             show.legend = TRUE, 
                              labels = NULL,
                              reverse.colors = FALSE) {
   # ---------------------------------------------------------
@@ -781,7 +773,7 @@ sj.setGeomColors <- function(plot,
   # dummy function for setting legend labels and geom-colors
   # ---------------------------------------------------------
   usenormalscale <- function(plot, geom.colors, labels) {
-    if (!show.guide) {
+    if (!show.legend) {
       plot <- plot + 
         scale_fill_manual(values = geom.colors, guide = FALSE) +
         scale_colour_manual(values = geom.colors, guide = FALSE) +
@@ -799,7 +791,7 @@ sj.setGeomColors <- function(plot,
   # geom-colors
   # ---------------------------------------------------------
   uselegendscale <- function(plot, labels) {
-    if (!show.guide) {
+    if (!show.legend) {
       plot <- plot + 
         scale_fill_discrete(guide = FALSE) +
         scale_colour_discrete(guide = FALSE) +

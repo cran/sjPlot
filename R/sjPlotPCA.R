@@ -176,7 +176,8 @@ sjp.pca <- function(data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- sjmisc:::autoSetVariableLabels(data[[i]])
+      vn <- sjmisc::get_label(data[[i]],
+                        def.value = get_var_name(deparse(substitute(data[[i]]))))
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         axisLabels.y <- c(axisLabels.y, vn)
@@ -230,7 +231,7 @@ sjp.pca <- function(data,
       # indicate eigen vlaues > 1
       ggplot(mydat, aes(x = xpos, y = eigen, colour = eigen > 1)) +
         geom_line() + geom_point() +
-        geom_hline(y = 1, linetype = 2, colour = "grey50") +
+        geom_hline(yintercept = 1, linetype = 2, colour = "grey50") +
         # print best number of factors according to eigen value
         annotate("text", 
                  label = sprintf("Factors: %i", pcadata.kaiser), 
@@ -358,7 +359,11 @@ sjp.pca <- function(data,
   # rename columns, so we have numbers on x axis
   names(df) <- c(1:ncol(df))
   # convert to long data
-  df <- tidyr::gather(df, "xpos", "value", 1:ncol(df))  
+  df <- tidyr::gather(df, 
+                      "xpos", 
+                      "value", 
+                      1:ncol(df), 
+                      factor_key = TRUE)  
   # we need new columns for y-positions and point sizes
   df <- cbind(df, ypos = 1:nrow(pcadata.varim$loadings), psize = exp(abs(df$value)) * geom.size)
   if (!showValueLabels) {

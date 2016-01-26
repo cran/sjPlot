@@ -40,20 +40,26 @@ install.packages("sjPlot")
 
 In case you want / have to cite my package, please use `citation('sjPlot')` for citation information. Since core functionality of package depends on the [ggplot-package](http://cran.r-project.org/package=ggplot2), consider citing this package as well.
 
-### Changelog of development build 1.8.4
+### Changelog of latest stable build 1.9
 
 #### General
-* Improved encoding detection for `sjt`-functions.
+* Fixed many issues related to the latest update of [ggplot2](https://cran.r-project.org/package=ggplot2).
+* Argument `show.se` is now deprecated. Use `show.ci` instead.
+* Redesign of computation of frequency tables for `sjp.frq` and `sjt.frq`, being more robust and generally working with labelled, non-labelled, numeric, character vectors and factors.
+* Redesign of computation of frequency tables for `sjp.grpfrq`, `sjp.xtab` and `sjt.xtab`, being more robust and generally working with labelled, non-labelled, numeric, character vectors and factors.
+* Better automatic handling of variable and value labels that are used for labelling plot axes and titles or table columns.
+
+#### Changes to functions due to new ggplot2-version
+* `sjp.grpfrq` no longer has plot type `type = "histogram"`. Maybe re-implemented in a later update. Due to this change, arguments like `showMeanIntercept` and similar were removed.
+* Plotting functions no longer have argument `labelPosition`. Instead, use arguments `vjust` and `hjust`, which correspond to the same ggplot2-aesthetics according to their possible values.
+
 
 #### Changes to functions
-* Predictor grouping with argument `group.pred` now also works for `sjt.lmer` and `sjt.glmer` (in certain cases may be buggy, so `group.pred` defaults to `FALSE`).
-* Argument `vars` in `sjp.lmer` and `sjp.glmer` now also applies when plotting estimates (`type = "fe"` or `type = "re"`).
-* `view_df_` gets a `weightBy` argument.
-* Argument `showCI` in `sjp.int` accepts numeric values for `type = "eff"`,  indicating the confidence interval value.
-* Minor improvements to `view_df`, `sjp.lm` and `sjp.lmm`.
-* Improved accuracy of computation of skewness value in `sjt.itemanalysis`.
+* `sjp.lm` gets a `group.estimates` argument to group estimates in forest plots and colour them according to group assignment. Use arguments `show.legend` and `legendTitle` to modify group legend.
+* `sjp.lmer` and `sjp.glmer` can now plot random effect parts of random slope-intercept models (with `type = "rs.ri"`), where regression lines or predicted probabilities of random intercept and slopes are plotted.
+* Intercept line plotting in `sjp.int` for `type = "cond"` was removed.
+* Line geoms for `type = "cond"` in `sjp.int` now always start at y-position zero, to better indicate the effective change of interaction effect compared to base reference. Now, the y-position indicates the change in the reponse due to the interaction effect.
+* `sjp.int` gets a `geom.size` argument to specify line width.
 
 #### Bug fixes
-* Fixed bug where in certain cases, ordered factors were not labelled correctly in `sjp.frq`.
-* Value labels were not shown in `sjp.aov1`.
-* Axis labels were reversed in `sjp.pca` for `type = "bar"`.
+* Argument `ci.hyphen` in function `sjt.lm` and `sjt.lmer` was not correctly applied to confidence intervals of standardized beta values.

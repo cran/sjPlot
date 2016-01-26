@@ -644,7 +644,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
   classplot <- ggplot(mydat, aes(x = grp, y = prc, fill = fg)) +
     # use stat identity to show value, not count of $prc-variable
     # draw no legend!
-    geom_bar(stat = "identity", colour = "black", show_guide = FALSE) +
+    geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
     # fill bars
     scale_fill_manual(values = c("#235a80", "#80acc8")) +
     # give chart and X-axis a title
@@ -709,9 +709,10 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
 #'          determining the elbow criteria
 #' @param steps maximum group-count for the k-means cluster analysis for
 #'          which the elbow-criterion should be displayed. Default is \code{15}.
-#' @param showDiff logical, if \code{TRUE}, an additional plot with the differences between 
+#' @param show.diff logical, if \code{TRUE}, an additional plot with the differences between 
 #'          each fusion step of the Elbow criterion calculation is shown. This plot
 #'          may help identifying the "elbow". Default for this argument is \code{FALSE}.
+#' @param showDiff Deprecated; use \code{show.diff} instead.
 #'          
 #' @examples
 #' # plot elbow values of mtcars dataset
@@ -723,7 +724,14 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
 #' @importFrom stats na.omit
 #' @importFrom graphics plot
 #' @export
-sjc.elbow <- function(data, steps = 15, showDiff = FALSE) {
+sjc.elbow <- function(data, steps = 15, show.diff = FALSE, showDiff = FALSE) {
+  # -----------------------------------
+  # warn, if deprecated param is used
+  # -----------------------------------
+  if (!missing(showDiff)) {
+    warning("argument 'showDiff' is deprecated; please use 'show.diff' instead.")
+    show.diff <- showDiff
+  }
   # Prepare Data
   # listwise deletion of missing
   data <- stats::na.omit(data) 
@@ -739,7 +747,11 @@ sjc.elbow <- function(data, steps = 15, showDiff = FALSE) {
   # calculate differences between each step
   diff <- c()
   for (i in 2:steps) diff <- cbind(diff,wssround[i - 1] - wssround[i])
-  dfElbowDiff <- tidyr::gather(as.data.frame(diff), "Var2", "value", 1:ncol(diff))
+  dfElbowDiff <- tidyr::gather(as.data.frame(diff), 
+                               "Var2", 
+                               "value", 
+                               1:ncol(diff),
+                               factor_key = TRUE)
   # --------------------------------------------------
   # Plot diagram with sum of squares
   # all pointes are connected with a line
@@ -757,7 +769,7 @@ sjc.elbow <- function(data, steps = 15, showDiff = FALSE) {
   # increasing y-value on x-axis (compared to former y-values)
   # might indicate elbow
   # --------------------------------------------------
-  if (showDiff) {
+  if (show.diff) {
     graphics::plot(ggplot(dfElbowDiff, aes(x = Var2, y = value, label = value)) + 
                      geom_line(colour = lcol) + 
                      geom_point(colour = lcol, size = 3) +
