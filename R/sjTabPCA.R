@@ -157,8 +157,7 @@ sjt.pca <- function(data,
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
-      vn <- sjmisc::get_label(data[[i]],
-                        def.value = get_var_name(deparse(substitute(data[[i]]))))      
+      vn <- sjmisc::get_label(data[[i]], def.value = colnames(data)[i])  
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)
@@ -585,7 +584,7 @@ sjt.pca <- function(data,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = "sjtpca",
+  invisible(structure(class = c("sjTable", "sjtpca"),
                       list(page.style = page.style,
                            page.content = page.content,
                            output.complete = toWrite,

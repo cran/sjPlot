@@ -158,8 +158,7 @@ sjt.itemanalysis <- function(df,
   varlabels <- c()
   for (i in 1:ncol(df)) {
     # retrieve variable name attribute
-    vn <- sjmisc::get_label(df[[i]],
-                      def.value = get_var_name(deparse(substitute(df[[i]]))))
+    vn <- sjmisc::get_label(df[[i]], def.value = colnames(df)[i])
     # if variable has attribute, add to variableLabel list
     if (!is.null(vn)) {
       varlabels <- c(varlabels, vn)
@@ -393,7 +392,7 @@ sjt.itemanalysis <- function(df,
   # check if html-content should be printed
   # -------------------------------------
   out.html.table(no.output, file, knitr, complete.page, useViewer)  
-  invisible(list(class = "sjtitemanalysis",
+  invisible(list(class = c("sjTable", "sjtitemanalysis"),
                  df.list = df.ia,
                  index.scores = index.scores,
                  df.index.scores = df.index.scores,

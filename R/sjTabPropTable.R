@@ -20,11 +20,9 @@
 #'          See 'Examples'.
 #'          Variable labels are detected automatically, if \code{var.row} or \code{var.col}
 #'          have label attributes (see \code{\link[sjmisc]{set_label}}) for details).
-#' @param valueLabels list of character vectors that indicate the value labels of the supplied
-#'          variables. Following order is needed: value labels of \code{var.row},
-#'          value labels  of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - 
-#'          value labels  of \code{var.grp}. \code{valueLabels} needs to be a \code{\link{list}} object.
-#'          See 'Examples'.
+#' @param valueLabels \code{\link{list}} of two character vectors that indicate the value labels of the supplied
+#'          variables. Following order is needed: value labels of \code{var.row}
+#'          and value labels of \code{var.col}. See 'Examples'.
 #' @param breakVariableLabelsAt determines how many chars of the variable labels are displayed in 
 #'          one line and when a line break is inserted. Default is 40.
 #' @param breakValueLabelsAt determines how many chars of the value labels are displayed in 
@@ -61,6 +59,7 @@
 #'          may lead to non-exact results). Default is \code{"100.0"}.
 #'          
 #' @inheritParams sjt.frq
+#' @inheritParams sjt.df
 #'          
 #' @return Invisibly returns
 #'          \itemize{
@@ -119,6 +118,7 @@ sjt.xtab <- function(var.row,
                      file = NULL,
                      variableLabels = NULL,
                      valueLabels = NULL,
+                     title = NULL,
                      breakVariableLabelsAt = 40,
                      breakValueLabelsAt = 20,
                      stringTotal = "Total",
@@ -179,13 +179,38 @@ sjt.xtab <- function(var.row,
     variableLabels <- c(sjmisc::get_label(var.row, def.value = var.name.row),
                         sjmisc::get_label(var.col, def.value = var.name.col))
   }
+  # wrap long labels
+  variableLabels <- sjmisc::word_wrap(variableLabels, breakVariableLabelsAt, "<br>")
   s.var.row <- variableLabels[1]
   s.var.col <- variableLabels[2]
   # -------------------------------------
   # init variable labels
   # -------------------------------------
-  labels.var.row <- sjmisc::word_wrap(mydat$labels.cnt, breakVariableLabelsAt, "<br>")
-  labels.var.col <- sjmisc::word_wrap(mydat$labels.grp, breakVariableLabelsAt, "<br>")
+  labels.var.row <- mydat$labels.cnt
+  labels.var.col <- mydat$labels.grp
+  # do we have labels?
+  if (!is.null(valueLabels)) {
+    # need to be a list
+    if (!is.list(valueLabels)) {
+      warning("`valueLables` needs to be a `list`-object.", call. = F)
+    } else {
+      labels.var.row <- valueLabels[[1]]
+      labels.var.col <- valueLabels[[2]]
+    }
+    # correct length of labels?
+    if (length(labels.var.row) != length(mydat$labels.cnt)) {
+      warning("Length of `valueLabels` does not match length of category values of `var.row`.", call. = F)
+      labels.var.row <- mydat$labels.cnt
+    }
+    # correct length of labels?
+    if (length(labels.var.col) != length(mydat$labels.grp)) {
+      warning("Length of `valueLabels` does not match length of category values of `var.grp`.", call. = F)
+      labels.var.col <- mydat$labels.grp
+    }
+  }
+  # wrap labels
+  labels.var.row <- sjmisc::word_wrap(labels.var.row, breakValueLabelsAt, "<br>")
+  labels.var.col <- sjmisc::word_wrap(labels.var.col, breakValueLabelsAt, "<br>")
   # add "total"
   labels.var.row <- c(labels.var.row, stringTotal)
   labels.var.col <- c(labels.var.col)
@@ -200,7 +225,7 @@ sjt.xtab <- function(var.row,
   tab.row$total <- tab.cell$total
   tab.col <- mydat$proptab.col
   tab.col <- rbind(tab.col, tab.cell[nrow(tab.cell), ])
-  tab.expected <- sjmisc::table_values(ftable(as.matrix(tab)))$expected
+  tab.expected <- sjmisc::table_values(stats::ftable(as.matrix(tab)))$expected
   # -------------------------------------
   # determine total number of columns and rows
   # -------------------------------------
@@ -217,6 +242,7 @@ sjt.xtab <- function(var.row,
   # later for return value
   # -------------------------------------
   tag.table <- "table"
+  tag.caption <- "caption"
   tag.thead <- "thead"
   tag.tdata <- "tdata"
   tag.firstcolborder <- "firstcolborder"
@@ -234,6 +260,7 @@ sjt.xtab <- function(var.row,
   tag.td_c <- "td_c"
   tag.td_n <- "td_n"
   css.table <- "border-collapse:collapse; border:none;"
+  css.caption <- "font-weight: bold; text-align:left;"
   css.thead <- "border-top:double; text-align:center; font-style:italic; font-weight:normal;"
   css.tdata <- "padding:0.2cm;"
   css.firstcolborder <- "border-bottom:1px solid;"
@@ -250,6 +277,7 @@ sjt.xtab <- function(var.row,
   # ------------------------
   if (!is.null(CSS)) {
     if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']], 1, 1) == '+', paste0(css.table, substring(CSS[['css.table']], 2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']], 1, 1) == '+', paste0(css.caption, substring(CSS[['css.caption']], 2)), CSS[['css.caption']])
     if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']], 1, 1) == '+', paste0(css.thead, substring(CSS[['css.thead']], 2)), CSS[['css.thead']])
     if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']], 1, 1) == '+', paste0(css.tdata, substring(CSS[['css.tdata']], 2)), CSS[['css.tdata']])
     if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']], 1, 1) == '+', paste0(css.summary, substring(CSS[['css.summary']], 2)), CSS[['css.summary']])
@@ -265,8 +293,8 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # set style sheet
   # -------------------------------------
-  page.style <- sprintf("<style>\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>", 
-                        tag.table, css.table, tag.thead, css.thead, tag.tdata, css.tdata, tag.secondtablerow, css.secondtablerow, 
+  page.style <- sprintf("<style>\n%s { %s }\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { color:%s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>", 
+                        tag.table, css.table, tag.caption, css.caption, tag.thead, css.thead, tag.tdata, css.tdata, tag.secondtablerow, css.secondtablerow, 
                         tag.leftalign, css.leftalign, tag.centeralign, css.centeralign, tag.lasttablerow, css.lasttablerow, 
                         tag.totcol, css.totcol, tag.tothi, css.tothi,
                         tag.td_n, tdcol.n, tag.td_c, tdcol.cell, tag.td_rw, tdcol.row,
@@ -280,6 +308,10 @@ sjt.xtab <- function(var.row,
   # init first table row
   # -------------------------------------
   page.content <- "<table>\n"
+  # -------------------------------------
+  # table caption, variable label
+  # -------------------------------------
+  if (!is.null(title)) page.content <- paste0(page.content, sprintf("  <caption>%s</caption>\n", title))
   page.content <- paste(page.content, "  <tr>\n")
   # -------------------------------------
   # column with row-variable-name
@@ -320,13 +352,16 @@ sjt.xtab <- function(var.row,
     # -------------------------------------
     # set row variable label
     # -------------------------------------
-    if (irow == totalnrow) 
-      css_last_row <- "lasttablerow tothi "
-    else
-      css_last_row <- " "
+    if (irow == totalnrow) {
+      css_last_row_th <- "lasttablerow tothi "
+      css_last_row <- " lasttablerow"
+    } else {
+      css_last_row_th <- " "
+      css_last_row <- ""
+    }
     page.content <- paste(page.content, 
                           sprintf("\n    <td class=\"tdata %sleftalign\">%s</td>", 
-                                  css_last_row,
+                                  css_last_row_th,
                                   labels.var.row[rowlabelcnt[irow]]))
     # -------------------------------------
     # iterate all data columns
@@ -368,7 +403,9 @@ sjt.xtab <- function(var.row,
       # -------------------------------------
       # write table cell data
       # -------------------------------------
-      page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign horline\">%s</td>", cellstring), sep = "")
+      page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign horline%s\">%s</td>", 
+                                                  css_last_row,
+                                                  cellstring), sep = "")
     }
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
@@ -377,32 +414,53 @@ sjt.xtab <- function(var.row,
   # table summary
   # -------------------------------------
   if (showSummary) {
+    # re-compute simple table
+    ftab <- stats::ftable(stats::xtabs(~var.row + var.col))
     # start new table row
     page.content <- paste(page.content, "\n  <tr>\n    ", sep = "")
     # calculate chi square value
-    chsq <- chisq.test(tab)
+    chsq <- chisq.test(ftab)
     fish <- NULL
     # check whether variables are dichotome or if they have more
     # than two categories. if they have more, use Cramer's V to calculate
     # the contingency coefficient
-    if (nrow(tab) > 2 || ncol(tab) > 2) {
-      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sjmisc::cramer(tab))
+    if (nrow(ftab) > 2 || ncol(ftab) > 2) {
+      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sjmisc::cramer(ftab))
       # if minimum expected values below 5, compute fisher's exact test
-      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab, simulate.p.value = TRUE)
+      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) 
+        fish <- fisher.test(ftab, simulate.p.value = TRUE)
     } else {
-      kook <- sprintf("&Phi;=%.3f", sjmisc::phi(tab))
+      kook <- sprintf("&Phi;=%.3f", sjmisc::phi(ftab))
       # if minimum expected values below 5 and df=1, compute fisher's exact test
-      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) fish <- fisher.test(tab)
+      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) 
+        fish <- fisher.test(ftab)
     }
     # make phi-value apa style
     kook <- gsub("0.", paste0(p_zero, "."), kook, fixed = TRUE)
     # create summary row
     if (is.null(fish)) {
-      pvalstring <- ifelse(chsq$p.value < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.3f", chsq$p.value)))
-      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", totalncol + 1, chsq$statistic, chsq$parameter, kook, pvalstring), sep = "")
+      pvalstring <- ifelse(chsq$p.value < 0.001, 
+                           sprintf("p&lt;%s.001", p_zero), 
+                           sub("0", p_zero, sprintf("p=%.3f", chsq$p.value)))
+      page.content <- paste(page.content, 
+                            sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", 
+                                    totalncol + 1, 
+                                    chsq$statistic, 
+                                    chsq$parameter, 
+                                    kook, 
+                                    pvalstring), 
+                            sep = "")
     } else {
-      pvalstring <- ifelse(fish$p.value < 0.001, sprintf("p&lt;%s.001", p_zero), sub("0", p_zero, sprintf("p=%.3f", fish$p.value)))
-      page.content <- paste(page.content, sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's %s &middot; df=%i &middot; %s</td>", totalncol, pvalstring, chsq$parameter, kook), sep = "")
+      pvalstring <- ifelse(fish$p.value < 0.001, 
+                           sprintf("p&lt;%s.001", p_zero), 
+                           sub("0", p_zero, sprintf("p=%.3f", fish$p.value)))
+      page.content <- paste(page.content, 
+                            sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's %s &middot; df=%i &middot; %s</td>", 
+                                    totalncol + 1, 
+                                    pvalstring, 
+                                    chsq$parameter, 
+                                    kook), 
+                            sep = "")
     }
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
@@ -475,6 +533,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   knitr <- gsub("class=", "style=", knitr, fixed = TRUE, useBytes = TRUE)
   knitr <- gsub("<table", sprintf("<table style=\"%s\"", css.table), knitr, fixed = TRUE, useBytes = TRUE)
+  knitr <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), knitr, fixed = TRUE, useBytes = TRUE)
   # -------------------------------------
   # replace class-attributes with inline-style-definitions
   # -------------------------------------

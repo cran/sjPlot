@@ -37,7 +37,7 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #' @param hideLegend logical, indicates whether legend (guide) should be shown or not.
 #' @param axisLimits.y numeric vector of length two, defining lower and upper axis limits
 #'          of the y scale. By default, this argument is set to \code{NULL}, i.e. the 
-#'          y-axis ranges from 0 to required maximum.
+#'          y-axis fits to the required range of the data.
 #' @param facet.grid \code{TRUE} when bar charts should be plotted as facet grids instead of integrated single
 #'          bar charts. Ideal for larger amount of groups. This argument wraps a single panel into 
 #'          \code{varGroup} amount of panels, i.e. each group is represented within a new panel.
@@ -130,6 +130,8 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #'          \code{ggplot2}: "left", "center", "right", "bottom", "middle", "top" and
 #'          new options like "inward" and "outward", which align text towards and 
 #'          away from the center of the plot respectively.
+#' @param y.offset numeric, offset for text labels when their alignment is adjusted 
+#'          to the top/bottom of the geom (see \code{hjust} and \code{vjust}).
 #' @param na.rm logical, if \code{TRUE}, missings are not included in the frequency plot.
 #' @param printPlot logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 #'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
@@ -231,6 +233,7 @@ sjp.grpfrq <- function(varCount,
                        coord.flip = FALSE,
                        vjust = "bottom",
                        hjust = "center",
+                       y.offset = NULL,
                        na.rm = TRUE,
                        printPlot = TRUE) {
   # --------------------------------------------------------
@@ -275,6 +278,32 @@ sjp.grpfrq <- function(varCount,
       geom.size <- .6
     else
       geom.size <- .7
+  }
+  # --------------------------------------------------------
+  # set text label offset
+  # --------------------------------------------------------
+  if (is.null(y.offset)) {
+    # get maximum y-pos
+    y.offset <- ceiling(max(table(varCount, varGroup)) / 100)
+    if (coord.flip) {
+      if (missing(vjust)) vjust <- "center"
+      if (missing(hjust)) hjust <- "bottom"
+      if (hjust == "bottom")
+        y_offset <- y.offset
+      else if (hjust == "top")
+        y_offset <- -y.offset
+      else
+        y_offset <- 0
+    } else {
+      if (vjust == "bottom")
+        y_offset <- y.offset
+      else if (vjust == "top")
+        y_offset <- -y.offset
+      else
+        y_offset <- 0
+    }
+  } else {
+    y_offset <- y.offset
   }
   #---------------------------------------------------
   # Interaction variable defined for invalid plot type?
@@ -575,7 +604,7 @@ sjp.grpfrq <- function(varCount,
     # position_dodge displays dots in a dodged position so we avoid overlay here. This may lead
     # to a more difficult distinction of group belongings, since the dots are "horizontally spread"
     # over the digram. For a better overview, we can add a "PlotAnnotation" (see "showPlotAnnotation) here.
-    geob <- geom_point(position = position_dodge(0.8),
+    geob <- geom_point(position = position_dodge(posdodge),
                        size = geom.size,
                        shape = 16)
     # create shaded rectangle, so we know which dots belong to the same category
@@ -592,7 +621,7 @@ sjp.grpfrq <- function(varCount,
     if (barPosition == "dodge") {
       geob <- geom_bar(stat = "identity",
                        width = geom.size,
-                       position = position_dodge(geom.size + geom.spacing))
+                       position = position_dodge(posdodge))
     } else {
       geob <- geom_bar(stat = "identity",
                        width = geom.size,
@@ -638,19 +667,15 @@ sjp.grpfrq <- function(varCount,
     if (barPosition == "stack") {
       if (showPercentageValues && showCountValues) {
         ggvaluelabels <-
-          geom_text(aes(y = ypos, 
-                        label = sprintf("%i\n(%.01f%%)", frq, prz)),
-                    vjust = vjust,
+          geom_text(aes(y = ypos, label = sprintf("%i\n(%.01f%%)", frq, prz)),
                     show.legend = FALSE)
       } else if (showCountValues) {
         ggvaluelabels <-
           geom_text(aes(y = ypos, label = sprintf("%i", frq)),
-                    vjust = vjust,
                     show.legend = FALSE)
       } else if (showPercentageValues) {
         ggvaluelabels <-
           geom_text(aes(y = ypos, label = sprintf("%.01f%%", prz)),
-                    vjust = vjust,
                     show.legend = FALSE)
       } else {
         ggvaluelabels <- geom_text(aes(y = frq), label = "", show.legend = FALSE)
@@ -664,14 +689,14 @@ sjp.grpfrq <- function(varCount,
       if (showPercentageValues && showCountValues) {
         if (coord.flip) {
           ggvaluelabels <-
-            geom_text(aes(y = frq, label = sprintf("%i (%.01f%%)", frq, prz)),
+            geom_text(aes(y = frq + y_offset, label = sprintf("%i (%.01f%%)", frq, prz)),
                       position = text.pos,
                       vjust = vjust,
                       hjust = hjust,
                       show.legend = FALSE)
         } else {
           ggvaluelabels <-
-            geom_text(aes(y = frq, label = sprintf("%i\n(%.01f%%)", frq, prz)),
+            geom_text(aes(y = frq + y_offset, label = sprintf("%i\n(%.01f%%)", frq, prz)),
                       position = text.pos,
                       vjust = vjust,
                       hjust = hjust,
@@ -679,14 +704,14 @@ sjp.grpfrq <- function(varCount,
         }
       } else if (showCountValues) {
         ggvaluelabels <-
-          geom_text(aes(y = frq, label = sprintf("%i", frq)),
+          geom_text(aes(y = frq + y_offset, label = sprintf("%i", frq)),
                     position = text.pos,
                     hjust = hjust,
                     vjust = vjust,
                     show.legend = FALSE)
       } else if (showPercentageValues) {
         ggvaluelabels <-
-          geom_text(aes(y = frq, label = sprintf("%.01f%%", prz)),
+          geom_text(aes(y = frq + y_offset, label = sprintf("%.01f%%", prz)),
                     position = text.pos,
                     hjust = hjust,
                     vjust = vjust,
@@ -704,7 +729,7 @@ sjp.grpfrq <- function(varCount,
   if (is.null(gridBreaksAt)) {
     gridbreaks <- ggplot2::waiver()
   } else {
-    gridbreaks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
+    gridbreaks <- seq(lower_lim, upper_lim, by = gridBreaksAt)
   }
   # ----------------------------------
   # Print plot
@@ -798,9 +823,9 @@ sjp.grpfrq <- function(varCount,
   # continue with plot objects...
   # ------------------------------
   baseplot <- baseplot +
-    # show absolute and percentage value of each bar.
+    # show absolute and percentage values for each bar
     ggvaluelabels +
-    # no additional labels for the x- and y-axis, only diagram title
+    # add labels to x- and y-axis, and diagram title
     labs(title = title,
          x = axisTitle.x,
          y = axisTitle.y,
@@ -815,10 +840,8 @@ sjp.grpfrq <- function(varCount,
     # (length of var) or to the highest count of var's categories.
     # coord_cartesian(ylim=c(0, upper_lim)) +
     y_scale
-  # check whether coordinates should be flipped, i.e.
-  # swap x and y axis
-  if (coord.flip)
-    baseplot <- baseplot + coord_flip()
+  # check whether coordinates should be flipped
+  if (coord.flip) baseplot <- baseplot + coord_flip()
   # --------------------------------------------------
   # Here we start when we have a faces grid instead of
   # a grouped bar plot.

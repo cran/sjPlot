@@ -11,8 +11,9 @@ sjp.int(fit, type = "cond", int.term = NULL, int.plot.index = NULL,
   axisTitle.y = NULL, axisLabels.x = NULL, legendTitle = NULL,
   legendLabels = NULL, showValueLabels = FALSE, breakTitleAt = 50,
   breakLegendLabelsAt = 20, breakLegendTitleAt = 20, axisLimits.x = NULL,
-  axisLimits.y = NULL, gridBreaksAt = NULL, showCI = FALSE,
-  valueLabel.digits = 2, facet.grid = FALSE, printPlot = TRUE)
+  axisLimits.y = NULL, y.offset = 0.07, gridBreaksAt = NULL,
+  showCI = FALSE, valueLabel.digits = 2, facet.grid = FALSE,
+  printPlot = TRUE)
 }
 \arguments{
 \item{fit}{the fitted (generalized) linear (mixed) model object, including interaction terms. Accepted model
@@ -125,7 +126,10 @@ are displayed in one line and when a line break is inserted.}
 
 \item{axisLimits.y}{numeric vector of length two, defining lower and upper axis limits
 of the y scale. By default, this argument is set to \code{NULL}, i.e. the 
-y-axis ranges from 0 to required maximum.}
+y-axis fits to the required range of the data.}
+
+\item{y.offset}{numeric, offset for text labels when their alignment is adjusted 
+to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
 
 \item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
 position a major grid is being printed.}
@@ -145,7 +149,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 }
 \value{
 (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list})
-          as well as the data frame that were used for setting up the ggplot-objects (\code{df.list}).
+          as well as the data frames that were used for setting up the ggplot-objects (\code{data.list}).
 }
 \description{
 Plot regression (predicted values) or probability lines (predicted probabilities) of 
@@ -175,7 +179,8 @@ Plot regression (predicted values) or probability lines (predicted probabilities
              \emph{conditional effect}, see \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{Hayes 2012}).
              Hence, this plot type may be used especially for \emph{binary or dummy coded} 
              moderator values (see also \href{http://jee3.web.rice.edu/interaction-overconfidence.pdf}{Esarey and Summer 2015}).
-             This type \emph{does not} show the overall effect of interactions on the result of Y. Use 
+             This type \emph{does not} show the overall effect (marginal mean, i.e. adjusted
+             for all other predictors and covariates) of interactions on the result of Y. Use 
              \code{type = "eff"} for effect displays similar to the \code{\link[effects]{effect}}-function 
              from the \pkg{effects}-package.
            }

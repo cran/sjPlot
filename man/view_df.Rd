@@ -7,9 +7,10 @@
 view_df(x, weightBy = NULL, file = NULL, alternateRowColors = TRUE,
   showID = TRUE, showType = FALSE, showValues = TRUE,
   showValueLabels = TRUE, showFreq = FALSE, showPerc = FALSE,
-  showWtdFreq = FALSE, showWtdPerc = FALSE, sortByName = FALSE,
-  breakVariableNamesAt = 50, encoding = NULL, hideProgressBar = FALSE,
-  CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  showWtdFreq = FALSE, showWtdPerc = FALSE, showNA = FALSE,
+  sortByName = FALSE, breakVariableNamesAt = 50, encoding = NULL,
+  hideProgressBar = FALSE, CSS = NULL, useViewer = TRUE,
+  no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{x}{\code{data.frame}, imported by \code{\link[sjmisc]{read_spss}},
@@ -47,6 +48,8 @@ frequencies for each variable is shown. Weights strem from \code{weightBy}.}
 \item{showWtdPerc}{logical, if \code{TRUE}, an additional column with weighted
 percentage of frequencies for each variable is shown.
 Weights strem from \code{weightBy}.}
+
+\item{showNA}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.}
 
 \item{sortByName}{logical, if \code{TRUE}, rows are sorted according to the variable
 names. By default, rows (variables) are ordered according to their

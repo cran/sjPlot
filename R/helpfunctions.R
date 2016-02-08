@@ -22,10 +22,10 @@ print.table.summary <- function(baseplot,
     # add annotations with table summary
     # here we print out total N of cases, chi-square and significance of the table
     if (tableSummaryPos == "r") {
-      t.hjust <- 1.05
+      t.hjust <- "top"
       x.x <- Inf
     } else {
-      t.hjust <- -0.05
+      t.hjust <- "bottom"
       x.x <- -Inf
     }
     baseplot <- baseplot +
@@ -34,7 +34,7 @@ print.table.summary <- function(baseplot,
                parse = TRUE,
                x = x.x,
                y = Inf,
-               vjust = 1.1,
+               vjust = "top",
                hjust = t.hjust)
   }
   return(baseplot)
@@ -159,7 +159,7 @@ create.frq.df <- function(x,
   # total sum of variable, for confindence intervals
   total_sum = sum(x, na.rm = T)
   rel_frq <- as.numeric(mydat$frq / total_sum)
-  ci <- 1.96 * sqrt(rel_frq * (1 - rel_frq) / total_sum)
+  ci <- 1.96 * suppressWarnings(sqrt(rel_frq * (1 - rel_frq) / total_sum))
   mydat$upper.ci <- total_sum * (rel_frq + ci)
   mydat$lower.ci <- total_sum * (rel_frq - ci)
   mydat$rel.upper.ci <- rel_frq + ci
@@ -229,7 +229,7 @@ create.xtab.df <- function(x,
     if (na.rm) {
       mydat <- stats::ftable(table(x_full, grp_full))
     } else {
-      mydat <- stats::ftable(table(x_full, grp_full), exclude = NULL)
+      mydat <- stats::ftable(table(x_full, grp_full, exclude = NULL))
     }
   } else {
     x <- suppressWarnings(sjmisc::to_value(x, keep.labels = T))
@@ -237,7 +237,9 @@ create.xtab.df <- function(x,
     if (na.rm)
       mydat <- stats::ftable(round(stats::xtabs(weightBy ~ x + grp)), 0)
     else
-      mydat <- stats::ftable(round(stats::xtabs(weightBy ~ x + grp, exclude = NULL, na.action = stats::na.pass)), 0)
+      mydat <- stats::ftable(round(stats::xtabs(weightBy ~ x + grp, 
+                                                exclude = NULL, 
+                                                na.action = stats::na.pass)), 0)
   }
   # create proportional tables, cell values
   proptab.cell <- round(100 * prop.table(mydat), round.prz)
@@ -252,6 +254,8 @@ create.xtab.df <- function(x,
   # add total row and column to cell percentages afterwards
   proptab.cell <- rbind(as.data.frame(as.matrix(proptab.cell)), colSums(proptab.cell))
   proptab.cell <- cbind(as.data.frame(as.matrix(proptab.cell)), rowSums(proptab.cell))
+  # due to roundings, total might differ from 100%, so clean this here
+  proptab.cell[nrow(proptab.cell), ncol(proptab.cell)] <- 100
   colnames(proptab.cell)[ncol(proptab.cell)] <- "total"
   rownames(proptab.cell)[nrow(proptab.cell)] <- "total"
   # convert to data frame
@@ -336,55 +340,44 @@ crosstabsum <- function(x, grp, weightBy) {
   }
   # calculate chi square value
   chsq <- stats::chisq.test(ftab)
+  p.value <- chsq$p.value
   tab <- sjmisc::table_values(ftab)
-  fish <- NULL
+  # do we have cells with less than 5 observations?
+  if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) {
+    fish <- stats::fisher.test(ftab, simulate.p.value = (nrow(ftab) > 2 || ncol(ftab) > 2))
+    p.value <- fish$p.value
+  } else {
+    fish <- NULL
+  }
+  # pvalue in string
+  if (p.value < 0.001)
+    pvas <- sprintf("%s.001", p_zero)
+  else
+    pvas <- sub("0", p_zero, sprintf("%.3f", p.value))
   # check whether variables are dichotome or if they have more
   # than two categories. if they have more, use Cramer's V to calculate
   # the contingency coefficient
   if (nrow(ftab) > 2 || ncol(ftab) > 2) {
-    # if minimum expected values below 5, compute fisher's exact test
-    if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- stats::fisher.test(ftab, simulate.p.value = TRUE)
     # check whether fisher's test or chi-squared should be printed
     if (is.null(fish)) {
-      if (chsq$p.value < 0.001) {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" < pva,
-                     list(tn = summary(ftab)$n.cases,
-                          c2 = sprintf("%.2f", chsq$statistic),
-                          dft = c(chsq$parameter),
-                          kook = sprintf("%.2f", sjmisc::cramer(ftab)),
-                          pva = sprintf("%s.001", p_zero)))))
-      } else {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" == pva,
-                     list(tn = summary(ftab)$n.cases,
-                          c2 = sprintf("%.2f", chsq$statistic),
-                          dft = c(chsq$parameter),
-                          kook = sprintf("%.2f", sjmisc::cramer(ftab)),
-                          pva = sub("0", p_zero, sprintf("%.3f", chsq$p.value))))))
-      }
+      modsum <- as.character(as.expression(
+        substitute("N" == tn * "," ~~ chi^2 == c2 * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "p" < pva,
+                   list(tn = summary(ftab)$n.cases,
+                        c2 = sprintf("%.2f", chsq$statistic),
+                        dft = c(chsq$parameter),
+                        kook = sprintf("%.2f", sjmisc::cramer(ftab)),
+                        pva = pvas))))
     } else {
-      if (fish$p.value < 0.001) {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" < pva,
-                     list(tn = summary(ftab)$n.cases,
-                          dft = c(chsq$parameter),
-                          kook = sprintf("%.2f", sjmisc::cramer(ftab)),
-                          pva = sprintf("%s.001", p_zero)))))
-      } else {
-        modsum <- as.character(as.expression(
-          substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" == pva,
-                     list(tn = summary(ftab)$n.cases,
-                          dft = c(chsq$parameter),
-                          kook = sprintf("%.2f", sjmisc::cramer(ftab)),
-                          pva = sub("0", p_zero, sprintf("%.3f", fish$p.value))))))
-      }
+      modsum <- as.character(as.expression(
+        substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" < pva,
+                   list(tn = summary(ftab)$n.cases,
+                        dft = c(chsq$parameter),
+                        kook = sprintf("%.2f", sjmisc::cramer(ftab)),
+                        pva = pvas))))
     }
   # if variables have two categories (2x2 table), use phi to calculate
   # the degree of association
   } else {
-    # if minimum expected values below 5, compute fisher's exact test
-    if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) fish <- stats::fisher.test(ftab)
     # check whether fisher's test or chi-squared should be printed
     if (is.null(fish)) {
       modsum <- as.character(as.expression(
@@ -393,14 +386,14 @@ crosstabsum <- function(x, grp, weightBy) {
                         c2 = sprintf("%.2f", chsq$statistic),
                         dft = c(chsq$parameter),
                         kook = sprintf("%.2f", sjmisc::phi(ftab)),
-                        pva = sub("0", p_zero, sprintf("%.3f", chsq$p.value))))))
+                        pva = pvas))))
     } else {
       modsum <- as.character(as.expression(
         substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "Fisher's p" == pva,
                    list(tn = summary(ftab)$n.cases,
                         dft = c(chsq$parameter),
                         kook = sprintf("%.2f", sjmisc::phi(ftab)),
-                        pva = sub("0", p_zero, sprintf("%.3f", fish$p.value))))))
+                        pva = pvas))))
     }
   }
   return(modsum)
@@ -409,6 +402,7 @@ crosstabsum <- function(x, grp, weightBy) {
 
 # checks at which position in fitted models factors with
 # more than two levels are located.
+#' @importFrom nlme getResponse getData
 retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
   # init group-row-indices
   group.pred.rows <- c()
@@ -431,8 +425,10 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
       no_fixef <- length(attr(attr(fit@frame, "terms"), "predvars.fixed")) - 1
       # then copy only fixed effects columns
       fmodel <- fit@frame[, 1:no_fixef]
+    } else if (any(class(fit) == "gls")) {
+      fmodel <- cbind(`y` = nlme::getResponse(fit), nlme::getData(fit))
     } else {
-      # else copy model matrix
+      # copy model matrix
       fmodel <- fit$model
     }
     # retrieve all factors from model
@@ -517,54 +513,51 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
 # automatically retrieve predictor labels
 # of fitted (g)lm
 retrieveModelLabels <- function(models) {
-  # check parameter. No labels supported for plm-objects
-  if (any(class(models) == "plm")) return(NULL)
-  # do we have global options?
-  opt <- getOption("autoSetVariableLabels")
-  if (is.null(opt) || opt == TRUE) {
-    fit.labels <- c()
-    for (k in 1:length(models)) {
-      # get model
-      fit <- models[[k]]
-      # iterate coefficients (1 is intercept or response)
-      for (i in 2:ncol(fit$model)) {
-        # is predictor a factor?
-        pvar <- fit$model[, i]
-        # if yes, we have this variable multiple
-        # times, so manually set value labels
-        if (is.factor(pvar)) {
-          # get amount of levels
-          pvar.len <- length(levels(pvar))
-          # get value labels, if any
-          pvar.lab <- sjmisc::get_labels(pvar)
-          # have any labels, and have we same amount of labels
-          # as factor levels?
-          if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
-            # add labels
-            if (!any(fit.labels == pvar.lab[2:pvar.len])) {
-              fit.labels <- c(fit.labels, pvar.lab[2:pvar.len])
-            }
-          } else {
-            # add labels
-            if (!any(fit.labels == attr(fit$coefficients[i], "names"))) {
-              fit.labels <- c(fit.labels, attr(fit$coefficients[i], "names"))
-            }
+  fit.labels <- c()
+  for (k in 1:length(models)) {
+    # get model
+    fit <- models[[k]]
+    # any valid model?
+    if (any(class(fit) == "gls") ||
+        any(class(fit) == "plm") || 
+        any(class(fit) == "ppgls"))
+      return(NULL)
+    # iterate coefficients (1 is intercept or response)
+    for (i in 2:ncol(fit$model)) {
+      # is predictor a factor?
+      pvar <- fit$model[, i]
+      # if yes, we have this variable multiple
+      # times, so manually set value labels
+      if (is.factor(pvar)) {
+        # get amount of levels
+        pvar.len <- length(levels(pvar))
+        # get value labels, if any
+        pvar.lab <- sjmisc::get_labels(pvar)
+        # have any labels, and have we same amount of labels
+        # as factor levels?
+        if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
+          # add labels
+          if (!any(fit.labels == pvar.lab[2:pvar.len])) {
+            fit.labels <- c(fit.labels, pvar.lab[2:pvar.len])
           }
         } else {
-          # check if we hav label
-          lab <- sjmisc::get_label(fit$model[, i], 
-                                   def.value = get_var_name(deparse(substitute(fit$model[, i]))))
-          # if not, use coefficient name
-          if (is.null(lab)) {
-            lab <- attr(fit$coefficients[i], "names")
+          # add labels
+          if (!any(fit.labels == attr(fit$coefficients[i], "names"))) {
+            fit.labels <- c(fit.labels, attr(fit$coefficients[i], "names"))
           }
-          if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
         }
+      } else {
+        # check if we have label
+        lab <- sjmisc::get_label(fit$model[, i])
+        # if not, use coefficient name
+        if (is.null(lab)) {
+          lab <- attr(fit$coefficients[i], "names")
+        }
+        if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
       }
     }
-    return(fit.labels)
   }
-  return(NULL)
+  return(fit.labels)
 }
 
 

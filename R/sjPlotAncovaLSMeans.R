@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("xn", "vld", "l.ci", "u.ci"))
+utils::globalVariables(c("xn", "vld", "conf.low", "conf.high"))
 
 #' @importFrom dplyr filter
 sjp.emm <- function(fit,
@@ -19,6 +19,7 @@ sjp.emm <- function(fit,
                     breakTitleAt = 50,
                     breakLegendTitleAt = 20,
                     breakLegendLabelsAt = 20,
+                    y.offset = 0.07,
                     axisLimits.y = NULL,
                     gridBreaksAt = NULL,
                     facet.grid = FALSE,
@@ -43,7 +44,7 @@ sjp.emm <- function(fit,
     return(sjp.emm.lmer(fit, swapPredictors, plevel, title, geom.colors, geom.size,
                         axisTitle.x, axisTitle.y, axisLabels.x, legendLabels,
                         showValueLabels, valueLabel.digits, showCI, breakTitleAt,
-                        breakLegendLabelsAt, axisLimits.y, gridBreaksAt, 
+                        breakLegendLabelsAt, y.offset, axisLimits.y, gridBreaksAt, 
                         facet.grid, printPlot))
   }
   # init vector that saves ggplot objects
@@ -175,7 +176,7 @@ sjp.emm <- function(fit,
                           emm[6],
                           emm[7],
                           rep(valueLabel.digits, times = nrow(emm[1])))
-      colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
+      colnames(intdf) <- c("x", "y", "grp", "conf.low", "conf.high", "vld")
       # -----------------------------------------------------------
       # remove missings
       # -----------------------------------------------------------
@@ -192,8 +193,8 @@ sjp.emm <- function(fit,
       # add numeric x for geom_line
       intdf$xn <- as.numeric(intdf$x)
       # ci to numeric, y-scale is continuous
-      intdf$l.ci <- as.numeric(intdf$l.ci)
-      intdf$u.ci <- as.numeric(intdf$u.ci)
+      intdf$conf.low <- as.numeric(intdf$conf.low)
+      intdf$conf.high <- as.numeric(intdf$conf.high)
       # order data frame
       intdf <- intdf[order(intdf$grp), ]
       # -----------------------------------------------------------
@@ -201,8 +202,8 @@ sjp.emm <- function(fit,
       # the scale limits
       # -----------------------------------------------------------
       if (is.null(axisLimits.y)) {
-        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
-        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
+        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$conf.low)), floor(min(intdf$y)))
+        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$conf.high)), ceiling(max(intdf$y)))
       } else {
         lowerLim.y <- axisLimits.y[1]
         upperLim.y <- axisLimits.y[2]
@@ -287,7 +288,7 @@ sjp.emm <- function(fit,
       # Confidence intervals?
       # -----------------------------------------------------------
       if (showCI) baseplot <- baseplot +
-          geom_ribbon(aes(x = xn, ymin = l.ci, ymax = u.ci, fill = grp), alpha = .3)
+          geom_ribbon(aes(x = xn, ymin = conf.low, ymax = conf.high, fill = grp), alpha = .3)
       # -----------------------------------------------------------
       # continue with plot. point and line layers above ribbon
       # -----------------------------------------------------------
@@ -301,7 +302,7 @@ sjp.emm <- function(fit,
       if (showValueLabels) {
         baseplot <- baseplot +
           geom_text(aes(label = round(y, vld), x = x, y = y),
-                    vjust = 1.5,
+                    nudge_y = y.offset,
                     show.legend = FALSE)
       }
       # ------------------------------------------------------------------------------------
@@ -335,16 +336,16 @@ sjp.emm <- function(fit,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = "sjpemmint",
+  invisible(structure(class = c("sjPlot", "sjpemmint"),
                       list(plot.list = plotlist,
-                           df.list = dflist)))
+                           data.list = dflist)))
 }
 
 
 sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.size, axisTitle.x,
                          axisTitle.y, axisLabels.x, legendLabels, showValueLabels,
                          valueLabel.digits, showCI, breakTitleAt, breakLegendLabelsAt,
-                         axisLimits.y, gridBreaksAt, facet.grid, printPlot) {
+                         y.offset, axisLimits.y, gridBreaksAt, facet.grid, printPlot) {
   if ((any(class(fit) == "lmerMod") || any(class(fit) == "merModLmerTest")) && !requireNamespace("lmerTest", quietly = TRUE)) {
     stop("Package 'lmerTest' needed for this function to work. Please install it.", call. = FALSE)
   }
@@ -446,7 +447,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
   # check if we have any valid interaction terms
   # for lsmeans function
   # -----------------------------------------------------------
-  if (nrow(interactionterms) > 0) {
+  if (!sjmisc::is_empty(interactionterms) && nrow(interactionterms) > 0) {
     for (cnt in 1:nrow(interactionterms)) {
       # -----------------------------------------------------------
       # retrieve each pair of interaction terms
@@ -475,7 +476,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
       # -----------------------------------------------------------
       intdf <- data.frame(emm.df[, emm.col],
                           rep(valueLabel.digits, times = nrow(emm.df)))
-      colnames(intdf) <- c("x", "y", "grp", "l.ci", "u.ci", "vld")
+      colnames(intdf) <- c("x", "y", "grp", "conf.low", "conf.high", "vld")
       # -----------------------------------------------------------
       # convert df-values to numeric
       # -----------------------------------------------------------
@@ -483,8 +484,8 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
       # add numeric x for geom_line
       intdf$xn <- as.numeric(intdf$x)
       # ci to numeric, y-scale is continuous
-      intdf$l.ci <- as.numeric(intdf$l.ci)
-      intdf$u.ci <- as.numeric(intdf$u.ci)
+      intdf$conf.low <- as.numeric(intdf$conf.low)
+      intdf$conf.high <- as.numeric(intdf$conf.high)
       # order data frame
       intdf <- intdf[order(intdf$grp), ]
       # -----------------------------------------------------------
@@ -492,8 +493,8 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
       # the scale limits
       # -----------------------------------------------------------
       if (is.null(axisLimits.y)) {
-        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$l.ci)), floor(min(intdf$y)))
-        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$u.ci)), ceiling(max(intdf$y)))
+        lowerLim.y <- ifelse(showCI == TRUE, floor(min(intdf$conf.low)), floor(min(intdf$y)))
+        upperLim.y <- ifelse(showCI == TRUE, ceiling(max(intdf$conf.high)), ceiling(max(intdf$y)))
       } else {
         lowerLim.y <- axisLimits.y[1]
         upperLim.y <- axisLimits.y[2]
@@ -567,7 +568,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
       # Confidence intervals?
       # -----------------------------------------------------------
       if (showCI) baseplot <- baseplot +
-        geom_ribbon(aes(x = xn, ymin = l.ci, ymax = u.ci, fill = grp), alpha = .3)
+        geom_ribbon(aes(x = xn, ymin = conf.low, ymax = conf.high, fill = grp), alpha = .3)
       # -----------------------------------------------------------
       # continue with plot. point and line layers above ribbon
       # -----------------------------------------------------------
@@ -581,7 +582,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
       if (showValueLabels) {
         baseplot <- baseplot +
           geom_text(aes(label = round(y, vld), x = x, y = y),
-                    vjust = 1.5,
+                    nudge_y = y.offset,
                     show.legend = FALSE)
       }
       # ------------------------------------------------------------------------------------
@@ -615,7 +616,7 @@ sjp.emm.lmer <- function(fit, swapPredictors, plevel, title, geom.colors, geom.s
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = "sjpemmint",
+  invisible(structure(class = c("sjPlot", "sjpemmint"),
                       list(plot.list = plotlist,
-                           df.list = dflist)))
+                           data.list = dflist)))
 }

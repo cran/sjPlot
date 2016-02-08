@@ -195,13 +195,15 @@ sjt.stackfrq <- function(items,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(valuelabels)) valuelabels <- sjmisc:::autoSetValueLabels(items[[1]])
+  if (is.null(valuelabels)) valuelabels <- sjmisc::get_labels(items[[1]],
+                                                              attr.only = F,
+                                                              include.values = NULL,
+                                                              include.non.labelled = T)
   if (is.null(varlabels)) {
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- sjmisc::get_label(items[[i]],
-                              def.value = get_var_name(deparse(substitute(items[[i]]))))
+      vn <- sjmisc::get_label(items[[i]], def.value = colnames(items)[i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
         varlabels <- c(varlabels, vn)

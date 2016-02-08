@@ -5,11 +5,12 @@
 \title{Summary of contingency tables as HTML table}
 \usage{
 sjt.xtab(var.row, var.col, weightBy = NULL, digits = 1, file = NULL,
-  variableLabels = NULL, valueLabels = NULL, breakVariableLabelsAt = 40,
-  breakValueLabelsAt = 20, stringTotal = "Total", showObserved = TRUE,
-  showCellPerc = FALSE, showRowPerc = FALSE, showColPerc = FALSE,
-  showExpected = FALSE, showHorizontalLine = FALSE, showSummary = TRUE,
-  showLegend = FALSE, showNA = FALSE, labelNA = "NA", tdcol.n = "black",
+  variableLabels = NULL, valueLabels = NULL, title = NULL,
+  breakVariableLabelsAt = 40, breakValueLabelsAt = 20,
+  stringTotal = "Total", showObserved = TRUE, showCellPerc = FALSE,
+  showRowPerc = FALSE, showColPerc = FALSE, showExpected = FALSE,
+  showHorizontalLine = FALSE, showSummary = TRUE, showLegend = FALSE,
+  showNA = FALSE, labelNA = "NA", tdcol.n = "black",
   tdcol.expected = "#339999", tdcol.cell = "#993333",
   tdcol.row = "#333399", tdcol.col = "#339933", highlightTotal = FALSE,
   highlightColor = "#f8f8f8", percSign = "&nbsp;&#37;", hundret = "100.0",
@@ -38,11 +39,11 @@ See 'Examples'.
 Variable labels are detected automatically, if \code{var.row} or \code{var.col}
 have label attributes (see \code{\link[sjmisc]{set_label}}) for details).}
 
-\item{valueLabels}{list of character vectors that indicate the value labels of the supplied
-variables. Following order is needed: value labels of \code{var.row},
-value labels  of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - 
-value labels  of \code{var.grp}. \code{valueLabels} needs to be a \code{\link{list}} object.
-See 'Examples'.}
+\item{valueLabels}{\code{\link{list}} of two character vectors that indicate the value labels of the supplied
+variables. Following order is needed: value labels of \code{var.row}
+and value labels of \code{var.col}. See 'Examples'.}
+
+\item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
 \item{breakVariableLabelsAt}{determines how many chars of the variable labels are displayed in 
 one line and when a line break is inserted. Default is 40.}
