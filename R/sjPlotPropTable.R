@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("rowname", "total", "prc", "n", "Count", "Group", "line.break"))
+utils::globalVariables(c("rowname", "total", "ges", "prc", "n", "Count", "Group", "line.break"))
 
 #' @title Plot contingency tables
 #' @name sjp.xtab
@@ -75,13 +75,10 @@ utils::globalVariables(c("rowname", "total", "prc", "n", "Count", "Group", "line
 #' library(sjmisc)
 #' data(efc)
 #' sjp.setTheme(geom.label.angle = 90)
-#' # hjust-aes needs adjustment for this
-#' library(ggplot2)
-#' update_geom_defaults('text', list(hjust = -0.1))
 #' sjp.xtab(efc$e42dep, 
 #'          efc$e16sex,
 #'          vjust = "center",
-#'          hjust = "center")
+#'          hjust = "bottom")
 #' 
 #' # grouped bars with EUROFAMCARE sample dataset
 #' # dataset was importet from an SPSS-file,
@@ -120,7 +117,7 @@ utils::globalVariables(c("rowname", "total", "prc", "n", "Count", "Group", "line
 #'
 #' @import ggplot2
 #' @import sjmisc
-#' @importFrom dplyr group_by mutate arrange add_rownames filter select
+#' @importFrom dplyr group_by mutate arrange add_rownames filter select summarize
 #' @importFrom tidyr gather
 #' @importFrom scales percent
 #' @importFrom stats na.omit
@@ -185,24 +182,28 @@ sjp.xtab <- function(x,
   # set text label offset
   # --------------------------------------------------------
   if (is.null(y.offset)) {
-    # get maximum y-pos
-    y.offset <- ceiling(max(table(x, grp)) / 100)
-    if (coord.flip) {
-      if (missing(vjust)) vjust <- "center"
-      if (missing(hjust)) hjust <- "bottom"
-      if (hjust == "bottom")
-        y_offset <- y.offset
-      else if (hjust == "top")
-        y_offset <- -y.offset
-      else
-        y_offset <- 0
+    # stacked bars?
+    if (barPosition == "stack") {
+      y_offset <- 0
     } else {
-      if (vjust == "bottom")
-        y_offset <- y.offset
-      else if (vjust == "top")
-        y_offset <- -y.offset
-      else
-        y_offset <- 0
+      y.offset <- .005
+      if (coord.flip) {
+        if (missing(vjust)) vjust <- "center"
+        if (missing(hjust)) hjust <- "bottom"
+        if (hjust == "bottom")
+          y_offset <- y.offset
+        else if (hjust == "top")
+          y_offset <- -y.offset
+        else
+          y_offset <- 0
+      } else {
+        if (vjust == "bottom")
+          y_offset <- y.offset
+        else if (vjust == "top")
+          y_offset <- -y.offset
+        else
+          y_offset <- 0
+      }
     }
   } else {
     y_offset <- y.offset
@@ -219,13 +220,11 @@ sjp.xtab <- function(x,
                           round.prz = 2,
                           na.rm = T,
                           weightBy = weightBy)
-  # add rownames or label as x-position to data frame,
-  # depending on plot type. for lines, we assume continuous
-  # scale.
-  if (type == "lines")
-    bars.xpos <- as.numeric(mydat$mydat$label)
-  else
-    bars.xpos <- dplyr::add_rownames(mydat$mydat, var = "xpos")$xpos
+  # --------------------------------------------------------
+  # x-position as numeric factor, added later after
+  # tidying
+  # --------------------------------------------------------
+  bars.xpos <- 1:nrow(mydat$mydat)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
@@ -291,21 +290,20 @@ sjp.xtab <- function(x,
   #---------------------------------------------------
   if (tableIndex != "col") mydf <- dplyr::filter(mydf, rowname != "total")
   if (tableIndex == "cell") mydf <- dplyr::select(mydf, -total)
-  # -----------------------------------------------
-  # xpos should be numeric factor
-  #---------------------------------------------------
-  if (suppressWarnings(anyNA(as.numeric(bars.xpos))))
-    mydf$xpos <- as.factor(bars.xpos)
-  else
-    mydf$xpos <- as.factor(as.numeric(bars.xpos))
+  # --------------------------------------------------------
+  # add xpos now
+  # --------------------------------------------------------
+  mydf$xpos <- as.factor(as.numeric(bars.xpos))
   # --------------------------------------------------------
   # add half of Percentage values as new y-position for stacked bars
   # --------------------------------------------------------
   mydf <- mydf %>%
-    dplyr::group_by(group) %>%
+    dplyr::group_by(xpos) %>%
     dplyr::mutate(ypos = cumsum(prc) - 0.5 * prc) %>%
     dplyr::arrange(group)
+  # --------------------------------------------------------
   # add line-break char
+  # --------------------------------------------------------
   if (showPercentageValues && showCountValues) {
     mydf$line.break <- ifelse(coord.flip == TRUE, ' ', '\n')
   } else {
@@ -354,12 +352,25 @@ sjp.xtab <- function(x,
     lower_lim <- axisLimits.y[1]
     upper_lim <- axisLimits.y[2]
   } else if (barPosition == "stack") {
-    upper_lim <- 1
+    # check upper limits. we may have rounding errors, so values
+    # sum up to more than 100%
+    ul <- max(mydf %>% 
+                dplyr::group_by(rowname) %>% 
+                dplyr::summarize(ges = sum(prc)) %>% 
+                dplyr::select(ges), na.rm = T)
+    if (ul > 1L)
+      upper_lim <- ul
+    else
+      upper_lim <- 1
   } else {
+    # factor depends on labels
+    if (showValueLabels == TRUE)
+      mlp <- 1.2
+    else
+      mlp <- 1.1
     # else calculate upper y-axis-range depending
     # on the amount of max. answers per category
-    upper_lim <- max(mydf$prc) * 1.1
-    if (upper_lim > 1) upper_lim <- 1
+    upper_lim <- max(mydf$prc) * mlp
   }
   # --------------------------------------------------------
   # check if category-oder on x-axis should be reversed
@@ -443,20 +454,17 @@ sjp.xtab <- function(x,
     }
   # check if we have lines
   } else if (type == "lines") {
+    # for lines, numeric scale
+    mydf$xpos <- sjmisc::to_value(mydf$xpos, keep.labels = F)
     line.stat <- ifelse(smoothLines == TRUE, "smooth", "identity")
-    geob <- geom_line(aes(x = as.numeric(xpos),
-                          y = prc,
-                          colour = group),
-                      data = mydf,
+    geob <- geom_line(aes(colour = group),
                       size = geom.size, 
                       stat = line.stat)
   }
   # --------------------------------------------------------
   # start plot here
   # --------------------------------------------------------
-  baseplot <- ggplot(mydf, aes(x = xpos, 
-                               y = prc, 
-                               fill = group)) + geob
+  baseplot <- ggplot(mydf, aes(x = xpos, y = prc, fill = group)) + geob
   # if we have line diagram, print lines here
   if (type == "lines") {
     baseplot <- baseplot + 

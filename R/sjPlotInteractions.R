@@ -299,7 +299,7 @@
 #'
 #' @import ggplot2
 #' @import sjmisc
-#' @importFrom stats family
+#' @importFrom stats family quantile
 #' @importFrom effects allEffects effect
 #' @export
 sjp.int <- function(fit,
@@ -337,35 +337,26 @@ sjp.int <- function(fit,
   # -----------------------------------------------------------
   c.f <- class(fit)
   fun <- "lm"
-  stat.fun <- "lm"
   if (any(c.f == "glm")) {
     fun <- "glm"
-    stat.fun <- "glm"
   } else if (any(c.f == "lm")) {
     fun <- "lm"
-    stat.fun <- "lm"
   } else if (any(c.f == "plm")) {
     fun <- "plm"
-    stat.fun <- "lm"
   } else if (any(c.f == "glmerMod")) {
     fun <- "glmer"
-    stat.fun <- "glm"
   } else if (any(c.f == "nlmerMod")) {
     fun <- "nlmer"
-    stat.fun <- "nlm"
   } else if (any(c.f == "lmerMod") || any(c.f == "merModLmerTest")) {
     fun <- "lmer"
-    stat.fun <- "lm"
   } else if (any(c.f == "lme")) {
     fun <- "lme"
-    stat.fun <- "lm"
     if (type != "eff") {
       message("Only 'type = \"eff\"' supports objects of class 'nlme::lme'. Defaulting type to \"eff\".")
       type <- "eff"
     }
   } else if (any(c.f == "gls")) {
     fun <- "gls"
-    stat.fun <- "lm"
     if (type != "eff") {
       message("Only 'type = \"eff\"' supports objects of class 'nlme::gls'. Defaulting type to \"eff\".")
       type <- "eff"
@@ -592,7 +583,7 @@ sjp.int <- function(fit,
       ymin <- 0
       ymax <- max(mod.value, na.rm = T)
     } else if (moderatorValues == "quart") {
-      qu <- as.vector(quantile(mod.value, na.rm = T))
+      qu <- as.vector(stats::quantile(mod.value, na.rm = T))
       mw <- qu[3]
       ymin <- qu[2]
       ymax <- qu[4]
@@ -1042,7 +1033,7 @@ sjp.eff.int <- function(fit,
         xl1 <- list(x = c(mv.mean - mv.sd, mv.mean, mv.mean + mv.sd))
       } else if (moderatorValues == "quart") {
         # re-compute effects, prepare xlevels
-        xl1 <- list(x = as.vector(quantile(modval, na.rm = T)))
+        xl1 <- list(x = as.vector(stats::quantile(modval, na.rm = T)))
       }
       # change list name to moderator value name
       names(xl1) <- moderator.name
@@ -1122,6 +1113,23 @@ sjp.eff.int <- function(fit,
     intdf <- droplevels(intdf)
     # group as factor
     intdf$grp <- as.factor(intdf$grp)
+    x_labels <- NULL
+    # does model have labels? we want these if x is a factor.
+    # first we need to know whether we have a model-data-frame
+    if (x_is_factor) {
+      # do we have a factor with level-labels for "x"?
+      # if yes, use these as labels
+      if (!sjmisc::is_num_fac(intdf$x)) {
+        x_labels <- levels(intdf$x)
+      } else if (is.list(fit) && ("model" %in% names(fit))) {
+        x_labels <- sjmisc::get_labels(fit$model[[pred_x.name]],
+                                       attr.only = F)
+        # for mermod object, we have a frame-attribute
+      } else if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T))) {
+        x_labels <- sjmisc::get_labels(fit@frame[[pred_x.name]],
+                                       attr.only = F)
+      }
+    }
     # make sure x is numeric
     intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
     # -----------------------------------------------------------
@@ -1169,8 +1177,13 @@ sjp.eff.int <- function(fit,
       # -----------------------------------------------------------
       if (is.null(axisLimits.y)) {
         if (fitfam %in% c("binomial", "quasibinomial")) {
-          lowerLim.y <- as.integer(floor(10 * min(intdf$y, na.rm = T) * .9)) / 10
-          upperLim.y <- as.integer(ceiling(10 * max(intdf$y, na.rm = T) * 1.1)) / 10
+          if (showCI) {
+            lowerLim.y <- as.integer(floor(10 * min(intdf$conf.low, na.rm = T) * .9)) / 10
+            upperLim.y <- as.integer(ceiling(10 * max(intdf$conf.high, na.rm = T) * 1.1)) / 10
+          } else {
+            lowerLim.y <- as.integer(floor(10 * min(intdf$y, na.rm = T) * .9)) / 10
+            upperLim.y <- as.integer(ceiling(10 * max(intdf$y, na.rm = T) * 1.1)) / 10
+          }
         } else {
           if (showCI) {
             lowerLim.y <- floor(min(intdf$conf.low, na.rm = T))
@@ -1201,6 +1214,10 @@ sjp.eff.int <- function(fit,
     if (!is.null(gridBreaksAt)) {
       gridbreaks.x <- seq(lowerLim.x, upperLim.x, by = gridBreaksAt)
       gridbreaks.y <- seq(lowerLim.y, upperLim.y, by = gridBreaksAt)
+    } else if (x_is_factor) {
+      gridbreaks.x <- sort(unique(intdf$x))
+    } else {
+      gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
     }
     # -----------------------------------------------------------
     # prepare plot title and axis titles
@@ -1316,8 +1333,20 @@ sjp.eff.int <- function(fit,
       # set plot and axis titles
       labs(title = labtitle, x = labx, y = laby, colour = lTitle) +
       # set axis scale breaks
-      scale_x_continuous(limits = c(lowerLim.x, upperLim.x), breaks = gridbreaks.x) +
       scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
+    # we have specified labels for factors on x-axis only...
+    if (x_is_factor && !is.null(x_labels)) {
+      baseplot <- baseplot +
+        scale_x_continuous(limits = c(lowerLim.x, upperLim.x), 
+                           breaks = gridbreaks.x,
+                           labels = x_labels)
+      
+    } else {
+      # ...else, we use waiver-labels
+      baseplot <- baseplot +
+        scale_x_continuous(limits = c(lowerLim.x, upperLim.x), 
+                           breaks = gridbreaks.x)
+    }
     # ---------------------------------------------------------
     # facet grids?
     # ---------------------------------------------------------
@@ -1472,19 +1501,23 @@ getInteractionTerms <- function(fit, fun, plevel) {
   }
   # save names of interaction predictor variables into this object
   intnames <- c()
+  int.dropped <- c()
   non.p.dropped <- FALSE
   for (i in firstit:length(pval)) {
-    if (pval[i] < plevel) 
+    if (pval[i] < plevel) {
       intnames <- c(intnames, it[i])
-    else
+    } else {
       non.p.dropped <- T
+      int.dropped <- c(int.dropped, it[i], "\n")
+    }
   }
   # check for any signigicant interactions, stop if nothing found
   if (is.null(intnames)) {
     warning("No significant interactions found... Try to adjust `plevel` argument.", call. = FALSE)
     return(invisible(NULL))
   } else if (non.p.dropped) {
-    message("Non-significant interaction terms were dropped. Use `plevel` to show more interaction terms.")
+    message(sprintf("Following non-significant interaction terms were omitted from the output:\n%s\nUse `plevel` to show more interaction terms.",
+                    paste(int.dropped, collapse = "")))
   }
   return(list(intnames = intnames,
               estimates = estimates,

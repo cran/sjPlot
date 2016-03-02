@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("vars", "Beta", "xv", "lower", "upper", "stdbeta", "p", "x", "ydiff", "y", "grp", ".stdresid", ".resid", ".fitted", "V1", "V2", "grp.est"))
+utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta", "p", "x", "ydiff", "y", "grp", ".stdresid", ".resid", ".fitted", "V1", "V2", "grp.est"))
 
 
 #' @title Plot estimates or predicted values of linear models
@@ -324,6 +324,7 @@ sjp.lm <- function(fit,
                                  geom.colors,
                                  geom.size,
                                  axisTitle.x,
+                                 NULL,
                                  showCI,
                                  printPlot)))
   }
@@ -454,7 +455,7 @@ sjp.lm <- function(fit,
     if (!is.null(axisLabels.y) && length(axisLabels.y) > nrow(tmp))
       axisLabels.y <- axisLabels.y[-remrows]
     # remove p-values
-    pv <- pv[remrows]
+    pv <- pv[-remrows]
   }
   # -------------------------------------------------
   # init data column for p-values
@@ -482,10 +483,6 @@ sjp.lm <- function(fit,
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
   # --------------------------------------------------------
-  # auto-retrieving variable labels does not work when we
-  # have factors with different levels, which appear as
-  # "multiple predictors", but are only one variable
-  # --------------------------------------------------------
   if (is.null(axisLabels.y) || length(axisLabels.y) < length(row.names(betas)))
     axisLabels.y <- row.names(betas)
   # --------------------------------------------------------
@@ -509,10 +506,11 @@ sjp.lm <- function(fit,
     axisLabels.y <- rev(axisLabels.y)
     betas <- betas[nrow(betas):1, ]
   }
-  betas <- cbind(c(1:nrow(betas)), betas)
+  betas <- cbind(1:nrow(betas), betas)
   # give columns names
   colnames(betas) <- c("xv", "Beta", "lower", "upper", "p", "pv", "grp.est")
   betas$p <- as.character(betas$p)
+  betas$xv <- as.factor(betas$xv)
   # --------------------------------------------------------
   # Calculate axis limits. The range is from lowest lower-CI
   # to highest upper-CI, or a user-defined range (if "axisLimits"
@@ -529,19 +527,19 @@ sjp.lm <- function(fit,
   if (is.null(gridBreaksAt)) {
     ticks <- pretty(c(lower_lim, upper_lim))
   } else {
-    ticks <- c(seq(lower_lim, upper_lim, by = gridBreaksAt))
+    ticks <- seq(lower_lim, upper_lim, by = gridBreaksAt)
   }
-  if (!showAxisLabels.y) axisLabels.y <- c("")
+  if (!showAxisLabels.y) axisLabels.y <- ""
   # --------------------------------------------------------
   # Start plot here! First check how to colour geoms
   # (whether grouped or not)
   # --------------------------------------------------------
   if (!is.null(group.estimates)) {
-    betaplot <- ggplot(betas, aes(y = Beta, x = xv, colour = grp.est))
+    betaplot <- ggplot(betas, aes(x = xv, y = Beta, colour = grp.est))
     pal.len <- length(unique(group.estimates))
     legend.labels <- unique(betas$grp.est)
   } else {
-    betaplot <- ggplot(betas, aes(y = Beta, x = xv, colour = (Beta >= 0)))
+    betaplot <- ggplot(betas, aes(x = xv, y = Beta, colour = (Beta >= 0)))
     pal.len <- 2
     legend.labels <- NULL
   }
@@ -552,7 +550,7 @@ sjp.lm <- function(fit,
     # and error bar
     geom_errorbar(aes(ymin = lower, ymax = upper), width = 0) +
     # Print p-values. With vertical adjustment, so they don't overlap with the errorbars
-    geom_text(aes(label = p, y = Beta),
+    geom_text(aes(label = p),
               nudge_x = y.offset,
               show.legend = FALSE) +
     # print point
@@ -567,7 +565,7 @@ sjp.lm <- function(fit,
                        labels = ticks) +
     # set value labels to x-axis
     scale_x_discrete(labels = axisLabels.y,
-                     limits = c(1:nrow(betas))) +
+                     limits = 1:length(axisLabels.y)) +
     labs(title = title, x = NULL, y = axisTitle.x, colour = legendTitle)
   # --------------------------------------------------------
   # flip coordinates?
@@ -845,8 +843,9 @@ col_check2 <- function(geom.colors, collen) {
 }
 
 
-#' @importFrom stats fitted rstudent
-sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FALSE) {
+#' @importFrom stats fitted rstudent residuals sd median
+#' @importFrom dplyr add_rownames
+sjp.lm.ma <- function(linreg, showOriginalModelOnly = TRUE, completeDiagnostic = FALSE) {
   # ------------------------
   # prepare plot list
   # ------------------------
@@ -858,85 +857,126 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
     stop("Package 'lmtest' needed for this function to work. Please install it.", call. = FALSE)
   }
   # ---------------------------------
-  # remove outliers
+  # remove outliers, only non-mixed models
   # ---------------------------------
-  # copy current model
-  model <- linreg
-  # get r2
-  rs <- summary(model)$r.squared
-  # maximum loops
-  maxloops <- 5
-  maxcnt <- maxloops
-  # remember how many cases have been removed
-  removedcases <- 0
-  outlier <- c()
-  loop <- TRUE
-  # start loop
-  while (loop == TRUE) {
-    # get outliers of model
-    # ol <- car::outlierTest(model)
-    # vars <- as.numeric(names(ol$p))
-    vars <- as.numeric(names(which(car::outlierTest(model, cutoff = Inf, n.max = Inf)$bonf.p < 1)))
-    # do we have any outliers?
-    if (sjmisc::is_empty(vars)) {
-      loop <- FALSE
-    } else {
-      # retrieve variable numbers of outliers
-      # update model by removing outliers
-      dummymodel <- update(model, subset = -c(vars))
-      # retrieve new r2
-      dummyrs <- summary(dummymodel)$r.squared
-      # decrease maximum loops
-      maxcnt <- maxcnt - 1
-      # check whether r2 of updated model is lower
-      # than previous r2 or if we have already all loop-steps done,
-      # stop loop
-      if (dummyrs < rs || maxcnt < 1) {
+  if (any(class(linreg) == "lm")) {
+    # copy current model
+    model <- linreg
+    # get r2
+    rs <- summary(model)$r.squared
+    # maximum loops
+    maxloops <- 5
+    maxcnt <- maxloops
+    # remember how many cases have been removed
+    removedcases <- 0
+    outlier <- c()
+    loop <- TRUE
+    # start loop
+    while (loop == TRUE) {
+      # get outliers of model
+      # ol <- car::outlierTest(model)
+      # vars <- as.numeric(names(ol$p))
+      vars <- as.numeric(names(which(car::outlierTest(model, cutoff = Inf, n.max = Inf)$bonf.p < 1)))
+      # do we have any outliers?
+      if (sjmisc::is_empty(vars)) {
         loop <- FALSE
       } else {
-        # else copy new model, which is the better one (according to r2)
-        model <- dummymodel
-        # and get new r2
-        rs <- dummyrs
-        # count removed cases
-        removedcases <- removedcases + length(vars)
-        # add outliers to final return value
-        outlier <- c(outlier, vars)
+        # retrieve variable numbers of outliers
+        # update model by removing outliers
+        dummymodel <- update(model, subset = -c(vars))
+        # retrieve new r2
+        dummyrs <- summary(dummymodel)$r.squared
+        # decrease maximum loops
+        maxcnt <- maxcnt - 1
+        # check whether r2 of updated model is lower
+        # than previous r2 or if we have already all loop-steps done,
+        # stop loop
+        if (dummyrs < rs || maxcnt < 1) {
+          loop <- FALSE
+        } else {
+          # else copy new model, which is the better one (according to r2)
+          model <- dummymodel
+          # and get new r2
+          rs <- dummyrs
+          # count removed cases
+          removedcases <- removedcases + length(vars)
+          # add outliers to final return value
+          outlier <- c(outlier, vars)
+        }
       }
     }
+    # ---------------------------------
+    # print steps from original to updated model
+    # ---------------------------------
+    message(sprintf("Removed %i cases during %i step(s).\nR^2 / adj. R^2 of original model: %f / %f\nR^2 / adj. R^2 of updated model:  %f / %f\nAIC of original model: %f \nAIC of updated model:  %f\n",
+                removedcases,
+                maxloops - (maxcnt + 1),
+                summary(linreg)$r.squared,
+                summary(linreg)$adj.r.squared,
+                summary(model)$r.squared,
+                summary(model)$adj.r.squared,
+                AIC(linreg),
+                AIC(model)))
+    modelOptmized <- ifelse(removedcases > 0, TRUE, FALSE)
+    if (showOriginalModelOnly) modelOptmized <- FALSE
+    # ---------------------------------
+    # show VIF-Values
+    # ---------------------------------
+    sjp.setTheme(theme = "539w")
+    sjp.vif(linreg)
+    if (modelOptmized) sjp.vif(model)
+  } else {
+    # we have no updated model w/o outliers for
+    # other model classes than "lm"
+    showOriginalModelOnly <- TRUE
+    modelOptmized <- FALSE
+    model <- linreg
+    outlier <- NULL
   }
-  # ---------------------------------
-  # print steps from original to updated model
-  # ---------------------------------
-  message(sprintf("Removed %i cases during %i step(s).\nR^2 / adj. R^2 of original model: %f / %f\nR^2 / adj. R^2 of updated model:  %f / %f\nAIC of original model: %f \nAIC of updated model:  %f\n",
-              removedcases,
-              maxloops - (maxcnt + 1),
-              summary(linreg)$r.squared,
-              summary(linreg)$adj.r.squared,
-              summary(model)$r.squared,
-              summary(model)$adj.r.squared,
-              AIC(linreg),
-              AIC(model)))
-  modelOptmized <- ifelse(removedcases > 0, TRUE, FALSE)
-  if (showOriginalModelOnly) modelOptmized <- FALSE
-  # ---------------------------------
-  # show VIF-Values
-  # ---------------------------------
-  sjp.setTheme(theme = "539w")
-  sjp.vif(linreg)
-  if (modelOptmized) sjp.vif(model)
   # ---------------------------------
   # Print non-normality of residuals and outliers both of original and updated model
   # dots should be plotted along the line, this the dots should follow a linear direction
   # ---------------------------------
   ggqqp <- function(fit, title.suffix = " (original model)") {
-    mydf <- data.frame(x = sort(stats::fitted(fit)),
-                       y = sort(stats::rstudent(fit)))
-    return(ggplot(mydf, aes(x = x, y = y)) +
+    # mixed model model?
+    if (any(class(fit) == "lme") || any(class(fit) == "lmerMod")) {
+      res_ <- sort(stats::residuals(fit), na.last = NA)
+      y_lab <- "Residuals"
+    } else {
+      # else, normal model
+      res_ <- sort(stats::rstudent(fit), na.last = NA)
+      y_lab <- "Studentized Residuals"
+    }
+    fitted_ <- sort(stats::fitted(fit), na.last = NA)
+    # create data frame
+    mydf <- na.omit(data.frame(x = fitted_, y = res_))
+    # try to estimate outlier
+    mydf <- cbind(quot = mydf$x / mydf$y, mydf)
+    mydf$case.nr <- names(res_)
+    mydf$ratio <- mydf$y / mydf$quot
+    # something like a ratio of maximum distance from residuals
+    quot.md <- stats::median(mydf$ratio)
+    quot.sd <- stats::sd(mydf$ratio)
+    quot.rng <- c(quot.md - quot.sd, quot.md + quot.sd)
+    # label outliers with case number
+    mydf$label <- NA
+    outl <- which(mydf$ratio < (2 * quot.rng[1]))
+    mydf$label[outl] <- mydf$case.nr[outl]
+    outl <- which(mydf$ratio > (2 * quot.rng[2]))
+    mydf$label[outl] <- mydf$case.nr[outl]
+    # ggrepel installed?
+    if (!requireNamespace("ggrepel", quietly = TRUE)) {
+      text_label <- geom_text(hjust = "bottom", vjust = "bottom")
+    } else {
+      text_label <- ggrepel::geom_label_repel()
+    }
+    # plot it
+    return(ggplot(mydf, aes(x = x, y = y, label = label)) +
              geom_point() +
+             text_label +
              stat_smooth(method = "lm", se = FALSE) +
              labs(title = sprintf("Non-normality of residuals and outliers%s\n(Dots should be plotted along the line)", title.suffix),
-                  y = "Studentized Residuals",
+                  y = y_lab,
                   x = "Theoretical quantiles"))
   }
   sjp.setTheme(theme = "scatterw")
@@ -945,14 +985,14 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # save plot
   plot.list[[length(plot.list) + 1]] <- p1
   # print plot
-  print(p1)
+  suppressWarnings(print(p1))
   # qq-plot of studentized residuals for updated model
   if (modelOptmized) {
     p1 <- ggqqp(model, " (updated model)")
     # save plot
     plot.list[[length(plot.list) + 1]] <- p1
     # print plot
-    print(p1)
+    suppressWarnings(print(p1))
   }
   # ---------------------------------
   # Print non-normality of residuals both of original and updated model
@@ -1034,58 +1074,60 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly=TRUE, completeDiagnostic=FAL
   # ---------------------------------
   # summarize old and new model
   # ---------------------------------
-  sjp.setTheme(theme = "forestw")
-  p1 <- sjp.lm(linreg, title = "Original model", printPlot = FALSE)$plot
-  # save plot
-  plot.list[[length(plot.list) + 1]] <- p1
-  # print plot
-  print(p1)
-  if (modelOptmized) {
-    p1 <- sjp.lm(model, title = "Updated model", printPlot = FALSE)$plot
+  if (any(class(fit) == "lm")) {
+    sjp.setTheme(theme = "forestw")
+    p1 <- sjp.lm(linreg, title = "Original model", printPlot = FALSE)$plot
     # save plot
     plot.list[[length(plot.list) + 1]] <- p1
     # print plot
     print(p1)
-  }
-  if (completeDiagnostic) {
-    # ---------------------------------
-    # Plot residuals against predictors
-    # ---------------------------------
-    sjp.setTheme(theme = "scatterw")
-    p1 <- sjp.reglin(linreg,
-                     title = "Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
-                     breakTitleAt = 60,
-                     useResiduals = T)$plot.list
-    # save plot
-    plot.list <- c(plot.list, p1)
     if (modelOptmized) {
-      p1 <- sjp.reglin(model,
-                       title = "Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
-                       breakTitleAt = 60,
-                       useResiduals = T)
+      p1 <- sjp.lm(model, title = "Updated model", printPlot = FALSE)$plot
       # save plot
-      plot.list <- c(plot.list, p1)
+      plot.list[[length(plot.list) + 1]] <- p1
       # print plot
       print(p1)
     }
-    # ---------------------------------
-    # Non-linearity
-    # ---------------------------------
-    plot(car::crPlots(linreg))
-    # ---------------------------------
-    # non-independence of residuals
-    # ---------------------------------
-    print(car::durbinWatsonTest(linreg))
-    # ---------------------------------
-    # Print leverage plots
-    # ---------------------------------
-    plot(car::leveragePlots(linreg))
-    # ---------------------------------
-    # Non-constant residuals
-    # ---------------------------------
-    print(car::ncvTest(linreg))
-    print(lmtest::bptest(linreg))
-    print(car::spreadLevelPlot(linreg))
+    if (completeDiagnostic) {
+      # ---------------------------------
+      # Plot residuals against predictors
+      # ---------------------------------
+      sjp.setTheme(theme = "scatterw")
+      p1 <- sjp.reglin(linreg,
+                       title = "Relationship of residuals against predictors (original model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
+                       breakTitleAt = 60,
+                       useResiduals = T)$plot.list
+      # save plot
+      plot.list <- c(plot.list, p1)
+      if (modelOptmized) {
+        p1 <- sjp.reglin(model,
+                         title = "Relationship of residuals against predictors (updated model) (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
+                         breakTitleAt = 60,
+                         useResiduals = T)
+        # save plot
+        plot.list <- c(plot.list, p1)
+        # print plot
+        print(p1)
+      }
+      # ---------------------------------
+      # Non-linearity
+      # ---------------------------------
+      plot(car::crPlots(linreg))
+      # ---------------------------------
+      # non-independence of residuals
+      # ---------------------------------
+      print(car::durbinWatsonTest(linreg))
+      # ---------------------------------
+      # Print leverage plots
+      # ---------------------------------
+      plot(car::leveragePlots(linreg))
+      # ---------------------------------
+      # Non-constant residuals
+      # ---------------------------------
+      print(car::ncvTest(linreg))
+      print(lmtest::bptest(linreg))
+      print(car::spreadLevelPlot(linreg))
+    }
   }
   # return updated model
   invisible(structure(list(class = "sjp.lm.ma",
@@ -1233,6 +1275,7 @@ sjp.lm.poly <- function(fit,
                         geom.colors,
                         geom.size,
                         axisTitle.x,
+                        axisTitle.y,
                         showCI,
                         printPlot) {
   # check size argument
@@ -1250,6 +1293,18 @@ sjp.lm.poly <- function(fit,
   # get model data column names
   cn <- colnames(mm)
   xl <- NULL
+  # any axis title?
+  if (is.null(axisTitle.y)) {
+    # find response name
+    resp.name <- "Response"
+    # check if we have mixed model
+    if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T)))
+      resp.name <- get_var_name(colnames(fit@frame)[1])
+    else
+      resp.name <- get_var_name(colnames(fit$model)[1])
+  } else {
+    resp.name <- axisTitle.y
+  }
   # -------------------------------------
   # argument check: poly.term required and
   # polynomial must be found in model
@@ -1302,7 +1357,7 @@ sjp.lm.poly <- function(fit,
   # --------------------------------------------
   # retrieve labels
   # --------------------------------------------
-  if (is.null(axisTitle.x) || axisTitle.x == "Estimates") axisTitle.x <- "Polynomial term"
+  if (is.null(axisTitle.x) || axisTitle.x == "Estimates") axisTitle.x <- poly.term
   # ------------------------
   # compute marginal effects of polynomial
   # ------------------------
@@ -1324,7 +1379,7 @@ sjp.lm.poly <- function(fit,
   # plot predicted effect of polynomial term
   polyplot <- polyplot +
     geom_line(colour = geom.colors[1], size = geom.size) +
-    labs(x = axisTitle.x, y = "Response")
+    labs(x = axisTitle.x, y = resp.name)
   # print plot
   if (printPlot) print(polyplot)
   # return result

@@ -26,6 +26,7 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'            \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random parts of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
 #'            \item{\code{"eff"}}{to plot marginal effects of predicted probabilities for each fixed term, where remaining co-variates are set to the mean. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
 #'            \item{\code{"y.pc"}}{or \code{"y.prob"} to plot predicted probabilities for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot. See 'Details'.}
+#'            \item{\code{"ma"}}{to check model assumptions. Note that only argument \code{fit} applies to this plot type. All other arguments are ignored.}
 #'          }
 #' @param vars numeric vector with column indices of selected variables or a character vector with
 #'          variable names of selected variables from the fitted model, which should be used to plot
@@ -93,7 +94,6 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'          \code{type = "rs.ri"}, a legend for group levels of 
 #'          the random intercept is shown. For \code{lm} and \code{glm}, 
 #'          a legend for grouped estimates is shown.
-#' @param show.se Deprecated; use \code{show.ci} instead.
 #'
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.lm
@@ -233,16 +233,7 @@ sjp.glmer <- function(fit,
                       show.ci = FALSE,
                       sample.n = NULL,
                       show.legend = FALSE,
-                      printPlot = TRUE,
-                      show.se = FALSE) {
-  # -----------------------------------
-  # warn, if deprecated param is used
-  # -----------------------------------
-  if (!missing(show.se)) {
-    warning("argument 'show.se' is deprecated; please use 'show.ci' instead.")
-    show.ci <- show.se
-  }
-  
+                      printPlot = TRUE) {
   if (type == "fe.prob") type <- "fe.pc"
   if (type == "ri.prob") type <- "ri.pc"
   if (type == "y.prob") type <- "y.pc"
@@ -351,6 +342,7 @@ sjp.glmer <- function(fit,
 #'            \item{\code{"resp"}}{to plot predicted values for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot.}
 #'            \item{\code{"eff"}}{to plot marginal effects of all fixed terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms. See also 'Details' of \code{\link{sjp.lm}}.}
 #'            \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples' here and 'Details' of \code{\link{sjp.lm}}).}
+#'            \item{\code{"ma"}}{to check model assumptions. Note that no further arguments except \code{fit} are relevant for this option. All other arguments are ignored.}
 #'          }
 #' @param pointAlpha alpha value of point-geoms in the scatter plots.
 #'          Default is 0.2.
@@ -512,16 +504,7 @@ sjp.lmer <- function(fit,
                      poly.term = NULL,
                      sample.n = NULL,
                      show.legend = FALSE,
-                     printPlot = TRUE,
-                     show.se = TRUE) {
-  # -----------------------------------
-  # warn, if deprecated param is used
-  # -----------------------------------
-  if (!missing(show.se)) {
-    warning("argument 'show.se' is deprecated; please use 'show.ci' instead.")
-    show.ci <- show.se
-  }
-  
+                     printPlot = TRUE) {
   if (type == "fe.prob") type <- "fe.pc"
   if (type == "ri.prob") type <- "ri.pc"
   if (type == "resp") type <- "y.pc"
@@ -615,8 +598,9 @@ sjp.lme4  <- function(fit,
   if (type != "re" && type != "fe" && type != "fe.std" && type != "fe.cor" &&
       type != "re.qq" && type != "fe.pc" && type != "ri.pc" && type != "fe.pred" &&
       type != "fe.prob" && type != "ri.prob" && type != "fe.ri" && type != "y.pc" &&
-      type != "fe.resid" && type != "poly" && type != "eff" && type != "coef" && type != "rs.ri") {
-    warning("'type' must be one of 're', 'fe', 'fe.cor', 're.qq', 'fe.ri', 'rs.ri', 'fe.pc', 'fe.pred', 'fe.resid', 'poly', 'eff', 'y.pred', 'ri.pc', 'y.pc', 'y.prob', 'coef', 'fe.std', 'fe.prob' or 'ri.prob'. Defaulting to 'fe' now.")
+      type != "fe.resid" && type != "poly" && type != "eff" && type != "coef" && 
+      type != "rs.ri" && type != "ma") {
+    warning("Invalid option for `type` argument. Defaulting to `type = \"fe\"` now.")
     type  <- "fe"
   }
   # ---------------------------------------
@@ -725,7 +709,16 @@ sjp.lme4  <- function(fit,
   # plot correlation matrix of fixed effects,
   # to inspect multicollinearity
   # ---------------------------------------
-  if (type == "fe.cor") {
+  if (type == "ma") {
+    if (fun == "lm")
+      return(invisible(sjp.lm.ma(fit)))
+    else
+      return(invisible(sjp.glmer.ma(fit)))
+  } else if (type == "fe.cor") {
+    # ---------------------------------------
+    # plot correlation matrix of fixed effects,
+    # to inspect multicollinearity
+    # ---------------------------------------
     return(invisible(sjp.lme.fecor(fit,
                                    pred.labels,
                                    sort.coef,
@@ -762,6 +755,7 @@ sjp.lme4  <- function(fit,
                                    geom.colors,
                                    geom.size,
                                    axisTitle.x,
+                                   axisTitle.y,
                                    showCI = show.ci,
                                    printPlot)))
     } else {
@@ -1144,7 +1138,8 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     # check length labels
     # ---------------------------------------
-    if (length(pred.labels) != nrow(mydf)) {
+    if (length(pred.labels) != nrow(mydf) && 
+        (length(pred.labels) != (nrow(mydf) / length(unique(mydf$grp))))) {
       warning("`pred.labels` has insufficient length. Using row names.", call. = F)
       pred.labels <- row.names(mydf)
     }
@@ -1647,10 +1642,6 @@ sjp.lme.response.probcurv <- function(fit,
                                       fun,
                                       printPlot) {
   # ----------------------------
-  # check axis limits
-  # ----------------------------
-  if (is.null(axisLimits.y)) axisLimits.y <- c(0, 1)
-  # ----------------------------
   # get predicted values for response with and
   # without random effects
   # ----------------------------
@@ -1679,6 +1670,13 @@ sjp.lme.response.probcurv <- function(fit,
                     grp = "Including fixed effects only")
   # bind rows
   mydf <- rbind(mydf, tmp)
+  # ------------------------------
+  # check axis limits
+  # ------------------------------
+  if (is.null(axisLimits.y)) {
+    axisLimits.y <- c(as.integer(floor(10 * min(mydf$y, na.rm = T) * .9)) / 10,
+                      as.integer(ceiling(10 * max(mydf$y, na.rm = T) * 1.1)) / 10)
+  }
   # ---------------------------------------------------------
   # Prepare plot
   # ---------------------------------------------------------
@@ -1859,8 +1857,6 @@ sjp.lme.reri <- function(fit,
                          fun) {
   # check size argument
   if (is.null(geom.size)) geom.size <- .7
-  # check axis limits
-  if (is.null(axisLimits.y)) axisLimits.y <- c(0, 1)
   # ----------------------------
   # retrieve term names, so we find the estimates in the
   # coefficients list
@@ -1940,10 +1936,17 @@ sjp.lme.reri <- function(fit,
       }
       # convert grouping level to factor
       final.df$grp <- as.factor(final.df$grp)
-      final.df$x <- sjmisc::to_value(final.df$x)
-      final.df$y <- sjmisc::to_value(final.df$y)
+      final.df$x <- sjmisc::to_value(final.df$x, keep.labels = F)
+      final.df$y <- sjmisc::to_value(final.df$y, keep.labels = F)
       # logistic regression?
       if (fun == "glm") final.df$y <- plogis(final.df$y)
+      # ------------------------------
+      # check axis limits
+      # ------------------------------
+      if (is.null(axisLimits.y)) {
+        axisLimits.y <- c(as.integer(floor(10 * min(final.df$y, na.rm = T) * .9)) / 10,
+                          as.integer(ceiling(10 * max(final.df$y, na.rm = T) * 1.1)) / 10)
+      }
       # ------------------------------
       # title and axis title
       # ------------------------------
@@ -1955,17 +1958,16 @@ sjp.lme.reri <- function(fit,
       if (fun == "lm") {
         if (is.null(axisTitle.y)) axisTitle.y <- colnames(fit@frame)[1]
         gp <- ggplot(final.df, aes(x = x, y = y, colour = grp)) +
-          geom_line(size = geom.size) +
-          labs(title = title, y = axisTitle.y, x = axisTitle.x)
+          geom_line(size = geom.size)
       } else {
         if (is.null(axisTitle.y)) axisTitle.y <- sprintf("Predicted Probability of %s", colnames(fit@frame)[1])
         gp <- ggplot(final.df, aes(x = x, y = y, colour = grp)) +
-          stat_smooth(method = "glm", method.args = list(family = "binomial")) +
-          # cartesian coord still plots range of se, even
-          # when se exceeds plot range.
-          coord_cartesian(ylim = axisLimits.y) +
-          labs(x = axisTitle.x, y = axisTitle.y, title = title)
+          stat_smooth(method = "glm", se = F,
+                      method.args = list(family = "binomial"))
       }
+      gp <- gp +
+        scale_y_continuous(limits = axisLimits.y) +
+        labs(title = title, y = axisTitle.y, x = axisTitle.x)
       # ------------------------------
       # highlight specific groups?
       # ------------------------------
@@ -2259,9 +2261,10 @@ sjp.lme.fecondpred.onlynumeric <- function(fit,
 
 
 #' @importFrom stats coef
+#' @importFrom car Anova
 get_lmerMod_pvalues <- function(fitmod) {
   # retrieve sigificance level of independent variables (p-values)
-  if (any(class(fitmod) == "merModLmerTest")) {
+  if (any(class(fitmod) == "merModLmerTest") && requireNamespace("lmerTest", quietly = TRUE)) {
     cs <- suppressWarnings(stats::coef(lmerTest::summary(fitmod)))
   } else {
     cs <- stats::coef(summary(fitmod))
@@ -2293,6 +2296,7 @@ get_lmerMod_pvalues <- function(fitmod) {
 }
 
 
+#' @importFrom stats family
 sjp.glm.eff <- function(fit,
                         title,
                         geom.size,
@@ -2311,7 +2315,7 @@ sjp.glm.eff <- function(fit,
   # ------------------------
   # Get link family
   # ------------------------
-  fitfam <- family(fit)$family
+  fitfam <- stats::family(fit)$family
   # ------------------------
   # Retrieve response for automatic title
   # ------------------------
@@ -2432,6 +2436,39 @@ sjp.glm.eff <- function(fit,
 }
 
 
+sjp.glmer.ma <- function(fit) {
+  sjp.setTheme("scatterw")
+  gp <- ggplot(data.frame(x = predict(fit), 
+                          y = residuals(fit),
+                          grp = as.factor(lme4::getME(fit, "y"))),
+               aes(x, y)) + 
+    geom_point(aes(colour = grp), show.legend = F) + 
+    geom_hline(yintercept = 0) +
+    stat_smooth(method = "loess", se = T) +
+    labs(title = "Residual plot (original model)",
+         x = "Log-predicted values",
+         y = "Deviance residuals")
+  plot(gp)
+  
+  preds <- colnames(fit@frame)[-1]
+  for (pr in preds) {
+    if (length(unique(fit@frame[[pr]])) > 4) {
+      mydat <- data.frame(x = fit@frame[[pr]], 
+                          y = residuals(fit),
+                          grp = as.factor(lme4::getME(fit, "y")))
+      gp <- ggplot(mydat, aes(x, y)) + 
+        geom_point(aes(colour = grp), show.legend = F) + 
+        geom_hline(yintercept = 0) +
+        stat_smooth(method = "loess", se = T) +
+        labs(x = pr, y = "Residuals",
+             title = "Linear relationship between predictor and residuals")
+      plot(gp)
+    }
+  }
+}
+
+
+#' @importFrom lme4 fixef confint.merMod 
 get_cleaned_ciMerMod <- function(fit, fun, ci.only = FALSE) {
   # get odds ratios of fixed effects
   estimate <- lme4::fixef(fit)

@@ -316,21 +316,42 @@ sjp.grpfrq <- function(varCount,
   #---------------------------------------------------
   if (missing(title) && (type == "boxplots" || type == "violin"))
     title <- NULL
+  #---------------------------------------------------
+  # check whether variable should be auto-grouped
+  #---------------------------------------------------
+  if (!is.null(autoGroupAt) && length(unique(varCount)) >= autoGroupAt) {
+    message(sprintf("%s has %i unique values and was grouped...",
+                    var.name.cnt,
+                    length(unique(varCount))))
+    # check for default auto-group-size or user-defined groups
+    agcnt <- ifelse(autoGroupAt < 30, autoGroupAt, 30)
+    # group axis labels
+    axisLabels.x <- sjmisc::group_labels(sjmisc::to_value(varCount, keep.labels = F),
+                                         groupsize = "auto",
+                                         groupcount = agcnt)
+    # group variable
+    grp.varCount <- sjmisc::group_var(sjmisc::to_value(varCount, keep.labels = F),
+                                      groupsize = "auto",
+                                      as.num = TRUE,
+                                      groupcount = agcnt)
+    # set value labels
+    sjmisc::set_labels(grp.varCount) <- axisLabels.x
+  } else {
+    grp.varCount <- varCount
+  }
   # --------------------------------------------------------
   # create cross table of frequencies and percentages
   # --------------------------------------------------------
-  mydat <- create.xtab.df(varCount,
+  mydat <- create.xtab.df(grp.varCount,
                           varGroup,
                           round.prz = 2,
                           na.rm = na.rm,
                           weightBy = weightBy)
-  # add rownames or label as x-position to data frame,
-  # depending on plot type. for lines, we assume continuous
-  # scale.
-  if (type == "lines")
-    bars.xpos <- as.numeric(mydat$mydat$label)
-  else
-    bars.xpos <- dplyr::add_rownames(mydat$mydat, var = "xpos")$xpos
+  # --------------------------------------------------------
+  # x-position as numeric factor, added later after
+  # tidying
+  # --------------------------------------------------------
+  bars.xpos <- 1:nrow(mydat$mydat)
   # --------------------------------------------------------
   # try to automatically set labels if not passed as argument
   # --------------------------------------------------------
@@ -369,26 +390,14 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   # count variable may not be a factor!
   # --------------------------------------------------------
-  varCount <- as.numeric(varCount)
-  varGroup <- as.numeric(varGroup)
-  #---------------------------------------------------
-  # check whether variable should be auto-grouped
-  #---------------------------------------------------
-  if (!is.null(autoGroupAt) && length(unique(varCount)) >= autoGroupAt) {
-    message(sprintf("Variable has %i unique values and was grouped...",
-                    length(unique(varCount))))
-    # check for default auto-group-size or user-defined groups
-    agcnt <- ifelse(autoGroupAt < 30, autoGroupAt, 30)
-    # group axis labels
-    axisLabels.x <- sjmisc::group_labels(varCount,
-                                         groupsize = "auto",
-                                         groupcount = agcnt)
-    # group variable
-    varCount <- sjmisc::group_var(varCount,
-                                  groupsize = "auto",
-                                  as.num = TRUE,
-                                  groupcount = agcnt)
-  }
+  if (anyNA(as.numeric(na.omit(varCount))))
+    varCount <- sjmisc::to_value(varCount, keep.labels = F)
+  else
+    varCount <- as.numeric(varCount)
+  if (anyNA(as.numeric(na.omit(varGroup))))
+    varGroup <- sjmisc::to_value(varGroup, keep.labels = F)
+  else
+    varGroup <- as.numeric(varGroup)
   # --------------------------------------------------------
   # Define amount of categories
   # --------------------------------------------------------
@@ -402,13 +411,10 @@ sjp.grpfrq <- function(varCount,
                         "frq", 
                         2:(grpcount + 1), 
                         factor_key = TRUE)
-  # -----------------------------------------------
-  # xpos should be numeric factor
-  #---------------------------------------------------
-  if (suppressWarnings(anyNA(as.numeric(bars.xpos))))
-    mydf$xpos <- as.factor(bars.xpos)
-  else
-    mydf$xpos <- as.factor(as.numeric(bars.xpos))
+  # --------------------------------------------------------
+  # add xpos now
+  # --------------------------------------------------------
+  mydf$xpos <- as.factor(as.numeric(bars.xpos))
   # --------------------------------------------------------
   # add half of Percentage values as new y-position for stacked bars
   # mydat <- ddply(mydat, "count", transform, ypos = cumsum(frq) - 0.5*frq)
@@ -589,14 +595,19 @@ sjp.grpfrq <- function(varCount,
       # else calculate upper y-axis-range depending
       # on the amount of cases...
     } else if (barPosition == "stack") {
-      upper_lim <- max(pretty(table(varCount) * 1.05))
+      upper_lim <- max(pretty(table(grp.varCount) * 1.05))
     } else {
       # ... or the amount of max. answers per category
-      upper_lim <- max(pretty(table(varCount, varGroup) * 1.05))
+      upper_lim <- max(pretty(table(grp.varCount, varGroup) * 1.05))
     }
   }
   # align dodged position of labels to bar positions
-  posdodge <- ifelse(type == "lines", 0, geom.size + geom.spacing)
+  if (type == "lines")
+    posdodge <- 0
+  else if (type == "dots")
+    posdodge <- geom.spacing
+  else
+    posdodge <- geom.size + geom.spacing
   # init shaded rectangles for plot
   ganno <- NULL
   # check whether we have dots or bars
