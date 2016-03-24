@@ -16,8 +16,9 @@ sjt.lmer(..., file = NULL, labelPredictors = NULL,
   digits.p = 3, digits.ci = 2, digits.se = 2, digits.sb = 2,
   digits.summary = 3, pvaluesAsNumbers = TRUE, boldpvalues = TRUE,
   separateConfColumn = TRUE, newLineConf = TRUE, group.pred = FALSE,
-  showAbbrHeadline = TRUE, showICC = TRUE, showAIC = FALSE,
-  showAICc = FALSE, remove.estimates = NULL, cellSpacing = 0.2,
+  showAbbrHeadline = TRUE, showR2 = TRUE, showICC = TRUE,
+  showREvar = TRUE, showAIC = FALSE, showAICc = FALSE,
+  showDeviance = TRUE, remove.estimates = NULL, cellSpacing = 0.2,
   cellGroupIndent = 0.6, encoding = NULL, CSS = NULL, useViewer = TRUE,
   no.output = FALSE, remove.spaces = TRUE)
 }
@@ -114,14 +115,24 @@ row is inserted to the table just before the predictor values.}
 \item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with 
 abbreviations for estimates and std. beta-values, confidence interval and p-values.}
 
+\item{showR2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
+in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
+(see \code{\link[sjmisc]{r2}} for details).}
+
 \item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each 
-model is printed in the model summary.}
+model is printed in the model summary. Only applies to mixed models.}
+
+\item{showREvar}{logical, if \code{TRUE}, the variance parameters for the random
+effects for each model are printed in the model summary. Only applies to mixed models.}
 
 \item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
 
 \item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model 
 is printed in the model summary. Default is \code{FALSE}.}
+
+\item{showDeviance}{logical, if \code{TRUE}, the deviance for each model 
+is printed in the model summary.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)}) 
 or character vector with coefficient names that indicate which estimates should be removed
@@ -179,7 +190,18 @@ Summarizes (multiple) fitted linear mixed effects models
 See 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
-See 'Notes' in \code{\link{sjt.frq}}.
+Computation of p-values (if necessary) are based on conditional F-tests
+        with Kenward-Roger approximation for the df, using the \pkg{pbkrtest}-package.
+        If \pkg{pbkrtest} is not available, Wald chi-squared tests from the 
+        \code{Anova}-function of the \pkg{car}-package are computed.
+        \cr \cr
+        The variance components of the random parts (see \code{showREvar}) are
+        denoted like:
+        \itemize{
+         \item within-group variance: sigma-squared
+         \item between-group-variance: tau-zero-zero
+         \item random-slope-intercept-correlation: rho-zero-one
+         }
 }
 \examples{
 \dontrun{

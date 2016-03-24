@@ -21,8 +21,8 @@ utils::globalVariables(c("starts_with"))
 #' @param showAbbrHeadline logical, if \code{TRUE} (default), the table data columns have a headline with 
 #'          abbreviations for odds ratios, confidence interval and p-values.
 #' @param showPseudoR logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
-#'          in the model summary. R2cs is the Cox-Snell-pseudo R-square value, R2n is Nagelkerke's 
-#'          pseudo R-square value and \code{D} is Tjur's Coefficient of Discrimination
+#'          in the model summary. R2cs is the Cox-Snell-pseudo R-squared value, R2n is Nagelkerke's 
+#'          pseudo R-squared value and \code{D} is Tjur's Coefficient of Discrimination
 #'          (see \code{\link[sjmisc]{cod}}).
 #' @param showLogLik logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
@@ -196,7 +196,7 @@ utils::globalVariables(c("starts_with"))
 #' sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 #' 
 #' @importFrom dplyr full_join slice
-#' @importFrom stats nobs AIC confint coef logLik family
+#' @importFrom stats nobs AIC confint coef logLik family deviance
 #' @export
 sjt.glm <- function(...,
                     file = NULL,
@@ -228,9 +228,12 @@ sjt.glm <- function(...,
                     group.pred = TRUE,
                     showAbbrHeadline = TRUE,
                     showPseudoR = FALSE,
+                    showICC = FALSE,
+                    showREvar = FALSE,
                     showLogLik = FALSE,
                     showAIC = FALSE,
                     showAICc = FALSE,
+                    showDeviance = FALSE,
                     showChi2 = FALSE,
                     showHosLem = FALSE,
                     showFamily = FALSE,
@@ -307,8 +310,8 @@ sjt.glm <- function(...,
   css.lasttablerow <- "border-bottom: double;"
   css.topborder <- "border-top:double;"
   css.depvarhead <- "text-align:center; border-bottom:1px solid;"
-  css.topcontentborder <- "border-top:2px solid;"
-  css.annorow <- "border-top:2px solid;"
+  css.topcontentborder <- "border-top:1px solid;"
+  css.annorow <- "border-top:1px solid;"
   css.noannorow <- "border-bottom:double;"
   css.annostyle <- "text-align:right;"
   css.leftalign <- "text-align:left;"
@@ -391,13 +394,13 @@ sjt.glm <- function(...,
   # ------------------------
   lmerob <- any(class(input_list[[1]]) == "glmerMod")
   if (lmerob && !requireNamespace("lme4", quietly = TRUE)) {
-    stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
+    stop("Package `lme4` needed for this function to work. Please install it.", call. = FALSE)
   }
   # ------------------------
   # should AICc be computed? Check for package
   # ------------------------
   if (showAICc && !requireNamespace("AICcmodavg", quietly = TRUE)) {
-    warning("Package 'AICcmodavg' needed to show AICc. Argument 'showAICc' will be ignored.", call. = FALSE)
+    warning("Package `AICcmodavg` needed to show AICc. Argument `showAICc` will be ignored.", call. = FALSE)
     showAICc <- FALSE
   }
   # ------------------------
@@ -405,11 +408,6 @@ sjt.glm <- function(...,
   # are mixed effects models
   # ------------------------
   if (lmerob) {
-    # "showICC" is not used in this function, so we
-    # use "showR2" instead of showICC when calling this function
-    # with mixed models.
-    showICC <- showPseudoR
-    showPseudoR <- FALSE
     # check if we have different amount of coefficients
     # in fitted models - if yes, we have e.g. stepwise models
     sw.fit <- length(unique(sapply(input_list, function(x) length(lme4::fixef(x))))) > 1
@@ -903,16 +901,84 @@ sjt.glm <- function(...,
   if (lmerob) {
     # css attribute "topcontentborder" already in this table row
     page.content <- paste0(page.content, sprintf("  <tr>\n    <td colspan=\"%i\" class=\"tdata summary leftalign randomparts\">Random Parts</td>\n  </tr>\n", headerColSpan + 1))
-    # first models indicates grouping levels
-    # we have to assume comparable models with same
-    # random intercepts
-    # count all random intercepts of all models
+    # -------------------------------------
+    # we need to know max amount of groups
+    # -------------------------------------
     all_mm_counts <- unlist(lapply(input_list, function(x) length(lme4::getME(x, "flist"))))
     # retrieve maximum random intercepts
     mmcount <- max(all_mm_counts)
     # get random intercepts from model with most intercepts
     mmgrps <- lme4::getME(input_list[[which.max(all_mm_counts)]], "flist")
-    # iterate grouping levels
+    # -------------------------------------
+    # show variance components?
+    # -------------------------------------
+    if (isTRUE(showREvar)) {
+      # -------------------------------------
+      # lets check which mdoels have random slopes, needed later
+      # -------------------------------------
+      has_rnd_slope <- unlist(lapply(input_list, function(mo) {
+        lapply(lme4::VarCorr(mo), function(x) dim(attr(x, "correlation"))[1] > 1)
+      }))
+      # -------------------------
+      # between-group variance
+      # -------------------------
+      # first models indicates grouping levels. we have to assume comparable models 
+      # with same random intercepts.
+      for (gl in 1:mmcount) {
+        page.content <- paste0(page.content, 
+                               sprintf("\n  <tr>\n    <td class=\"tdata summary leftalign\">&tau;<sub>00, %s</sub></td>\n", 
+                                       names(mmgrps[gl])))
+        # iterate models
+        for (i in 1:length(input_list)) {
+          # -------------------------
+          # insert "separator column"
+          # -------------------------
+          page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
+          # get random intercept variance
+          reva <- lme4::VarCorr(input_list[[i]])
+          vars <- lapply(reva, function(x) x[[1]])
+          tau.00 <- sapply(vars, function(x) x[1])
+          if (length(tau.00) >= gl) {
+            rand.int.var <- paste0(sprintf("%.*f", digits.summary, tau.00[gl], collapse = ""))
+            page.content <- paste0(page.content, colspanstring, rand.int.var, "</td>\n")
+            
+          } else {
+            page.content <- paste(page.content, sprintf("   %s&nbsp;</td>\n", colspanstring))
+          }            
+        }
+        page.content <- paste0(page.content, "  </tr>\n")
+      }
+      # -------------------------
+      # finally, random slope intercept correlation
+      # -------------------------
+      if (any(has_rnd_slope)) {
+        # iterate final models
+        page.content <- paste0(page.content, "\n  <tr>\n    <td class=\"tdata summary leftalign\">&rho;<sub>01</sub></td>\n")
+        # iterate models
+        for (i in 1:length(input_list)) {
+          # -------------------------
+          # insert "separator column"
+          # -------------------------
+          page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
+          # does model have random slope?
+          if (has_rnd_slope[i]) {
+            # get slope-intercept correlation
+            reva <- lme4::VarCorr(input_list[[i]])
+            cor_ <- unlist(lapply(reva, function(x) attr(x, "correlation")[1, 2]))
+            rho.01 <- paste0(sprintf("%.*f", digits.summary, cor_[1], collapse = ""))
+            page.content <- paste0(page.content, colspanstring, rho.01, "</td>\n")
+          } else {
+            page.content <- paste(page.content, sprintf("   %s&nbsp;</td>\n", colspanstring))
+          }
+        }
+        page.content <- paste0(page.content, "  </tr>\n")
+      }
+    }
+    # -------------------------------------
+    # N of grouping levels
+    # -------------------------------------
+    # first models indicates grouping levels. we have to assume comparable models 
+    # with same random intercepts.
     for (gl in 1:mmcount) {
       page.content <- paste0(page.content, sprintf("\n  <tr>\n    <td class=\"tdata summary leftalign\">N<sub>%s</sub></td>", names(mmgrps[gl])))
       # iterate models
@@ -979,41 +1045,43 @@ sjt.glm <- function(...,
   # Model-Summary: pseudo r2
   # -------------------------------------
   if (showPseudoR) {
-    page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">Pseudo-R<sup>2</sup></td>")
+    # first, we need the correct description for 2nd r2-value
+    if (lmerob)
+      r2string <- "Tjur's D"
+    else
+      r2string <- "Pseudo-R<sup>2</sup>"
+    
+    page.content <- paste0(page.content, sprintf("  <tr>\n    <td class=\"tdata leftalign summary\">%s</td>", r2string))
     for (i in 1:length(input_list)) {
       # -------------------------
       # insert "separator column"
       # -------------------------
       page.content <- paste0(page.content, "\n    <td class=\"separatorcol\">&nbsp;</td>")
-      psr <- sjmisc::pseudo_r2(input_list[[i]])
+      psr <- sjmisc::r2(input_list[[i]])
       tjur <- sjmisc::cod(input_list[[i]])
-      page.content <- paste0(page.content, gsub("0.", 
-                                                paste0(p_zero, "."),
-                                                sprintf("%sR<sup>2</sup><sub>CS</sub> = %.*f<br>R<sup>2</sup><sub>N</sub> = %.*f<br>D = %.*f</td>", 
-                                                        colspanstring, 
-                                                        digits.summary, 
-                                                        psr$CoxSnell,
-                                                        digits.summary, 
-                                                        psr$Nagelkerke,
-                                                        digits.summary, 
-                                                        tjur),
-                                                fixed = TRUE))
+      if (lmerob) {
+        page.content <- paste0(page.content, gsub("0.", 
+                                                  paste0(p_zero, "."),
+                                                  sprintf("%s%.*f", 
+                                                          colspanstring, 
+                                                          digits.summary, 
+                                                          tjur),
+                                                  fixed = TRUE))
+      } else {
+        page.content <- paste0(page.content, gsub("0.", 
+                                                  paste0(p_zero, "."),
+                                                  sprintf("%sR<sup>2</sup><sub>CS</sub> = %.*f<br>R<sup>2</sup><sub>N</sub> = %.*f<br>D = %.*f</td>", 
+                                                          colspanstring, 
+                                                          digits.summary, 
+                                                          psr$CoxSnell,
+                                                          digits.summary, 
+                                                          psr$Nagelkerke,
+                                                          digits.summary, 
+                                                          tjur),
+                                                  fixed = TRUE))
+      }
     }
     page.content <- paste(page.content, "\n  </tr>\n")
-  }
-  # -------------------------------------
-  # Model-Summary: log likelihood
-  # -------------------------------------
-  if (showLogLik) {
-    page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">-2 Log-Likelihood</td>")
-    for (i in 1:length(input_list)) {
-      # -------------------------
-      # insert "separator column"
-      # -------------------------
-      page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
-      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, -2 * as.vector(stats::logLik(input_list[[i]]))))
-    }
-    page.content <- paste0(page.content, "\n  </tr>\n")
   }
   # -------------------------------------
   # Model-Summary: AIC
@@ -1044,6 +1112,34 @@ sjt.glm <- function(...,
     page.content <- paste0(page.content, "\n  </tr>\n")
   }
   # -------------------------------------
+  # Model-Summary: log likelihood
+  # -------------------------------------
+  if (showLogLik) {
+    page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">-2 Log-Likelihood</td>")
+    for (i in 1:length(input_list)) {
+      # -------------------------
+      # insert "separator column"
+      # -------------------------
+      page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
+      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, -2 * as.vector(stats::logLik(input_list[[i]]))))
+    }
+    page.content <- paste0(page.content, "\n  </tr>\n")
+  }
+  # -------------------------------------
+  # Model-Summary: deviance
+  # -------------------------------------
+  if (showDeviance) {
+    page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">Deviance</td>")
+    for (i in 1:length(input_list)) {
+      # -------------------------
+      # insert "separator column"
+      # -------------------------
+      page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
+      page.content <- paste0(page.content, sprintf("%s%.*f</td>", colspanstring, digits.summary, stats::deviance(input_list[[i]], REML = FALSE)))
+    }
+    page.content <- paste0(page.content, "\n  </tr>\n")
+  }
+  # -------------------------------------
   # Model-Summary: Chi2
   # -------------------------------------
   if (showChi2) {
@@ -1064,14 +1160,14 @@ sjt.glm <- function(...,
     page.content <- paste0(page.content, "\n  </tr>\n")
   }
   # -------------------------------------
-  # Model-Summary: Chi-squared-GOF
+  # Model-Summary: chi-square-GOF
   # -------------------------------------
   #   if (showGoF) {
   #     # -------------------------
   #     # not working for glmer
   #     # -------------------------
   #     if (lmerob) {
-  #       warning("Chi-squared Goodness-of-Fit-test does not work for 'merMod'-objects.", call. = F)
+  #       warning("Chi-square Goodness-of-Fit-test does not work for 'merMod'-objects.", call. = F)
   #     } else {
   #       page.content <- paste0(page.content, "  <tr>\n    <td class=\"tdata leftalign summary\">Pearson's &Chi;<sup>2</sup></td>")
   #       for (i in 1:length(input_list)) {
@@ -1140,12 +1236,11 @@ sjt.glm <- function(...,
       # insert "separator column"
       # -------------------------
       page.content <- paste0(page.content, "<td class=\"separatorcol\">&nbsp;</td>")
-      if (lmerob) {
-        fam <- stats::family(input_list[[i]])
-      } else {
-        fam <- input_list[[i]]$family
-      }
-      page.content <- paste0(page.content, sprintf("%s%s (%s)</td>", colspanstring, fam$family, fam$link))
+      fam <- stats::family(input_list[[i]])
+      page.content <- paste0(page.content, sprintf("%s%s (%s)</td>", 
+                                                   colspanstring, 
+                                                   fam$family, 
+                                                   fam$link))
     }
     page.content <- paste0(page.content, "\n  </tr>\n")
   }
@@ -1236,8 +1331,6 @@ sjt.glm <- function(...,
 #' @inheritParams sjt.glm
 #' @inheritParams sjt.frq
 #' 
-#' @param showICC logical, if \code{TRUE}, the intra-class-correlation for each 
-#'          model is printed in the model summary.
 #' @return Invisibly returns
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
@@ -1247,7 +1340,15 @@ sjt.glm <- function(...,
 #'            }
 #'            for further use.
 #'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#' @note Computation of p-values (if necessary) are based on Wald chi-squared tests from the 
+#'         \code{Anova}-function of the \pkg{car}-package.
+#'         \cr \cr
+#'         The variance components of the random parts (see \code{showREvar}) are
+#'         denoted like:
+#'         \itemize{
+#'          \item between-group-variance: tau-zero-zero
+#'          \item random-slope-intercept-correlation: rho-zero-one
+#'          }
 #'  
 #' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
@@ -1327,10 +1428,13 @@ sjt.glmer <- function(...,
                       newLineConf = TRUE,
                       group.pred = FALSE,
                       showAbbrHeadline = TRUE,
+                      showPseudoR = FALSE,
                       showICC = TRUE,
+                      showREvar = TRUE,
                       showLogLik = FALSE,
                       showAIC = FALSE,
                       showAICc = FALSE,
+                      showDeviance = TRUE,
                       showHosLem = FALSE,
                       showFamily = FALSE,
                       remove.estimates = NULL,
@@ -1354,9 +1458,9 @@ sjt.glmer <- function(...,
                  pvaluesAsNumbers = pvaluesAsNumbers, boldpvalues = boldpvalues, 
                  showConfInt = showConfInt, showStdError = showStdError, 
                  ci.hyphen = ci.hyphen, separateConfColumn = separateConfColumn, newLineConf = newLineConf, 
-                 group.pred = group.pred, showAbbrHeadline = showAbbrHeadline, showPseudoR = showICC, 
-                 showLogLik = showLogLik, showAIC = showAIC, showAICc = showAICc, showChi2 = FALSE, 
-                 showHosLem = showHosLem, showFamily = showFamily, remove.estimates = remove.estimates, 
+                 group.pred = group.pred, showAbbrHeadline = showAbbrHeadline, showPseudoR = showPseudoR, showICC = showICC, 
+                 showREvar = showREvar, showLogLik = showLogLik, showAIC = showAIC, showAICc = showAICc, showDeviance = showDeviance,
+                 showChi2 = FALSE, showHosLem = showHosLem, showFamily = showFamily, remove.estimates = remove.estimates, 
                  cellSpacing = cellSpacing, cellGroupIndent = cellGroupIndent, encoding = encoding, 
                  CSS = CSS, useViewer = useViewer, no.output = no.output, remove.spaces = remove.spaces))
 }

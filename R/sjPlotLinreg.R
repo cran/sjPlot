@@ -52,8 +52,7 @@ utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta
 #'            \item If you use the \code{\link[sjmisc]{read_spss}} and \code{\link[sjmisc]{get_label}} functions, you receive a character vector with variable label strings. You can use it like this: \code{axisLabels.x = get_label(efc)['quol_5']}
 #'          }
 #' @param axisLabels.y labels or names of the predictor variables (independent vars). Must
-#'          be a character vector of same length as independent variables. The labels
-#'          may also be passed as list object; they will be coerced to character vector automatically.
+#'          be a character vector of same length as independent variables.
 #' @param showAxisLabels.y logical, whether labels of independent variables should be shown or not.
 #' @param axisTitle.x title for the x-axis. Default is \code{"Estimates"}.
 #' @param geom.colors user defined color palette for geoms. If \code{group.estimates}
@@ -264,7 +263,7 @@ sjp.lm <- function(fit,
     # check package availability if fit is plm-object
     # -----------------------------------------------------------
     if (!"package:plm" %in% search()) {
-      stop("Package 'plm' needs to be loaded for this function to work... Use 'library(plm)' and call this function again.", call. = FALSE)
+      stop("Package `plm` needs to be loaded for this function to work... Use `library(plm)` and call this function again.", call. = FALSE)
     }
   }
   if (any(class(fit) == "gls")) {
@@ -272,6 +271,10 @@ sjp.lm <- function(fit,
       stop("Package `nlme` needed for this function to work. Please install it.", call. = FALSE)
     showModelSummary <- FALSE
   }
+  # -----------------------------------------------------------
+  # set default title
+  # -----------------------------------------------------------
+  if (is.null(title) && type != "eff") title <- get_model_response_label(fit)
   # -----------------------------------------------------------
   # this function requires a fitted model with only one predictor,
   # so check whether only one predictor was used
@@ -347,10 +350,6 @@ sjp.lm <- function(fit,
   # check size argument
   if (is.null(geom.size)) geom.size <- 3
   # --------------------------------------------------------
-  # unlist labels
-  # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
-  # --------------------------------------------------------
   # auto-retrieve value labels
   # --------------------------------------------------------
   if (is.null(axisLabels.y) &&
@@ -380,13 +379,7 @@ sjp.lm <- function(fit,
   # print beta- and p-values in bar charts
   # ----------------------------
   # retrieve sigificance level of independent variables (p-values)
-  if (any(class(fit) == "pggls")) {
-    pv <- summary(fit)$CoefTable[-1, 4]
-  } else if (any(class(fit) == "gls")) {
-    pv <- summary(fit)$tTable[-1, 4]
-  } else {
-    pv <- stats::coef(summary(fit))[-1, 4]
-  }
+  pv <- get_lm_pvalues(fit, include.intercept = F)$p
   # -------------------------------------------------
   # for better readability, convert p-values to asterisks
   # with:
@@ -697,7 +690,7 @@ sjp.reglin <- function(fit,
     fit_x <- data.frame(stats::model.matrix(fit))
     # retrieve response vector
     resp <- lme4::getME(fit, "y")
-    depvar.label <- attr(attr(attr(fit@frame, "terms"), "dataClasses"), "names")[1]
+    depvar.label <- colnames(stats::model.frame(fit))[1]
   } else if (any(class(fit) == "gls")) {
     fit_x <- data.frame(stats::model.matrix(fit))
     resp <- nlme::getResponse(fit)
@@ -718,7 +711,7 @@ sjp.reglin <- function(fit,
   # -----------------------------------------------------------
   # retrieve name of dependent variable
   # -----------------------------------------------------------
-  response <- ifelse(useResiduals == TRUE, "residuals", depvar.label)
+  response <- ifelse(isTRUE(useResiduals), "residuals", depvar.label)
   # init return var
   plotlist <- list()
   dflist <- list()
@@ -792,7 +785,7 @@ sjp.reglin <- function(fit,
 
 col_check <- function(geom.colors, showLoess) {
   # define required length of color palette
-  collen <- ifelse(showLoess == TRUE, 3, 2)
+  collen <- ifelse(isTRUE(showLoess), 3, 2)
   if (is.null(geom.colors)) {
     if (collen == 2)
       geom.colors <- c("#1f78b4", "#404040")
@@ -872,7 +865,7 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly = TRUE, completeDiagnostic =
     outlier <- c()
     loop <- TRUE
     # start loop
-    while (loop == TRUE) {
+    while (isTRUE(loop)) {
       # get outliers of model
       # ol <- car::outlierTest(model)
       # vars <- as.numeric(names(ol$p))
@@ -1112,7 +1105,7 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly = TRUE, completeDiagnostic =
       # ---------------------------------
       # Non-linearity
       # ---------------------------------
-      plot(car::crPlots(linreg))
+      graphics::plot(car::crPlots(linreg))
       # ---------------------------------
       # non-independence of residuals
       # ---------------------------------
@@ -1120,7 +1113,7 @@ sjp.lm.ma <- function(linreg, showOriginalModelOnly = TRUE, completeDiagnostic =
       # ---------------------------------
       # Print leverage plots
       # ---------------------------------
-      plot(car::leveragePlots(linreg))
+      graphics::plot(car::leveragePlots(linreg))
       # ---------------------------------
       # Non-constant residuals
       # ---------------------------------
@@ -1191,7 +1184,7 @@ sjp.lm1 <- function(fit,
   # -----------------------------------------------------------
   # retrieve name of predictor and response
   # -----------------------------------------------------------
-  response <- ifelse(useResiduals == TRUE, "residuals", cn[1])
+  response <- ifelse(isTRUE(useResiduals), "residuals", cn[1])
   xval <- cn[2]
   # -----------------------------------------------------------
   # create dummy-data frame with response and predictor
@@ -1298,7 +1291,7 @@ sjp.lm.poly <- function(fit,
     # find response name
     resp.name <- "Response"
     # check if we have mixed model
-    if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T)))
+    if (sjmisc::str_contains(class(fit), "merMod", ignore.case = T))
       resp.name <- get_var_name(colnames(fit@frame)[1])
     else
       resp.name <- get_var_name(colnames(fit$model)[1])
@@ -1468,7 +1461,7 @@ sjp.lm.eff <- function(fit,
     t <- eff[[i]]$term
     # check if we have interaction term
     # these are ignored in this case.
-    if (length(grep(":", t, fixed = T)) == 0 && length(grep("*", t, fixed = T)) == 0) {
+    if (sjmisc::str_contains(t, pattern = c(":", "*"), logic = "not")) {
       # ------------------------
       # build data frame, with raw values
       # from polynomial term, predicted response
@@ -1490,6 +1483,12 @@ sjp.lm.eff <- function(fit,
     } else {
       int.found <- TRUE
     }
+  }
+  # check if we have only moderation and no single
+  # higher order terms
+  if (sjmisc::is_empty(mydat)) {
+    warning("Model has no higher order terms (except for possible interaction terms). There are no effects that can be plotted. Consider using `sjp.int` if model has interaction terms.", call. = F)
+    return(list(p = NULL, se = NULL))
   }
   # continuous numbering of row names
   rownames(mydat) <- c(1:nrow(mydat))
@@ -1527,4 +1526,25 @@ sjp.lm.eff <- function(fit,
   invisible(structure(class = c("sjPlot", "sjplmeff"),
                       list(plot = eff.plot,
                            data = mydat)))
+}
+
+
+get_lm_pvalues <- function(fit, include.intercept = TRUE) {
+  # retrieve sigificance level of independent variables (p-values)
+  if (any(class(fit) == "pggls")) {
+    p <- summary(fit)$CoefTable[, 4]
+    se <- summary(fit)$CoefTable[, 2]
+  } else if (any(class(fit) == "gls")) {
+    p <- summary(fit)$tTable[, 4]
+    se <- summary(fit)$tTable[, 2]
+  } else {
+    p <- stats::coef(summary(fit))[, 4]
+    se <- stats::coef(summary(fit))[, 2]
+  }
+  # remove intercept?
+  if (!include.intercept) {
+    p <- p[-1]
+    se <- se[-1]
+  }
+  return(list(p = p, se = se))
 }

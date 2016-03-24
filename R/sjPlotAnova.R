@@ -108,8 +108,6 @@ sjp.aov1 <- function(depVar,
   # unlist labels
   # --------------------------------------------------------
   if (!is.null(axisLabels.y)) {
-    # if labels are lists, unlist
-    if (is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
     # append "intercept" string, to mark the reference category
     axisLabels.y[1] <- paste(axisLabels.y[1], stringIntercept)
   }
@@ -120,7 +118,7 @@ sjp.aov1 <- function(depVar,
   # --------------------------------------------------------
   # Check spelling of type-param
   # --------------------------------------------------------
-  if (expand.grid == TRUE) 
+  if (isTRUE(expand.grid)) 
     expand.grid <- ggplot2::waiver()
   else
     expand.grid <- c(0, 0)

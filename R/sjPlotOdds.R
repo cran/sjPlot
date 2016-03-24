@@ -17,7 +17,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #'          \describe{
 #'            \item{\code{"dots"}}{(or \code{"glm"} or \code{"or"} (default)) for odds or incident rate ratios (forest plot). Note that this type is only appropriate for log- or logit-link-functions.}
 #'            \item{\code{"prob"}}{(or \code{"pc"}) to plot predicted probabilities for each model term, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
-#'            \item{\code{"eff"}}{to plot marginal effects of predicted probabilities for each model term, where all remaining co-variates are set to the mean (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+#'            \item{\code{"eff"}}{to plot marginal effects of predicted probabilities or incidents for each model term, where all remaining co-variates are set to the mean (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
 #'            \item{\code{"y.pc"}}{(or \code{"y.prob"}) to plot predicted probabilities for the response. See 'Details'.}
 #'            \item{\code{"ma"}}{to check model assumptions. Note that only two arguments are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other arguments are ignored.}
 #'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
@@ -89,11 +89,13 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #'            are based on the intercept's estimate and each specific term's estimate.
 #'            All other co-variates are set to zero (i.e. ignored), which corresponds
 #'            to \code{\link{plogis}(b0 + bi * xi)} (where \code{xi} is the logit-estimate).}
-#'            \item{\code{type = "eff"}}{for binomial model families, the predicted probabilities
+#'            \item{\code{type = "eff"}}{for binomial models, the predicted probabilities
 #'            are based on the \code{\link{predict.glm}} method, where predicted values 
 #'            are "centered", i.e. remaining co-variates are set to the mean.
 #'            (see \href{http://stats.stackexchange.com/questions/35682/contribution-of-each-covariate-to-a-single-prediction-in-a-logistic-regression-m#comment71993_35802}{CrossValidated}).
-#'            Corresponds to \code{\link{plogis}(\link{predict}(fit, type = "terms") + attr(predict, "constant"))}.}
+#'            Corresponds to \code{\link{plogis}(\link{predict}(fit, type = "terms") + attr(predict, "constant"))}.
+#'            Effect plots for other families (like poisson or negative binomial) are
+#'            based on the \pkg{effects}-package.}
 #'            \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
 #'            of the response are computed, based on the \code{\link{predict.glm}}
 #'            method. Corresponds to \code{\link{predict}(fit, type = "response")}.}
@@ -211,11 +213,16 @@ sjp.glm <- function(fit,
       type <- "dots"
     }
   }
+  # -----------------------------------------------------------
+  # set default title
+  # -----------------------------------------------------------
+  if (is.null(title) && (type != "eff" && type != "prob")) title <- get_model_response_label(fit)
   # --------------------------------------------------------
   # check type
   # --------------------------------------------------------
   if (type == "prob" || type == "pc") {
     return(invisible(sjp.glm.pc(fit,
+                                title,
                                 show.ci,
                                 type = "prob",
                                 geom.size,
@@ -225,6 +232,7 @@ sjp.glm <- function(fit,
   }
   if (type == "eff") {
     return(invisible(sjp.glm.pc(fit,
+                                title,
                                 show.ci,
                                 type = "eff",
                                 geom.size,
@@ -257,24 +265,24 @@ sjp.glm <- function(fit,
   # ----------------------------
   if (is.null(geom.size)) geom.size <- 3
   # --------------------------------------------------------
-  # unlist labels
-  # --------------------------------------------------------
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
-  # --------------------------------------------------------
   # auto-retrieve value labels
   # --------------------------------------------------------
   if (is.null(axisLabels.y)) {
     axisLabels.y <- suppressWarnings(retrieveModelLabels(list(fit)))
   }
   # ----------------------------
+  # check model family, do we have count model?
+  # ----------------------------
+  fitfam <- get_glm_family(fit)
+  # --------------------------------------------------------
+  # create logical for family
+  # --------------------------------------------------------
+  poisson_fam <- fitfam$is_pois
+  # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
   # check default label and fit family
-  if (stats::family(fit)$family == "poisson" && 
-      !is.null(axisTitle.x) &&
-      axisTitle.x == "Odds Ratios")
+  if (isTRUE(poisson_fam) && !is.null(axisTitle.x) && axisTitle.x == "Odds Ratios")
     axisTitle.x <- "Incident Rate Ratios"
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)
@@ -283,8 +291,12 @@ sjp.glm <- function(fit,
   if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
+  # ----------------------------
+  # get model coefficients
+  # ----------------------------
+  model_coef <- exp(stats::coef(fit))
   # create data frame for ggplot
-  tmp <- data.frame(cbind(exp(stats::coef(fit)), exp(stats::confint(fit))))
+  tmp <- data.frame(cbind(model_coef, exp(stats::confint(fit))))
   # ----------------------------
   # print p-values in bar charts
   # ----------------------------
@@ -300,7 +312,7 @@ sjp.glm <- function(fit,
   # p < 0.01 = **
   # p < 0.05 = *
   # retrieve odds ratios
-  ov <- exp(stats::coef(fit))
+  ov <- model_coef
   # ----------------------------
   # copy OR-values into data column
   # ----------------------------
@@ -323,7 +335,7 @@ sjp.glm <- function(fit,
   # the predictors according to their OR value, while the intercept
   # is always shown on top
   # ----------------------------
-  ov <- exp(stats::coef(fit))[-1]
+  ov <- model_coef[-1]
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -429,7 +441,7 @@ sjp.glm <- function(fit,
   # for plotting in the diagram later
   # ----------------------------
   if (showModelSummary) {
-    psr <- sjmisc::pseudo_r2(fit)
+    psr <- sjmisc::r2(fit)
     modsum <- as.character(as.expression(
       substitute("(Intercept)" == ic * "," ~~ italic(R)[CS]^2 == r2cs * "," ~~ italic(R)[N]^2 == r2n * "," ~~ -2 * lambda == la * "," ~~ chi^2 == c2 * "," ~~ "AIC" == aic,
                  list(ic = sprintf("%.2f", exp(stats::coef(fit)[1])),
@@ -563,6 +575,7 @@ sjp.glm <- function(fit,
 
 #' @importFrom stats plogis predict coef
 sjp.glm.pc <- function(fit,
+                       title,
                        show.ci,
                        type,
                        geom.size,
@@ -598,10 +611,10 @@ sjp.glm.pc <- function(fit,
   # ----------------------------
   coef.names <- names(stats::coef(fit))
   # ----------------------------
-  # check model family. for poisson, we use
-  # effects-package
+  # check model family. for poisson etc., we use effects-package
   # ----------------------------
-  if (stats::family(fit)$family %in% c("poisson", "quasipoisson", "gaussian")) {
+  if ((stats::family(fit)$family %in% c("poisson", "quasipoisson", "gaussian")) ||
+      sjmisc::str_contains(stats::family(fit)$family, "negative binomial", ignore.case = T)) {
     # ----------------------------
     # loop through all coefficients
     # ----------------------------
@@ -628,6 +641,10 @@ sjp.glm.pc <- function(fit,
       axisLabels.mp <- c(axisLabels.mp, fit.term.names[i])
     }
     # ---------------------------------------------------------
+    # default plot title
+    # ---------------------------------------------------------
+    if (is.null(title)) title <- sprintf("Effect plot of %s", get_model_response_label(fit))
+    # ---------------------------------------------------------
     # Prepare metric plots
     # ---------------------------------------------------------
     if (length(mydf.metricpred) > 0) {
@@ -653,7 +670,7 @@ sjp.glm.pc <- function(fit,
                                    y = y)) +
           labs(x = NULL,
                y = "Predicted Incidents",
-               title = "Effect plot") +
+               title = title) +
           geom_line(size = geom.size) +
           facet_wrap(~grp,
                      ncol = round(sqrt(length(mydf.metricpred))),
@@ -733,6 +750,12 @@ sjp.glm.pc <- function(fit,
       }
     }
     # ---------------------------------------------------------
+    # default plot title
+    # ---------------------------------------------------------
+    if (is.null(title)) title <- sprintf("Predicted %sprobabilities for %s", 
+                                         ifelse(type == "prob", "", "marginal "),
+                                         get_model_response_label(fit))
+    # ---------------------------------------------------------
     # Prepare metric plots
     # ---------------------------------------------------------
     if (length(mydf.metricpred) > 0) {
@@ -744,7 +767,8 @@ sjp.glm.pc <- function(fit,
         # create single plots for each numeric predictor
         mp <- ggplot(mydf.metricpred[[i]], aes(x = values, y = y)) +
           labs(x = axisLabels.mp[i], 
-               y = "Predicted Probability") +
+               y = "Predicted Probability",
+               title = title) +
           stat_smooth(method = "glm", 
                       method.args = list(family = "binomial"), 
                       se = show.ci,
@@ -756,13 +780,10 @@ sjp.glm.pc <- function(fit,
       }
       # if we have more than one numeric var, also create integrated plot
       if (length(mydf.metricpred) > 1) {
-        mp <- ggplot(mydf.ges, aes(x = values,
-                                   y = y)) +
+        mp <- ggplot(mydf.ges, aes(x = values, y = y)) +
           labs(x = NULL,
                y = "Predicted Probability",
-               title = ifelse(type == "prob", 
-                              "Predicted probabilities of coefficients",
-                              "Predicted marginal probabilities of coefficients")) +
+               title = title) +
           stat_smooth(method = "glm", 
                       method.args = list(family = "binomial"), 
                       se = show.ci,
@@ -858,7 +879,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   outlier <- c()
   loop <- TRUE
   # start loop
-  while (loop == TRUE) {
+  while (isTRUE(loop)) {
     # get outliers of model
     # ol <- car::outlierTest(model)
     # retrieve variable numbers of outliers
@@ -911,7 +932,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     i <- order(x)
     n <- length(x)
     ui <- qnorm((n + 1:n) / (2 * n + 1))
-    plot(ui, 
+    graphics::plot(ui, 
          x[i], 
          xlab = "Half-normal quantiles", 
          ylab = ylab, 
@@ -938,7 +959,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # Residual plot
   # ------------------------------------------------------
   res <- stats::residuals(logreg, type = "deviance")
-  plot(log(abs(stats::predict(logreg))), 
+  graphics::plot(log(abs(stats::predict(logreg))), 
        res, main = "Residual plot (original model)", 
        xlab = "Log-predicted values", 
        ylab = "Deviance residuals")
@@ -947,7 +968,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   stats::qqline(res)
   if (!showOriginalModelOnly) {
     res <- stats::residuals(model, type = "deviance")
-    plot(log(abs(stats::predict(model))), 
+    graphics::plot(log(abs(stats::predict(model))), 
          res, 
          main = "Residual plot (updated model)", 
          xlab = "Log-predicted values", 
@@ -960,9 +981,9 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   # Residual plot two
   # ------------------------------------------------------
   sjp.setTheme("scatterw")
-  gp <- ggplot(data.frame(x = predict(logreg), 
-                          y = residuals(logreg),
-                          grp = logreg$model$y),
+  gp <- ggplot(data.frame(x = stats::predict(logreg), 
+                          y = stats::residuals(logreg),
+                          grp = stats::model.frame(logreg)[[1]]),
                aes(x, y)) + 
     geom_point(aes(colour = grp), show.legend = F) + 
     geom_hline(yintercept = 0) +
@@ -970,11 +991,11 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
     labs(title = "Residual plot (original model)",
          x = "Log-predicted values",
          y = "Deviance residuals")
-  plot(gp)
+  graphics::plot(gp)
   if (!showOriginalModelOnly) {
-    gp <- ggplot(data.frame(x = predict(model), 
-                            y = residuals(model),
-                            grp = model$model$y), 
+    gp <- ggplot(data.frame(x = stats::predict(model), 
+                            y = stats::residuals(model),
+                            grp = stats::model.frame(model)[[1]]), 
                  aes(x, y)) + 
       geom_point(aes(colour = grp), show.legend = F) + 
       geom_hline(yintercept = 0) +
@@ -982,7 +1003,7 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
       labs(title = "Residual plot (updated model)",
            x = "Log-predicted values",
            y = "Deviance residuals")
-    plot(gp)
+    graphics::plot(gp)
   }
   # ------------------------------------------------------
   # Check "linearity"
@@ -991,15 +1012,15 @@ sjp.glm.ma <- function(logreg, showOriginalModelOnly=TRUE) {
   for (pr in preds) {
     if (length(unique(logreg$model[[pr]])) > 4) {
       mydat <- data.frame(x = logreg$model[[pr]], 
-                          y = residuals(logreg),
-                          grp = as.factor(logreg$model$y))
+                          y = stats::residuals(logreg),
+                          grp = as.factor(stats::model.frame(logreg)[[1]]))
       gp <- ggplot(mydat, aes(x, y)) + 
         geom_point(aes(colour = grp), show.legend = F) + 
         geom_hline(yintercept = 0) +
         stat_smooth(method = "loess", se = T) +
         labs(x = pr, y = "Residuals",
              title = "Linear relationship between predictor and residuals")
-      plot(gp)
+      graphics::plot(gp)
     }
   }
   # -------------------------------------

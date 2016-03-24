@@ -16,7 +16,8 @@ sjt.lm(..., file = NULL, labelPredictors = NULL,
   digits.se = 2, digits.sb = 2, digits.summary = 3,
   pvaluesAsNumbers = TRUE, boldpvalues = TRUE, separateConfColumn = TRUE,
   newLineConf = TRUE, group.pred = TRUE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showFStat = FALSE, showAIC = FALSE, showAICc = FALSE,
+  showR2 = TRUE, showICC = FALSE, showREvar = FALSE, showFStat = FALSE,
+  showAIC = FALSE, showAICc = FALSE, showDeviance = FALSE,
   remove.estimates = NULL, cellSpacing = 0.2, cellGroupIndent = 0.6,
   encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
   remove.spaces = TRUE)
@@ -115,7 +116,14 @@ row is inserted to the table just before the predictor values.}
 abbreviations for estimates and std. beta-values, confidence interval and p-values.}
 
 \item{showR2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
-in the model summary.}
+in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
+(see \code{\link[sjmisc]{r2}} for details).}
+
+\item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each 
+model is printed in the model summary. Only applies to mixed models.}
+
+\item{showREvar}{logical, if \code{TRUE}, the variance parameters for the random
+effects for each model are printed in the model summary. Only applies to mixed models.}
 
 \item{showFStat}{If \code{TRUE}, the F-statistics for each model is printed
 in the model summary. Default is \code{FALSE}.}
@@ -125,6 +133,9 @@ in the model summary. Default is \code{FALSE}.}
 
 \item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model 
 is printed in the model summary. Default is \code{FALSE}.}
+
+\item{showDeviance}{logical, if \code{TRUE}, the deviance for each model 
+is printed in the model summary.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)}) 
 or character vector with coefficient names that indicate which estimates should be removed

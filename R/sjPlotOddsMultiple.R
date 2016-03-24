@@ -1,10 +1,10 @@
 # bind global variables
 utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 
-#' @title Plot odds ratios (forest plots) of multiple fitted glm(er)'s
+#' @title Plot odds or incidents ratios (forest plots) of multiple fitted glm(er)'s
 #' @name sjp.glmm
 #' 
-#' @description Plot and compare odds ratios (forest plots) of multiple fitted 
+#' @description Plot and compare odds or incidents ratios (forest plots) of multiple fitted 
 #'                generalized linear (mixed effects) models with confidence 
 #'                intervals in one plot.
 #' 
@@ -100,7 +100,6 @@ sjp.glmm <- function(...,
                      labelDependentVariables = NULL,
                      legendDepVarTitle = "Dependent Variables",
                      legendPValTitle = "p-level",
-                     stringModel = "Model",
                      axisLabels.y = NULL,
                      axisTitle.x = "Odds Ratios",
                      axisLimits = NULL,
@@ -135,17 +134,6 @@ sjp.glmm <- function(...,
   # we need to "unlist" them
   # --------------------------------------------------------
   if (length(input_list) == 1 && class(input_list[[1]]) == "list") input_list <- lapply(input_list[[1]], function(x) x)
-  # --------------------------------------------------------
-  # unlist labels
-  # --------------------------------------------------------
-  # unlist axis labels (predictors)
-  if (!is.null(axisLabels.y) && is.list(axisLabels.y)) {
-    axisLabels.y <- unlistlabels(axisLabels.y)
-  }
-  # unlist labels of dependent variables (legend)
-  if (!is.null(labelDependentVariables) && is.list(labelDependentVariables)) {
-    labelDependentVariables <- unlistlabels(labelDependentVariables)
-  }
   # ----------------------------
   # init final data frame
   # ----------------------------
@@ -154,19 +142,22 @@ sjp.glmm <- function(...,
   # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
+  # if we have no labels of dependent variables supplied, use a 
+  # default string (Model) for legend
+  if (is.null(labelDependentVariables)) {
+    labelDependentVariables <- c()
+    for (i in seq_len(fitlength)) {
+      labelDependentVariables <- c(labelDependentVariables, 
+                                   get_model_response_label(input_list[[i]]))
+    }
+  }
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)
   # check length of x-axis title and split longer string at into new lines
   # every 50 chars
   if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)
   # check length of dependent variables
-  if (!is.null(labelDependentVariables)) {
-    labelDependentVariables <- sjmisc::word_wrap(labelDependentVariables, breakLegendTitleAt)
-  } else {
-    # else if we have no labels of dependent variables supplied, use a 
-    # default string (Model) for legend
-    labelDependentVariables <- sprintf("%s %i", stringModel, 1:fitlength)
-  }
+  if (!is.null(labelDependentVariables)) labelDependentVariables <- sjmisc::word_wrap(labelDependentVariables, breakLegendTitleAt)
   # check length of x-axis-labels and split longer strings at into new lines
   if (!is.null(axisLabels.y)) axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
   # ----------------------------
@@ -179,16 +170,16 @@ sjp.glmm <- function(...,
     # retrieve odds ratios (glm) 
     # ----------------------------
     # create data frame for ggplot
-    if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T)))
+    if (sjmisc::str_contains(class(fit), "merMod", ignore.case = T))
       odds <- get_cleaned_ciMerMod(fit, "glm")
     else
       odds <- data.frame(exp(stats::coef(fit)), 
-                       exp(stats::confint(fit)))
+                         exp(stats::confint(fit)))
     # ----------------------------
     # print p-values in bar charts
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
-    if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T)))
+    if (sjmisc::str_contains(class(fit), "merMod", ignore.case = T))
       pv <- get_lmerMod_pvalues(fit)
     else
       pv <- unname(stats::coef(summary(fit))[, 4])
@@ -366,7 +357,7 @@ sjp.glmm <- function(...,
   # --------------------------------------------------------
   # fade non-significant estimates?
   # --------------------------------------------------------
-  nsAlpha <- ifelse(fade.ns == TRUE, 0.3, 1.0)
+  nsAlpha <- ifelse(isTRUE(fade.ns), 0.3, 1.0)
   # --------------------------------------------------------
   # continue with errorbars, p-value-label and intercept line
   # --------------------------------------------------------
@@ -424,7 +415,7 @@ sjp.glmm <- function(...,
   plotHeader <- sj.setGeomColors(plotHeader, 
                                  geom.colors, 
                                  length(labelDependentVariables), 
-                                 ifelse(hideLegend == TRUE, FALSE, TRUE), 
+                                 ifelse(isTRUE(hideLegend), FALSE, TRUE), 
                                  labelDependentVariables)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted

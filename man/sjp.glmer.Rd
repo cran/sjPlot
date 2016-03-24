@@ -2,7 +2,7 @@
 % Please edit documentation in R/sjPlotGLME.R
 \name{sjp.glmer}
 \alias{sjp.glmer}
-\title{Plot odds ratios or predicted probabilities of generalized linear mixed effects models}
+\title{Plot estimates or effects of generalized linear mixed effects models}
 \usage{
 sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
   title = NULL, geom.size = NULL, geom.colors = "Set1",
@@ -20,14 +20,14 @@ sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL, emph.grp = NULL,
 
 \item{type}{type of plot. Use one of following:
 \describe{
-  \item{\code{"re"}}{(default) for odds ratios of random effects}
-  \item{\code{"fe"}}{for odds ratios of fixed effects}
+  \item{\code{"re"}}{(default) for odds or incidents ratios of random effects}
+  \item{\code{"fe"}}{for odds or incidents ratios of fixed effects}
   \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
   \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
   \item{\code{"fe.pc"}}{or \code{"fe.prob"} to plot probability curves (predicted probabilities) of all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
   \item{\code{"ri.pc"}}{or \code{"ri.prob"} to plot probability curves (predicted probabilities) of random intercept variances for all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
   \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random parts of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
-  \item{\code{"eff"}}{to plot marginal effects of predicted probabilities for each fixed term, where remaining co-variates are set to the mean. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
+  \item{\code{"eff"}}{to plot marginal effects of predicted probabilities or incidents for each fixed term, where remaining co-variates are set to the mean. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
   \item{\code{"y.pc"}}{or \code{"y.prob"} to plot predicted probabilities for the response, with and without random effects. Use \code{facet.grid} to decide whether to plot with and w/o random effect plots as separate plot or as integrated faceted plot. See 'Details'.}
   \item{\code{"ma"}}{to check model assumptions. Note that only argument \code{fit} applies to this plot type. All other arguments are ignored.}
 }}
@@ -124,10 +124,15 @@ to values or not.}
 \item{show.ci}{logical, use \code{TRUE} to plot confidence intervals for 
 predicted values or for slope lines.}
 
-\item{sample.n}{only applies, if \code{type = "rs.ri"}. If plot has many random intercepts
-(grouping levels), overplotting of regression lines may occur. In this
-case, consider random sampling of grouping levels. \code{sample.n} indicates,
-how many random cases are sampled for plotting.}
+\item{sample.n}{numeric vector. only applies, if \code{type = "rs.ri"}. If 
+plot has many random intercepts (grouping levels), overplotting of 
+regression lines may occur. In this case, consider random sampling of 
+grouping levels. If \code{sample.n} is of length 1, a random sample
+of \code{sample.n} observation is selected to plot random intercepts.
+If \code{sample.n} is of length > 1, random effects indicated by
+the values in \code{sample.n} are selected to plot random effects.
+Use the latter option to always select a fixed, identical set of
+random effects for plotting (useful when ecomparing multiple models).}
 
 \item{show.legend}{logical, if \code{TRUE}, for mixed models 
 \code{type = "rs.ri"}, a legend for group levels of 
@@ -146,12 +151,12 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
            }
 }
 \description{
-By default, this function plots odds ratios (exponentiated coefficients)
+By default, this function plots odds or incidents ratios (exponentiated coefficients)
                with confidence intervalls of either fixed effects or random effects of
                generalized linear mixed effects models (that have been fitted with the
                \code{\link[lme4]{glmer}}-function of the \pkg{lme4}-package).
-               Furthermore, this function also plots predicted probabilities or
-               diagnostic plots.
+               Furthermore, this function also plots predicted probabilities /
+               incidents or diagnostic plots.
 }
 \details{
 \describe{
@@ -162,7 +167,7 @@ By default, this function plots odds ratios (exponentiated coefficients)
            is the logit-estimate of fixed effects and \code{b0} is the intercept of
            the fixed effects).}
            \item{\code{type = "eff"}}{unlike \code{type = "fe.pc"}, the predicted
-           probabilities computed by \code{type = "eff"} have all co-variates
+           probabilities or incidents computed by \code{type = "eff"} have all co-variates
            set to the mean, as returned by the \code{\link[effects]{allEffects}} function.}
            \item{\code{type = "ri.pc"}}{(or \code{"ri.prob"}), the predicted probabilities
            are based on the fixed effects intercept, plus each random intercept and
@@ -178,9 +183,6 @@ By default, this function plots odds ratios (exponentiated coefficients)
            intercept, the global intercept is always included. In case of overplotting,
            use the \code{sample.n} argument to randomly sample a limited amount
            of groups.}
-           \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
-           of the response are computed, based on the \code{predict.merMod}
-           method. Corresponds to \code{\link{plogis}(predict(fit, type = "response"))}.}
            \item{\code{type = "coef"}}{forest plot of joint fixed and random
            effect coefficients, as retrieved by \code{\link[lme4]{coef.merMod}},
            it's simply \code{\link[lme4]{ranef} + \link[lme4]{fixef}}.}
@@ -193,9 +195,17 @@ By default, this function plots odds ratios (exponentiated coefficients)
          }
 }
 \note{
-Thanks go to Robert Reijntjes from Leiden University Medical Center for sharing
-        R code that is used to compute fixed effects correlation matrices and
-        qq-plots of random effects.
+\itemize{
+         \item{Computation of p-values (if necessary) are based on 
+               Wald chi-square tests from the \code{Anova}-function of the \pkg{car}-package.}
+         \item{Most plot types work for binomial outcomes only (see 'Details'),
+               however, some plot types like \code{type = "fe"} or \code{type = "eff"} also
+               work for count reponses.}
+         \item{Thanks go to Robert Reijntjes from 
+               Leiden University Medical Center for sharing R code that is used 
+               to compute fixed effects correlation matrices and qq-plots of 
+               random effects.}
+       }
 }
 \examples{
 library(lme4)

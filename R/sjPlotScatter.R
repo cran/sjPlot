@@ -224,10 +224,6 @@ sjp.scatter <- function(x = NULL,
       message("auto-jittering values...")
     }
   }
-  # --------------------------------------------------------
-  # unlist labels
-  # --------------------------------------------------------
-  if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
   # ------------------------------------------
   # create data frame
   # ------------------------------------------
@@ -364,12 +360,12 @@ sjp.scatter <- function(x = NULL,
   scatter <- sj.setGeomColors(scatter,
                               geom.colors,
                               length(legendLabels),
-                              ifelse(hideLegend == TRUE, FALSE, TRUE),
+                              ifelse(isTRUE(hideLegend), FALSE, TRUE),
                               legendLabels)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (printPlot) plot(scatter)
+  if (printPlot) graphics::plot(scatter)
   # -------------------------------------
   # return results
   # -------------------------------------

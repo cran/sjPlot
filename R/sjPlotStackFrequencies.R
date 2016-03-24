@@ -187,15 +187,7 @@ sjp.stackfrq <- function(items,
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      vn <- sjmisc::get_label(items[[i]], def.value = colnames(items)[i])
-      # if variable has attribute, add to variableLabel list
-      if (!is.null(vn)) {
-        axisLabels.y <- c(axisLabels.y, vn)
-      } else {
-        # else break out of loop
-        axisLabels.y <- NULL
-        break
-      }
+      axisLabels.y <- c(axisLabels.y, sjmisc::get_label(items[[i]], def.value = colnames(items)[i]))
     }
   }
   # --------------------------------------------------------
@@ -206,9 +198,6 @@ sjp.stackfrq <- function(items,
   # unlist/ unname axis labels
   # --------------------------------------------------------
   if (!is.null(axisLabels.y)) {
-    # unlist labels, if necessary, so we have a simple
-    # character vector
-    if (is.list(axisLabels.y)) axisLabels.y <- unlistlabels(axisLabels.y)
     # unname labels, if necessary, so we have a simple
     # character vector
     if (!is.null(names(axisLabels.y))) axisLabels.y <- as.vector(axisLabels.y)
@@ -217,9 +206,6 @@ sjp.stackfrq <- function(items,
   # unlist/ unname axis labels
   # --------------------------------------------------------
   if (!is.null(legendLabels)) {
-    # unlist labels, if necessary, so we have a simple
-    # character vector
-    if (is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
     # unname labels, if necessary, so we have a simple
     # character vector
     if (!is.null(names(legendLabels))) legendLabels <- as.vector(legendLabels)
@@ -421,7 +407,13 @@ sjp.stackfrq <- function(items,
   # -----------------
   # show/hide percentage values on x axis
   # ----------------------------
-  if (!showPercentageAxis) percent <- NULL
+  if (isTRUE(showPercentageAxis))
+    perc.val <- scales::percent
+  else
+    perc.val <- NULL
+  # -----------------
+  # start plot here
+  # ----------------------------
   baseplot <- baseplot +
     # show absolute and percentage value of each bar.
     ggvaluelabels +
@@ -437,7 +429,7 @@ sjp.stackfrq <- function(items,
     scale_y_continuous(breaks = gridbreaks, 
                        limits = c(0, 1), 
                        expand = expgrid, 
-                       labels = percent)
+                       labels = perc.val)
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
   if (coord.flip) baseplot <- baseplot + coord_flip()
@@ -447,12 +439,12 @@ sjp.stackfrq <- function(items,
   baseplot <- sj.setGeomColors(baseplot, 
                                geom.colors, 
                                length(legendLabels), 
-                               ifelse(hideLegend == TRUE, FALSE, TRUE), 
+                               ifelse(isTRUE(hideLegend), FALSE, TRUE), 
                                legendLabels)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (printPlot) plot(baseplot)
+  if (printPlot) graphics::plot(baseplot)
   # -------------------------------------
   # return results
   # -------------------------------------

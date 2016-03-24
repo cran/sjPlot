@@ -95,7 +95,7 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #'          chi-squared, df, Cramer's V or Phi-value and p-value is printed to the upper 
 #'          right corner of the plot (see \code{tableSummaryPos}. If a cell contains expected
 #'          values lower than five(or lower than 10 if df is 1), the Fisher's excact test 
-#'          (see \code{\link{fisher.test}}) is computed instead of Chi-squared test. 
+#'          (see \code{\link{fisher.test}}) is computed instead of chi-square test. 
 #'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo 
 #'          simulation is computed. Only applies to barcharts or dotplots, i.e. 
 #'          when argument \code{type = "bars"} or \code{"dots"}.
@@ -258,7 +258,7 @@ sjp.grpfrq <- function(varCount,
   # --------------------------------------------------------
   # Plot margins
   # --------------------------------------------------------
-  if (expand.grid == TRUE)
+  if (isTRUE(expand.grid))
     expand.grid <- ggplot2::waiver()
   else
     expand.grid <- c(0, 0)
@@ -538,7 +538,7 @@ sjp.grpfrq <- function(varCount,
   # add group counts to category labels
   # --------------------------------------------------------
   if (showGroupCount) {
-    nas <- ifelse(na.rm == TRUE, "ifany", "no")
+    nas <- ifelse(isTRUE(na.rm), "ifany", "no")
     # check whether we have interaction variables or not
     if (!is.null(interactionVarLabels)) {
       # retrieve group counts by converting data column
@@ -870,13 +870,12 @@ sjp.grpfrq <- function(varCount,
     sj.setGeomColors(baseplot,
                      geom.colors,
                      length(legendLabels),
-                     ifelse(hideLegend == TRUE, FALSE, TRUE),
+                     ifelse(isTRUE(hideLegend), FALSE, TRUE),
                      legendLabels)
   # ----------------------------------
   # Plot integrated bar chart here
   # ----------------------------------
-  if (printPlot)
-    plot(baseplot)
+  if (printPlot) graphics::plot(baseplot)
   # -------------------------------------
   # return results
   # -------------------------------------

@@ -26,7 +26,7 @@
 #'                  \item non-linear mixed effects models (\code{\link[lme4]{nlmer}})
 #'                  \item linear mixed effects models (\code{\link[nlme]{lme}}, but only for \code{type = "eff"})
 #'                  \item generalized least squares models (\code{\link[nlme]{gls}}, but only for \code{type = "eff"})
-#'                  \item panel data estimators (\code{plm})
+#'                  \item panel data estimators (\code{\link[plm]{plm}})
 #'                }
 #'                Note that beside interaction terms, also the single predictors of each interaction (main effects)
 #'                must be included in the fitted model as well. Thus, \code{lm(dep ~ pred1 * pred2)} will work, 
@@ -42,12 +42,12 @@
 #'            \item non-linear mixed effects models (\code{\link[lme4]{nlmer}})
 #'            \item linear mixed effects models (\code{\link[nlme]{lme}}, but only for \code{type = "eff"})
 #'            \item generalized least squares models (\code{\link[nlme]{gls}}, but only for \code{type = "eff"})
-#'            \item panel data estimators (\code{plm})
+#'            \item panel data estimators (\code{\link[plm]{plm}})
 #'          }
 #' @param type interaction plot type. Use one of following values:
 #'          \describe{
-#'            \item{\code{type = "cond"}}{(default) plots the mere \emph{change} of the moderating effect on the response value (conditional effect). See 'Details'.}
-#'            \item{\code{type = "eff"}}{plots the overall moderation effect on the response value. See 'Details'.}
+#'            \item{\code{type = "eff"}}{(default) plots the overall moderation effect on the response value. See 'Details'.}
+#'            \item{\code{type = "cond"}}{plots the mere \emph{change} of the moderating effect on the response value (conditional effect). See 'Details'.}
 #'            \item{\code{type = "emm"}}{plots the estimated marginal means (least square means). If this type is chosen, not all function arguments are applicable. See 'Details'.}
 #'          }
 #' @param int.term select interaction term of \code{fit} (as character), which should be plotted
@@ -67,6 +67,7 @@
 #'            \item{\code{"meansd"}}{uses the mean value of the moderator as well as one standard deviation below and above mean value to plot the effect of the moderator on the independent variable (following the convention suggested by Cohen and Cohen and popularized by Aiken and West, i.e. using the mean, the value one standard deviation above, and the value one standard deviation below the mean as values of the moderator, see \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin K: 3 Tips to Make Interpreting Moderation Effects Easier}).}
 #'            \item{\code{"zeromax"}}{is similar to the \code{"minmax"} option, however, \code{0} is always used as minimum value for the moderator. This may be useful for predictors that don't have an empirical zero-value, but absence of moderation should be simulated by using 0 as minimum.}
 #'            \item{\code{"quart"}}{calculates and uses the quartiles (lower, median and upper) of the moderator value.}
+#'            \item{\code{"all"}}{uses all values of the moderator variable. Note that this option only applies to \code{type = "eff"}, for numeric moderator values.}
 #'          }
 #' @param swapPredictors if \code{TRUE}, the predictor on the x-axis and the moderator value in an interaction are
 #'          swapped. For \code{type = "eff"}, the first interaction term is used as moderator and the second term
@@ -75,7 +76,7 @@
 #'          the predictor with more unique values is printed along the x-axis.
 #' @param plevel indicates at which p-value an interaction term is considered as \emph{significant},
 #'          i.e. at which p-level an interaction term will be considered for plotting. Default is
-#'          0.05 (5 percent), hence, non-significant interactions are excluded by default. This
+#'          0.1 (10 percent), hence, non-significant interactions are excluded by default. This
 #'          argument does not apply to \code{type = "eff"}.
 #' @param title a default title used for the plots. Should be a character vector
 #'          of same length as interaction plots to be plotted. Default value is \code{NULL}, which means that each plot's title
@@ -121,6 +122,11 @@
 #'           as well as the data frames that were used for setting up the ggplot-objects (\code{data.list}).
 #'
 #' @details \describe{
+#'            \item{\code{type = "eff"}}{plots the overall effects (marginal effects) of the interaction, with all remaining
+#'              covariates set to the mean. Effects are calculated using the \code{\link[effects]{effect}}-
+#'              function from the \pkg{effects}-package. \cr \cr
+#'              Following arguments \emph{do not} apply to this function: \code{diff}, \code{axisLabels.x}.
+#'            }
 #'            \item{\code{type = "cond"}}{plots the effective \emph{change} or \emph{impact} 
 #'              (conditional effect) on a dependent variable of a moderation effect, as 
 #'              described in \href{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}{Grace-Martin},
@@ -133,11 +139,6 @@
 #'              for all other predictors and covariates) of interactions on the result of Y. Use 
 #'              \code{type = "eff"} for effect displays similar to the \code{\link[effects]{effect}}-function 
 #'              from the \pkg{effects}-package.
-#'            }
-#'            \item{\code{type = "eff"}}{plots the overall effects (marginal effects) of the interaction, with all remaining
-#'              covariates set to the mean. Effects are calculated using the \code{\link[effects]{effect}}-
-#'              function from the \pkg{effects}-package. \cr \cr
-#'              Following arguments \emph{do not} apply to this function: \code{diff}, \code{axisLabels.x}.
 #'            }
 #'            \item{\code{type = "emm"}}{plots the estimated marginal means of repeated measures designs,
 #'              like two-way repeated measures AN(C)OVA. In detail, this type plots estimated marginal means 
@@ -303,13 +304,13 @@
 #' @importFrom effects allEffects effect
 #' @export
 sjp.int <- function(fit,
-                    type = "cond",
+                    type = "eff",
                     int.term = NULL,
                     int.plot.index = NULL,
                     diff = FALSE,
                     moderatorValues = "minmax",
                     swapPredictors = FALSE,
-                    plevel = 0.05,
+                    plevel = 0.1,
                     title = NULL,
                     fillColor = "grey",
                     fillAlpha = 0.3,
@@ -385,23 +386,30 @@ sjp.int <- function(fit,
   # gridbreaks
   if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
   # moderator value
-  if (moderatorValues != "minmax" && moderatorValues != "zeromax" && moderatorValues != "meansd" && moderatorValues != "quart") {
-    message("'moderatorValues' has to be one of 'minmax', 'zeromax', 'quart' or 'meansd'. Defaulting to 'minmax'...")
+  if (moderatorValues != "minmax" && moderatorValues != "zeromax" && 
+      moderatorValues != "meansd" && moderatorValues != "quart" &&
+      moderatorValues != "all") {
+    message("`moderatorValues` has to be one of `minmax`, `zeromax`, `quart`, `meansd` or `all`. Defaulting to `minmax`.")
     moderatorValues <- "minmax"
   }
   # check plot type
   if (type != "cond" && type != "emm" && type != "eff") {
-    message("'type' has to be one of 'cond', 'eff' or 'emm'. Defaulting to 'cond'...")
+    message("`type` has to be one of `cond`, `eff` or `emm`. Defaulting to `cond`.")
     type <- "cond"
+  }
+  if (type == "cond" && moderatorValues == "all") {
+    message("`moderatorValues = \"all\"` only applies to `type = \"cond\". Defaulting `moderatorValues` to `minmax`.")
+    moderatorValues <- "minmax"
   }
   # ------------------------
   # do we have glm? if so, get link family. make exceptions
   # for specific models that don't have family function
   # ------------------------
-  if (any(c.f == "lme")) 
-    fitfam <- ""
-  else
-    fitfam <- stats::family(fit)$family
+  fitfam <- get_glm_family(fit)
+  # --------------------------------------------------------
+  # create logical for family
+  # --------------------------------------------------------
+  binom_fam <- fitfam$is_bin
   # --------------------------------------------------------
   # plot estimated marginal means?
   # --------------------------------------------------------
@@ -441,7 +449,7 @@ sjp.int <- function(fit,
   # set axis title
   # -----------------------------------------------------------
   if ((fun == "glm" || fun == "glmer") && is.null(axisTitle.y)) {
-    if (fitfam %in% c("binomial", "quasibinomial"))
+    if (isTRUE(binom_fam))
       axisTitle.y <- "Change in Predicted Probability"
     else 
       axisTitle.y <- "Change in Incidents Rates"
@@ -639,7 +647,7 @@ sjp.int <- function(fit,
     # -----------------------------------------------------------
     # convert df-values to numeric
     # -----------------------------------------------------------
-    if (fun == "lm" || fun == "lmer") {
+    if (fun == "lm" || fun == "lmer" || fun == "lme") {
       intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
       intdf$y <- sjmisc::to_value(intdf$y, keep.labels = F)
       intdf$ymin <- sjmisc::to_value(intdf$ymin, keep.labels = F)
@@ -662,7 +670,7 @@ sjp.int <- function(fit,
         upperLim.y <- axisLimits.y[2]
       }
     } else {
-      if (fitfam %in% c("binomial", "quasibinomial")) {
+      if (isTRUE(binom_fam)) {
         intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
         intdf$y <- plogis(sjmisc::to_value(intdf$y, keep.labels = F))
         intdf$ymin <- plogis(sjmisc::to_value(intdf$ymin, keep.labels = F))
@@ -681,7 +689,7 @@ sjp.int <- function(fit,
     # the scale limits
     # -----------------------------------------------------------
     if (is.null(axisLimits.y)) {
-      if (fitfam %in% c("binomial", "quasibinomial")) {
+      if (isTRUE(binom_fam)) {
         lowerLim.y <- as.integer(floor(10 * min(intdf$y, na.rm = T) * .9)) / 10
         upperLim.y <- as.integer(ceiling(10 * max(intdf$y, na.rm = T) * 1.1)) / 10
       } else {
@@ -719,9 +727,9 @@ sjp.int <- function(fit,
     # -----------------------------------------------------------
     if (is.null(title)) {
       labtitle <- paste0("Conditional effect of ",
-                         interactionterms[ifelse(useFirstPredOnY == TRUE, 1, 2)],
+                         interactionterms[ifelse(isTRUE(useFirstPredOnY), 1, 2)],
                          " (by ",
-                         interactionterms[ifelse(useFirstPredOnY == TRUE, 2, 1)],
+                         interactionterms[ifelse(isTRUE(useFirstPredOnY), 2, 1)],
                          ") on ", git[["depvar.label"]])
     } else {
       # copy plot counter 
@@ -735,6 +743,21 @@ sjp.int <- function(fit,
     # legend labels
     # -----------------------------------------------------------
     if (is.null(legendLabels)) {
+      # lLabels <- NULL
+      # # ---------------------------------
+      # # find moderator variable in data
+      # # ---------------------------------
+      # modfram <- stats::model.frame(fit)
+      # modfound <- sapply(colnames(modfram), 
+      #                    function(x) grepl(pattern = x, x = predy, fixed = T))
+      # # anything found?
+      # if (any(modfound)) {
+      #   # if it's a factor, we may use labels here
+      #   if (is.factor(modfram[[names(which(modfound))]]))
+      #     lLabels <- sjmisc::get_labels(modfram[[names(which(modfound))]], attr.only = F)
+      # }
+      # if we still have no labels, prepare generic labels
+      # if (is.null(lLabels)) {
       if (moderatorValues == "minmax") {
         lLabels <- c(paste0("lower bound of ", predy), paste0("upper bound of ", predy))
       } else if (moderatorValues == "meansd") {
@@ -744,6 +767,7 @@ sjp.int <- function(fit,
       } else {
         lLabels <- c(paste0("0 for ", predy), paste0("upper bound of ", predy))
       }
+      # }
     } else {
       # copy plot counter 
       l_nr <- cnt
@@ -881,7 +905,7 @@ sjp.int <- function(fit,
 }
   
   
-#' @importFrom stats plogis na.omit
+#' @importFrom stats plogis na.omit model.frame
 sjp.eff.int <- function(fit,
                         int.term = NULL,
                         int.plot.index = NULL,
@@ -920,6 +944,8 @@ sjp.eff.int <- function(fit,
   }
   # gridbreaks
   if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
+  # init default
+  binom_fam <- FALSE
   # ------------------------
   # multiple purpose of showCI parameter. if logical,
   # sets default CI to 0.95, else showCI also may be
@@ -956,7 +982,7 @@ sjp.eff.int <- function(fit,
   # retrieve position of interaction terms in effects-object
   # ------------------------
   if (is.null(int.term)) {
-    intpos <- which(as.vector(sapply(eff, function(x) length(grep("*", x['term'], fixed = T)) > 0)) == T)
+    intpos <- which(as.vector(sapply(eff, function(x) sjmisc::str_contains(x['term'], "*"))))
   } else {
     intpos <- 1
   }
@@ -985,11 +1011,11 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # save response, predictor and moderator names
     # -----------------------------------------------------------
-    pred_x.name <- colnames(intdf)[ifelse(swapPredictors == TRUE, 1, 2)]
-    moderator.name <- colnames(intdf)[ifelse(swapPredictors == TRUE, 2, 1)]
+    pred_x.name <- colnames(intdf)[ifelse(isTRUE(swapPredictors), 1, 2)]
+    moderator.name <- colnames(intdf)[ifelse(isTRUE(swapPredictors), 2, 1)]
     response.name <- dummy.eff$response
     # prepare axis titles
-    labx <- pred_x.name
+    labx <- sjmisc::get_label(stats::model.frame(fit)[[pred_x.name]], def.value = pred_x.name)
     # check whether x-axis-predictor is a factor or not
     x_is_factor <- is.factor(intdf[[pred_x.name]]) || (length(unique(na.omit(intdf[[pred_x.name]]))) < 3)
     # -----------------------------------------------------------
@@ -1031,6 +1057,9 @@ sjp.eff.int <- function(fit,
         mv.sd <- round(sd(modval, na.rm = T), 2)
         # re-compute effects, prepare xlevels
         xl1 <- list(x = c(mv.mean - mv.sd, mv.mean, mv.mean + mv.sd))
+      } else if (moderatorValues == "all") {
+        # re-compute effects, prepare xlevels
+        xl1 <- list(x = as.vector((unique(sort(modval, na.last = NA)))))
       } else if (moderatorValues == "quart") {
         # re-compute effects, prepare xlevels
         xl1 <- list(x = as.vector(stats::quantile(modval, na.rm = T)))
@@ -1112,7 +1141,7 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     intdf <- droplevels(intdf)
     # group as factor
-    intdf$grp <- as.factor(intdf$grp)
+    intdf$grp <- factor(intdf$grp, levels = unique(as.character(intdf$grp)))
     x_labels <- NULL
     # does model have labels? we want these if x is a factor.
     # first we need to know whether we have a model-data-frame
@@ -1121,13 +1150,8 @@ sjp.eff.int <- function(fit,
       # if yes, use these as labels
       if (!sjmisc::is_num_fac(intdf$x)) {
         x_labels <- levels(intdf$x)
-      } else if (is.list(fit) && ("model" %in% names(fit))) {
-        x_labels <- sjmisc::get_labels(fit$model[[pred_x.name]],
-                                       attr.only = F)
-        # for mermod object, we have a frame-attribute
-      } else if (!sjmisc::is_empty(grep("merMod", class(fit), fixed = T))) {
-        x_labels <- sjmisc::get_labels(fit@frame[[pred_x.name]],
-                                       attr.only = F)
+      } else {
+        x_labels <- sjmisc::get_labels(stats::model.frame(fit)[[pred_x.name]], attr.only = F)
       }
     }
     # make sure x is numeric
@@ -1137,7 +1161,9 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     if (fun == "lm" || fun == "lmer" || fun == "lme" || fun == "gls") {
       # Label on y-axis is name of dependent variable
-      laby <- response.name
+      if (is.null(axisTitle.y)) 
+        axisTitle.y <- sjmisc::get_label(stats::model.frame(fit)[[response.name]], 
+                                         def.value = response.name)
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
       # the scale limits
@@ -1159,16 +1185,20 @@ sjp.eff.int <- function(fit,
       # do we have glm? if so, get link family. make exceptions
       # for specific models that don't have family function
       # ------------------------
-      if (any(class(fit) == "lme")) 
-        fitfam <- ""
-      else
-        fitfam <- stats::family(fit)$family
+      fitfam <- get_glm_family(fit)
+      # --------------------------------------------------------
+      # create logical for family
+      # --------------------------------------------------------
+      binom_fam <- fitfam$is_bin
+      poisson_fam <- fitfam$is_pois
+      # --------------------------------------------------------
       # Label on y-axis is fixed
+      # --------------------------------------------------------
       if (is.null(axisTitle.y)) {
         # for logistic reg.
-        if (fitfam %in% c("binomial", "quasibinomial"))
+        if (isTRUE(binom_fam))
           axisTitle.y <- "Predicted Probability"
-        else if (fitfam %in% c("poisson", "quasipoisson"))
+        else if (isTRUE(poisson_fam))
           axisTitle.y <- "Predicted Incidents"
       }
       # -----------------------------------------------------------
@@ -1176,7 +1206,7 @@ sjp.eff.int <- function(fit,
       # the scale limits
       # -----------------------------------------------------------
       if (is.null(axisLimits.y)) {
-        if (fitfam %in% c("binomial", "quasibinomial")) {
+        if (isTRUE(binom_fam)) {
           if (showCI) {
             lowerLim.y <- as.integer(floor(10 * min(intdf$conf.low, na.rm = T) * .9)) / 10
             upperLim.y <- as.integer(ceiling(10 * max(intdf$conf.high, na.rm = T) * 1.1)) / 10
@@ -1241,7 +1271,10 @@ sjp.eff.int <- function(fit,
     # legend labels
     # -----------------------------------------------------------
     if (is.null(legendLabels)) {
-      lLabels <- levels(intdf$grp)
+      # try to get labels
+      lLabels <- sjmisc::get_labels(stats::model.frame(fit)[[moderator.name]], attr.only = F)
+      # if we still have no labels, get values from group
+      if (is.null(lLabels)) lLabels <- unique(as.character(intdf$grp))
     } else {
       # copy plot counter 
       l_nr <- i
@@ -1251,10 +1284,16 @@ sjp.eff.int <- function(fit,
       lLabels <- legendLabels[[l_nr]]
     }
     # -----------------------------------------------------------
+    # prepare facet-labels
+    # -----------------------------------------------------------
+    if (length(unique(intdf$grp)) == length(lLabels) && isTRUE(facet.grid)) {
+      levels(intdf$grp) <- lLabels
+    }
+    # -----------------------------------------------------------
     # legend titles
     # -----------------------------------------------------------
     if (is.null(legendTitle)) {
-      lTitle <- moderator.name
+      lTitle <- sjmisc::get_label(stats::model.frame(fit)[[moderator.name]], def.value = moderator.name)
     } else {
       # copy plot counter 
       l_nr <- i
@@ -1331,9 +1370,7 @@ sjp.eff.int <- function(fit,
     # ------------------------------------------------------------------------------------
     baseplot <- baseplot +
       # set plot and axis titles
-      labs(title = labtitle, x = labx, y = laby, colour = lTitle) +
-      # set axis scale breaks
-      scale_y_continuous(limits = c(lowerLim.y, upperLim.y), breaks = gridbreaks.y)
+      labs(title = labtitle, x = labx, y = laby, colour = lTitle)
     # we have specified labels for factors on x-axis only...
     if (x_is_factor && !is.null(x_labels)) {
       baseplot <- baseplot +
@@ -1347,6 +1384,21 @@ sjp.eff.int <- function(fit,
         scale_x_continuous(limits = c(lowerLim.x, upperLim.x), 
                            breaks = gridbreaks.x)
     }
+    # ------------------------
+    # for logistic regression, use 
+    # 0 to 1 scale limits and percentage scale
+    # ------------------------
+    if (isTRUE(binom_fam)) {
+      baseplot <- baseplot +
+        scale_y_continuous(limits = c(lowerLim.y, upperLim.y), 
+                           breaks = gridbreaks.y,
+                           labels = scales::percent)
+    } else {
+      baseplot <- baseplot +
+        # set axis scale breaks
+        scale_y_continuous(limits = c(lowerLim.y, upperLim.y), 
+                           breaks = gridbreaks.y)
+    }
     # ---------------------------------------------------------
     # facet grids?
     # ---------------------------------------------------------
@@ -1356,8 +1408,8 @@ sjp.eff.int <- function(fit,
     # ---------------------------------------------------------
     baseplot <- sj.setGeomColors(baseplot, 
                                  geom.colors, 
-                                 length(unique(stats::na.omit(intdf$grp))), 
-                                 !is.null(lLabels), 
+                                 pal.len = length(unique(stats::na.omit(intdf$grp))), 
+                                 show.legend = !is.null(lLabels) & !isTRUE(facet.grid), 
                                  lLabels)
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
@@ -1394,7 +1446,7 @@ mv_check <- function(moderatorValues, x) {
 # at the level specified by "plevel". returns NULL, if model
 # contains no interaction terms or no significant interaction term.
 # else, information on model and interaction terms is returned
-#' @importFrom stats model.matrix
+#' @importFrom stats model.matrix model.frame
 getInteractionTerms <- function(fit, fun, plevel) {
   # -----------------------------------------------------------
   # retrieve coefficients
@@ -1459,7 +1511,7 @@ getInteractionTerms <- function(fit, fun, plevel) {
     # retrieve amount and names of predictor variables and
     # of dependent variable
     # -----------------------------------------------------------
-    depvar.label <- colnames(fit@frame)[1]
+    depvar.label <- colnames(stats::model.frame(fit))[1]
     # -----------------------------------------------------------
     # retrieve p-values, without intercept
     # -----------------------------------------------------------

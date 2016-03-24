@@ -34,9 +34,9 @@
 #' @param showObserved logical, if \code{TRUE}, observed values are shown
 #' @param showExpected logical, if \code{TRUE}, expected values are also shown
 #' @param showHorizontalLine logical, if \code{TRUE}, data rows are separated with a horizontal line
-#' @param showSummary logical, if \code{TRUE} (default), a summary row with Chi-square statistics (see \code{\link{chisq.test}}),
+#' @param showSummary logical, if \code{TRUE} (default), a summary row with chi-square statistics (see \code{\link{chisq.test}}),
 #'          Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
-#'          if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of Chi-square test. 
+#'          if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of chi-square test. 
 #'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
 #' @param showLegend logical, if \code{TRUE}, the color legend for coloring observed and expected
 #'          values as well as cell, row and column percentages is shown. See \code{tdcol.n},
@@ -222,9 +222,9 @@ sjt.xtab <- function(var.row,
   tab <- rbind(tab, unname(colSums(tab)))
   tab.cell <- mydat$proptab.cell
   tab.row <- mydat$proptab.row
-  tab.row$total <- tab.cell$total
+  tab.row$total <- 100
   tab.col <- mydat$proptab.col
-  tab.col <- rbind(tab.col, tab.cell[nrow(tab.cell), ])
+  tab.col <- rbind(tab.col, rep(100, times = ncol(tab.col)))
   tab.expected <- sjmisc::table_values(stats::ftable(as.matrix(tab)))$expected
   # -------------------------------------
   # determine total number of columns and rows
@@ -267,11 +267,11 @@ sjt.xtab <- function(var.row,
   css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
   css.leftalign <- "text-align:left; vertical-align:middle;"
   css.centeralign <- "text-align:center;"
-  css.lasttablerow <- ifelse(highlightTotal == TRUE, sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
-  css.totcol <- ifelse(highlightTotal == TRUE, sprintf(" background-color:%s;", highlightColor), "")
+  css.lasttablerow <- ifelse(isTRUE(highlightTotal), sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
+  css.totcol <- ifelse(isTRUE(highlightTotal), sprintf(" background-color:%s;", highlightColor), "")
   css.tothi <- "font-weight:bolder; font-style:italic;"
   css.summary <- "text-align:right; font-size:0.9em; font-style:italic;"
-  css.horline <- ifelse(showHorizontalLine == TRUE, "border-bottom:1px solid;", "")
+  css.horline <- ifelse(isTRUE(showHorizontalLine), "border-bottom:1px solid;", "")
   # ------------------------
   # check user defined style sheets
   # ------------------------
@@ -324,7 +324,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # total-column
   # -------------------------------------
-  page.content <- paste(page.content, sprintf("    <th class=\"thead tothi firstcolborder\" rowspan=\"2\">%s</th>\n", stringTotal))
+  page.content <- paste(page.content, sprintf("    <th class=\"thead tothi firstcolborder totcol\" rowspan=\"2\">%s</th>\n", stringTotal))
   page.content <- paste(page.content, "  </tr>\n")
   # -------------------------------------
   # init second table row
@@ -401,10 +401,14 @@ sjt.xtab <- function(var.row,
         cellstring <- paste(cellstring, sprintf("<span class=\"td_c\">%s%s</span>", tab.cell[irow, icol], percSign), sep = "")
       }
       # -------------------------------------
+      # set column variable label
+      # -------------------------------------
+      css_tot_col <- ifelse(icol == totalncol, " totcol", "")
+      # -------------------------------------
       # write table cell data
       # -------------------------------------
       page.content <- paste(page.content, sprintf("\n    <td class=\"tdata centeralign horline%s\">%s</td>", 
-                                                  css_last_row,
+                                                  ifelse(css_last_row == "", css_tot_col, css_last_row),
                                                   cellstring), sep = "")
     }
     # close table row

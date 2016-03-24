@@ -161,8 +161,6 @@ sjc.qclus <- function(data,
   data.origin <- data
   # remove missings
   data <- stats::na.omit(data)
-  if (!is.null(axisLabels.x) && is.list(axisLabels.x)) axisLabels.x <- unlistlabels(axisLabels.x)
-  if (!is.null(legendLabels) && is.list(legendLabels)) legendLabels <- unlistlabels(legendLabels)
   # check for valid argument
   if (is.null(axisLabels.x)) axisLabels.x <- colnames(data)
   # --------------------------------------------------------
@@ -316,7 +314,7 @@ sjc.qclus <- function(data,
   gp <- sj.setGeomColors(gp, 
                          geom.colors, 
                          length(legendLabels), 
-                         ifelse(hideLegend == TRUE, FALSE, TRUE), 
+                         ifelse(isTRUE(hideLegend), FALSE, TRUE), 
                          legendLabels)  
   # --------------------------------------------------------
   # plot
@@ -830,6 +828,8 @@ sjc.elbow <- function(data, steps = 15, show.diff = FALSE, showDiff = FALSE) {
 #' sjc.kgap(iris[,1:4])}
 #' 
 #' @import ggplot2
+#' @importFrom stats na.omit
+#' @importFrom graphics plot
 #' @export
 sjc.kgap <- function(x, 
                      max = 10, 
@@ -887,7 +887,7 @@ sjc.kgap <- function(x,
          y = "Gap", 
          title = sprintf("Estimation of clusters (gap statistics)\n%i-cluster solution found", nc)) +
     theme_classic()
-  if (plotResults) plot(gp)
+  if (plotResults) graphics::plot(gp)
   # return value
   invisible(structure(class = "sjckgap",
                       list(data = df,

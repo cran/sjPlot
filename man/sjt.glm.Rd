@@ -15,8 +15,9 @@ sjt.glm(..., file = NULL, labelPredictors = NULL,
   pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
   showStdError = FALSE, ci.hyphen = "&nbsp;&ndash;&nbsp;",
   separateConfColumn = TRUE, newLineConf = TRUE, group.pred = TRUE,
-  showAbbrHeadline = TRUE, showPseudoR = FALSE, showLogLik = FALSE,
-  showAIC = FALSE, showAICc = FALSE, showChi2 = FALSE,
+  showAbbrHeadline = TRUE, showPseudoR = FALSE, showICC = FALSE,
+  showREvar = FALSE, showLogLik = FALSE, showAIC = FALSE,
+  showAICc = FALSE, showDeviance = FALSE, showChi2 = FALSE,
   showHosLem = FALSE, showFamily = FALSE, remove.estimates = NULL,
   cellSpacing = 0.2, cellGroupIndent = 0.6, encoding = NULL, CSS = NULL,
   useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
@@ -107,9 +108,15 @@ row is inserted to the table just before the predictor values.}
 abbreviations for odds ratios, confidence interval and p-values.}
 
 \item{showPseudoR}{logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
-in the model summary. R2cs is the Cox-Snell-pseudo R-square value, R2n is Nagelkerke's 
-pseudo R-square value and \code{D} is Tjur's Coefficient of Discrimination
+in the model summary. R2cs is the Cox-Snell-pseudo R-squared value, R2n is Nagelkerke's 
+pseudo R-squared value and \code{D} is Tjur's Coefficient of Discrimination
 (see \code{\link[sjmisc]{cod}}).}
+
+\item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each 
+model is printed in the model summary. Only applies to mixed models.}
+
+\item{showREvar}{logical, if \code{TRUE}, the variance parameters for the random
+effects for each model are printed in the model summary. Only applies to mixed models.}
 
 \item{showLogLik}{logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 in the model summary. Default is \code{FALSE}.}
@@ -119,6 +126,9 @@ in the model summary. Default is \code{FALSE}.}
 
 \item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model 
 is printed in the model summary. Default is \code{FALSE}.}
+
+\item{showDeviance}{logical, if \code{TRUE}, the deviance for each model 
+is printed in the model summary.}
 
 \item{showChi2}{logical, if \code{TRUE}, the p-value of the chi-squared value for each 
 model's residual deviance against the null deviance is printed
