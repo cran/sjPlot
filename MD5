@@ -1,15 +1,15 @@
-36295f6050c718c420cde6ff924928db *DESCRIPTION
+96f72e7a940d948783c1a08d5aa61ec1 *DESCRIPTION
 a17fffec992e8e0a53067a01437b49ff *NAMESPACE
-04b733b00c26342d773ad2a0db77fd4b *NEWS
-d4bfbb72fcd00aa1071964fb2e83f8f6 *NEWS.md
+236bdd896da2df76204251425a9c0635 *NEWS
+ca01694bbca8e8f9604da6970c273976 *NEWS.md
 a702781c58064c7081355c51927300a2 *R/helpfunctions.R
 26433d3397e96fec8d92c60f092f5498 *R/sjPlotAncovaLSMeans.R
 125d22784a9d81a35b8b916e4b537acc *R/sjPlotAnova.R
 ee9fafe029828e4b7bd0fbfd35b7060e *R/sjPlotClusterAnalysis.R
 f690ab27c1e8f1c6794c2b167b03acf0 *R/sjPlotCorr.R
 5ff2e7176e5274587e57c7f30417756e *R/sjPlotDist.R
-81361256ff63bf91b8cb7198f235a7af *R/sjPlotFrequencies.R
-6a3ae676b8d3a26de255997909892833 *R/sjPlotGLME.R
+949956cc8ed4f4a6b6965114598aa6e1 *R/sjPlotFrequencies.R
+4a2af8e8586d2b836e20c85cbf2fc6ff *R/sjPlotGLME.R
 c435a0254574121dac2e8465a90f8f76 *R/sjPlotGroupFrequencies.R
 64d0957832b3288ccb03073970d08348 *R/sjPlotGroupPropTable.R
 f06b2b065ee5ee8b9cf64e23013955dd *R/sjPlotInteractions.R
@@ -24,7 +24,7 @@ d0a3a06fceb168bf083448e463423fd5 *R/sjPlotPolynomials.R
 7a2ca524c02c654a56f238957bd516c3 *R/sjPlotPropTable.R
 d7715ddd5aefda9509d2e8e99cada4fd *R/sjPlotScatter.R
 cebe0dda9f0842ca3b6c254758027894 *R/sjPlotSetTheme.R
-8534ee888cbaaf895538711279fe3d0e *R/sjPlotStackFrequencies.R
+c4550549305c8f4673150099896bf370 *R/sjPlotStackFrequencies.R
 0401df3871306173ac5f64be435e565a *R/sjTabCorr.R
 7aea918daaf3c8b7e429b9731997e146 *R/sjTabDataFrame.R
 a8494f877c57bfea4bb5175ce3de2ce8 *R/sjTabFrequencies.R
@@ -39,7 +39,7 @@ ace8728aad42d4a5e676f5c9d1c1e1a6 *R/sjTabSPSS.R
 82b88bda05abfeb75bf9e583b19a2515 *R/sjTabStackFrq.R
 db094e636a512442beee311aac546c7a *R/zzz.R
 5519217681fae1255d9dd214484ef4cb *README.md
-9d7134f59e386635e40bc887735b93f3 *build/partial.rdb
+6bcb49f62507e90a8d4fa9898081a6da *build/partial.rdb
 6b90c3d9933853e4d24c06cd04bde848 *inst/CITATION
 592faaa5e860d84d9b2f84f365b580cd *man/adjust_plot_range.Rd
 b875a683b06a0dd22e030a9b68b086b9 *man/dist_chisq.Rd
@@ -47,7 +47,7 @@ e7c17c6f20fe71291117be66a18d2dbc *man/dist_f.Rd
 5aa85ae3019b6667ea2663e784910e5a *man/dist_norm.Rd
 280c340344cdaaf2e7871285c3c5d61e *man/dist_t.Rd
 db98fb4d968099fd0fe305eadcb5cdce *man/save_plot.Rd
-a9e0fba2d43fd378d9d9926d2ccc122e *man/sjPlot-package.Rd
+9ab31f7084285dbe476748e8a589c570 *man/sjPlot-package.Rd
 314b7b9a6cd752926aed9ced2067a3f8 *man/sjc.cluster.Rd
 bc08e326d527bf932fe9e8ad4d629e97 *man/sjc.dend.Rd
 cdfb763ebf0fe4c1248a2ed95af30d6e *man/sjc.elbow.Rd
@@ -57,7 +57,7 @@ d816b3368c49a4cd50f867a137833689 *man/sjc.qclus.Rd
 65b7880bd857fecb912fcdac195a8142 *man/sjp.aov1.Rd
 6a9216f954b62831db24e38fe0544450 *man/sjp.chi2.Rd
 f5a686b19ff8caa3aedf52e4eeacc0b4 *man/sjp.corr.Rd
-8e4ffb76a2db54b9a4a03f26af7cc59b *man/sjp.frq.Rd
+a3b458e0c39a6c6b7426a8e8d0abac42 *man/sjp.frq.Rd
 664244c6d9e41100ca9dc76cd0c5b16a *man/sjp.glm.Rd
 c0366f20f397c83c5a0839ae8f66ca65 *man/sjp.glmer.Rd
 0897c3ea5a001f86b1a79a80f69d969c *man/sjp.glmm.Rd
@@ -72,7 +72,7 @@ be1b247177e837ebfdf209552a5856e0 *man/sjp.lmer.Rd
 554b4971c4eb410fc01598fcae21f523 *man/sjp.poly.Rd
 88eae7e6ff96048bb342bfd5fd66c42f *man/sjp.scatter.Rd
 eca0c7309c2b949cd4371f2ac59b6cf1 *man/sjp.setTheme.Rd
-ac8276d610230ffcaded8f8aca67bdf8 *man/sjp.stackfrq.Rd
+2c85050b2605cf2e8c4021379fc32b09 *man/sjp.stackfrq.Rd
 3fdb5a284cc6329fbbb9c87988cd55d0 *man/sjp.xtab.Rd
 eba4f37b1176c39e3bfea5603f49dd83 *man/sjt.corr.Rd
 71d55b5b8e9a4e6937f673934426bf92 *man/sjt.df.Rd
