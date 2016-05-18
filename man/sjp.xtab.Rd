@@ -4,20 +4,18 @@
 \alias{sjp.xtab}
 \title{Plot contingency tables}
 \usage{
-sjp.xtab(x, grp, title = "", legendTitle = NULL, weightBy = NULL,
-  weightByTitleString = NULL, type = "bars", tableIndex = "col",
-  reverseOrder = FALSE, axisLimits.y = NULL, axisLabels.x = NULL,
-  legendLabels = NULL, vjust = "bottom", hjust = "center",
-  y.offset = NULL, stringTotal = "Total", breakTitleAt = 50,
-  breakLabelsAt = 15, breakLegendTitleAt = 20, breakLegendLabelsAt = 20,
-  gridBreaksAt = 0.2, geom.size = 0.7, geom.spacing = 0.1,
-  geom.colors = "Paired", barPosition = "dodge", lineDotSize = 3,
-  smoothLines = FALSE, expand.grid = FALSE, showValueLabels = TRUE,
-  showCountValues = TRUE, showPercentageValues = TRUE,
-  showCategoryLabels = TRUE, showTableSummary = FALSE,
-  tableSummaryPos = "r", showTotalColumn = TRUE, hideLegend = FALSE,
-  axisTitle.x = NULL, axisTitle.y = NULL, coord.flip = FALSE,
-  printPlot = TRUE)
+sjp.xtab(x, grp, type = c("bar", "line"), margin = c("col", "cell", "row"),
+  bar.pos = c("dodge", "stack"), title = "", title.wtd.suffix = NULL,
+  axis.titles = NULL, axis.labels = NULL, legend.title = NULL,
+  legend.labels = NULL, weight.by = NULL, rev.order = FALSE,
+  show.values = TRUE, show.n = TRUE, show.prc = TRUE, show.total = TRUE,
+  show.legend = TRUE, show.summary = FALSE, summary.pos = "r",
+  string.total = "Total", wrap.title = 50, wrap.labels = 15,
+  wrap.legend.title = 20, wrap.legend.labels = 20, geom.size = 0.7,
+  geom.spacing = 0.1, geom.colors = "Paired", dot.size = 3,
+  smooth.lines = FALSE, grid.breaks = 0.2, expand.grid = FALSE,
+  ylim = NULL, vjust = "bottom", hjust = "center", y.offset = NULL,
+  coord.flip = FALSE, prnt.plot = TRUE)
 }
 \arguments{
 \item{x}{a vector of values (variable) describing the bars which make up the plot.}
@@ -25,41 +23,102 @@ sjp.xtab(x, grp, title = "", legendTitle = NULL, weightBy = NULL,
 \item{grp}{grouping variable of same length as \code{x}, where \code{x} 
 is grouped into the categories represented by \code{grp}.}
 
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
+\item{type}{plot type. may be either \code{"bar"} (default) for bar charts,
+or \code{"line"} for line diagram.}
 
-\item{legendTitle}{title of the plot legend, as string.}
+\item{margin}{indicates which data of the proportional table should be plotted. Use \code{"row"} for
+calculating row percentages, \code{"col"} for column percentages and \code{"cell"} for cell percentages.
+If \code{margin = "col"}, an additional bar with the total sum of each column
+can be added to the plot (see \code{show.total}).}
 
-\item{weightBy}{weight factor that will be applied to weight all cases from \code{x}.
-Must be a vector of same length as \code{x}. Default is \code{NULL}, so no weights are used.}
+\item{bar.pos}{indicates whether bars should be positioned side-by-side (default),
+or stacked (\code{bar.pos = "stack"}). May be abbreviated.}
 
-\item{weightByTitleString}{suffix (as string) for the plot's title, if \code{weightBy} is specified,
-e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so plot's 
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
+
+\item{title.wtd.suffix}{suffix (as string) for the title, if \code{weight.by} is specified,
+e.g. \code{title.wtd.suffix=" (weighted)"}. Default is \code{NULL}, so 
 title will not have a suffix when cases are weighted.}
 
-\item{type}{plot type. may be either \code{"b"}, \code{"bar"}, \code{"bars"} (default) for bar charts,
-or \code{"l"}, \code{"line"}, \code{"lines"} for line diagram.}
+\item{axis.titles}{character vector of length one or two, defining the title(s)
+for the x-axis and y-axis.}
 
-\item{tableIndex}{indicates which data of the proportional table should be plotted. Use \code{"row"} for
-calculating row percentages, \code{"col"} for column percentages and \code{"cell"} for cell percentages.
-If \code{tableIndex = "col"}, an additional bar with the total sum of each column
-can be added to the plot (see \code{showTotalColumn}).}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
-\item{reverseOrder}{logical, whether categories along the x-axis should apper in reversed order or not.}
+\item{legend.title}{character vector, used as title for the plot legend.}
 
-\item{axisLimits.y}{numeric vector of length two, defining lower and upper axis limits
+\item{legend.labels}{character vector with labels for the guide/legend.}
+
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
+
+\item{rev.order}{logical, if \code{TRUE}, order of categories (groups) is reversed.}
+
+\item{show.values}{logical, whether values should be plotted or not.}
+
+\item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
+group or category to the labels.}
+
+\item{show.prc}{logical, if \code{TRUE} (default), percentage values are plotted to each bar
+If \code{FALSE}, percentage values are removed.}
+
+\item{show.total}{when \code{margin = "col"}, an additional bar 
+with the sum within each category and it's percentages will be added 
+to each category.}
+
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
+
+\item{show.summary}{logical, if \code{TRUE} (default), a summary with chi-squared 
+statistics (see \code{\link{chisq.test}}), Cramer's V or Phi-value etc. 
+is shown. If a cell contains expected values lower than five (or lower than 10 
+if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is 
+computed instead of chi-squared test. If the table's matrix is larger 
+than 2x2, Fisher's excact test with Monte Carlo simulation is computed.}
+
+\item{summary.pos}{position of the model summary which is printed when \code{show.summary} 
+is \code{TRUE}. Default is \code{"r"}, i.e. it's printed to the upper right corner. 
+Use \code{"l"} for upper left corner.}
+
+\item{string.total}{string for the legend label when a total-column is added. Only applies
+if \code{show.total = TRUE}. Default is \code{"Total"}.}
+
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
+one line and when a line break is inserted.}
+
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
+are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.labels}{numeric, determines how many chars of the legend labels are 
+displayed in one line and when a line break is inserted.}
+
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
+
+\item{geom.spacing}{the spacing between geoms (i.e. bar spacing)}
+
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
+
+\item{dot.size}{dot size, only applies, when argument \code{type = "line"}.}
+
+\item{smooth.lines}{prints a smooth line curve. Only applies, when argument \code{type = "line"}.}
+
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
+
+\item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
+axes and plotting region. Default is \code{FALSE}.}
+
+\item{ylim}{numeric vector of length two, defining lower and upper axis limits
 of the y scale. By default, this argument is set to \code{NULL}, i.e. the 
 y-axis fits to the required range of the data.}
-
-\item{axisLabels.x}{a character vector with labels for the x-axis breaks. \strong{Note:} 
-Axis labels will be automatically detected, when data was either imported 
-with \code{\link[sjmisc]{read_spss}} or has named factor levels 
-(see 'Examples'). Else, specifiy argument like this:
-\code{axisLabels.x = c("Label1", "Label2", "Label3")}.}
-
-\item{legendLabels}{a character vector with labels for the guide/legend.}
 
 \item{vjust}{character vector, indicating the vertical position of value 
 labels. Allowed are same values as for \code{vjust} aesthetics from 
@@ -76,83 +135,9 @@ away from the center of the plot respectively.}
 \item{y.offset}{numeric, offset for text labels when their alignment is adjusted 
 to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
 
-\item{stringTotal}{string for the legend label when a total-column is added. Only applies
-if \code{showTotalColumn = TRUE}. Default is \code{"Total"}.}
-
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
-are displayed in one line and when a line break is inserted.}
-
-\item{breakLegendLabelsAt}{determines how many chars of the legend labels are 
-displayed in one line and when a line break is inserted.}
-
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed.}
-
-\item{geom.size}{size resp. width of the geoms (bar width).}
-
-\item{geom.spacing}{the spacing between geoms (i.e. bar spacing)}
-
-\item{geom.colors}{user defined color palette for geoms. If specified, must either be vector with color values 
-of same length as groups defined in \code{x}, or a specific color palette code.
-See 'Note' in \code{\link{sjp.grpfrq}}.}
-
-\item{barPosition}{indicates whether bars should be positioned side-by-side (default)
-or stacked (use \code{"stack"} as argument).}
-
-\item{lineDotSize}{dot size, only applies, when argument \code{type = "lines"}.}
-
-\item{smoothLines}{prints a smooth line curve. Only applies, when argument \code{type = "lines"}.}
-
-\item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
-axes and plotting region. Default is \code{FALSE}.}
-
-\item{showValueLabels}{logical, whether count and percentage values should be plotted to each bar. Default
-is \code{TRUE}.}
-
-\item{showCountValues}{logical, if \code{TRUE} (default), count values are plotted to each bar. 
-If \code{FALSE}, count values are removed.}
-
-\item{showPercentageValues}{logical, if \code{TRUE} (default), percentage values are plotted to each bar
-If \code{FALSE}, percentage values are removed.}
-
-\item{showCategoryLabels}{whether x-axis text (category names) should be shown or not.}
-
-\item{showTableSummary}{logical, if \code{TRUE}, a summary of the cross tabulation with N, 
-chi-squared, df, Cramer's V or Phi-value and p-value is printed to the upper 
-right corner of the plot (see \code{tableSummaryPos}. If a cell contains expected
-values lower than five(or lower than 10 if df is 1), the Fisher's excact test 
-(see \code{\link{fisher.test}}) is computed instead of chi-square test. 
-If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo 
-simulation is computed. Only applies to barcharts or dotplots, i.e. 
-when argument \code{type = "bars"} or \code{"dots"}.}
-
-\item{tableSummaryPos}{position of the model summary which is printed when \code{showTableSummary} 
-is \code{TRUE}. Default is \code{"r"}, i.e. it's printed to the upper right corner. 
-Use \code{"l"} for upper left corner.}
-
-\item{showTotalColumn}{when \code{tableIndex = "col"}, an additional bar 
-with the sum within each category and it's percentages will be added 
-to each category.}
-
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
-
-\item{axisTitle.x}{title for the x-axis. Default is \code{NULL}, so variable name
-of \code{x} will automatically be detected and used as axis title
-(see \code{\link[sjmisc]{set_label}}) for details).}
-
-\item{axisTitle.y}{title for the y-axis. Default is \code{NULL}, so variable name
-of \code{grp} will automatically be detected and used as axis title
-(see \code{\link[sjmisc]{set_label}}) for details).}
-
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -172,26 +157,19 @@ x <- sample(1:3, 100, replace = TRUE)
 sjp.xtab(x, grp)
 
 # plot "cross tablulation" of x and y, including labels
-sjp.xtab(x, grp, 
-         axisLabels.x = c("low", "mid", "high"),
-         legendLabels = c("Grp 1", "Grp 2", "Grp 3", "Grp 4"))
+sjp.xtab(x, grp, axis.labels = c("low", "mid", "high"),
+         legend.labels = c("Grp 1", "Grp 2", "Grp 3", "Grp 4"))
 
 # plot "cross tablulation" of x and grp
 # as stacked proportional bars
-sjp.xtab(x, grp, 
-         tableIndex = "row", 
-         barPosition = "stack", 
-         showTableSummary = TRUE,
-         coord.flip = TRUE)
+sjp.xtab(x, grp, margin = "row", bar.pos = "stack", 
+         show.summary = TRUE, coord.flip = TRUE)
 
 # example with vertical labels
 library(sjmisc)
 data(efc)
 sjp.setTheme(geom.label.angle = 90)
-sjp.xtab(efc$e42dep, 
-         efc$e16sex,
-         vjust = "center",
-         hjust = "bottom")
+sjp.xtab(efc$e42dep, efc$e16sex, vjust = "center", hjust = "bottom")
 
 # grouped bars with EUROFAMCARE sample dataset
 # dataset was importet from an SPSS-file,
@@ -200,19 +178,13 @@ data(efc)
 efc.val <- get_labels(efc)
 efc.var <- get_label(efc)
 
-sjp.xtab(efc$e42dep,
-         efc$e16sex,
-         title = efc.var['e42dep'],
-         axisLabels.x = efc.val[['e42dep']],
-         legendTitle = efc.var['e16sex'],
-         legendLabels = efc.val[['e16sex']])
+sjp.xtab(efc$e42dep, efc$e16sex, title = efc.var['e42dep'],
+         axis.labels = efc.val[['e42dep']], legend.title = efc.var['e16sex'],
+         legend.labels = efc.val[['e16sex']])
          
-sjp.xtab(efc$e16sex,
-         efc$e42dep,
-         title = efc.var['e16sex'],
-         axisLabels.x = efc.val[['e16sex']],
-         legendTitle = efc.var['e42dep'],
-         legendLabels = efc.val[['e42dep']])
+sjp.xtab(efc$e16sex, efc$e42dep, title = efc.var['e16sex'],
+         axis.labels = efc.val[['e16sex']], legend.title = efc.var['e42dep'],
+         legend.labels = efc.val[['e42dep']])
          
 # -------------------------------
 # auto-detection of labels works here
@@ -221,12 +193,8 @@ sjp.xtab(efc$e16sex,
 # -------------------------------
 sjp.xtab(efc$e16sex, efc$e42dep, title = NULL)
 
-sjp.xtab(efc$e16sex,
-         efc$e42dep,
-         tableIndex = "row",
-         barPosition = "stack",
-         coord.flip = TRUE)
-
+sjp.xtab(efc$e16sex, efc$e42dep, margin = "row",
+         bar.pos = "stack", coord.flip = TRUE)
 
 }
 \seealso{

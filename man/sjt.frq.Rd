@@ -4,84 +4,76 @@
 \alias{sjt.frq}
 \title{Summary of frequencies as HTML table}
 \usage{
-sjt.frq(data, file = NULL, weightBy = NULL,
-  weightByTitleString = " (weighted)", variableLabels = NULL,
-  valueLabels = NULL, autoGroupAt = NULL, sort.frq = NULL,
-  alternateRowColors = FALSE, stringValue = "value", stringCount = "N",
-  stringPerc = "raw \%", stringValidPerc = "valid \%",
-  stringCumPerc = "cumulative \%", stringMissingValue = "missings",
-  highlightMedian = FALSE, highlightQuartiles = FALSE,
-  skipZeroRows = "auto", showSummary = TRUE, showSkew = FALSE,
-  showKurtosis = FALSE, skewString = "&gamma;",
-  kurtosisString = "&omega;", digits = 2, removeStringVectors = TRUE,
-  autoGroupStrings = TRUE, maxStringDist = 3, encoding = NULL,
-  CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+sjt.frq(data, weight.by = NULL, title.wtd.suffix = " (weighted)",
+  var.labels = NULL, value.labels = NULL, sort.frq = c("none", "asc",
+  "desc"), altr.row.col = FALSE, string.val = "value", string.cnt = "N",
+  string.prc = "raw \%", string.vprc = "valid \%",
+  string.cprc = "cumulative \%", string.na = "missings", emph.md = FALSE,
+  emph.quart = FALSE, show.summary = TRUE, show.skew = FALSE,
+  show.kurtosis = FALSE, skip.zero = "auto", ignore.strings = TRUE,
+  auto.group = NULL, auto.grp.strings = TRUE, max.string.dist = 3,
+  digits = 2, CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{data}{variables which frequencies should be printed as table. Either use a single variable
 (vector) or a data frame where each column represents a variable (see 'Examples').}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
-\item{weightBy}{weight factor that will be applied to weight all cases from \code{data}.
-Must be a vector of same length as \code{nrow(data)}. Default is \code{NULL}, so no weights are used.}
+\item{title.wtd.suffix}{suffix (as string) for the title, if \code{weight.by} is specified,
+e.g. \code{title.wtd.suffix=" (weighted)"}. Default is \code{NULL}, so 
+title will not have a suffix when cases are weighted.}
 
-\item{weightByTitleString}{suffix (as string) for the tabel caption, if \code{weightBy} is specified,
-e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so
-the table caption will not have a suffix when cases are weighted.}
+\item{var.labels}{character vector with variable names, which will be used 
+to label variables in the output.}
 
-\item{variableLabels}{character vector or a list of character vectors that indicate
-the variable names of \code{data} and will be used as variable labels
-in the output. Note that if multiple variables
-are supplied (if \code{data} is a \code{\link{data.frame}}), the variable 
-labels must be supplied as \code{list} object (see 'Examples').}
+\item{value.labels}{character vector (or \code{list} of character vectors)
+with value labels of the supplied variables, which will be used 
+to label variable values in the output.}
 
-\item{valueLabels}{character vector that indicate the value labels of
-\code{data}. Note that if multiple variables are supplied (if \code{data} 
-is a \code{\link{data.frame}}), the value labels must be supplied as 
-\code{list} object (see 'Examples').}
+\item{sort.frq}{Determines whether categories should be sorted 
+according to their frequencies or not. Default is \code{"none"}, so 
+categories are not sorted by frequency. Use \code{"asc"} or
+\code{"desc"} for sorting categories ascending or descending order.}
 
-\item{autoGroupAt}{numeric value, indicating at which length of unique values of \code{data}, 
-automatic grouping into smaller units is done (see \code{\link[sjmisc]{group_var}}).
-Variables with large numbers of unique values may be too time consuming when 
-a HTML table is created and R would not respond any longer, or the resulting table 
-would be to too long and confusing. Hence it's recommended to group such variables. 
-If \code{autoGroupAt = 50} and \code{varCount} has more than 50 unique values,
-it will be grouped (using the \code{\link[sjmisc]{group_var}} function). 
-Default value for \code{autoGroupAt} is \code{NULL}, i.e. auto-grouping is off.
-See \code{\link[sjmisc]{group_var}} for examples on grouping.}
-
-\item{sort.frq}{whether frequencies should be sorted or not. Use \code{"asc"} or \code{"ascending"}
-to sort frequencies ascending, or \code{"desc"} or \code{"descending"} to sort
-frequencies in descending order. By default, \code{sort.frq} is \code{NULL}, i.e.
-frequencies are ordered by values.}
-
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{stringValue}{label for the very first table column containing the values (see
-\code{valueLabels}).}
+\item{string.val}{label for the very first table column containing the values (see
+\code{value.labels}).}
 
-\item{stringCount}{label for the first table data column containing the counts. Default is \code{"N"}.}
+\item{string.cnt}{label for the first table data column containing the counts. Default is \code{"N"}.}
 
-\item{stringPerc}{label for the second table data column containing the raw percentages. Default is \code{"raw \%"}.}
+\item{string.prc}{label for the second table data column containing the raw percentages. Default is \code{"raw \%"}.}
 
-\item{stringValidPerc}{String label for the third data table column containing the valid percentages, i.e. the
+\item{string.vprc}{String label for the third data table column containing the valid percentages, i.e. the
 count percentage value exluding possible missing values.}
 
-\item{stringCumPerc}{String label for the last table data column containing the cumulative percentages.}
+\item{string.cprc}{String label for the last table data column containing the cumulative percentages.}
 
-\item{stringMissingValue}{String label for the last table data row containing missing values.}
+\item{string.na}{String label for the last table data row containing missing values.}
 
-\item{highlightMedian}{If \code{TRUE}, the table row indicating the median value will
-be highlighted.}
+\item{emph.md}{If \code{TRUE}, the table row indicating the median value will
+be emphasized.}
 
-\item{highlightQuartiles}{If \code{TRUE}, the table row indicating the lower and upper quartiles will
-be highlighted.}
+\item{emph.quart}{If \code{TRUE}, the table row indicating the lower and upper quartiles will
+be emphasized.}
 
-\item{skipZeroRows}{If \code{TRUE}, rows with only zero-values are not printed
+\item{show.summary}{If \code{TRUE} (default), a summary row with total and valid N as well as mean and
+standard deviation is shown.}
+
+\item{show.skew}{If \code{TRUE}, the variable's skewness is added to the summary.
+The skewness is retrieved from the \code{\link[psych]{describe}}-function 
+of the \pkg{psych}-package and indicated by a lower case Greek gamma.}
+
+\item{show.kurtosis}{If \code{TRUE}, the variable's kurtosis is added to the summary.
+The kurtosis is retrieved from the \code{\link[psych]{describe}}-function 
+of the \pkg{psych}-package and indicated by a lower case Greek omega.}
+
+\item{skip.zero}{If \code{TRUE}, rows with only zero-values are not printed
 (e.g. if a variable has values or levels 1 to 8, and levels / values 
 4 to 6 have no counts, these values would not be printed in the table). 
 Use \code{FALSE} to print also zero-values, or use \code{"auto"} (default)
@@ -89,47 +81,40 @@ to detect whether it makes sense or not to print zero-values (e.g., a variable
 "age" with values from 10 to 100, where at least 25 percent of all possible values have no
 counts, zero-values would be skipped automatically).}
 
-\item{showSummary}{If \code{TRUE} (default), a summary row with total and valid N as well as mean and
-standard deviation is shown.}
-
-\item{showSkew}{If \code{TRUE}, the variable's skewness is added to the summary.
-The skewness is retrieved from the \code{\link[psych]{describe}}-function 
-of the \pkg{psych}-package.}
-
-\item{showKurtosis}{If \code{TRUE}, the variable's kurtosis is added to the summary.
-The kurtosis is retrieved from the \code{\link[psych]{describe}}-function 
-of the \pkg{psych}-package.}
-
-\item{skewString}{A character string, which is used as header for the skew 
-column (see \code{showSkew})). Default is lower case Greek gamma.}
-
-\item{kurtosisString}{A character string, which is used as header for the 
-kurtosis column (see \code{showKurtosis})). Default is lower case 
-Greek omega.}
-
-\item{digits}{amount of digits used for table values. Default is 2.}
-
-\item{removeStringVectors}{If \code{TRUE} (default), character vectors / string variables will be removed from
+\item{ignore.strings}{If \code{TRUE} (default), character vectors / string variables will be removed from
 \code{data} before frequency tables are computed.}
 
-\item{autoGroupStrings}{if \code{TRUE} (default), string values in character 
+\item{auto.group}{numeric value, indicating the minimum amount of unique values 
+in the count variable, at which automatic grouping into smaller units 
+is done (see \code{\link[sjmisc]{group_var}}). Default value for 
+\code{auto.group} is \code{NULL}, i.e. auto-grouping is off.
+See \code{\link[sjmisc]{group_var}} for examples on grouping.}
+
+\item{auto.grp.strings}{if \code{TRUE} (default), string values in character 
 vectors (string variables) are automatically grouped based on their 
 similarity. The similarity is estimated with the \pkg{stringdist}-package.
-You can specify a distance-measure via \code{maxStringDist} argument. This argument only
-applies if \code{removeStringVectors} is \code{FALSE}.}
+You can specify a distance-measure via \code{max.string.dist} argument. This argument only
+applies if \code{ignore.strings} is \code{FALSE}.}
 
-\item{maxStringDist}{the allowed distance of string values in a character vector, which indicates
-when two string values are merged because they are considered as close enough.}
+\item{max.string.dist}{the allowed distance of string values in a character vector, which indicates
+when two string values are merged because they are considered as close enough.
+See \code{auto.grp.strings}.}
+
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -157,7 +142,7 @@ Shows (multiple) frequency tables as HTML file, or saves them as file.
 \details{
 \bold{How does the \code{CSS}-argument work?}
            \cr \cr
-           With the \code{CSS}-paramater, the visual appearance of the tables
+           With the \code{CSS}-argument, the visual appearance of the tables
            can be modified. To get an overview of all style-sheet-classnames 
            that are used in this function, see return value \code{page.style} for details. 
            Arguments for this list have following syntax:
@@ -194,49 +179,31 @@ data(efc)
 sjt.frq(efc$e42dep)
 
 # plot and show frequency table of "e42dep" with labels
-sjt.frq(efc$e42dep,
-        variableLabels = "Dependency",
-        valueLabels = c("independent",
-                        "slightly dependent",
-                        "moderately dependent",
-                        "severely dependent"))
+sjt.frq(efc$e42dep, var.labels = "Dependency",
+        value.labels = c("independent", "slightly dependent",
+                         "moderately dependent", "severely dependent"))
 
 # plot frequencies of e42dep, e16sex and c172code in one HTML file
 # and show table in RStudio Viewer Pane or default web browser
-# Note that valueLabels of multiple variables have to be
+# Note that value.labels of multiple variables have to be
 # list-objects
 sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code),
-        variableLabels = c("Dependency", 
-                           "Gender", 
-                           "Education"),
-        valueLabels = list(c("independent",
-                             "slightly dependent",
-                             "moderately dependent",
-                             "severely dependent"),
-                           c("male", "female"),
-                           c("low", "mid", "high")))
+        var.labels = c("Dependency", "Gender", "Education"),
+        value.labels = list(c("independent", "slightly dependent",
+                              "moderately dependent", "severely dependent"),
+                            c("male", "female"), c("low", "mid", "high")))
 
-# -------------------------------
 # auto-detection of labels
-# due to auto-detection of labels, this works as well
-# -------------------------------
 sjt.frq(data.frame(efc$e42dep, efc$e16sex, efc$c172code))
-
 
 # plot larger scale including zero-counts
 # indicating median and quartiles
-sjt.frq(efc$neg_c_7,
-        highlightMedian = TRUE,
-        highlightQuartiles = TRUE)
+sjt.frq(efc$neg_c_7, emph.md = TRUE, emph.quart = TRUE)
 
-# -------------------------------
 # sort frequencies
-# -------------------------------
 sjt.frq(efc$e42dep, sort.frq = "desc")
 
-# -------------------------------- 
 # User defined style sheet
-# -------------------------------- 
 sjt.frq(efc$e42dep,
         CSS = list(css.table = "border: 2px solid;",
                    css.tdata = "border: 1px solid;",

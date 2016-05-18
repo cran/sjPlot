@@ -4,65 +4,61 @@
 \alias{sjp.pca}
 \title{Plot PCA results}
 \usage{
-sjp.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
-  plotEigenvalues = FALSE, digits = 2, title = NULL,
-  axisLabels.y = NULL, type = "b", geom.size = 0.6,
-  geom.colors = "RdBu", breakTitleAt = 50, breakLabelsAt = 30,
-  showValueLabels = TRUE, showCronbachsAlpha = TRUE, printPlot = TRUE)
+sjp.pca(data, nmbr.fctr = NULL, fctr.load.tlrn = 0.1, plot.eigen = FALSE,
+  digits = 2, title = NULL, axis.labels = NULL, type = c("bar",
+  "circle", "tile"), geom.size = 0.6, geom.colors = "RdBu",
+  wrap.title = 50, wrap.labels = 30, show.values = TRUE,
+  show.cronb = TRUE, prnt.plot = TRUE)
 }
 \arguments{
-\item{data}{A data frame with factors (each columns one variable) that should be used 
-to compute a PCA, or a \code{\link{prcomp}} object.}
+\item{data}{\code{data.frame} that should be used to compute a PCA, or a \code{\link{prcomp}} object.}
 
-\item{numberOfFactors}{A predefined number of factors to use for the calculating the varimax
+\item{nmbr.fctr}{number of factors used for calculating the varimax
 rotation. By default, this value is \code{NULL} and the amount of factors is
-calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.}
+calculated according to the Kaiser-criteria.}
 
-\item{factorLoadingTolerance}{Specifies the minimum difference a variable needs to have between
+\item{fctr.load.tlrn}{specifies the minimum difference a variable needs to have between
 factor loadings (components) in order to indicate a clear loading on just one factor and not
 diffusing over all factors. For instance, a variable with 0.8, 0.82 and 0.84 factor loading 
 on 3 possible factors can not be clearly assigned to just one factor and thus would be removed
 from the principal component analysis. By default, the minimum difference of loading values
 between the highest and 2nd highest factor should be 0.1}
 
-\item{plotEigenvalues}{If \code{TRUE}, a plot showing the Eigenvalues according to the
+\item{plot.eigen}{If \code{TRUE}, a plot showing the Eigenvalues according to the
 Kaiser criteria is plotted to determine the number of factors.}
 
-\item{digits}{The amount of decimals used. Default is 2.}
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
-\item{title}{Title of the diagram, plotted above the whole diagram panel.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{axisLabels.y}{The item labels that are printed on the y-axis. If no item labels are
-provided (default), the data frame's column names are used. Item labels must
-be a string vector, e.g.: \code{axisLabels.y = c("Var 1", "Var 2", "Var 3")}.}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
 \item{type}{Plot type resp. geom type. May be one of following: \code{"circle"} or \code{"tile"} 
 circular or tiled geoms, or \code{"bar"} for a bar plot. You may use initial letter only
 for this argument.}
 
-\item{geom.size}{Specifies the circle size factor. The circle size depends on the correlation
-value multiplicated with this factor. Default is 10.}
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
 
-\item{geom.colors}{A color palette for fillng the geoms. If not specified, the diverging \code{"RdBl"} color palette
-from the color brewer palettes is used, resulting in red colors for negative and blue colors
-for positive factor loadings, that become lighter the weaker the loadings are. Use any
-color palette that is suitbale for the \code{scale_fill_gradientn} argument of ggplot2.}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
-\item{breakTitleAt}{Wordwrap for diagram title. Determines how many chars of the title are displayed in
-one line and when a line break is inserted into the title. Default is 50.}
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
+one line and when a line break is inserted.}
 
-\item{breakLabelsAt}{Wordwrap for diagram labels. Determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted. Default is 12.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
-\item{showValueLabels}{Whether factor loading values should be plotted to each geom.
-Default is \code{TRUE}.}
+\item{show.values}{logical, whether values should be plotted or not.}
 
-\item{showCronbachsAlpha}{If \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
+\item{show.cronb}{logical, if \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 i.e. all variables with the highest loading for a factor are taken for the
 reliability test. The result is an alpha value for each factor dimension.
 Only applies when \code{data} is a data frame and no \code{\link{prcomp}} object.}
 
-\item{printPlot}{If \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -70,7 +66,7 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
          \itemize{
            \item the varimax-rotated factor loading matrix (\code{varim})
            \item the column indices of removed variables (for more details see next list item) (\code{removed.colindex})
-           \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See argument \code{factorLoadingTolerance} for more details) (\code{removed.df})
+           \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See argument \code{fctr.load.tlrn} for more details) (\code{removed.df})
            \item the \code{factor.index}, i.e. the column index of each variable with the highest factor loading for each factor,
            \item the ggplot-object (\code{plot}),
            \item the data frame that was used for setting up the ggplot-object (\code{df}).
@@ -89,33 +85,15 @@ This PCA uses the \code{\link{prcomp}} function and the \code{\link{varimax}} ro
 }
 \examples{
 # randomly create data frame with 7 items, each consisting of 4 categories
-likert_4 <- data.frame(sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.2, 0.3, 0.1, 0.4)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.5, 0.25, 0.15, 0.1)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.4, 0.15, 0.25, 0.2)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.25, 0.1, 0.4, 0.25)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.1, 0.4, 0.4, 0.1)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.35, 0.25, 0.15, 0.25)))
+likert_4 <- data.frame(
+  sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4)),
+  sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1)),
+  sample(1:4, 500, replace = TRUE, prob = c(0.4, 0.15, 0.25, 0.2)),
+  sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25)),
+  sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1)),
+  sample(1:4, 500, replace = TRUE),
+  sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25))
+)
 
 # Create variable labels
 colnames(likert_4) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7")
@@ -127,17 +105,10 @@ sjp.pca(likert_4, type = "tile")
 sjp.pca(likert_4, type = "bar")
 
 # manually compute PCA
-pca <- prcomp(na.omit(likert_4), 
-              retx = TRUE, 
-              center = TRUE, 
-              scale. = TRUE)
+pca <- prcomp(na.omit(likert_4), retx = TRUE, center = TRUE, scale. = TRUE)
 # plot results from PCA as circles, including Eigenvalue-diagnostic.
 # note that this plot does not compute the Cronbach's Alpha
-sjp.pca(pca, 
-        plotEigenvalues = TRUE, 
-        type = "circle",
-        geom.size = 10)
-
+sjp.pca(pca, plot.eigen = TRUE, type = "circle", geom.size = 10)
 
 # -------------------------------
 # Data from the EUROFAMCARE sample dataset

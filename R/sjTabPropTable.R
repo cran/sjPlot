@@ -10,49 +10,22 @@
 #'              
 #' @param var.row variable that should be displayed in the table rows.
 #' @param var.col variable that should be displayed in the table columns.
-#' @param weightBy weight factor that will be applied to weight all cases.
-#'          Must be a vector of same length as \code{var.row}. Default is \code{NULL}, so no weights are used.
-#' @param digits amount of digits used for the percentage values inside table cells.
-#'          Default is 1.
-#' @param variableLabels character vector of same length as supplied variables, with 
-#'          the associated variable names. Following order is needed: name of \code{var.row},
-#'          name of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - name of \code{var.grp}.
-#'          See 'Examples'.
-#'          Variable labels are detected automatically, if \code{var.row} or \code{var.col}
-#'          have label attributes (see \code{\link[sjmisc]{set_label}}) for details).
-#' @param valueLabels \code{\link{list}} of two character vectors that indicate the value labels of the supplied
-#'          variables. Following order is needed: value labels of \code{var.row}
-#'          and value labels of \code{var.col}. See 'Examples'.
-#' @param breakVariableLabelsAt determines how many chars of the variable labels are displayed in 
-#'          one line and when a line break is inserted. Default is 40.
-#' @param breakValueLabelsAt determines how many chars of the value labels are displayed in 
-#'          one line and when a line break is inserted. Default is 20.
-#' @param stringTotal label for the total column / row header
-#' @param showCellPerc logical, if \code{TRUE}, cell percentage values are shown
-#' @param showRowPerc logical, if \code{TRUE}, row percentage values are shown
-#' @param showColPerc logical, if \code{TRUE}, column percentage values are shown
-#' @param showObserved logical, if \code{TRUE}, observed values are shown
-#' @param showExpected logical, if \code{TRUE}, expected values are also shown
-#' @param showHorizontalLine logical, if \code{TRUE}, data rows are separated with a horizontal line
-#' @param showSummary logical, if \code{TRUE} (default), a summary row with chi-square statistics (see \code{\link{chisq.test}}),
-#'          Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
-#'          if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of chi-square test. 
-#'          If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.
-#' @param showLegend logical, if \code{TRUE}, the color legend for coloring observed and expected
-#'          values as well as cell, row and column percentages is shown. See \code{tdcol.n},
-#'          \code{tdcol.expected}, \code{tdcol.cell}, \code{tdcol.row} and \code{tdcol.col}.
-#' @param showNA logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
-#' @param labelNA The label for the missing column/row.
+#' @param string.total label for the total column / row header
+#' @param show.cell.prc logical, if \code{TRUE}, cell percentage values are shown
+#' @param show.row.prc logical, if \code{TRUE}, row percentage values are shown
+#' @param show.col.prc logical, if \code{TRUE}, column percentage values are shown
+#' @param show.obs logical, if \code{TRUE}, observed values are shown
+#' @param show.exp logical, if \code{TRUE}, expected values are also shown
 #' @param tdcol.n Color for highlighting count (observed) values in table cells. Default is black.
 #' @param tdcol.expected Color for highlighting expected values in table cells. Default is cyan.
 #' @param tdcol.cell Color for highlighting cell percentage values in table cells. Default is red.
 #' @param tdcol.row Color for highlighting row percentage values in table cells. Default is blue.
 #' @param tdcol.col Color for highlighting column percentage values in table cells. Default is green.
-#' @param highlightTotal logical, if \code{TRUE}, the total column and row will be highlighted with a
-#'          different background color. See \code{highlightColor}.
-#' @param highlightColor logical, if \code{highlightTotal = TRUE}, this color value will be used
+#' @param emph.total logical, if \code{TRUE}, the total column and row will be emphasized with a
+#'          different background color. See \code{emph.color}.
+#' @param emph.color logical, if \code{emph.total = TRUE}, this color value will be used
 #'          for painting the background of the total column and row. Default is a light grey.
-#' @param percSign The percentage sign that is printed in the table cells, in HTML-format.
+#' @param prc.sign The percentage sign that is printed in the table cells, in HTML-format.
 #'          Default is \code{"&nbsp;\%"}, hence the percentage sign has a non-breaking-space after
 #'          the percentage value.
 #' @param hundret Default value that indicates the 100-percent column-sums (since rounding values
@@ -60,6 +33,8 @@
 #'          
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
+#' @inheritParams sjp.glmer
+#' @inheritParams sjp.grpfrq
 #'          
 #' @return Invisibly returns
 #'          \itemize{
@@ -86,23 +61,14 @@
 #'          
 #' # print cross table with manually set
 #' # labels and expected values
-#' sjt.xtab(efc$e16sex, 
-#'          efc$e42dep, 
-#'          variableLabels = c("Elder's gender", 
-#'                             "Elder's dependency"),
-#'          valueLabels = list(efc.labels[['e16sex']], 
-#'                             efc.labels[['e42dep']]),
-#'          showExpected = TRUE)
+#' sjt.xtab(efc$e16sex, efc$e42dep, var.labels = c("Elder's gender", 
+#'          "Elder's dependency"), value.labels = list(efc.labels[['e16sex']], 
+#'          efc.labels[['e42dep']]), show.exp = TRUE)
 #' 
 #' # print minimal cross table with labels, total col/row highlighted
-#' sjt.xtab(efc$e16sex, efc$e42dep, 
-#'          showHorizontalLine = FALSE,
-#'          showCellPerc = FALSE,
-#'          highlightTotal = TRUE)
+#' sjt.xtab(efc$e16sex, efc$e42dep, show.cell.prc = FALSE, emph.total = TRUE)
 #' 
-#' # ---------------------------------------------------------------- 
 #' # User defined style sheet
-#' # ---------------------------------------------------------------- 
 #' sjt.xtab(efc$e16sex, efc$e42dep, 
 #'          CSS = list(css.table = "border: 2px solid;",
 #'                     css.tdata = "border: 1px solid;",
@@ -113,37 +79,34 @@
 #' @export
 sjt.xtab <- function(var.row,
                      var.col,
-                     weightBy = NULL,
-                     digits = 1,
-                     file = NULL,
-                     variableLabels = NULL,
-                     valueLabels = NULL,
+                     weight.by = NULL,
                      title = NULL,
-                     breakVariableLabelsAt = 40,
-                     breakValueLabelsAt = 20,
-                     stringTotal = "Total",
-                     showObserved = TRUE,
-                     showCellPerc = FALSE,
-                     showRowPerc = FALSE,
-                     showColPerc = FALSE,
-                     showExpected = FALSE,
-                     showHorizontalLine = FALSE,
-                     showSummary = TRUE,
-                     showLegend = FALSE,
-                     showNA = FALSE,
-                     labelNA = "NA",
+                     var.labels = NULL,
+                     value.labels = NULL,
+                     wrap.labels = 20,
+                     show.obs = TRUE,
+                     show.cell.prc = FALSE,
+                     show.row.prc = FALSE,
+                     show.col.prc = FALSE,
+                     show.exp = FALSE,
+                     show.summary = TRUE,
+                     show.legend = FALSE,
+                     show.na = FALSE,
+                     string.total = "Total",
+                     digits = 1,
                      tdcol.n = "black",
                      tdcol.expected = "#339999",
                      tdcol.cell = "#993333",
                      tdcol.row = "#333399",
                      tdcol.col = "#339933",
-                     highlightTotal = FALSE,
-                     highlightColor = "#f8f8f8",
-                     percSign = "&nbsp;&#37;",
+                     emph.total = FALSE,
+                     emph.color = "#f8f8f8",
+                     prc.sign = "&nbsp;&#37;",
                      hundret = "100.0",
-                     encoding = NULL,
                      CSS = NULL,
-                     useViewer = TRUE,
+                     encoding = NULL,
+                     file = NULL,
+                     use.viewer = TRUE,
                      no.output = FALSE,
                      remove.spaces = TRUE) {
   # --------------------------------------------------------
@@ -170,49 +133,49 @@ sjt.xtab <- function(var.row,
   mydat <- create.xtab.df(var.row,
                           var.col,
                           round.prz = digits,
-                          na.rm = !showNA,
-                          weightBy = weightBy)
+                          na.rm = !show.na,
+                          weight.by = weight.by)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(variableLabels)) {
-    variableLabels <- c(sjmisc::get_label(var.row, def.value = var.name.row),
-                        sjmisc::get_label(var.col, def.value = var.name.col))
+  if (is.null(var.labels)) {
+    var.labels <- c(sjmisc::get_label(var.row, def.value = var.name.row),
+                    sjmisc::get_label(var.col, def.value = var.name.col))
   }
   # wrap long labels
-  variableLabels <- sjmisc::word_wrap(variableLabels, breakVariableLabelsAt, "<br>")
-  s.var.row <- variableLabels[1]
-  s.var.col <- variableLabels[2]
+  var.labels <- sjmisc::word_wrap(var.labels, wrap.labels, "<br>")
+  s.var.row <- var.labels[1]
+  s.var.col <- var.labels[2]
   # -------------------------------------
   # init variable labels
   # -------------------------------------
   labels.var.row <- mydat$labels.cnt
   labels.var.col <- mydat$labels.grp
   # do we have labels?
-  if (!is.null(valueLabels)) {
+  if (!is.null(value.labels)) {
     # need to be a list
-    if (!is.list(valueLabels)) {
+    if (!is.list(value.labels)) {
       warning("`valueLables` needs to be a `list`-object.", call. = F)
     } else {
-      labels.var.row <- valueLabels[[1]]
-      labels.var.col <- valueLabels[[2]]
+      labels.var.row <- value.labels[[1]]
+      labels.var.col <- value.labels[[2]]
     }
     # correct length of labels?
     if (length(labels.var.row) != length(mydat$labels.cnt)) {
-      warning("Length of `valueLabels` does not match length of category values of `var.row`.", call. = F)
+      warning("Length of `value.labels` does not match length of category values of `var.row`.", call. = F)
       labels.var.row <- mydat$labels.cnt
     }
     # correct length of labels?
     if (length(labels.var.col) != length(mydat$labels.grp)) {
-      warning("Length of `valueLabels` does not match length of category values of `var.grp`.", call. = F)
+      warning("Length of `value.labels` does not match length of category values of `var.grp`.", call. = F)
       labels.var.col <- mydat$labels.grp
     }
   }
   # wrap labels
-  labels.var.row <- sjmisc::word_wrap(labels.var.row, breakValueLabelsAt, "<br>")
-  labels.var.col <- sjmisc::word_wrap(labels.var.col, breakValueLabelsAt, "<br>")
+  labels.var.row <- sjmisc::word_wrap(labels.var.row, wrap.labels, "<br>")
+  labels.var.col <- sjmisc::word_wrap(labels.var.col, wrap.labels, "<br>")
   # add "total"
-  labels.var.row <- c(labels.var.row, stringTotal)
+  labels.var.row <- c(labels.var.row, string.total)
   labels.var.col <- c(labels.var.col)
   # -------------------------------------
   # compute table counts and percentages
@@ -267,11 +230,11 @@ sjt.xtab <- function(var.row,
   css.secondtablerow <- "border-bottom:1px solid; text-align:center;"
   css.leftalign <- "text-align:left; vertical-align:middle;"
   css.centeralign <- "text-align:center;"
-  css.lasttablerow <- ifelse(isTRUE(highlightTotal), sprintf(" border-bottom:double; background-color:%s;", highlightColor), " border-bottom:double;")
-  css.totcol <- ifelse(isTRUE(highlightTotal), sprintf(" background-color:%s;", highlightColor), "")
+  css.lasttablerow <- ifelse(isTRUE(emph.total), sprintf(" border-bottom:double; background-color:%s;", emph.color), " border-bottom:double;")
+  css.totcol <- ifelse(isTRUE(emph.total), sprintf(" background-color:%s;", emph.color), "")
   css.tothi <- "font-weight:bolder; font-style:italic;"
   css.summary <- "text-align:right; font-size:0.9em; font-style:italic;"
-  css.horline <- ifelse(isTRUE(showHorizontalLine), "border-bottom:1px solid;", "")
+  css.horline <- ""
   # ------------------------
   # check user defined style sheets
   # ------------------------
@@ -324,7 +287,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # total-column
   # -------------------------------------
-  page.content <- paste(page.content, sprintf("    <th class=\"thead tothi firstcolborder totcol\" rowspan=\"2\">%s</th>\n", stringTotal))
+  page.content <- paste(page.content, sprintf("    <th class=\"thead tothi firstcolborder totcol\" rowspan=\"2\">%s</th>\n", string.total))
   page.content <- paste(page.content, "  </tr>\n")
   # -------------------------------------
   # init second table row
@@ -371,34 +334,34 @@ sjt.xtab <- function(var.row,
       # -------------------------------------
       # first table cell data contains observed values
       # -------------------------------------
-      if (showObserved) cellstring <- sprintf("<span class=\"td_n\">%i</span>", tab[irow, icol])
+      if (show.obs) cellstring <- sprintf("<span class=\"td_n\">%i</span>", tab[irow, icol])
       # -------------------------------------
       # if we have expected values, add them to table cell
       # -------------------------------------
-      if (showExpected) {
+      if (show.exp) {
         if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
         cellstring <- paste(cellstring, sprintf("<span class=\"td_ex\">%s</span>", tab.expected[irow, icol]), sep = "")
       }
       # -------------------------------------
       # if we have row-percentage, add percentage value to table cell
       # -------------------------------------
-      if (showRowPerc) {
+      if (show.row.prc) {
         if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-        cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", tab.row[irow, icol], percSign), sep = "")
+        cellstring <- paste(cellstring, sprintf("<span class=\"td_rw\">%s%s</span>", tab.row[irow, icol], prc.sign), sep = "")
       }
       # -------------------------------------
       # if we have col-percentage, add percentage value to table cell
       # -------------------------------------
-      if (showColPerc) {
+      if (show.col.prc) {
         if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-        cellstring <- paste(cellstring, sprintf("<span class=\"td_cl\">%s%s</span>", tab.col[irow, icol], percSign), sep = "")
+        cellstring <- paste(cellstring, sprintf("<span class=\"td_cl\">%s%s</span>", tab.col[irow, icol], prc.sign), sep = "")
       }
       # -------------------------------------
       # if we have cell-percentage, add percentage value to table cell
       # -------------------------------------
-      if (showCellPerc) {
+      if (show.cell.prc) {
         if (!sjmisc::is_empty(cellstring)) cellstring <- paste0(cellstring, "<br>")
-        cellstring <- paste(cellstring, sprintf("<span class=\"td_c\">%s%s</span>", tab.cell[irow, icol], percSign), sep = "")
+        cellstring <- paste(cellstring, sprintf("<span class=\"td_c\">%s%s</span>", tab.cell[irow, icol], prc.sign), sep = "")
       }
       # -------------------------------------
       # set column variable label
@@ -417,7 +380,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # table summary
   # -------------------------------------
-  if (showSummary) {
+  if (show.summary) {
     # re-compute simple table
     ftab <- stats::ftable(stats::xtabs(~var.row + var.col))
     # start new table row
@@ -476,25 +439,25 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # print legend
   # -------------------------------------
-  if (showLegend) {
+  if (show.legend) {
     # add new paragraph
     page.content <- paste(page.content, "<p>\n  ")
     # -----------------
     # show observed?
     # -----------------
-    if (showObserved) {
+    if (show.obs) {
       page.content <- paste(page.content, "<span class=\"td_n\">observed values</span><br>\n")
     }
     # -----------------
     # show expected?
     # -----------------
-    if (showExpected) {
+    if (show.exp) {
       page.content <- paste(page.content, "<span class=\"td_ex\">expected values</span><br>\n")
     }
     # -----------------
     # show row percentage?
     # -----------------
-    if (showRowPerc) {
+    if (show.row.prc) {
       page.content <- paste(page.content, 
                             sprintf("<span class=\"td_rw\">&#37; within %s</span><br>\n", 
                                     gsub("<br>", " ", s.var.row, fixed = TRUE)))
@@ -502,7 +465,7 @@ sjt.xtab <- function(var.row,
     # -----------------
     # show row percentage?
     # -----------------
-    if (showColPerc) {
+    if (show.col.prc) {
       page.content <- paste(page.content, 
                             sprintf("<span class=\"td_cl\">&#37; within %s</span><br>\n", 
                                     gsub("<br>", " ", s.var.col, fixed = TRUE)))
@@ -510,7 +473,7 @@ sjt.xtab <- function(var.row,
     # -----------------
     # show row percentage?
     # -----------------
-    if (showCellPerc) {
+    if (show.cell.prc) {
       page.content <- paste(page.content, "<span class=\"td_c\">&#37; of total</span>\n")
     }
     # close paragraph
@@ -571,7 +534,7 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------
-  out.html.table(no.output, file, knitr, toWrite, useViewer)   
+  out.html.table(no.output, file, knitr, toWrite, use.viewer)   
   # -------------------------------------
   # return results
   # -------------------------------------

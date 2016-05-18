@@ -4,22 +4,34 @@
 \alias{sjp.stackfrq}
 \title{Plot stacked proportional bars}
 \usage{
-sjp.stackfrq(items, legendLabels = NULL, sort.frq = NULL, weightBy = NULL,
-  weightByTitleString = NULL, hideLegend = FALSE, title = NULL,
-  legendTitle = NULL, includeN = TRUE, axisLabels.y = NULL,
-  breakTitleAt = 50, breakLabelsAt = 30, breakLegendTitleAt = 30,
-  breakLegendLabelsAt = 28, gridBreaksAt = 0.2, expand.grid = FALSE,
-  geom.size = 0.5, geom.colors = "Blues", axisTitle.x = NULL,
-  axisTitle.y = NULL, showValueLabels = TRUE, labelDigits = 1,
-  vjust = "center", showPercentageAxis = TRUE, showItemLabels = TRUE,
-  showSeparatorLine = FALSE, separatorLineColor = "grey80",
-  separatorLineSize = 0.3, coord.flip = TRUE, printPlot = TRUE)
+sjp.stackfrq(items, title = NULL, legend.title = NULL,
+  legend.labels = NULL, axis.titles = NULL, axis.labels = NULL,
+  weight.by = NULL, sort.frq = NULL, wrap.title = 50, wrap.labels = 30,
+  wrap.legend.title = 30, wrap.legend.labels = 28, geom.size = 0.5,
+  geom.colors = "Blues", show.values = TRUE, show.n = TRUE,
+  show.prc = TRUE, show.legend = TRUE, grid.breaks = 0.2,
+  expand.grid = FALSE, digits = 1, vjust = "center", coord.flip = TRUE,
+  prnt.plot = TRUE)
 }
 \arguments{
-\item{items}{\code{\link{data.frame}} with each column representing one item.}
+\item{items}{\code{data.frame} with each column representing one item.}
 
-\item{legendLabels}{list or vector of strings that indicate the items' categories.
-Will also appear as legend text.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
+
+\item{legend.title}{character vector, used as title for the plot legend.}
+
+\item{legend.labels}{character vector with labels for the guide/legend.}
+
+\item{axis.titles}{character vector of length one or two, defining the title(s)
+for the x-axis and y-axis.}
+
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
+
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
 \item{sort.frq}{indicates whether the \code{items} should be ordered by
 by highest count of first or last category of \code{items}.
@@ -31,58 +43,41 @@ by highest count of first or last category of \code{items}.
   \item{\code{NULL}}{(default) for no sorting.}
 }}
 
-\item{weightBy}{weight factor that will be applied to weight all cases from \code{items}.
-Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.}
-
-\item{weightByTitleString}{suffix (as string) for the plot's title, if \code{weightBy} is specified,
-e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so plot's 
-title will not have a suffix when cases are weighted.}
-
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
-
-\item{title}{plot's title}
-
-\item{legendTitle}{title of plot's legend}
-
-\item{includeN}{logical, if \code{TRUE} (default), the N of each item is included into axis labels.}
-
-\item{axisLabels.y}{character vector with labels for the y-axis (variable names 
-of \code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}
-Axis labels will automatically be detected, when they have
-label attributes (see \code{\link[sjmisc]{set_label}}) for details).}
-
-\item{breakTitleAt}{determines how many chars of the title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
 
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
 are displayed in one line and when a line break is inserted.}
 
-\item{breakLegendLabelsAt}{determines how many chars of the legend labels are 
+\item{wrap.legend.labels}{numeric, determines how many chars of the legend labels are 
 displayed in one line and when a line break is inserted.}
 
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed. Valid values range from 0 to 1.}
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
 
-\item{expand.grid}{logical, if \code{TRUE} (default), the diagram has margins, 
-i.e. the y-axis is not exceeded to the diagram's boundaries.}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
-\item{geom.size}{size resp. width of the geoms (bar width)}
+\item{show.values}{logical, whether values should be plotted or not.}
 
-\item{geom.colors}{user defined color palette for geoms. If specified, must either be vector with color values 
-of same length as groups defined in \code{legendLabels}, or a specific color palette code.
-See 'Note' in \code{\link{sjp.grpfrq}}.}
+\item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
+group or category to the labels.}
 
-\item{axisTitle.x}{title for the x-axis. Default is \code{NULL} (no title).}
+\item{show.prc}{If \code{TRUE} (default), the percentage values at the x-axis are shown.}
 
-\item{axisTitle.y}{title for the y-axis. Default is \code{NULL} (no title).}
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
 
-\item{showValueLabels}{Whether counts and percentage values should be plotted to each bar.}
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
 
-\item{labelDigits}{The amount of digits for rounding \code{value.labels}. Default is 1, 
-i.e. value labels have 1 digit after decimal point.}
+\item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
+axes and plotting region. Default is \code{FALSE}.}
+
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{vjust}{character vector, indicating the vertical position of value 
 labels. Allowed are same values as for \code{vjust} aesthetics from 
@@ -90,19 +85,9 @@ labels. Allowed are same values as for \code{vjust} aesthetics from
 new options like "inward" and "outward", which align text towards and 
 away from the center of the plot respectively.}
 
-\item{showPercentageAxis}{If \code{TRUE} (default), the percentage values at the x-axis are shown.}
+\item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
-\item{showItemLabels}{Whether x axis text (category names) should be shown or not.}
-
-\item{showSeparatorLine}{If \code{TRUE}, a line is drawn to visually "separate" each bar in the diagram.}
-
-\item{separatorLineColor}{The color of the separator line. only applies, if \code{showSeparatorLine} is \code{TRUE}.}
-
-\item{separatorLineSize}{The size of the separator line. only applies, if \code{showSeparatorLine} is \code{TRUE}.}
-
-\item{coord.flip}{If \code{TRUE}, the x and y axis are swapped.}
-
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -118,32 +103,21 @@ Plot items (variables) of a scale as stacked proportional bars. This
 Thanks to \href{http://www.clas.ufl.edu/users/forrest/}{Forrest Stevens} for bug fixes.
 }
 \examples{
-# -------------------------------
-# random sample
-# -------------------------------
-# prepare data for 4-category likert scale, 5 items
-Q1 <- as.factor(sample(1:4, 500, replace = TRUE, 
-                       prob = c(0.2, 0.3, 0.1, 0.4)))
-Q2 <- as.factor(sample(1:4, 500, replace = TRUE, 
-                       prob = c(0.5, 0.25, 0.15, 0.1)))
-Q3 <- as.factor(sample(1:4, 500, replace = TRUE, 
-                       prob = c(0.25, 0.1, 0.4, 0.25)))
-Q4 <- as.factor(sample(1:4, 500, replace = TRUE, 
-                       prob = c(0.1, 0.4, 0.4, 0.1)))
-Q5 <- as.factor(sample(1:4, 500, replace = TRUE, 
-                       prob = c(0.35, 0.25, 0.15, 0.25)))
+# random data for 4-category likert scale, 5 items
+Q1 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4)))
+Q2 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1)))
+Q3 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25)))
+Q4 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1)))
+Q5 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
 
 likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 
 # create labels
-levels_4 <- c("Independent", 
-              "Slightly dependent", 
-              "Dependent", 
-              "Severely dependent")
+levels_4 <- c("Independent", "Slightly dependent", 
+              "Dependent", "Severely dependent")
 
 # plot stacked frequencies of 5 (ordered) item-scales
-sjp.stackfrq(likert_4, legendLabels = levels_4)
-
+sjp.stackfrq(likert_4, legend.labels = levels_4)
 
 # -------------------------------
 # Data from the EUROFAMCARE sample dataset

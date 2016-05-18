@@ -6,16 +6,17 @@
 \usage{
 sjp.gpt(x, y, groups, geom.colors = "Set1", geom.size = 2.5,
   shape.fill.color = "#f0f0f0", shapes = c(15, 16, 17, 18, 21, 22, 23, 24,
-  25, 7, 8, 9, 10, 12), title = NULL, axisLabels = NULL,
-  axisTitle.x = NULL, axisTitle.y = NULL, legendTitle = NULL,
-  legendLabels = NULL, breakTitleAt = 50, breakLabelsAt = 15,
-  breakLegendTitleAt = 20, breakLegendLabelsAt = 20, axisLimits = NULL,
-  gridBreaksAt = NULL, showTotal = TRUE, annotateTotal = TRUE,
-  showP = TRUE, showN = TRUE, hideLegend = FALSE, printPlot = TRUE)
+  25, 7, 8, 9, 10, 12), title = NULL, axis.labels = NULL,
+  axis.titles = NULL, legend.title = NULL, legend.labels = NULL,
+  wrap.title = 50, wrap.labels = 15, wrap.legend.title = 20,
+  wrap.legend.labels = 20, axis.lim = NULL, grid.breaks = NULL,
+  show.total = TRUE, annotate.total = TRUE, show.p = TRUE,
+  show.n = TRUE, prnt.plot = TRUE)
 }
 \arguments{
-\item{x}{categorical variable, where the proportion of each categorie in the
-highest category of \code{y} will be printed along the x-axis.}
+\item{x}{categorical variable, where the proportion of each category in 
+\code{x} for the highest category of \code{y} will be printed 
+along the x-axis.}
 
 \item{y}{categorical or numeric variable. If not a binary variable, \code{y}
 will be recoded into a binary variable, dichtomized at the highest
@@ -23,73 +24,62 @@ category and all remaining categories.}
 
 \item{groups}{grouping variable, which will define the y-axis}
 
-\item{geom.colors}{User defined color palette for geoms. If specified, must either be vector with color values 
-of same length as groups defined in \code{varGroup}, or a specific color brewer palette code (see 'Note').}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
-\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, depending on \code{type} argument).
-Note that bar and bin widths mostly need smaller values than dot sizes (i.e. if \code{type = "dots"}).
-By default, \code{geom.size = NULL}, which means that this argument is automatically
-adjusted depending on the plot type.}
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
 
 \item{shape.fill.color}{optional color vector, fill-color for non-filled shapes}
 
 \item{shapes}{numeric vector with shape styles, used to map the different
 categories of \code{x}.}
 
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{axisLabels}{character vector with \code{groups} labels for the y-axis.}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
-\item{axisTitle.x}{title for the x-axis. By default, \code{""} is used, i.e. no title
-is printed. If \code{axisTitle.x = NULL}, the variable name will be 
-automatically detected and used as title (see \code{\link[sjmisc]{set_label}}) 
-for details).}
+\item{axis.titles}{character vector of length one or two, defining the title(s)
+for the x-axis and y-axis.}
 
-\item{axisTitle.y}{title for the-y axis. By default, \code{""} is used, i.e. no title
-is printed. If \code{axisTitle.y = NULL}, variable name will be automatically 
-detected and used as title (see \code{\link[sjmisc]{set_label}}) for details).}
+\item{legend.title}{character vector, used as title for the plot legend.}
 
-\item{legendTitle}{title of the plot legend, as string.}
+\item{legend.labels}{character vector with labels for the guide/legend.}
 
-\item{legendLabels}{a character vector with labels for the guide/legend.}
-
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
 
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
 are displayed in one line and when a line break is inserted.}
 
-\item{breakLegendLabelsAt}{determines how many chars of the legend labels are 
+\item{wrap.legend.labels}{numeric, determines how many chars of the legend labels are 
 displayed in one line and when a line break is inserted.}
 
-\item{axisLimits}{numeric vector of length 2, defining the range of the plot axis.}
+\item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
+Depending on plot type, may effect either x- or y-axis, or both.}
 
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed.}
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
 
-\item{showTotal}{logical, if \code{TRUE}, a total summary line for all aggregated
+\item{show.total}{logical, if \code{TRUE}, a total summary line for all aggregated
 \code{groups} is added.}
 
-\item{annotateTotal}{logical, if \code{TRUE} and \code{showTotal = TRUE},
+\item{annotate.total}{logical, if \code{TRUE} and \code{show.total = TRUE},
 the total-row in the figure will be highlighted with a slightly
 shaded background.}
 
-\item{showP}{logical, if \code{TRUE}, axis labels for groups will also contain
-the results of the \code{\link[stats]{chisq.test}} of \code{x} and
-\code{y} for each \code{groups}.}
+\item{show.p}{logical, adds significance levels to values, or value and 
+variable labels.}
 
-\item{showN}{logical, if \code{TRUE}, axis labels for groups will also contain
-the total number of cases in each \code{groups}.}
+\item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
+group or category to the labels.}
 
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
-
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -101,6 +91,10 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 Plot grouped proportional crosstables, where the proportion of
                each level of \code{x} for the highest category in \code{y}
                is plotted, for each subgroup of \code{groups}.
+}
+\details{
+The p-values are based on \code{\link[stats]{chisq.test}} of \code{x} 
+           and \code{y} for each \code{groups}.
 }
 \examples{
 library(sjmisc)

@@ -4,13 +4,12 @@
 \alias{sjt.df}
 \title{Show (description of) data frame as HTML table}
 \usage{
-sjt.df(mydf, describe = TRUE, file = NULL, alternateRowColors = FALSE,
-  orderColumn = NULL, orderAscending = TRUE, title = NULL,
-  repeatHeader = FALSE, stringVariable = "Variable", showType = FALSE,
-  showRowNames = TRUE, showCommentRow = FALSE,
-  commentString = "No comment...", big.mark = NULL,
-  hideProgressBar = FALSE, encoding = NULL, CSS = NULL,
-  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE, ...)
+sjt.df(mydf, describe = TRUE, altr.row.col = FALSE, sort.col = NULL,
+  sort.asc = TRUE, title = NULL, repeat.header = FALSE,
+  show.type = FALSE, show.rownames = TRUE, show.cmmn.row = FALSE,
+  string.cmmn = "No comment...", string.var = "Variable", big.mark = NULL,
+  hide.progress = FALSE, CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE, ...)
 }
 \arguments{
 \item{mydf}{data frame that should be printed as table}
@@ -19,57 +18,57 @@ sjt.df(mydf, describe = TRUE, file = NULL, alternateRowColors = FALSE,
 The description is retrieved from the \code{\link[psych]{describe}} function. 
 If \code{describe = FALSE}, the data frame's content (values) is shown.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
-
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{orderColumn}{indicates a column, either by column name or by column index number,
+\item{sort.col}{indicates a column, either by column name or by column index number,
 that should be sorted. Default order is ascending, which can be changed with
-\code{orderAscending} argument. Default is \code{NULL}, hence the data frame
+\code{sort.asc} argument. Default is \code{NULL}, hence the data frame
 is printed with no specific order. See 'Examples'.}
 
-\item{orderAscending}{logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
+\item{sort.asc}{logical, if \code{TRUE} (default) and \code{sort.col} is not \code{NULL},
 data frame is ordered according to the specified column in an ascending order.
 Use \code{FALSE} to apply descending order. See 'Examples'.}
 
 \item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
-\item{repeatHeader}{logical, if \code{TRUE}, the header row will also be added at the bottom at the table. This might
+\item{repeat.header}{logical, if \code{TRUE}, the header row will also be added at the bottom at the table. This might
 be helpful, if you have longer tables and want to see the column names at the end of the table as well.}
 
-\item{stringVariable}{string, label used for the first column name. Default is \code{"Variable"}.}
+\item{show.type}{logical, if \code{TRUE}, the variable type is shown in a separate
+row respectively column.}
 
-\item{showType}{logical, if \code{TRUE}, the variable type is shown in a separate row below the column
-names.}
-
-\item{showRowNames}{logical, if \code{TRUE} and \code{describe = FALSE}, 
+\item{show.rownames}{logical, if \code{TRUE} and \code{describe = FALSE}, 
 first table column contains row names of data frame. Use 
-\code{showRowNames = FALSE} to omit first table column with row names.}
+\code{show.rownames = FALSE} to omit first table column with row names.}
 
-\item{showCommentRow}{logical, if \code{TRUE}, an optional comment line can be added to the end / below
-the table. Use \code{commentString} to specify the comment.}
+\item{show.cmmn.row}{logical, if \code{TRUE}, an optional comment line can be added to the end / below
+the table. Use \code{string.cmmn} to specify the comment.}
 
-\item{commentString}{string that will be added to the end / below the table. Only
-applies, if \code{showCommentRow = TRUE}.}
+\item{string.cmmn}{string that will be added to the end / below the table. Only
+applies, if \code{show.cmmn.row = TRUE}.}
+
+\item{string.var}{string, label used for the first column name. Default is \code{"Variable"}.}
 
 \item{big.mark}{character; if not \code{NULL}, used as mark between every 
 thousands decimals before (hence big) the decimal point}
 
-\item{hideProgressBar}{logical, if \code{TRUE}, the progress bar that is displayed when creating the
-table is hidden. Default in \code{FALSE}, hence the bar is visible.}
+\item{hide.progress}{logical, if \code{TRUE}, the progress bar that is displayed when creating the
+output is hidden. Default in \code{FALSE}, hence the bar is visible.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -99,7 +98,7 @@ Shows description or the content of data frame (rows and columns) as HTML table,
                or saves it as file. Helpful if you want a quick overview of a data frame's 
                content. See argument \code{describe} for details. By default, \code{describe} 
                is \code{TRUE} and a description of the data frame is given,
-               using the \code{\link[psych]{describe}} function of the \code{psych} package.
+               using the \code{\link[psych]{describe}}-function of the \pkg{psych}-package.
 }
 \details{
 See 'Details' in \code{\link{sjt.frq}}.
@@ -114,41 +113,29 @@ library(sjmisc)
 data(efc)
 
 # plot efc-data frame summary
-sjt.df(efc, alternateRowColors = TRUE)
+sjt.df(efc, altr.row.col = TRUE)
 
 # plot content, first 50 rows of first 5 columns of example data set
-sjt.df(efc[1:50, 1:5], 
-       describe = FALSE, 
-       stringVariable = "Observation")
+sjt.df(efc[1:50, 1:5], describe = FALSE, string.var = "Observation")
 
 # plot efc-data frame summary, sorted descending by mean-column
-sjt.df(efc, 
-       orderColumn = "mean", 
-       orderAscending = FALSE)
+sjt.df(efc, sort.col = "mean", sort.asc = FALSE)
 
 # plot first 20 rows of first 5 columns of example data set,
 # sort by column "e42dep" with alternating row colors
-sjt.df(efc[1:20, 1:5], 
-       alternateRowColors = TRUE, 
-       orderColumn = "e42dep", 
-       describe = FALSE)
+sjt.df(efc[1:20, 1:5], altr.row.col = TRUE, 
+       sort.col = "e42dep", describe = FALSE)
 
 # plot first 20 rows of first 5 columns of example data set,
 # sorted by 4th column in descending order.
-sjt.df(efc[1:20, 1:5], 
-       orderColumn = 4, 
-       orderAscending = FALSE, 
-       describe = FALSE)
+sjt.df(efc[1:20, 1:5], sort.col = 4, sort.asc = FALSE, describe = FALSE)
 
 # add big mark to thousands
 library(datasets)
 sjt.df(as.data.frame(WorldPhones), big.mark = ",")
 
-# ---------------------------------------------------------------- 
 # User defined style sheet
-# ---------------------------------------------------------------- 
-sjt.df(efc,
-       alternateRowColor = TRUE,
+sjt.df(efc, altr.row.col = TRUE, 
        CSS = list(css.table = "border: 2px solid #999999;",
                   css.tdata = "border-top: 1px solid;",
                   css.arc = "color:blue;"))}

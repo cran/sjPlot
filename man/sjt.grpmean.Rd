@@ -4,40 +4,42 @@
 \alias{sjt.grpmean}
 \title{Summary of grouped means as HTML table}
 \usage{
-sjt.grpmean(varCount, varGrp, weightBy = NULL, rowLabels = NULL,
-  digits = 2, digits.summary = 3, file = NULL, encoding = NULL,
-  CSS = NULL, useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+sjt.grpmean(var.cnt, var.grp, weight.by = NULL, value.labels = NULL,
+  digits = 2, digits.summary = 3, CSS = NULL, encoding = NULL,
+  file = NULL, use.viewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
-\item{varCount}{a numeric vector / variable. Mean, SD and SE for this variable are calculated.}
+\item{var.cnt}{vector of counts, for which frequencies or means will be plotted or printed.}
 
-\item{varGrp}{a (numeric) vector with group indices, used to select sub-groups from \code{varCount}.}
+\item{var.grp}{factor with the cross-classifying variable, where \code{var.cnt} 
+is grouped into the categories represented by \code{var.grp}.}
 
-\item{weightBy}{A weight factor that will be applied to weight all cases.
-Must be a vector of same length as \code{varCount}. Default is \code{NULL}, 
-so no weights are used.}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
-\item{rowLabels}{a character vector of same length as \code{varGrp} unqiue values. In short: the
-value labels of \code{varGrp}. Used to name table rows. By default, row labels
-are automatically detected if set by \code{\link[sjmisc]{set_labels}}.}
+\item{value.labels}{character vector (or \code{list} of character vectors)
+with value labels of the supplied variables, which will be used 
+to label variable values in the output.}
 
-\item{digits}{amount of digits for table values.}
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{digits.summary}{amount of digits for summary statistics (Anova).}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -61,18 +63,18 @@ Invisibly returns a \code{\link{list}} with
            for further use.
 }
 \description{
-Computes mean, sd and se for each sub-group (indicated by \code{varGrp})
-               of \code{varCount} and prints the result as HTML table.
+Computes mean, sd and se for each sub-group (indicated by \code{var.grp})
+               of \code{var.cnt} and prints the result as HTML table.
 }
 \details{
-This function performs a One-Way-Anova with \code{varCount} as dependent
-           and \code{varGrp} as independent variable, by calling
-           \code{lm(varCount ~ as.factor(varGrp))}, to get p-values for each
+This function performs a One-Way-Anova with \code{var.cnt} as dependent
+           and \code{var.grp} as independent variable, by calling
+           \code{lm(var.cnt ~ as.factor(var.grp))}, to get p-values for each
            sub-group and the complete "model". Thus, p-values indicate whether
            each group-mean is significantly different from the reference 
-           group (reference level of \code{varGrp}). Statistics like mean values are
-           based on subsetted groups (i.e. \code{varCount} is divided into sub-groups
-           indicated by \code{varGrp}).
+           group (reference level of \code{var.grp}). Statistics like mean values are
+           based on subsetted groups (i.e. \code{var.cnt} is divided into sub-groups
+           indicated by \code{var.grp}).
            \cr \cr
            Furthermore, see 'Details' in \code{\link{sjt.frq}}.
 }
@@ -83,8 +85,7 @@ See 'Notes' in \code{\link{sjt.frq}}.
 \dontrun{
 library(sjmisc)
 data(efc)
-sjt.grpmean(efc$c12hour,
-            efc$e42dep)}
+sjt.grpmean(efc$c12hour, efc$e42dep)}
             
 }
 \seealso{

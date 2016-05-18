@@ -2,79 +2,37 @@
 % Please edit documentation in R/sjPlotOdds.R
 \name{sjp.glm}
 \alias{sjp.glm}
-\title{Forest plot or predicted probabilities of generalized linear models}
+\title{Plot estimates, predictions or effects of generalized linear models}
 \usage{
-sjp.glm(fit, type = "dots", sort.est = TRUE, title = NULL,
-  axisLabels.y = NULL, axisTitle.x = "Odds Ratios", legendTitle = NULL,
-  axisLimits = NULL, breakTitleAt = 50, breakLabelsAt = 25,
-  gridBreaksAt = 0.5, transformTicks = TRUE, geom.size = NULL,
-  geom.colors = "Set1", interceptLineType = 2,
-  interceptLineColor = "grey70", group.estimates = NULL,
-  remove.estimates = NULL, coord.flip = TRUE, y.offset = 0.15,
-  showIntercept = FALSE, showAxisLabels.y = TRUE, showValueLabels = TRUE,
-  labelDigits = 2, showPValueLabels = TRUE, showModelSummary = FALSE,
-  facet.grid = TRUE, show.ci = FALSE, show.legend = FALSE,
-  showOriginalModelOnly = TRUE, printPlot = TRUE)
+sjp.glm(fit, type = "dots", vars = NULL, group.estimates = NULL,
+  remove.estimates = NULL, sort.est = TRUE, title = NULL,
+  legend.title = NULL, axis.labels = NULL, axis.title = "Odds Ratios",
+  geom.size = NULL, geom.colors = "Set1", wrap.title = 50,
+  wrap.labels = 25, axis.lim = NULL, grid.breaks = 0.5,
+  trns.ticks = TRUE, show.intercept = FALSE, show.values = TRUE,
+  show.p = TRUE, show.ci = FALSE, show.legend = FALSE,
+  show.summary = FALSE, digits = 2, vline.type = 2,
+  vline.color = "grey70", coord.flip = TRUE, y.offset = 0.15,
+  facet.grid = TRUE, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{fitted generalized linear model (\code{\link{glm}}- or \code{logistf}-object).}
 
 \item{type}{type of plot. Use one of following:
 \describe{
-  \item{\code{"dots"}}{(or \code{"glm"} or \code{"or"} (default)) for odds or incident rate ratios (forest plot). Note that this type is only appropriate for log- or logit-link-functions.}
-  \item{\code{"prob"}}{(or \code{"pc"}) to plot predicted probabilities for each model term, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
+  \item{\code{"dots"}}{(or \code{"glm"} or \code{"or"} (default)) for odds or incident rate ratios (forest plot). Note that this type plots the exponentiated estimates, thus being appropriate only for specific link-functions.}
+  \item{\code{"slope"}}{to plot probability or incidents slopes (predicted probabilities or incidents) for each model term, where all remaining co-variates are set to zero (i.e. ignored). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
   \item{\code{"eff"}}{to plot marginal effects of predicted probabilities or incidents for each model term, where all remaining co-variates are set to the mean (see 'Details'). Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot.}
-  \item{\code{"y.pc"}}{(or \code{"y.prob"}) to plot predicted probabilities for the response. See 'Details'.}
-  \item{\code{"ma"}}{to check model assumptions. Note that only two arguments are relevant for this option \code{fit} and \code{showOriginalModelOnly}. All other arguments are ignored.}
+  \item{\code{"pred"}}{to plot predicted values for the response, related to specific model predictors. See 'Details'.}
+  \item{\code{"ma"}}{to check model assumptions. Note that the only relevant argument for this option is \code{fit}. All other arguments are ignored.}
   \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 }}
 
-\item{sort.est}{logical, determines whether estimates should be sorted according to their values.
-If \code{group.estimates} is \emph{not} \code{NULL}, estimates are sorted
-according to their group assignment.}
-
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
-
-\item{axisLabels.y}{labels or names of the predictor variables (independent vars). Must
-be a character vector of same length as independent variables.}
-
-\item{axisTitle.x}{string; title for the x-axis.}
-
-\item{legendTitle}{title of the plot legend, as string.}
-
-\item{axisLimits}{numeric vector of length 2, defining the range of the plot axis.
-By default, the limits range from the lowest confidence interval to the 
-highest, so plot has maximum zoom.}
-
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed.}
-
-\item{transformTicks}{logical, if \code{TRUE}, the grid lines have exponential 
-distances (equidistant), i.e. they visually have the same distance from 
-one panel grid to the next. If \code{FALSE}, grids are 
-plotted on every \code{gridBreaksAt}'s position, thus the grid lines become narrower with 
-higher odds ratio values.}
-
-\item{geom.size}{size resp. width of the geoms (bar width or point size, depending on \code{type} argument).}
-
-\item{geom.colors}{user defined color palette for geoms. If \code{group.estimates}
-is \emph{not} specified, must either be vector with two color values or a specific
-color palette code (see 'Note' in \code{\link{sjp.grpfrq}}). Else, if
-\code{group.estimates} is specified, \code{geom.colors} must be a vector
-of same length as groups. See 'Examples'.}
-
-\item{interceptLineType}{linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
-
-\item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
+\item{vars}{numeric vector with column indices of selected variables or a character vector with
+variable names of selected variables from the fitted model, which should be used to plot
+estimates, fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability or
+incidents curves
+(for \code{\link[lme4]{glmer}}) of random intercepts.}
 
 \item{group.estimates}{numeric or character vector, indicating a group identifier for
 each estimate. Dots and confidence intervals of estimates are coloured
@@ -85,172 +43,175 @@ which estimates should be removed from the plot.
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{coord.flip}{logical, if \code{TRUE} (default), predictors are plotted along the y-axis and estimate
-values are plotted on the x-axis.}
+\item{sort.est}{logical, determines whether estimates should be sorted according to their values.
+If \code{group.estimates} is \emph{not} \code{NULL}, estimates are sorted
+according to their group assignment.}
+
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
+
+\item{legend.title}{character vector, used as title for the plot legend.}
+
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
+
+\item{axis.title}{character vector, used as title for the axis. If not specified, 
+a default labelling depending on the plot function and type is chosen.}
+
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
+
+\item{geom.colors}{user defined color palette for geoms. If \code{group.estimates}
+is \emph{not} specified, must either be vector with two color values or a specific
+color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
+\code{group.estimates} is specified, \code{geom.colors} must be a vector
+of same length as groups. See 'Examples'.}
+
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
+one line and when a line break is inserted.}
+
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
+Depending on plot type, may effect either x- or y-axis, or both.}
+
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
+
+\item{trns.ticks}{logical, if \code{TRUE}, the grid lines have exponential 
+distances (equidistant), i.e. they visually have the same distance from 
+one panel grid to the next. If \code{FALSE}, grids are 
+plotted on every \code{grid.breaks}'s position, thus the grid lines become narrower with 
+higher odds ratio values.}
+
+\item{show.intercept}{logical, if \code{TRUE}, the intercept of the fitted model is also plotted.
+Default is \code{FALSE}. For \code{glm}'s, please note that due to exponential 
+transformation of estimates, the intercept in some cases can not be calculated, thus the
+function call is interrupted and no plot printed.}
+
+\item{show.values}{logical, whether values should be plotted or not.}
+
+\item{show.p}{logical, adds significance levels to values, or value and 
+variable labels.}
+
+\item{show.ci}{logical, if \code{TRUE}, depending on \code{type}, a confidence
+interval or region is added to the plot.}
+
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
+
+\item{show.summary}{logical, if \code{TRUE}, a summary with model statistics 
+is added to the plot.}
+
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
+
+\item{vline.type}{linetype of the vertical "zero point" line. Default is \code{2} (dashed line).}
+
+\item{vline.color}{color of the vertical "zero point" line. Default value is \code{"grey70"}.}
+
+\item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
 \item{y.offset}{numeric, offset for text labels when their alignment is adjusted 
 to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
 
-\item{showIntercept}{logical, if \code{TRUE}, the intercept of the fitted model is also plotted.
-Default is \code{FALSE}. Please note that due to exponential transformation of
-estimates, the intercept in some cases can not be calculated, thus the
-function call is interrupted and no plot printed.}
+\item{facet.grid}{\code{TRUE} to arrange the lay out of of multiple plots 
+in a grid of an integrated single plot.}
 
-\item{showAxisLabels.y}{logical, whether labels of independent variables should be shown or not.}
-
-\item{showValueLabels}{logical, whether value labels should be plotted to each dot or not.}
-
-\item{labelDigits}{amount of digits for rounding the estimates (see \code{showValueLabels}).
-Default is 2, i.e. estimates have 2 digits after decimal point.}
-
-\item{showPValueLabels}{logical, whether the significance level of each coefficient
-should be appended to values or not.}
-
-\item{showModelSummary}{logical, if \code{TRUE}, a summary of the regression model with
-Intercept, R-squared, F-Test and AIC-value is printed to the lower right corner
-of the plot.}
-
-\item{facet.grid}{logical, \code{TRUE} when each plot should be plotted separately instead of
-an integrated (faceted) single graph. Only applies, if \code{type = "prob"}.}
-
-\item{show.ci}{logical, use \code{TRUE} to plot (depending on \code{type}) 
-the confidence interval for probability curves (predicted probabilities).}
-
-\item{show.legend}{logical, if \code{TRUE}, for mixed models 
-\code{type = "rs.ri"}, a legend for group levels of 
-the random intercept is shown. For \code{lm} and \code{glm}, 
-a legend for grouped estimates is shown.}
-
-\item{showOriginalModelOnly}{logical, if \code{TRUE} (default) and \code{type = "ma"}, 
-only the model assumptions of \code{fit} are plotted.
-If \code{FALSE}, the model assumptions of an updated model where outliers
-are automatically excluded are also plotted.}
-
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
+
+\item{...}{other arguments, passed down to the \code{\link[effects]{effect}} resp. 
+\code{\link[effects]{allEffects}} function when \code{type = "eff"}.}
 }
 \value{
-(Invisibly) returns various objects, depending on 
-          the \code{type}-argument:
-        \describe{
-         \item{\code{type = "dots"}}{
-           \itemize{
-             \item \code{df} - data frame used for the plot
-             \item \code{plot} - plot as ggplot-object
+(Insisibily) returns, depending on the plot type
+         \itemize{
+           \item The ggplot-object (\code{plot}). For multiple plots and if \code{facet.grid = FALSE}) a \code{plot.list} is returned.
+           \item A data frame \code{data} with the data used to build the ggplot-object(s), or a list of data frames (\code{data.list}).
            }
-         }
-         \item{\code{type = "prob" or "eff"}}{
-           \itemize{
-             \item \code{df.mp} - data frame used for predicted probability plots
-             \item \code{plot.mp} - predicted probability plots as ggplot-objects
-             \item \code{df.facet} - data frame used for faceted predicted probability plots
-             \item \code{plot.facet} - faceted predicted probability plots as ggplot-objects
-           }
-         }
-         \item{\code{type = "y.pc"}}{
-           \itemize{
-             \item \code{df} - data frame used for the plot
-             \item \code{plot} - plot as ggplot-object
-             \item \code{mean.pp} - mean value of the predicted probabilities for the response
-           }
-         }
-         \item{\code{type = "ma"}}{
-           \itemize{
-             \item \code{model} - updated model-fit with removed outliers
-           }
-         }
-         \item{\code{type = "vif"}}{
-           \itemize{
-             \item \code{vifval} - a vector with vif-values
-           }
-         }
-        }
 }
 \description{
 Plot odds or incident rate ratios with confidence intervalls as dot plot.
                Depending on the \code{type} argument, this function may also plot model
-               assumptions for generalized linear models, or predicted probabilities 
-               (or events) of coefficients.
+               assumptions for generalized linear models, or marginal effects
+               (predicted probabilities or events).
 }
 \details{
 \describe{
-           \item{\code{type = "prob"}}{(or \code{"pc"}), the predicted probabilities
+           \item{\code{type = "slope"}}{the predicted values
            are based on the intercept's estimate and each specific term's estimate.
            All other co-variates are set to zero (i.e. ignored), which corresponds
-           to \code{\link{plogis}(b0 + bi * xi)} (where \code{xi} is the logit-estimate).}
-           \item{\code{type = "eff"}}{for binomial models, the predicted probabilities
-           are based on the \code{\link{predict.glm}} method, where predicted values 
-           are "centered", i.e. remaining co-variates are set to the mean.
-           (see \href{http://stats.stackexchange.com/questions/35682/contribution-of-each-covariate-to-a-single-prediction-in-a-logistic-regression-m#comment71993_35802}{CrossValidated}).
-           Corresponds to \code{\link{plogis}(\link{predict}(fit, type = "terms") + attr(predict, "constant"))}.
-           Effect plots for other families (like poisson or negative binomial) are
-           based on the \pkg{effects}-package.}
-           \item{\code{type = "y.pc"}}{(or \code{type = "y.prob"}), the predicted values
+           to \code{family(fit)$linkinv(eta = b0 + bi * xi)} (where \code{xi} is the estimate).
+           This plot type can be seen as equivalent to \code{type = "slope"} for \code{\link{sjp.lm}},
+           just for glm objects. This plot type may give similar results as 
+           \code{type = "pred"}, however, \code{type = "slope"} does not adjust
+           for other predictors.}
+           \item{\code{type = "eff"}}{computes marginal effects of all higher order
+           terms in the model. The predicted values computed by \code{type = "eff"}
+           are adjusted for all other co-variates, by setting them to the mean
+           (as returned by the \code{\link[effects]{allEffects}} function).
+           You can pass further arguments down to \code{allEffects} for flexible
+           function call via the \code{...}-argument.}
+           \item{\code{type = "pred"}}{the predicted values
            of the response are computed, based on the \code{\link{predict.glm}}
-           method. Corresponds to \code{\link{predict}(fit, type = "response")}.}
+           method. Corresponds to \code{\link{predict}(fit, type = "response")}.
+           This plot type requires the \code{vars} argument to select specific terms
+           that should be used for the x-axis and - optional - as grouping factor. 
+           Hence, \code{vars} must be a character vector with the names of
+           one or two model predictors. See 'Examples'.}
          }
 }
 \examples{
 # prepare dichotomous dependent variable
-y <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
+swiss$y <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
 
 # fit model
-fitOR <- glm(y ~ swiss$Education + swiss$Examination + swiss$Infant.Mortality + swiss$Catholic,
-             family = binomial(link = "logit"))
+fitOR <- glm(y ~ Education + Examination + Infant.Mortality + Catholic,
+             family = binomial(link = "logit"), data = swiss)
 
 # print Odds Ratios as dots
 sjp.glm(fitOR)
 
-
 # -------------------------------
-# Predictors for negative impact
-# of care. Data from the EUROFAMCARE
-# sample dataset
+# Predictors for negative impact of care. Data from 
+# the EUROFAMCARE sample dataset
 # -------------------------------
 library(sjmisc)
 data(efc)
-# retrieve predictor variable labels
-labs <- get_label(efc)
-predlab <- c(labs[['c161sex']],
-             paste0(labs[['e42dep']], " (slightly)"),
-             paste0(labs[['e42dep']], " (moderate)"),
-             paste0(labs[['e42dep']], " (severely)"),
-             labs[['barthtot']],
-             paste0(labs[['c172code']], " (mid)"),
-             paste0(labs[['c172code']], " (high)"))
 # create binary response
 y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
-# create dummy variables for educational status
-edu.mid <- ifelse(efc$c172code == 2, 1, 0)
-edu.high <- ifelse(efc$c172code == 3, 1, 0)
 # create data frame for fitted model
 mydf <- data.frame(y = as.factor(y),
-                   sex = as.factor(efc$c161sex),
-                   dep = as.factor(efc$e42dep),
-                   barthel = as.numeric(efc$barthtot),
-                   edu.mid = as.factor(edu.mid),
-                   edu.hi = as.factor(edu.high))
+                   sex = efc$c161sex,
+                   dep = to_factor(efc$e42dep),
+                   barthel = efc$barthtot,
+                   education = to_factor(efc$c172code))
 # fit model
 fit <- glm(y ~., data = mydf, family = binomial(link = "logit"))
-# plot odds
-sjp.glm(fit,
-        title = get_label(efc$neg_c_7),
-        axisLabels.y = predlab)
 
-# plot probability curves (predicted probabilities)
-# of coefficients
-sjp.glm(fit,
-        title = get_label(efc$neg_c_7),
-        axisLabels.y = predlab,
-        type = "prob")
+# plot odds ratios
+sjp.glm(fit, title = get_label(efc$neg_c_7))
+
+# plot probability curves (relationship between predictors and response)
+sjp.glm(fit, title = get_label(efc$neg_c_7), type = "slope")
 
 # --------------------------
 # grouping estimates
 # --------------------------
-sjp.glm(fit, 
-        group.estimates = c(1, 2, 2, 2, 3, 4, 4),
-        axisLabels.y = predlab)
+sjp.glm(fit,  group.estimates = c(1, 2, 2, 2, 3, 4, 4))
 
+# --------------------------
+# model predictions, with selected model terms.
+# 'vars' needs to be a character vector of length 1 or 2
+# with names of model terms for x-axis and grouping factor.
+# --------------------------
+sjp.glm(fit, type = "pred", vars = "barthel")
+# faceted, with ci
+sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), show.ci = TRUE)
+# w/o facets
+sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), facet.grid = FALSE)
 
 }
 \seealso{

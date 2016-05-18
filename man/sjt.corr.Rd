@@ -4,54 +4,41 @@
 \alias{sjt.corr}
 \title{Summary of correlations as HTML table}
 \usage{
-sjt.corr(data, missingDeletion = "pairwise", corMethod = "spearman",
-  title = NULL, showPValues = TRUE, pvaluesAsNumbers = FALSE,
-  fade.ns = TRUE, file = NULL, varlabels = NULL, breakLabelsAt = 40,
-  digits = 3, triangle = "both", val.rm = NULL, stringDiagonal = NULL,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+sjt.corr(data, na.deletion = c("listwise", "pairwise"),
+  corr.method = c("spearman", "pearson", "kendall"), title = NULL,
+  var.labels = NULL, wrap.labels = 40, show.p = TRUE, p.numeric = FALSE,
+  fade.ns = TRUE, val.rm = NULL, digits = 3, triangle = "both",
+  string.diag = NULL, CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
-\item{data}{matrix with correlation coefficients as returned by the 
-\code{\link{cor}}-function, or a \code{\link{data.frame}} of variables that
-should be correlated.}
+\item{data}{variables which frequencies should be printed as table. Either use a single variable
+(vector) or a data frame where each column represents a variable (see 'Examples').}
 
-\item{missingDeletion}{indicates how missing values are treated. May be either
-\code{"listwise"} or \code{"pairwise"} (default).}
+\item{na.deletion}{indicates how missing values are treated. May be either
+\code{"listwise"} (default) or \code{"pairwise"}. May be
+abbreviated.}
 
-\item{corMethod}{indicates the correlation computation method. May be one of
-\code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.}
+\item{corr.method}{indicates the correlation computation method. May be one of
+\code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
+May be abbreviated.}
 
 \item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
-\item{showPValues}{logical, whether significance levels (p-values) of correlations should 
-be printed or not. See 'Note'.}
+\item{var.labels}{character vector with variable names, which will be used 
+to label variables in the output.}
 
-\item{pvaluesAsNumbers}{logical, if \code{TRUE}, the significance levels (p-values) are printed as numbers.
-if \code{FALSE} (default), asterisks are used. See 'Note'.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
-\item{fade.ns}{logical, if \code{TRUE} (default), non-significant correlation-values appear faded (by using
-a lighter grey text color). See 'Note'.}
+\item{show.p}{logical, adds significance levels to values, or value and 
+variable labels.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{p.numeric}{logical, if \code{TRUE}, the p-values are printed 
+as numbers. If \code{FALSE} (default), asterisks are used.}
 
-\item{varlabels}{character vector with item labels that are printed along the 
-first column/row. If no item labels are provided (default), the 
-data frame's column names are used. Item labels are detected automatically 
-if \code{data} is a \code{\link{data.frame}} where variables have
-label attributes (see \code{\link[sjmisc]{set_label}}) for details).}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{digits}{amount of digits used the values inside table cells.
-Default is 2.}
-
-\item{triangle}{indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
-or both (use \code{"both"}) triangles of the correlation table is filled with values. Default
-is \code{"both"}. You can specifiy the inital letter only.}
+\item{fade.ns}{logical, if \code{TRUE} (default), non-significant correlation-values 
+appear faded (by using a lighter grey text color). See 'Note'.}
 
 \item{val.rm}{specify a number between 0 and 1 to suppress the output of correlation values 
 that are smaller than \code{val.rm}. The absolute correlation values are used, so
@@ -62,20 +49,30 @@ the HTML table, but made "invisible" with white foreground color. You can use th
 argument (\code{"css.valueremove"}) to change color and appearance of those correlation value that are smaller than
 the limit specified by \code{val.rm}.}
 
-\item{stringDiagonal}{a vector with string values of the same length as \code{ncol(data)} (number of
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
+
+\item{triangle}{indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
+or both (use \code{"both"}) triangles of the correlation table is filled with values. Default
+is \code{"both"}. You can specifiy the inital letter only.}
+
+\item{string.diag}{a vector with string values of the same length as \code{ncol(data)} (number of
 correlated items) that can be used to display content in the diagonal cells
 where row and column item are identical (i.e. the "self-correlation"). By defauilt,
 this argument is \code{NULL} and the diagnal cells are empty.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -108,26 +105,17 @@ See 'Details' in \code{\link{sjt.frq}}.
 \note{
 If \code{data} is a matrix with correlation coefficients as returned by 
       the \code{\link{cor}}-function, p-values can't be computed.
-      Thus, \code{showPValues}, \code{pvaluesAsNumbers} and \code{fade.ns}
+      Thus, \code{show.p}, \code{p.numeric} and \code{fade.ns}
       only have an effect if \code{data} is a \code{\link{data.frame}}.
       \cr \cr
       Additionally, see 'Note' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{
-# create data frame with 5 random variables
-mydf <- data.frame(cbind(runif(10), 
-                         runif(10), 
-                         runif(10), 
-                         runif(10), 
-                         runif(10)))
-
 # plot correlation matrix using circles
 sjt.corr(mydf)
 
-# -------------------------------
 # Data from the EUROFAMCARE sample dataset
-# -------------------------------
 library(sjmisc)
 data(efc)
 
@@ -145,30 +133,18 @@ colnames(mydf) <- varlabs[c(start:end)]
 
 # we have high correlations here, because all items
 # belong to one factor. See example from "sjp.pca". 
-sjt.corr(mydf, pvaluesAsNumbers = TRUE)
+sjt.corr(mydf, p.numeric = TRUE)
 
-# -------------------------------
 # auto-detection of labels, only lower triangle
-# -------------------------------
 sjt.corr(efc[, c(start:end)], triangle = "lower")
 
-# -------------------------------
-# auto-detection of labels, only lower triangle,
-# all correlation values smaller than 0.3 are not
-# shown in the table
-# -------------------------------
-sjt.corr(efc[, c(start:end)], 
-         triangle = "lower", 
-         val.rm = 0.3)
+# auto-detection of labels, only lower triangle, all correlation 
+# values smaller than 0.3 are not shown in the table
+sjt.corr(efc[, c(start:end)], triangle = "lower", val.rm = 0.3)
 
-# -------------------------------
-# auto-detection of labels, only lower triangle,
-# all correlation values smaller than 0.3 are printed
-# in blue
-# -------------------------------
-sjt.corr(efc[, c(start:end)], 
-         triangle = "lower",
-         val.rm = 0.3, 
+# auto-detection of labels, only lower triangle, all correlation 
+# values smaller than 0.3 are printed in blue
+sjt.corr(efc[, c(start:end)], triangle = "lower",val.rm = 0.3, 
          CSS = list(css.valueremove = 'color:blue;'))}
 
 }

@@ -4,13 +4,13 @@
 \alias{view_df}
 \title{View structure of labelled data frames}
 \usage{
-view_df(x, weightBy = NULL, file = NULL, alternateRowColors = TRUE,
-  showID = TRUE, showType = FALSE, showValues = TRUE,
-  showValueLabels = TRUE, showFreq = FALSE, showPerc = FALSE,
-  showWtdFreq = FALSE, showWtdPerc = FALSE, showNA = FALSE,
-  sortByName = FALSE, breakVariableNamesAt = 50, encoding = NULL,
-  hideProgressBar = FALSE, CSS = NULL, useViewer = TRUE,
-  no.output = FALSE, remove.spaces = TRUE)
+view_df(x, weight.by = NULL, altr.row.col = TRUE, show.id = TRUE,
+  show.type = FALSE, show.values = TRUE, show.labels = TRUE,
+  show.frq = FALSE, show.prc = FALSE, show.wtd.frq = FALSE,
+  show.wtd.prc = FALSE, show.na = FALSE, sort.by.name = FALSE,
+  wrap.labels = 50, hide.progress = FALSE, CSS = NULL, encoding = NULL,
+  file = NULL, use.viewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{x}{\code{data.frame}, imported by \code{\link[sjmisc]{read_spss}},
@@ -18,59 +18,59 @@ view_df(x, weightBy = NULL, file = NULL, alternateRowColors = TRUE,
 or any similar labelled data frame (see \code{\link[sjmisc]{set_label}}
 and \code{\link[sjmisc]{set_labels}}).}
 
-\item{weightBy}{weight factor that will be applied to weight all cases from \code{data}.
-Must be a vector of same length as \code{nrow(data)}. Default is \code{NULL}, so no weights are used.}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
-
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{showID}{logical, if \code{TRUE} (default), the variable ID is shown in the first column.}
+\item{show.id}{logical, if \code{TRUE} (default), the variable ID is shown in the first column.}
 
-\item{showType}{logical, if \code{TRUE}, the variable type is shown in a separate column. Since
-SPSS variable types are mostly \code{\link{numeric}} after import, this column
-is hidden by default.}
+\item{show.type}{logical, if \code{TRUE}, the variable type is shown in a separate
+row respectively column.}
 
-\item{showValues}{logical, if \code{TRUE} (default), the variable values are shown as additional column.}
+\item{show.values}{logical, if \code{TRUE} (default), the variable values are shown as additional column.}
 
-\item{showValueLabels}{logical, if \code{TRUE} (default), the value labels are shown as additional column.}
+\item{show.labels}{logical, if \code{TRUE} (default), the value labels are shown as additional column.}
 
-\item{showFreq}{logical, if \code{TRUE}, an additional column with frequencies for each variable is shown.}
+\item{show.frq}{logical, if \code{TRUE}, an additional column with frequencies for each variable is shown.}
 
-\item{showPerc}{logical, if \code{TRUE}, an additional column with percentage of frequencies for each variable is shown.}
+\item{show.prc}{logical, if \code{TRUE}, an additional column with percentage of frequencies for each variable is shown.}
 
-\item{showWtdFreq}{logical, if \code{TRUE}, an additional column with weighted
-frequencies for each variable is shown. Weights strem from \code{weightBy}.}
+\item{show.wtd.frq}{logical, if \code{TRUE}, an additional column with weighted
+frequencies for each variable is shown. Weights strem from \code{weight.by}.}
 
-\item{showWtdPerc}{logical, if \code{TRUE}, an additional column with weighted
+\item{show.wtd.prc}{logical, if \code{TRUE}, an additional column with weighted
 percentage of frequencies for each variable is shown.
-Weights strem from \code{weightBy}.}
+Weights strem from \code{weight.by}.}
 
-\item{showNA}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.}
+\item{show.na}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values)
+are added to the output.}
 
-\item{sortByName}{logical, if \code{TRUE}, rows are sorted according to the variable
+\item{sort.by.name}{logical, if \code{TRUE}, rows are sorted according to the variable
 names. By default, rows (variables) are ordered according to their
 order in the data frame.}
 
-\item{breakVariableNamesAt}{Wordwrap for lomg variable names. Determines how many chars of
-a variable name are displayed in one line and when a line break is inserted.
-Default value is 50, use \code{NULL} to turn off word wrap.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{hide.progress}{logical, if \code{TRUE}, the progress bar that is displayed when creating the
+output is hidden. Default in \code{FALSE}, hence the bar is visible.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{hideProgressBar}{If \code{TRUE}, the progress bar that is displayed when creating the
-table is hidden. Default in \code{FALSE}, hence the bar is visible.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
-
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -116,10 +116,10 @@ data(efc)
 view_df(efc)
 
 # view variables w/o values and value labels
-view_df(efc, showValues = FALSE, showValueLabels = FALSE)
+view_df(efc, show.values = FALSE, show.labels = FALSE)
 
 # view variables including variable typed, orderd by name
-view_df(efc, sortByName = TRUE, showType = TRUE)
+view_df(efc, sort.by.name = TRUE, show.type = TRUE)
 
 # ---------------------------------------------------------------- 
 # User defined style sheet

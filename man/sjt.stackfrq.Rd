@@ -4,35 +4,32 @@
 \alias{sjt.stackfrq}
 \title{Summary of stacked frequencies as HTML table}
 \usage{
-sjt.stackfrq(items, weightBy = NULL, title = NULL, varlabels = NULL,
-  breakLabelsAt = 40, valuelabels = NULL, breakValueLabelsAt = 20,
-  sort.frq = NULL, alternateRowColors = FALSE, digits = 2,
-  showN = FALSE, showTotalN = FALSE, showNA = FALSE, labelNA = "NA",
-  showSkew = FALSE, showKurtosis = FALSE, digits.stats = 2,
-  skewString = "Skew", kurtosisString = "Kurtosis", file = NULL,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
+sjt.stackfrq(items, weight.by = NULL, title = NULL, var.labels = NULL,
+  value.labels = NULL, wrap.labels = 20, sort.frq = NULL,
+  altr.row.col = FALSE, digits = 2, string.na = "NA", show.n = FALSE,
+  show.total = FALSE, show.na = FALSE, show.skew = FALSE,
+  show.kurtosis = FALSE, digits.stats = 2, file = NULL, encoding = NULL,
+  CSS = NULL, use.viewer = TRUE, no.output = FALSE,
   remove.spaces = TRUE)
 }
 \arguments{
-\item{items}{\code{\link{data.frame}} with each column representing one (likert- or scale-)item.}
+\item{items}{\code{data.frame} with each column representing one item.}
 
-\item{weightBy}{weight factor that will be applied to weight all cases from \code{items}.
-Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
-\item{title}{table caption.}
+\item{title}{table caption, as character vector.}
 
-\item{varlabels}{character vector with variable names. If not specified, row names of \code{items}
-will be used, resp. variable labels will automatically be detected, when they have
-a variable label attribute (see \code{\link[sjmisc]{set_label}}) for details).}
+\item{var.labels}{character vector with variable names, which will be used 
+to label variables in the output.}
 
-\item{breakLabelsAt}{determines how many chars of the variable labels are displayed in 
-one line and when a line break is inserted. Default is 40.}
+\item{value.labels}{character vector (or \code{list} of character vectors)
+with value labels of the supplied variables, which will be used 
+to label variable values in the output.}
 
-\item{valuelabels}{character vector with category/value labels, which
-appear in the header row.}
-
-\item{breakValueLabelsAt}{determines how many chars of the value labels are displayed in 
-one line and when a line break is inserted. Default is 20.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
 \item{sort.frq}{logical, indicates whether the \code{items} should be ordered by
 by highest count of first or last category of \code{items}.
@@ -44,36 +41,32 @@ by highest count of first or last category of \code{items}.
   \item or \code{NULL} (default) for no sorting.
 }}
 
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{digits}{amount of digits for rounding the percentage values.
-Default is 2, i.e. percentage values have 2 digits after decimal point.}
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
-\item{showN}{logical, if \code{TRUE}, each item's category N is printed in the table cells.}
+\item{string.na}{The label for the missing column/row.}
 
-\item{showTotalN}{logical, if \code{TRUE}, an additional column with each item's total N is printed.}
+\item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
+group or category to the labels.}
 
-\item{showNA}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.}
+\item{show.total}{logical, if \code{TRUE}, an additional column with each 
+item's total N is printed.}
 
-\item{labelNA}{The label for the missing column/row.}
+\item{show.na}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values)
+are added to the output.}
 
-\item{showSkew}{logical, if \code{TRUE}, an additional column with each item's skewness is printed.
+\item{show.skew}{logical, if \code{TRUE}, an additional column with each item's skewness is printed.
 The skewness is retrieved from the \code{\link[psych]{describe}}-function 
 of the \pkg{psych}-package.}
 
-\item{showKurtosis}{If \code{TRUE}, the variable's kurtosis is added to the summary.
+\item{show.kurtosis}{If \code{TRUE}, the variable's kurtosis is added to the summary.
 The kurtosis is retrieved from the \code{\link[psych]{describe}}-function 
-of the \pkg{psych}-package.}
+of the \pkg{psych}-package and indicated by a lower case Greek omega.}
 
 \item{digits.stats}{amount of digits for rounding the skewness and kurtosis valuess.
 Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.}
-
-\item{skewString}{string, which is used as header for the skew column (see \code{showSkew})).
-Default is \code{"Skew"}.}
-
-\item{kurtosisString}{string, which is used as header for the kurtosis column (see \code{showKurtosis})).
-Default is \code{"Kurtosis"}.}
 
 \item{file}{destination file, if the output should be saved as file.
 If \code{NULL} (default), the output will be saved as temporary file and 
@@ -87,7 +80,7 @@ Windows OS). Change encoding if specific chars are not properly displayed (e.g. 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -126,39 +119,24 @@ See 'Notes' in \code{\link{sjt.frq}}.
 # random sample
 # -------------------------------
 # prepare data for 4-category likert scale, 5 items
-likert_4 <- data.frame(as.factor(sample(1:4, 
-                                        500, 
-                                        replace = TRUE, 
-                                        prob = c(0.2, 0.3, 0.1, 0.4))),
-                       as.factor(sample(1:4, 
-                                        500, 
-                                        replace = TRUE, 
-                                        prob = c(0.5, 0.25, 0.15, 0.1))),
-                       as.factor(sample(1:4, 
-                                        500, 
-                                        replace = TRUE, 
-                                        prob = c(0.25, 0.1, 0.4, 0.25))),
-                       as.factor(sample(1:4, 
-                                        500, 
-                                        replace = TRUE, 
-                                        prob = c(0.1, 0.4, 0.4, 0.1))),
-                       as.factor(sample(1:4, 
-                                        500, 
-                                        replace = TRUE, 
-                                        prob = c(0.35, 0.25, 0.15, 0.25))))
+likert_4 <- data.frame(
+  as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4))),
+  as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1))),
+  as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25))),
+  as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1))),
+  as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
+)
+
 # create labels
-levels_4 <- c("Independent", 
-              "Slightly dependent", 
-              "Dependent", 
-              "Severely dependent")
+levels_4 <- c("Independent", "Slightly dependent", 
+              "Dependent", "Severely dependent")
 
 # create item labels
 items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
 
 # plot stacked frequencies of 5 (ordered) item-scales
 \dontrun{
-sjt.stackfrq(likert_4, valuelabels = levels_4, varlabels = items)
-
+sjt.stackfrq(likert_4, value.labels = levels_4, var.labels = items)
 
 # -------------------------------
 # Data from the EUROFAMCARE sample dataset
@@ -171,23 +149,16 @@ start <- which(colnames(efc) == "c82cop1")
 # recveive first item of COPE-index scale
 end <- which(colnames(efc) == "c90cop9")
 
-sjt.stackfrq(efc[, c(start:end)],
-             alternateRowColors = TRUE)
+sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE)
 
-sjt.stackfrq(efc[, c(start:end)],
-             alternateRowColors = TRUE,
-             showN = TRUE,
-             showNA = TRUE)
-         
+sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+             show.n = TRUE, show.na = TRUE)
          
 # -------------------------------- 
 # User defined style sheet
 # -------------------------------- 
-sjt.stackfrq(efc[, c(start:end)],
-             alternateRowColors = TRUE,
-             showTotalN = TRUE,
-             showSkew = TRUE,
-             showKurtosis = TRUE,
+sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE, 
+             show.total = TRUE, show.skew = TRUE, show.kurtosis = TRUE,
              CSS = list(css.ncol = "border-left:1px dotted black;",
                         css.summary = "font-style:italic;"))}
              

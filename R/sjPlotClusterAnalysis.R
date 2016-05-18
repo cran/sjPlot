@@ -5,28 +5,20 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #' @title Compute quick cluster analysis
 #' @name sjc.qclus
 #' @description Compute a quick kmeans or hierarchical cluster analysis and displays "cluster characteristics"
-#'                as graph.
-#'                \enumerate{
-#'                \item If \code{method = "kmeans"}, this function first determines the optimal group count via gap statistics (unless argument \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
-#'                \item A cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
-#'                \item Then, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
-#'                \item These results are plotted as graph.
-#'                }
-#'                This method can also be used to plot existing cluster solution as graph witouth computing
-#'                a new cluster analysis. See argument \code{groups} for more details.
+#'                as plot.
 #'                
 #' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #' 
-#' @param data data frame containing all variables that should be used for the
+#' @param data \code{data.frame} with variables that should be used for the
 #'          cluster analysis.
-#' @param groupcount amount of groups (clusters) that should be retrieved. May also be
+#' @param groupcount amount of groups (clusters) used for the cluster solution. May also be
 #'          a set of initial (distinct) cluster centres, in case \code{method = "kmeans"}
 #'          (see \code{\link{kmeans}} for details on \code{centers} argument). 
-#'          If \code{groupcount = NULL}, the optimal amount of clusters is calculated using the 
-#'          gap statistics (see \code{\link{sjc.kgap}}. However, this works only 
-#'          with \code{method = "kmeans"}. If \code{method = "hclust"}, you have 
-#'          to specify \code{groupcount}. Following functions 
-#'          may be helpful for estimating the amount of clusters:
+#'          If \code{groupcount = NULL} and \code{method = "kmeans"}, the optimal 
+#'          amount of clusters is calculated using the gap statistics (see 
+#'          \code{\link{sjc.kgap}}). For \code{method = "hclust"}, \code{groupcount}
+#'          needs to be specified. Following functions may be helpful for estimating 
+#'          the amount of clusters:
 #'          \itemize{
 #'            \item Use \code{\link{sjc.elbow}} to determine the group-count depending on the elbow-criterion.
 #'            \item If \code{method = "kmeans"}, use \code{\link{sjc.kgap}} to determine the group-count according to the gap-statistic.
@@ -57,26 +49,12 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #'          \code{method = "kmeans"}. May be one of \code{"Hartigan-Wong"} (default), 
 #'          \code{"Lloyd"} (used by SPSS), or \code{"MacQueen"}. See \code{\link{kmeans}} 
 #'          for details on this argument.
-#' @param showAccuracy logical, if \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
+#' @param show.accuracy logical, if \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
 #'          which computes a linear discriminant analysis on the classified cluster groups and plots a 
 #'          bar graph indicating the goodness of classification for each group.
-#' @param axisTitle.x title for the x-axis.
-#' @param axisTitle.y title for the y-axis.
-#' @param breakTitleAt Determines how many chars of the title are displayed in 
-#'          one line and when a line break is inserted into the title.
-#' @param facetCluster If \code{TRUE}, each cluster group will be represented by an own panel.
-#'          Default is \code{FALSE}, thus all cluster groups are plotted in a single graph.
-#' @param geom.colors user defined color for bars. See 'Note' in \code{\link{sjp.grpfrq}}.
-#' @param geom.size width of bars. Recommended values for this argument are from 0.4 to 1.5
-#' @param showAxisLabels.x whether x axis labels (cluster variables) should be shown or not.
-#' @param showAxisLabels.y whether y axis labels (z scores) should be shown or not.
-#' @param showGroupCount if \code{TRUE} (default), the count within each cluster group is added to the 
+#' @param show.grpcnt if \code{TRUE} (default), the count within each cluster group is added to the 
 #'          legend labels (e.g. \code{"Group 1 (n=87)"}).
-#' @param showAccuracyLabels if \code{TRUE}, the accuracy-values for each cluster group is added to the 
-#'          legend labels (e.g. \code{"Group 1 (n=87, accuracy=95.3)"}). Accuracy is calculated by \code{\link{sjc.grpdisc}}.
-#' @param legendLabels labels for the guide/legend. If \code{legendLabels = NULL}
-#'          (default), the standard string \code{"Group <nr>"} will be used.
-#' @param reverseAxis.x if \code{TRUE}, the values on the x-axis are reversed.
+#' @param reverse.axis if \code{TRUE}, the values on the x-axis are reversed.
 #'
 #' @inheritParams sjp.grpfrq
 #'
@@ -89,6 +67,16 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #'            \item \code{accuracy}: the accuracy of group classification (as calculated by \code{\link{sjc.grpdisc}}).
 #'           }
 #' 
+#' @details Following steps are computed in this function:
+#'          \enumerate{
+#'            \item If \code{method = "kmeans"}, this function first determines the optimal group count via gap statistics (unless argument \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
+#'            \item A cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
+#'            \item Then, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
+#'            \item These results are plotted as graph.
+#'          }
+#'          This method can also be used to plot existing cluster solution as graph witouth computing
+#'          a new cluster analysis. See argument \code{groups} for more details.
+#' 
 #' @note See 'Note' in \code{\link{sjc.cluster}}
 #' 
 #' @examples
@@ -98,9 +86,7 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #' 
 #' # k-means clustering of mtcars-dataset with 4 pre-defined
 #' # groups in a faceted panel
-#' sjc.qclus(airquality, 
-#'           groupcount = 4, 
-#'           facetCluster = TRUE)}
+#' sjc.qclus(airquality, groupcount = 4, facet.grid = TRUE)}
 #'           
 #' # k-means clustering of airquality data
 #' # and saving the results. most likely, 3 cluster
@@ -109,9 +95,7 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #' 
 #' # "re-plot" cluster groups, without computing
 #' # new k-means cluster analysis.
-#' sjc.qclus(airquality,
-#'           groupcount = 3,
-#'           groups = airgrp$classification)
+#' sjc.qclus(airquality, groupcount = 3, groups = airgrp$classification)
 #' 
 #' @import ggplot2
 #' @import sjmisc
@@ -121,39 +105,36 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 sjc.qclus <- function(data,
                       groupcount = NULL,
                       groups = NULL,
-                      method = "k",
-                      distance = "euclidean",
-                      agglomeration = "ward",
+                      method = c("kmeans", "hclust"),
+                      distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
+                      agglomeration = c("ward", "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid"),
                       iter.max = 20,
-                      algorithm = "Hartigan-Wong",
-                      showAccuracy = FALSE,
+                      algorithm = c("Hartigan-Wong", "Lloyd", "MacQueen"),
+                      show.accuracy = FALSE,
                       title = NULL,
-                      axisLabels.x = NULL,
-                      axisTitle.x = "Cluster group characteristics",
-                      axisTitle.y = "Mean of z-scores",
-                      breakTitleAt = 40,
-                      breakLabelsAt = 20,
-                      breakLegendTitleAt = 20,
-                      breakLegendLabelsAt = 20,
-                      facetCluster = FALSE,
+                      axis.labels = NULL,
+                      wrap.title = 40,
+                      wrap.labels = 20,
+                      wrap.legend.title = 20,
+                      wrap.legend.labels = 20,
+                      facet.grid = FALSE,
                       geom.colors = "Paired",
                       geom.size = 0.5,
                       geom.spacing = 0.1,
-                      hideLegend = FALSE,
-                      showAxisLabels.x = TRUE,
-                      showAxisLabels.y = TRUE,
-                      showGroupCount = TRUE,
-                      showAccuracyLabels = FALSE,
-                      legendTitle = NULL,
-                      legendLabels = NULL,
+                      show.legend = TRUE,
+                      show.grpcnt = TRUE,
+                      legend.title = NULL,
+                      legend.labels = NULL,
                       coord.flip = FALSE,
-                      reverseAxis.x = FALSE,
-                      printPlot = TRUE) {
+                      reverse.axis = FALSE,
+                      prnt.plot = TRUE) {
   # --------------------------------------------------------
-  # check for abbreviations
+  # match arguments
   # --------------------------------------------------------
-  if (method == "kmeans") method <- "k"
-  if (method == "hclust") method <- "h"
+  distance <- match.arg(distance)
+  method <- match.arg(method)
+  agglomeration <- match.arg(agglomeration)
+  algorithm <- match.arg(algorithm)
   # --------------------------------------------------------
   # save original data frame
   # --------------------------------------------------------
@@ -162,23 +143,19 @@ sjc.qclus <- function(data,
   # remove missings
   data <- stats::na.omit(data)
   # check for valid argument
-  if (is.null(axisLabels.x)) axisLabels.x <- colnames(data)
+  if (is.null(axis.labels)) axis.labels <- colnames(data)
   # --------------------------------------------------------
   # Trim labels and title to appropriate size
   # --------------------------------------------------------
   # check length of diagram title and split longer string at into new lines
-  if (!is.null(title)) title <- sjmisc::word_wrap(title, breakTitleAt)    
-  # check length of x-axis title and split longer string at into new lines
-  if (!is.null(axisTitle.x)) axisTitle.x <- sjmisc::word_wrap(axisTitle.x, breakTitleAt)    
-  # check length of y-axis title and split longer string at into new lines
-  if (!is.null(axisTitle.y)) axisTitle.y <- sjmisc::word_wrap(axisTitle.y, breakTitleAt)    
+  if (!is.null(title)) title <- sjmisc::word_wrap(title, wrap.title)    
   # check length of legend title and split longer string at into new lines
-  if (!is.null(legendTitle)) legendTitle <- sjmisc::word_wrap(title, breakLegendTitleAt)    
+  if (!is.null(legend.title)) legend.title <- sjmisc::word_wrap(title, wrap.legend.title)    
   # check length of y-axis title and split longer string at into new lines
-  if (!is.null(legendLabels)) legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)
+  if (!is.null(legend.labels)) legend.labels <- sjmisc::word_wrap(legend.labels, wrap.legend.labels)
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  axisLabels.x <- sjmisc::word_wrap(axisLabels.x, breakLabelsAt)
+  axis.labels <- sjmisc::word_wrap(axis.labels, wrap.labels)
   # ---------------------------------------------
   # check for auto-groupcount
   # ---------------------------------------------
@@ -187,13 +164,13 @@ sjc.qclus <- function(data,
     # check if suggested package is available
     # ------------------------
     if (!requireNamespace("cluster", quietly = TRUE)) {
-      stop("Package 'cluster' needed for this function to work. Please install it.", call. = FALSE)
+      stop("Package `cluster` needed for this function to work. Please install it.", call. = FALSE)
     }
     # check whether method is kmeans. hierarchical clustering
     # requires a specified groupcount
-    if (method != "k") {
-      message("Cannot compute hierarchical cluster analysis when 'groupcount' is NULL. Using kmeans clustering instead.")
-      method <- "k"
+    if (method != "kmeans") {
+      message("Cannot compute hierarchical cluster analysis when `groupcount` is NULL. Using kmeans clustering instead.")
+      method <- "kmeans"
     }
     # retrieve optimal group count via gap statistics
     kgap <- sjc.kgap(data, plotResults = F)
@@ -219,31 +196,31 @@ sjc.qclus <- function(data,
   # ---------------------------------------------
   # auto-set legend labels
   # ---------------------------------------------
-  if (is.null(legendLabels)) legendLabels <- sprintf("Group %i", c(1:groupcount))
+  if (is.null(legend.labels)) legend.labels <- sprintf("Group %i", c(1:groupcount))
   # --------------------------------------------------------
   # show goodness of classification
   # --------------------------------------------------------
   grp.accuracy <- sjc.grpdisc(data, 
                               groups = grp, 
                               groupcount = groupcount, 
-                              printPlot = showAccuracy)
+                              prnt.plot = show.accuracy)
   # ---------------------------------------------
   # Add group count to legend labels
   # ---------------------------------------------
-  if (showGroupCount || showAccuracyLabels) {
+  if (show.grpcnt || show.accuracy) {
     # iterate legend labels
-    for (i in 1:length(legendLabels)) {
+    for (i in 1:length(legend.labels)) {
       # label string for group count
       gcnt.label <- sprintf("n=%i", length(which(grp == i)))
       # label string for accuracy
       acc.label <- sprintf("accuracy=%.2f%%", 100 * grp.accuracy$accuracy[i])
       # prepare legend label
-      legendLabels[i] <- paste0(legendLabels[i], " (")
+      legend.labels[i] <- paste0(legend.labels[i], " (")
       # add group count to each label
-      if (showGroupCount) legendLabels[i] <- paste0(legendLabels[i], gcnt.label)
-      if (showGroupCount && showAccuracyLabels) legendLabels[i] <- paste0(legendLabels[i], ", ")
-      if (showAccuracyLabels) legendLabels[i] <- paste0(legendLabels[i], acc.label)
-      legendLabels[i] <- paste0(legendLabels[i], ")")
+      if (show.grpcnt) legend.labels[i] <- paste0(legend.labels[i], gcnt.label)
+      if (show.grpcnt && show.accuracy) legend.labels[i] <- paste0(legend.labels[i], ", ")
+      if (show.accuracy) legend.labels[i] <- paste0(legend.labels[i], acc.label)
+      legend.labels[i] <- paste0(legend.labels[i], ")")
     }
   }
   # scale data
@@ -275,15 +252,11 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   df$group <- as.factor(df$group)
   # --------------------------------------------------------
-  # Hide or show Axis Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showAxisLabels.x) axisLabels.x <- NULL
-  # --------------------------------------------------------
   # create plot
   # --------------------------------------------------------
-  if (reverseAxis.x) {
+  if (reverse.axis) {
     gp <- ggplot(df, aes(x = rev(x), y = y, fill = group))
-    axisLabels.x <- rev(axisLabels.x)
+    axis.labels <- rev(axis.labels)
   } else {
     gp <- ggplot(df, aes(x = x, y = y, fill = group))
   }
@@ -293,12 +266,8 @@ sjc.qclus <- function(data,
              width = geom.size) +
     scale_x_discrete(breaks = c(1:colnr), 
                      limits = c(1:colnr), 
-                     labels = axisLabels.x) +
-    labs(title = title, x = axisTitle.x, y = axisTitle.y, fill = legendTitle)
-  # --------------------------------------------------------
-  # hide y-axis labels
-  # --------------------------------------------------------
-  if (!showAxisLabels.y) gp <- gp + scale_y_continuous(labels = NULL)    
+                     labels = axis.labels) +
+    labs(title = title, x = "Cluster group characteristics", y = "Mean of z-scores", fill = legend.title)
   # --------------------------------------------------------
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
@@ -307,19 +276,19 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # use facets
   # --------------------------------------------------------
-  if (facetCluster) gp <- gp + facet_wrap(~group)
+  if (facet.grid) gp <- gp + facet_wrap(~group)
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
   gp <- sj.setGeomColors(gp, 
                          geom.colors, 
-                         length(legendLabels), 
-                         ifelse(isTRUE(hideLegend), FALSE, TRUE), 
-                         legendLabels)  
+                         length(legend.labels), 
+                         show.legend,
+                         legend.labels)  
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
-  if (printPlot) graphics::plot(gp)
+  if (prnt.plot) graphics::plot(gp)
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
@@ -339,10 +308,6 @@ sjc.qclus <- function(data,
 #'                
 #' @references Maechler M, Rousseeuw P, Struyf A, Hubert M, Hornik K (2014) cluster: Cluster Analysis Basics and Extensions. R package.
 #'
-#' @param method Indicates the clustering method. If \code{"hclust"} (default), a hierachical 
-#'          clustering using the ward method is computed. Use \code{"kmeans"} to compute a k-means clustering.
-#'          You can specifiy inital letters only.
-#'          
 #' @inheritParams sjc.qclus
 #'          
 #' @return The group classification for each observation as vector. This group
@@ -359,7 +324,7 @@ sjc.qclus <- function(data,
 #'        have to be considered:
 #'        \enumerate{
 #'          \item Use the \code{/PRINT INITIAL} option for SPSS Quick Cluster to get a table with initial cluster centers.
-#'          \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specifying \code{nrow} and \code{ncol} arguments.
+#'          \item Create a \code{\link{matrix}} of this table, by consecutively copying the values, one row after another, from the SPSS output into a matrix and specify \code{nrow} and \code{ncol} arguments.
 #'          \item Use \code{algorithm="Lloyd"}.
 #'          \item Use the same amount of \code{iter.max} both in SPSS and this \code{sjc.qclus}.
 #'        }
@@ -378,16 +343,21 @@ sjc.qclus <- function(data,
 #' @export
 sjc.cluster <- function(data,
                         groupcount = NULL,
-                        method = "h",
-                        distance = "euclidean",
-                        agglomeration = "ward",
+                        method = c("hclust", "kmeans"),
+                        distance = c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski"),
+                        agglomeration = c("ward", "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid"),
                         iter.max = 20,
-                        algorithm = "Hartigan-Wong") {
+                        algorithm = c("Hartigan-Wong", "Lloyd", "MacQueen")) {
   # --------------------------------------------------------
   # check for abbreviations
   # --------------------------------------------------------
-  if (method == "kmeans") method <- "k"
-  if (method == "hclust") method <- "h"
+  # --------------------------------------------------------
+  # match arguments
+  # --------------------------------------------------------
+  distance <- match.arg(distance)
+  method <- match.arg(method)
+  agglomeration <- match.arg(agglomeration)
+  algorithm <- match.arg(algorithm)
   # --------------------------------------------------------
   # save original data frame
   # --------------------------------------------------------
@@ -409,13 +379,13 @@ sjc.cluster <- function(data,
     # check if suggested package is available
     # ------------------------
     if (!requireNamespace("cluster", quietly = TRUE)) {
-      stop("Package 'cluster' needed for this function to work. Please install it.", call. = FALSE)
+      stop("Package `cluster` needed for this function to work. Please install it.", call. = FALSE)
     }
     # check whether method is kmeans. hierarchical clustering
     # requires a specified groupcount
-    if (method != "k") {
-      message("Cannot compute hierarchical cluster analysis when 'groupcount' is NULL. Using kmeans clustering instead.")
-      method <- "k"
+    if (method != "kmeans") {
+      message("Cannot compute hierarchical cluster analysis when `groupcount` is NULL. Using kmeans clustering instead.")
+      method <- "kmeans"
     }
     # retrieve optimal group count via gap statistics
     kgap <- sjc.kgap(data, plotResults = F)
@@ -425,7 +395,7 @@ sjc.cluster <- function(data,
   # --------------------------------------------------
   # Ward Hierarchical Clustering
   # --------------------------------------------------
-  if (method == "h") {
+  if (method == "hclust") {
     # check for argument and R version
     if (agglomeration == "ward") agglomeration <- "ward.D2"
     # distance matrix
@@ -435,10 +405,7 @@ sjc.cluster <- function(data,
     # cut tree into x clusters
     groups <- stats::cutree(hc, k = groupcount)
   } else {
-    km <- stats::kmeans(data, 
-                        centers = groupcount, 
-                        iter.max = iter.max, 
-                        algorithm = algorithm)
+    km <- stats::kmeans(data, centers = groupcount, iter.max = iter.max, algorithm = algorithm)
     # return cluster assignment
     groups <- km$cluster
   }
@@ -460,8 +427,6 @@ sjc.cluster <- function(data,
 #'                Can be used, for instance, as visual tool to verify the elbow-criterion
 #'                (see \code{\link{sjc.elbow}}).
 #'                
-#' @param data data frame containing all variables that should be used for the
-#'          cluster analysis.
 #' @param groupcount The amount of groups (clusters) that should be used.
 #'          \itemize{
 #'            \item Use \code{\link{sjc.elbow}}-function to determine the group-count depending on the elbow-criterion.
@@ -545,18 +510,17 @@ sjc.dend <- function(data, groupcount, distance = "euclidean", agglomeration = "
 #'                This function plots a bar graph indicating the goodness of classification
 #'                for each group.
 #'                
-#' @param data data frame containing all variables that should be used for the
-#'          check for goodness of classification of a cluster analysis
 #' @param groups group classification of the cluster analysis that was returned
 #'          from the \code{\link{sjc.cluster}}-function
 #' @param groupcount amount of groups (clusters) that should be used. Use
 #'          \code{\link{sjc.elbow}} to determine the group-count depending
 #'          on the elbow-criterion.
-#' @param showTotalCorrect logical, if \code{TRUE} (default), a vertical line indicating the
+#' @param clss.fit logical, if \code{TRUE} (default), a vertical line indicating the
 #'          overall goodness of classification is added to the plot, so one can see
 #'          whether a certain group is below or above the average classification goodness.
-#' @param printPlot logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-#'          want to plot any graphs. In either case, the ggplot-object will be returned as value.
+#'
+#' @inheritParams sjc.cluster
+#' @inheritParams sjp.grpfrq
 #'
 #' @return (Invisibly) returns an object with
 #'           \itemize{
@@ -579,7 +543,7 @@ sjc.dend <- function(data, groupcount, distance = "euclidean", agglomeration = "
 #' @importFrom graphics plot
 #' @import ggplot2
 #' @export
-sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, printPlot = TRUE) {
+sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = TRUE) {
   # Prepare Data
   # listwise deletion of missing
   data <- stats::na.omit(data)
@@ -663,7 +627,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
     # beside the bars and not printed into them
     coord_cartesian(ylim = c(0, 100), 
                     xlim = c(-0.5, groupcount + 1))
-  if (showTotalCorrect) {
+  if (clss.fit) {
     classplot <- classplot +
     # set line across all bars which indicates the total percentage of
     # correct assigned cases
@@ -682,7 +646,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
-  if (printPlot) graphics::plot(classplot)
+  if (prnt.plot) graphics::plot(classplot)
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
@@ -710,7 +674,6 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
 #' @param show.diff logical, if \code{TRUE}, an additional plot with the differences between 
 #'          each fusion step of the Elbow criterion calculation is shown. This plot
 #'          may help identifying the "elbow". Default for this argument is \code{FALSE}.
-#' @param showDiff Deprecated; use \code{show.diff} instead.
 #'          
 #' @examples
 #' # plot elbow values of mtcars dataset
@@ -722,14 +685,7 @@ sjc.grpdisc <- function(data, groups, groupcount, showTotalCorrect = TRUE, print
 #' @importFrom stats na.omit
 #' @importFrom graphics plot
 #' @export
-sjc.elbow <- function(data, steps = 15, show.diff = FALSE, showDiff = FALSE) {
-  # -----------------------------------
-  # warn, if deprecated param is used
-  # -----------------------------------
-  if (!missing(showDiff)) {
-    warning("argument 'showDiff' is deprecated; please use 'show.diff' instead.")
-    show.diff <- showDiff
-  }
+sjc.elbow <- function(data, steps = 15, show.diff = FALSE) {
   # Prepare Data
   # listwise deletion of missing
   data <- stats::na.omit(data) 

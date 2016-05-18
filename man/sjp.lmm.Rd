@@ -2,19 +2,18 @@
 % Please edit documentation in R/sjPlotLinregMultiple.R
 \name{sjp.lmm}
 \alias{sjp.lmm}
-\title{Plot coefficients of multiple fitted lm(er)'s}
+\title{Plot estimates of multiple fitted lm(er)'s}
 \usage{
-sjp.lmm(..., type = "lm", title = NULL, labelDependentVariables = NULL,
-  legendDepVarTitle = "Dependent Variables", legendPValTitle = "p-level",
-  axisLabels.y = NULL, axisTitle.x = "Estimates", axisLimits = NULL,
-  breakTitleAt = 50, breakLabelsAt = 25, breakLegendTitleAt = 20,
-  gridBreaksAt = NULL, geom.size = 3, geom.spacing = 0.4,
-  geom.colors = "Set1", fade.ns = FALSE, usePShapes = FALSE,
-  interceptLineType = 2, interceptLineColor = "grey70",
-  remove.estimates = NULL, coord.flip = TRUE, showIntercept = FALSE,
-  showAxisLabels.y = TRUE, showValueLabels = TRUE, labelDigits = 2,
-  showPValueLabels = TRUE, hideLegend = FALSE, facet.grid = FALSE,
-  printPlot = TRUE)
+sjp.lmm(..., type = "lm", remove.estimates = NULL, title = NULL,
+  depvar.labels = NULL, legend.title = "Dependent Variables",
+  legend.pval.title = "p-level", axis.labels = NULL,
+  axis.title = "Estimates", axis.lim = NULL, wrap.title = 50,
+  wrap.labels = 25, wrap.legend.title = 20, grid.breaks = NULL,
+  geom.size = 3, geom.spacing = 0.4, geom.colors = "Set1",
+  show.values = TRUE, show.legend = TRUE, show.intercept = FALSE,
+  show.p = TRUE, fade.ns = FALSE, p.shape = FALSE, p.kr = TRUE,
+  vline.type = 2, vline.color = "grey70", digits = 2,
+  facet.grid = FALSE, coord.flip = TRUE, prnt.plot = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted \code{lm} or \code{lmerMod}-objects. May also 
@@ -28,84 +27,90 @@ each model with comma. See 'Examples'.}
   \item{\code{"std2"}}{for forest-plot like plot of standardized beta values, however, standardization is done by rescaling estimates by dividing them by two sd (see 'Details' in \code{\link{sjp.lm}}).}
 }}
 
-\item{title}{diagram's title as string.}
-
-\item{labelDependentVariables}{character vector with labels of dependent 
-variables of all fitted models. See 'Examples'.}
-
-\item{legendDepVarTitle}{character vector used for the legend title.
-Default is \code{"Dependent Variables"}.}
-
-\item{legendPValTitle}{character vector used for the title of the significance level's legend.
-Default is \code{"p-level"}. Only applies if \code{usePShapes = TRUE}.}
-
-\item{axisLabels.y}{labels or names of the predictor variables (independent vars). Must
-be a character vector of same length as independent variables.}
-
-\item{axisTitle.x}{string, title for the x axis.}
-
-\item{axisLimits}{numeric vector of length 2, defining the range of the plot axis.
-By default, the limits range from the lowest confidence interval to the 
-highest, so plot has maximum zoom.}
-
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
-are displayed in one line and when a line break is inserted.}
-
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed.}
-
-\item{geom.size}{size of the points that indicate the estimates. Default is 3.}
-
-\item{geom.spacing}{spacing between the dots and error bars of the plotted fitted models. Default
-is 0.3.}
-
-\item{geom.colors}{colors for representing the estimates (i.e. points and error bars)
-of the different fitted models. Thus, the length of this vector must be equal to
-the length of supplied fitted models, so each model is represented by its own color.
-See 'Note' in \code{\link{sjp.grpfrq}}.}
-
-\item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
-
-\item{usePShapes}{If \code{TRUE}, significant levels are distinguished by different point shapes and a related
-legend is plotted. Default is \code{FALSE}.}
-
-\item{interceptLineType}{linetype of the intercept line (zero point). Default is \code{2} (dashed line).}
-
-\item{interceptLineColor}{color of the intercept line. Default value is \code{"grey70"}.}
-
 \item{remove.estimates}{character vector with coefficient names that indicate
 which estimates should be removed from the plot.
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{coord.flip}{logical, if \code{TRUE} (default), predictors are plotted along the y-axis and estimate
-values are plotted on the x-axis.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{showIntercept}{If \code{TRUE}, the intercept of the fitted model is also plotted.
-Default is \code{FALSE}.}
+\item{depvar.labels}{character vector with labels of dependent 
+variables of all fitted models. See 'Examples'.}
 
-\item{showAxisLabels.y}{Whether term names (predictor labels) should be shown or not.}
+\item{legend.title}{character vector, used as title for the plot legend.}
 
-\item{showValueLabels}{logical, whether value labels should be plotted to each dot or not.}
+\item{legend.pval.title}{character vector, used as title of the plot legend that 
+indicates the p-values. Default is \code{"p-level"}. Only applies if \code{p.shape = TRUE}.}
 
-\item{labelDigits}{amount of digits for rounding the estimates (see \code{showValueLabels}).
-Default is 2, i.e. estimates have 2 digits after decimal point.}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
-\item{showPValueLabels}{Whether the significance levels of each coefficient should be appended
-to values or not.}
+\item{axis.title}{character vector, used as title for the axis. If not specified, 
+a default labelling depending on the plot function and type is chosen.}
 
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
+\item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
+Depending on plot type, may effect either x- or y-axis, or both.}
 
-\item{facet.grid}{\code{TRUE} when each model should be plotted as single facet instead of 
-an integrated single graph.}
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
+one line and when a line break is inserted.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
+are displayed in one line and when a line break is inserted.}
+
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
+
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
+
+\item{geom.spacing}{spacing between the dots and error bars of the plotted fitted models. Default
+is 0.3.}
+
+\item{geom.colors}{user defined color palette for geoms. If \code{group.estimates}
+is \emph{not} specified, must either be vector with two color values or a specific
+color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
+\code{group.estimates} is specified, \code{geom.colors} must be a vector
+of same length as groups. See 'Examples'.}
+
+\item{show.values}{logical, whether values should be plotted or not.}
+
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
+
+\item{show.intercept}{logical, if \code{TRUE}, the intercept of the fitted model is also plotted.
+Default is \code{FALSE}. For \code{glm}'s, please note that due to exponential 
+transformation of estimates, the intercept in some cases can not be calculated, thus the
+function call is interrupted and no plot printed.}
+
+\item{show.p}{logical, adds significance levels to values, or value and 
+variable labels.}
+
+\item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
+
+\item{p.shape}{If \code{TRUE}, significant levels are distinguished by different point shapes and a related
+legend is plotted. Default is \code{FALSE}.}
+
+\item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional 
+F-tests with Kenward-Roger approximation for the df. Caution: Computation
+may take very long time for large samples!}
+
+\item{vline.type}{linetype of the vertical "zero point" line. Default is \code{2} (dashed line).}
+
+\item{vline.color}{color of the vertical "zero point" line. Default value is \code{"grey70"}.}
+
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
+
+\item{facet.grid}{\code{TRUE} to arrange the lay out of of multiple plots 
+in a grid of an integrated single plot.}
+
+\item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
+
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -143,17 +148,10 @@ sjp.lmm(fit1, fit2, fit3, facet.grid = TRUE)
 # plot multiple models with legend labels and 
 # point shapes instead of value labels
 sjp.lmm(fit1, fit2, fit3,
-         axisLabels.y = c("Carer's Age",
-                          "Hours of Care", 
-                          "Carer's Sex",
-                          "Educational Status"),
-         labelDependentVariables = c("Barthel Index", 
-                                     "Negative Impact", 
-                                     "Services used"),
-         showValueLabels = FALSE,
-         showPValueLabels = FALSE,
-         fade.ns = TRUE,
-         usePShapes = TRUE)
+        axis.labels = c("Carer's Age", "Hours of Care", "Carer's Sex",
+                        "Educational Status"),
+        depvar.labels = c("Barthel Index", "Negative Impact", "Services used"),
+        show.values = FALSE, show.p = FALSE, fade.ns = TRUE, p.shape = TRUE)
 
 # ------------------------------
 # plot multiple models from nested lists argument

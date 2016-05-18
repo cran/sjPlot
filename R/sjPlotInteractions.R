@@ -9,8 +9,6 @@
 #'              \item Hayes AF (2012) PROCESS: A versatile computational tool for observed variable mediation, moderation, and conditional process modeling [White paper] \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{download}
 #'              \item \href{http://www.theanalysisfactor.com/interpreting-interactions-in-regression/}{Grace-Martin K: Interpreting Interactions in Regression}
 #'              \item \href{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}{Grace-Martin K: Clarifications on Interpreting Interactions in Regression}
-#'              \item \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin K: 3 Tips to Make Interpreting Moderation Effects Easier}
-#'              \item \href{http://www.theanalysisfactor.com/using-adjusted-means-to-interpret-moderators-in-analysis-of-covariance/}{Grace-Martin K: Using Adjusted Means to Interpret Moderators in Analysis of Covariance.}
 #'              }
 #'
 #' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.int/}{sjPlot manual: sjp.int}
@@ -50,18 +48,18 @@
 #'            \item{\code{type = "cond"}}{plots the mere \emph{change} of the moderating effect on the response value (conditional effect). See 'Details'.}
 #'            \item{\code{type = "emm"}}{plots the estimated marginal means (least square means). If this type is chosen, not all function arguments are applicable. See 'Details'.}
 #'          }
-#' @param int.term select interaction term of \code{fit} (as character), which should be plotted
-#'          when using \code{type = "eff"}. By default, this argument can be ignored
+#' @param int.term name of interaction term of \code{fit} (as character), which should be plotted
+#'          when using \code{type = "eff"}. By default, this argument will be ignored
 #'          (i.e. \code{int.term = NULL}). See 'Details'.
 #' @param int.plot.index numeric vector with index numbers that indicate which 
 #'          interaction terms should be plotted in case the \code{fit} has more than
-#'          one interaction. By default, this values is \code{NULL}, hence all interactions
+#'          one interaction. By default, this value is \code{NULL}, hence all interactions
 #'          are plotted.
 #' @param diff if \code{FALSE} (default), the minimum and maximum interaction effects of the moderating variable
 #'          is shown (one line each). if \code{TRUE}, only the difference between minimum and maximum interaction effect
 #'          is shown (single line). Only applies to \code{type = "cond"}.
-#' @param moderatorValues indicates which values of the moderator variable should be used when plotting the effects of the
-#'          independent variable on the dependent variable.
+#' @param mdrt.values indicates which values of the moderator variable should be 
+#'          used when plotting the interaction effects.
 #'          \describe{
 #'            \item{\code{"minmax"}}{(default) minimum and maximum values (lower and upper bounds) of the moderator are used to plot the interaction between independent variable and moderator.}
 #'            \item{\code{"meansd"}}{uses the mean value of the moderator as well as one standard deviation below and above mean value to plot the effect of the moderator on the independent variable (following the convention suggested by Cohen and Cohen and popularized by Aiken and West, i.e. using the mean, the value one standard deviation above, and the value one standard deviation below the mean as values of the moderator, see \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin K: 3 Tips to Make Interpreting Moderation Effects Easier}).}
@@ -69,7 +67,7 @@
 #'            \item{\code{"quart"}}{calculates and uses the quartiles (lower, median and upper) of the moderator value.}
 #'            \item{\code{"all"}}{uses all values of the moderator variable. Note that this option only applies to \code{type = "eff"}, for numeric moderator values.}
 #'          }
-#' @param swapPredictors if \code{TRUE}, the predictor on the x-axis and the moderator value in an interaction are
+#' @param swap.pred if \code{TRUE}, the predictor on the x-axis and the moderator value in an interaction are
 #'          swapped. For \code{type = "eff"}, the first interaction term is used as moderator and the second term
 #'          is plotted at the x-axis. For \code{type = "cond"}, the interaction's predictor with less unique values is 
 #'          printed along the x-axis. Default is \code{FALSE}, so the second predictor in an interaction, respectively 
@@ -78,45 +76,40 @@
 #'          i.e. at which p-level an interaction term will be considered for plotting. Default is
 #'          0.1 (10 percent), hence, non-significant interactions are excluded by default. This
 #'          argument does not apply to \code{type = "eff"}.
-#' @param title a default title used for the plots. Should be a character vector
+#' @param title default title used for the plots. Should be a character vector
 #'          of same length as interaction plots to be plotted. Default value is \code{NULL}, which means that each plot's title
 #'          includes the dependent variable as well as the names of the interaction terms.
-#' @param fillColor fill color of the shaded area between the minimum and maximum lines. Default is \code{"grey"}.
-#'          Either set \code{fillColor} to \code{NULL} or use 0 for \code{fillAlpha} if you want to hide the shaded area.
-#' @param fillAlpha alpha value (transparancy) of the shaded area between the minimum and maximum lines. Default is 0.4.
-#'          Use either 0 or set \code{fillColor} to \code{NULL} if you want to hide the shaded area.
-#' @param geom.colors vector of color values. First value is the color of the line indicating the lower bound of
-#'          the interaction term (moderator value). Second value is the color of the line indicating the upper bound of
-#'          the interaction term (moderator value). Third value, if applicable, is the color of the line indicating the
-#'          mean value of the interaction term (moderator value). Third value is only used when 
-#'          \code{moderatorValues = "meansd"}. Or, if \code{diff = TRUE}, only one color value for the 
-#'          line indicating the upper difference between lower and upper bound of interaction terms.
-#' @param axisTitle.x a default title used for the x-axis. Should be a character vector
+#' @param fill.color fill color of the shaded area between the minimum and maximum lines. Default is \code{"grey"}.
+#'          Either set \code{fill.color} to \code{NULL} or use 0 for \code{fill.alpha} if you want to hide the shaded area.
+#' @param fill.alpha alpha value (transparancy) of the shaded area between the minimum and maximum lines. Default is 0.4.
+#'          Use either 0 or set \code{fill.color} to \code{NULL} if you want to hide the shaded area.
+#' @param geom.colors vector of color values or name of a valid color brewer palette. 
+#'          If not a color brewer palette name, \code{geom.colors} must be of same 
+#'          length as moderator values used in the plot (see \code{mdrt.values}).
+#'          See also 'Details' in \code{\link{sjp.grpfrq}}.
+#' @param axis.title a default title used for the x-axis. Should be a character vector
 #'          of same length as interaction plots to be plotted. Default value is \code{NULL},
 #'          which means that each plot's x-axis uses the predictor's name as title.
-#' @param axisTitle.y a default title used for the y-axis. Default value is \code{NULL},
-#'          which means that each plot's y-axis uses the dependent variable's name as title.
-#' @param axisLabels.x character vector with value labels of the repeated measure variable
-#'          that are used for labelling the x-axis.
-#' @param legendTitle title of the diagram's legend. A character vector of same length as 
+#' @param axis.labels character vector with value labels of the interaction, used
+#'          to label the x-axis. Only applies to \code{type = "emm"}.
+#' @param legend.title title of the diagram's legend. A character vector of same length as 
 #'          amount of interaction plots to be plotted (i.e. one vector element for each
 #'          plot's legend title).
-#' @param legendLabels labels for the guide/legend. Either a character vector of same length as
+#' @param legend.labels labels for the guide/legend. Either a character vector of same length as
 #'          amount of legend labels of the plot, or a \code{list} of character vectors, if more than one
 #'          interaction plot is plotted (i.e. one vector of legend labels for each interaction plot).
 #'          Default is \code{NULL}, so the name of the predictor with min/max-effect is used 
 #'          as legend label.
-#' @param showValueLabels if \code{TRUE}, value labels are plotted along the lines. Default is \code{FALSE}.
-#' @param showCI may be a numeric or logical value. If \code{showCI} is logical and 
-#'          \code{TRUE}, a 95\% confidence region will be plotted. If \code{showCI}
+#' @param show.ci may be a numeric or logical value. If \code{show.ci} is logical and 
+#'          \code{TRUE}, a 95\% confidence region will be plotted. If \code{show.ci}
 #'          if numeric, must be a number between 0 and 1, indicating the proportion
-#'          for the confidence regeion (e.g. \code{showCI = 0.9} plots a 90\% CI).
+#'          for the confidence regeion (e.g. \code{show.ci = 0.9} plots a 90\% CI).
 #'          Only applies to \code{type = "emm"} or \code{type = "eff"}.
-#' @param valueLabel.digits the amount of digits of the displayed value labels. Defaults to 2.
-#' @param facet.grid \code{TRUE} for faceted plots instead of an integrated single plot.
 #' 
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.frq
+#' @inheritParams sjp.lmer
+#' @inheritParams sjp.glmer
 #' 
 #' @return (Insisibily) returns the ggplot-objects with the complete plot-list (\code{plot.list})
 #'           as well as the data frames that were used for setting up the ggplot-objects (\code{data.list}).
@@ -124,17 +117,18 @@
 #' @details \describe{
 #'            \item{\code{type = "eff"}}{plots the overall effects (marginal effects) of the interaction, with all remaining
 #'              covariates set to the mean. Effects are calculated using the \code{\link[effects]{effect}}-
-#'              function from the \pkg{effects}-package. \cr \cr
-#'              Following arguments \emph{do not} apply to this function: \code{diff}, \code{axisLabels.x}.
+#'              function from the \pkg{effects}-package.
+#'              You can pass further arguments down to \code{allEffects} for flexible
+#'              function call via the \code{...}-argument.
 #'            }
 #'            \item{\code{type = "cond"}}{plots the effective \emph{change} or \emph{impact} 
 #'              (conditional effect) on a dependent variable of a moderation effect, as 
-#'              described in \href{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}{Grace-Martin},
-#'              i.e. the difference of the moderation effect on the dependent variable in \emph{presence}
-#'              and \emph{absence} of the moderating effect (\emph{simple slope} plot or 
-#'              \emph{conditional effect}, see \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{Hayes 2012}).
+#'              described by Grace-Martin, i.e. the difference of the moderation effect on the 
+#'              dependent variable in \emph{presence} and \emph{absence} of the moderating effect 
+#'              (\emph{simple slope} plot or \emph{conditional effect}, see Hayes 2012). All
+#'              remaining predictors are set to zero (i.e. ignored and not adjusted for).
 #'              Hence, this plot type may be used especially for \emph{binary or dummy coded} 
-#'              moderator values (see also \href{http://jee3.web.rice.edu/interaction-overconfidence.pdf}{Esarey and Summer 2015}).
+#'              moderator values (see also Esarey and Summer 2015).
 #'              This type \emph{does not} show the overall effect (marginal mean, i.e. adjusted
 #'              for all other predictors and covariates) of interactions on the result of Y. Use 
 #'              \code{type = "eff"} for effect displays similar to the \code{\link[effects]{effect}}-function 
@@ -146,10 +140,6 @@
 #'              The fitted models may be linear (mixed effects) 
 #'              models of class \code{\link{lm}} or \code{\link[lme4]{merMod}}. This function may be used, for example,
 #'              to plot differences in interventions between control and treatment groups over multiple time points.
-#'              \itemize{
-#'                \item Following paramters apply to this plot type: \code{showCI}, \code{valueLabel.digits} and \code{axisLabels.x}.
-#'                \item Following arguments \emph{do not} apply to this function: \code{int.term}, \code{int.plot.index}, \code{diff}, \code{moderatorValues}, \code{fillColor}, \code{fillAlpha}.
-#'              }
 #'            }
 #'          }
 #'          The argument \code{int.term} only applies to \code{type = "eff"} and can be used
@@ -163,7 +153,7 @@
 #' @note Note that beside interaction terms, also the single predictors of each interaction (main effects)
 #'        must be included in the fitted model as well. Thus, \code{lm(dep ~ pred1 * pred2)} will work, 
 #'        but \code{lm(dep ~ pred1:pred2)} won't! \cr \cr
-#'        For \code{type = "emm"}, all interaction terms have to be \code{\link{factor}}s!
+#'        For \code{type = "emm"}, all interaction terms have to be factors.
 #'        Furthermore, for \code{type = "eff"}, predictors of interactions that are introduced first into the model
 #'        are used as grouping variable, while the latter predictor is printed along the x-axis
 #'        (i.e. lm(y~a+b+a:b) means that "a" is used as grouping variable and "b" is plotted along the x-axis).
@@ -174,7 +164,7 @@
 #'
 #' # fit "dummy" model. Note that moderator should enter
 #' # first the model, followed by predictor. Else, use
-#' # argument "swapPredictors" to change predictor on 
+#' # argument "swap.pred" to change predictor on 
 #' # x-axis with moderator
 #' fit <- lm(weight ~ Diet * Time, data = ChickWeight)
 #'
@@ -182,7 +172,7 @@
 #' summary(fit)
 #'
 #' # plot regression line of interaction terms, including value labels
-#' sjp.int(fit, type = "eff", showValueLabels = TRUE)
+#' sjp.int(fit, type = "eff", show.values = TRUE)
 #'
 #'
 #' # load sample data set
@@ -212,13 +202,11 @@
 #'
 #' # plot interactions, using mean and sd as moderator
 #' # values to calculate interaction effect
-#' sjp.int(fit, type = "eff", moderatorValues = "meansd")
-#' sjp.int(fit, type = "cond", moderatorValues = "meansd")
+#' sjp.int(fit, type = "eff", mdrt.values = "meansd")
+#' sjp.int(fit, type = "cond", mdrt.values = "meansd")
 #'
 #' # plot interactions, including those with p-value up to 0.1
-#' sjp.int(fit,
-#'         type = "cond",
-#'         plevel = 0.1)
+#' sjp.int(fit, type = "cond", plevel = 0.1)
 #'
 #' # -------------------------------
 #' # Predictors for negative impact of care.
@@ -233,19 +221,10 @@
 #'                    sex = as.factor(efc$c161sex),
 #'                    barthel = as.numeric(efc$barthtot))
 #' # fit model
-#' fit <- glm(y ~ sex * barthel,
-#'            data = mydf,
-#'            family = binomial(link = "logit"))
+#' fit <- glm(y ~ sex * barthel, data = mydf, family = binomial(link = "logit"))
 #' # plot interaction, increase p-level sensivity
-#' sjp.int(fit,
-#'         type = "eff",
-#'         legendLabels = get_labels(efc$c161sex),
-#'         plevel = 0.1)
-#'
-#' sjp.int(fit,
-#'         type = "cond",
-#'         legendLabels = get_labels(efc$c161sex),
-#'         plevel = 0.1)
+#' sjp.int(fit, type = "eff", legend.labels = get_labels(efc$c161sex), plevel = 0.1)
+#' sjp.int(fit, type = "cond", legend.labels = get_labels(efc$c161sex), plevel = 0.1)
 #'         
 #' \dontrun{
 #' # -------------------------------
@@ -275,10 +254,7 @@
 #' # plot marginal means of interactions, including those with p-value up to 1
 #' sjp.int(fit, type = "emm", plevel = 1)
 #' # swap predictors
-#' sjp.int(fit, 
-#'         type = "emm",
-#'         plevel = 1, 
-#'         swapPredictors = TRUE)
+#' sjp.int(fit, type = "emm", plevel = 1, swap.pred = TRUE)
 #'
 #' # -------------------------------
 #' # Plot effects
@@ -289,14 +265,10 @@
 #' fit <- lm(burden ~ .*., data = mydf)
 #' 
 #' # plot effects
-#' sjp.int(fit, type = "eff", showCI = TRUE)
+#' sjp.int(fit, type = "eff", show.ci = TRUE)
 #'
 #' # plot effects, faceted
-#' sjp.int(fit, 
-#'         type = "eff", 
-#'         int.plot.index = 3,
-#'         showCI = TRUE,
-#'         facet.grid = TRUE)}
+#' sjp.int(fit, type = "eff", int.plot.index = 3, show.ci = TRUE, facet.grid = TRUE)}
 #'
 #' @import ggplot2
 #' @import sjmisc
@@ -304,35 +276,41 @@
 #' @importFrom effects allEffects effect
 #' @export
 sjp.int <- function(fit,
-                    type = "eff",
+                    type = c("eff", "cond", "emm"),
                     int.term = NULL,
                     int.plot.index = NULL,
-                    diff = FALSE,
-                    moderatorValues = "minmax",
-                    swapPredictors = FALSE,
+                    mdrt.values = c("minmax", "meansd", "zeromax", "quart", "all"),
+                    swap.pred = FALSE,
                     plevel = 0.1,
+                    diff = FALSE,
                     title = NULL,
-                    fillColor = "grey",
-                    fillAlpha = 0.3,
+                    axis.title = NULL,
+                    axis.labels = NULL,
+                    legend.title = NULL,
+                    legend.labels = NULL,
+                    wrap.title = 50,
+                    wrap.legend.labels = 20,
+                    wrap.legend.title = 20,
                     geom.colors = "Set1",
                     geom.size = NULL,
-                    axisTitle.x = NULL,
-                    axisTitle.y = NULL,
-                    axisLabels.x = NULL,
-                    legendTitle = NULL,
-                    legendLabels = NULL,
-                    showValueLabels = FALSE,
-                    breakTitleAt = 50,
-                    breakLegendLabelsAt = 20,
-                    breakLegendTitleAt = 20,
-                    axisLimits.x = NULL,
-                    axisLimits.y = NULL,
+                    fill.color = "grey",
+                    fill.alpha = 0.3,
+                    show.values = FALSE,
+                    show.ci = FALSE,
+                    p.kr = TRUE,
+                    grid.breaks = NULL,
+                    xlim = NULL,
+                    ylim = NULL,
                     y.offset = 0.07,
-                    gridBreaksAt = NULL,
-                    showCI = FALSE,
-                    valueLabel.digits = 2,
+                    digits = 2,
                     facet.grid = FALSE,
-                    printPlot = TRUE) {
+                    prnt.plot = TRUE,
+                    ...) {
+  # -----------------------------------------------------------
+  # match arguments
+  # -----------------------------------------------------------
+  type <- match.arg(type)
+  mdrt.values <- match.arg(mdrt.values)
   # -----------------------------------------------------------
   # check class of fitted model
   # -----------------------------------------------------------
@@ -371,35 +349,24 @@ sjp.int <- function(fit,
   # check if suggested package is available
   # ------------------------
   if ((fun == "lmer" || fun == "glmer" || fun == "nlmer") && !requireNamespace("lme4", quietly = TRUE)) {
-    stop("Package 'lme4' needed for this function to work. Please install it.", call. = FALSE)
+    stop("Package `lme4` needed for this function to work. Please install it.", call. = FALSE)
   }
   if (fun == "plm" && !"package:plm" %in% search()) {
-    stop("Package 'plm' needs to be loaded for this function to work... Use 'library(plm)' and call this function again.", call. = FALSE)
+    stop("Package `plm` needs to be loaded for this function to work... Use `library(plm)` and call this function again.", call. = FALSE)
   }
   # -----------------------------------------------------------
   # argument check
   # -----------------------------------------------------------
-  if (is.null(fillColor)) {
-    fillColor <- "white"
-    fillAlpha <- 0
+  if (is.null(fill.color)) {
+    fill.color <- "white"
+    fill.alpha <- 0
   }
   # gridbreaks
-  if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
-  # moderator value
-  if (moderatorValues != "minmax" && moderatorValues != "zeromax" && 
-      moderatorValues != "meansd" && moderatorValues != "quart" &&
-      moderatorValues != "all") {
-    message("`moderatorValues` has to be one of `minmax`, `zeromax`, `quart`, `meansd` or `all`. Defaulting to `minmax`.")
-    moderatorValues <- "minmax"
-  }
-  # check plot type
-  if (type != "cond" && type != "emm" && type != "eff") {
-    message("`type` has to be one of `cond`, `eff` or `emm`. Defaulting to `cond`.")
-    type <- "cond"
-  }
-  if (type == "cond" && moderatorValues == "all") {
-    message("`moderatorValues = \"all\"` only applies to `type = \"cond\". Defaulting `moderatorValues` to `minmax`.")
-    moderatorValues <- "minmax"
+  if (is.null(grid.breaks)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
+  # check matching argument combinations
+  if (type == "cond" && mdrt.values == "all") {
+    message("`mdrt.values = \"all\"` only applies to `type = \"eff\". Defaulting `mdrt.values` to `minmax`.")
+    mdrt.values <- "minmax"
   }
   # ------------------------
   # do we have glm? if so, get link family. make exceptions
@@ -415,44 +382,44 @@ sjp.int <- function(fit,
   # --------------------------------------------------------
   if (type == "emm") {
     # ------------------------
-    # multiple purpose of showCI parameter. if logical,
-    # sets default CI to 0.95, else showCI also may be
+    # multiple purpose of show.ci parameter. if logical,
+    # sets default CI to 0.95, else show.ci also may be
     # numeric
     # ------------------------
-    if (!is.null(showCI) && !is.logical(showCI)) {
-      showCI = TRUE
-      warning("argument `showCI` must be logical for `type = 'emm'`.", call. = F)
+    if (!is.null(show.ci) && !is.logical(show.ci)) {
+      show.ci <- TRUE
+      warning("argument `show.ci` must be logical for `type = 'emm'`.", call. = F)
     }
-    return(sjp.emm(fit, swapPredictors, plevel, title, geom.colors, geom.size,
-                   axisTitle.x, axisTitle.y, axisLabels.x, legendTitle, legendLabels,
-                   showValueLabels, valueLabel.digits, showCI, breakTitleAt,
-                   breakLegendTitleAt, breakLegendLabelsAt, y.offset, axisLimits.y, 
-                   gridBreaksAt, facet.grid, printPlot))
+    return(sjp.emm(fit, swap.pred, plevel, title, geom.colors, geom.size,
+                   axis.title, axis.labels, legend.title, legend.labels,
+                   show.values, digits, show.ci, p.kr, wrap.title,
+                   wrap.legend.title, wrap.legend.labels, y.offset, ylim, 
+                   grid.breaks, facet.grid, prnt.plot))
   }
   # --------------------------------------------------------
   # list labels
   # --------------------------------------------------------
-  if (!is.null(legendLabels) && !is.list(legendLabels)) legendLabels <- list(legendLabels)
-  if (!is.null(legendTitle) && is.list(legendTitle)) legendTitle <- unlist(legendTitle)
+  if (!is.null(legend.labels) && !is.list(legend.labels)) legend.labels <- list(legend.labels)
+  if (!is.null(legend.title) && is.list(legend.title)) legend.title <- unlist(legend.title)
   # --------------------------------------------------------
   # plot moderation effeczs?
   # --------------------------------------------------------
   if (type == "eff") {
-    return(sjp.eff.int(fit, int.term, int.plot.index, moderatorValues, swapPredictors, plevel,
-                       title, fillAlpha, geom.colors, geom.size, axisTitle.x,
-                       axisTitle.y, legendTitle, legendLabels,
-                       showValueLabels, breakTitleAt, breakLegendLabelsAt, 
-                       breakLegendTitleAt, axisLimits.x, axisLimits.y, 
-                       y.offset, gridBreaksAt, showCI, facet.grid, printPlot, fun))
+    return(sjp.eff.int(fit, int.term, int.plot.index, mdrt.values, swap.pred, plevel,
+                       title, fill.alpha, geom.colors, geom.size, axis.title,
+                       legend.title, legend.labels, show.values, wrap.title, wrap.legend.labels, 
+                       wrap.legend.title, xlim, ylim, y.offset, grid.breaks, 
+                       show.ci, p.kr, facet.grid, prnt.plot, fun, ...))
   }
   # -----------------------------------------------------------
   # set axis title
   # -----------------------------------------------------------
-  if ((fun == "glm" || fun == "glmer") && is.null(axisTitle.y)) {
-    if (isTRUE(binom_fam))
-      axisTitle.y <- "Change in Predicted Probability"
+  y_title <- NULL
+  if ((fun == "glm" || fun == "glmer")) {
+    if (binom_fam)
+      y_title <- "Change in Predicted Probability"
     else 
-      axisTitle.y <- "Change in Incidents Rates"
+      y_title <- "Change in Incidents Rates"
   }
   # -----------------------------------------------------------
   # get all (significant) interaction terms from model
@@ -462,7 +429,7 @@ sjp.int <- function(fit,
   # contains no interaction terms or no significant interaction term.
   # else, information on model and interaction terms is returned
   # -----------------------------------------------------------
-  git <- getInteractionTerms(fit, fun, plevel)
+  git <- getInteractionTerms(fit, fun, plevel, p.kr)
   # check return value
   if (is.null(git)) return(invisible(NULL))
   # -----------------------------------------------------------
@@ -485,6 +452,10 @@ sjp.int <- function(fit,
   # that should not be plotted. but be careful for out of bound index!
   if (!is.null(int.plot.index) && !any(int.plot.index > length(intnames))) intnames <- intnames[int.plot.index]
   # -----------------------------------------------------------
+  # get model frame, needed later for label detection
+  # -----------------------------------------------------------
+  modfram <- stats::model.frame(fit)
+  # -----------------------------------------------------------
   # Now iterate all significant interaction terms
   # and manually calculate the linear regression by inserting
   # the estimates of each term and the associated interaction term,
@@ -498,7 +469,8 @@ sjp.int <- function(fit,
     interactionterms <- unlist(strsplit(intnames[cnt], ":"))
     labx <- c()
     # Label on y-axis is name of dependent variable
-    laby <- paste0("Change in ", git[["depvar.label"]])
+    laby <- paste0("Change in ", sjmisc::get_label(modfram[[git[["depvar.label"]]]], 
+                                                   def.value = git[["depvar.label"]]))
     # -----------------------------------------------------------
     # find estimates (beta values) for each single predictor of
     # the interaction as well as of the interaction term
@@ -534,7 +506,7 @@ sjp.int <- function(fit,
     # a "smaller range" (i.e. less unique values)
     # or swap predictors on axes if requested
     # -----------------------------------------------------------
-    if (swapPredictors) {
+    if (swap.pred) {
       useFirstPredOnY <- ifelse(length(pred1uniquevals) > length(pred2uniquevals), F, T)
     } else {
       useFirstPredOnY <- ifelse(length(pred1uniquevals) > length(pred2uniquevals), T, F)
@@ -543,7 +515,8 @@ sjp.int <- function(fit,
     # calculate regression line
     # -----------------------------------------------------------
     if (useFirstPredOnY) {
-      labx <- interactionterms[1]
+      labx <- sjmisc::get_label(modfram[[interactionterms[1]]], 
+                                def.value = interactionterms[1])
       predy <- interactionterms[2]
       # -----------------------------------------------------------
       # define predictor and moderator values
@@ -555,7 +528,8 @@ sjp.int <- function(fit,
       # -----------------------------------------------------------
       b.pred <- b1
     } else {
-      labx <- interactionterms[2]
+      labx <- sjmisc::get_label(modfram[[interactionterms[2]]], 
+                                def.value = interactionterms[2])
       predy <- interactionterms[1]
       # -----------------------------------------------------------
       # define predictor and moderator values
@@ -571,26 +545,26 @@ sjp.int <- function(fit,
     # Check whether moderator value has enough unique values
     # for quartiles
     # -----------------------------------------------------------
-    moderatorValues <- mv_check(moderatorValues, mod.value)
+    mdrt.values <- mv_check(mdrt.values, mod.value)
     # -----------------------------------------------------------
     # check which values of moderator should be plotted, i.e. if
     # lower/upper bound (min-max) or mean and standard-deviation
     # should be used as valus for the moderator.
     # see http://www.theanalysisfactor.com/3-tips-interpreting-moderation/
     # -----------------------------------------------------------
-    if (moderatorValues == "minmax") {
+    if (mdrt.values == "minmax") {
       mw <- NA
       ymin <- min(mod.value, na.rm = T)
       ymax <- max(mod.value, na.rm = T)
-    } else if (moderatorValues == "meansd") {
+    } else if (mdrt.values == "meansd") {
       mw <- mean(mod.value, na.rm = T)
       ymin <- mw - sd(mod.value, na.rm = T)
       ymax <- mw + sd(mod.value, na.rm = T)
-    } else if (moderatorValues == "zeromax") {
+    } else if (mdrt.values == "zeromax") {
       mw <- NA
       ymin <- 0
       ymax <- max(mod.value, na.rm = T)
-    } else if (moderatorValues == "quart") {
+    } else if (mdrt.values == "quart") {
       qu <- as.vector(stats::quantile(mod.value, na.rm = T))
       mw <- qu[3]
       ymin <- qu[2]
@@ -616,32 +590,20 @@ sjp.int <- function(fit,
     # ------------------------------
     maxy <- (b.pred * pred.value) + (b3 * pred.value * ymax)
     # store in df
-    tmp <- data.frame(x = pred.value, 
-                      y = miny, 
-                      ymin = miny, 
-                      ymax = maxy, 
-                      grp = "min")
+    tmp <- data.frame(x = pred.value, y = miny, ymin = miny, ymax = maxy, grp = "min")
     intdf <- as.data.frame(rbind(intdf, tmp))
     # store in df
-    tmp <- data.frame(x = pred.value, 
-                      y = maxy, 
-                      ymin = miny, 
-                      ymax = maxy, 
-                      grp = "max")
+    tmp <- data.frame(x = pred.value, y = maxy, ymin = miny, ymax = maxy, grp = "max")
     intdf <- as.data.frame(rbind(intdf, tmp))
     # store in df
-    if (moderatorValues == "meansd" || moderatorValues == "quart") {
+    if (mdrt.values == "meansd" || mdrt.values == "quart") {
       # ------------------------------
       # here we calculate the effect of predictor 1 under presence
       # of mean of predictor 2 on the dependent variable. Thus, the slope for
       # predictor 2 only is not needed. see references above
       # ------------------------------
       mittelwert <- (b.pred * pred.value) + (b3 * pred.value * mw)
-      tmp <- data.frame(x = pred.value, 
-                        y = mittelwert, 
-                        ymin = miny, 
-                        ymax = maxy, 
-                        grp = "mean")
+      tmp <- data.frame(x = pred.value, y = mittelwert, ymin = miny, ymax = maxy, grp = "mean")
       intdf <- as.data.frame(rbind(intdf, tmp))
     }
     # -----------------------------------------------------------
@@ -657,7 +619,7 @@ sjp.int <- function(fit,
       # retrieve lowest and highest x and y position to determine
       # the scale limits
       # -----------------------------------------------------------
-      if (is.null(axisLimits.y)) {
+      if (is.null(ylim)) {
         if (diff) {
           lowerLim.y <- floor(min(intdf$ydiff, na.rm = T))
           upperLim.y <- ceiling(max(intdf$ydiff, na.rm = T))
@@ -666,30 +628,23 @@ sjp.int <- function(fit,
           upperLim.y <- ceiling(max(intdf$y, na.rm = T))
         }
       } else {
-        lowerLim.y <- axisLimits.y[1]
-        upperLim.y <- axisLimits.y[2]
+        lowerLim.y <- ylim[1]
+        upperLim.y <- ylim[2]
       }
     } else {
-      if (isTRUE(binom_fam)) {
-        intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
-        intdf$y <- plogis(sjmisc::to_value(intdf$y, keep.labels = F))
-        intdf$ymin <- plogis(sjmisc::to_value(intdf$ymin, keep.labels = F))
-        intdf$ymax <- plogis(sjmisc::to_value(intdf$ymax, keep.labels = F))
-        intdf$ydiff <- plogis(intdf$ymax - intdf$ymin)
-      } else {
-        intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
-        intdf$y <- exp(sjmisc::to_value(intdf$y, keep.labels = F))
-        intdf$ymin <- exp(sjmisc::to_value(intdf$ymin, keep.labels = F))
-        intdf$ymax <- exp(sjmisc::to_value(intdf$ymax, keep.labels = F))
-        intdf$ydiff <- exp(intdf$ymax - intdf$ymin)
-      }
+      invlink <- stats::family(fit)
+      intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
+      intdf$y <- invlink$linkinv(eta = sjmisc::to_value(intdf$y, keep.labels = F))
+      intdf$ymin <- invlink$linkinv(eta = sjmisc::to_value(intdf$ymin, keep.labels = F))
+      intdf$ymax <- invlink$linkinv(eta = sjmisc::to_value(intdf$ymax, keep.labels = F))
+      intdf$ydiff <- invlink$linkinv(eta = intdf$ymax - intdf$ymin)
     }
     # -----------------------------------------------------------
     # retrieve lowest and highest x and y position to determine
     # the scale limits
     # -----------------------------------------------------------
-    if (is.null(axisLimits.y)) {
-      if (isTRUE(binom_fam)) {
+    if (is.null(ylim)) {
+      if (binom_fam) {
         lowerLim.y <- as.integer(floor(10 * min(intdf$y, na.rm = T) * .9)) / 10
         upperLim.y <- as.integer(ceiling(10 * max(intdf$y, na.rm = T) * 1.1)) / 10
       } else {
@@ -702,15 +657,15 @@ sjp.int <- function(fit,
         }
       } 
     } else {
-      lowerLim.y <- axisLimits.y[1]
-      upperLim.y <- axisLimits.y[2]
+      lowerLim.y <- ylim[1]
+      upperLim.y <- ylim[2]
     }
     # -----------------------------------------------------------
     # check x-axis limits
     # -----------------------------------------------------------
-    if (!is.null(axisLimits.x)) {
-      lowerLim.x <- axisLimits.x[1]
-      upperLim.x <- axisLimits.x[2]
+    if (!is.null(xlim)) {
+      lowerLim.x <- xlim[1]
+      upperLim.x <- xlim[2]
     } else {
       lowerLim.x <- floor(min(intdf$x, na.rm = T))
       upperLim.x <- ceiling(max(intdf$x, na.rm = T))
@@ -718,9 +673,9 @@ sjp.int <- function(fit,
     # -----------------------------------------------------------
     # check whether user defined grid breaks / tick marks are used
     # -----------------------------------------------------------
-    if (!is.null(gridBreaksAt)) {
-      gridbreaks.x <- seq(lowerLim.x, upperLim.x, by = gridBreaksAt)
-      gridbreaks.y <- seq(lowerLim.y, upperLim.y, by = gridBreaksAt)
+    if (!is.null(grid.breaks)) {
+      gridbreaks.x <- seq(lowerLim.x, upperLim.x, by = grid.breaks)
+      gridbreaks.y <- seq(lowerLim.y, upperLim.y, by = grid.breaks)
     }
     # -----------------------------------------------------------
     # prepare plot title and axis titles
@@ -740,76 +695,86 @@ sjp.int <- function(fit,
       labtitle <- title[l_nr]
     }
     # -----------------------------------------------------------
+    # get model frame, needed for label detection
+    # -----------------------------------------------------------
+    modfram <- stats::model.frame(fit)
+    modfound <- modfram[[predy]]
+    # -----------------------------------------------------------
     # legend labels
     # -----------------------------------------------------------
-    if (is.null(legendLabels)) {
-      # lLabels <- NULL
-      # # ---------------------------------
-      # # find moderator variable in data
-      # # ---------------------------------
-      # modfram <- stats::model.frame(fit)
-      # modfound <- sapply(colnames(modfram), 
-      #                    function(x) grepl(pattern = x, x = predy, fixed = T))
-      # # anything found?
-      # if (any(modfound)) {
-      #   # if it's a factor, we may use labels here
-      #   if (is.factor(modfram[[names(which(modfound))]]))
-      #     lLabels <- sjmisc::get_labels(modfram[[names(which(modfound))]], attr.only = F)
-      # }
-      # if we still have no labels, prepare generic labels
-      # if (is.null(lLabels)) {
-      if (moderatorValues == "minmax") {
-        lLabels <- c(paste0("lower bound of ", predy), paste0("upper bound of ", predy))
-      } else if (moderatorValues == "meansd") {
-        lLabels <- c(paste0("lower sd of ", predy), paste0("upper sd of ", predy), paste0("mean of ", predy))
-      } else if (moderatorValues == "quart") {
-        lLabels <- c(paste0("lower quartile of ", predy), paste0("upper quartile of ", predy), paste0("median of ", predy))
+    if (is.null(legend.labels)) {
+      # ---------------------------------
+      # find moderator variable in data
+      # ---------------------------------
+      if (!is.null(modfound)) {
+        lLabels <- sjmisc::get_labels(modfound, attr.only = F)
       } else {
-        lLabels <- c(paste0("0 for ", predy), paste0("upper bound of ", predy))
+        lLabels <- NULL
       }
-      # }
+      # if we still have no labels, prepare generic labels
+      if (is.null(lLabels)) {
+        if (mdrt.values == "minmax") {
+          lLabels <- c(paste0("lower bound of ", predy), paste0("upper bound of ", predy))
+        } else if (mdrt.values == "meansd") {
+          lLabels <- c(paste0("lower sd of ", predy), paste0("upper sd of ", predy), paste0("mean of ", predy))
+        } else if (mdrt.values == "quart") {
+          lLabels <- c(paste0("lower quartile of ", predy), paste0("upper quartile of ", predy), paste0("median of ", predy))
+        } else {
+          lLabels <- c(paste0("0 for ", predy), paste0("upper bound of ", predy))
+        }
+      } else {
+        if (mdrt.values == "minmax") {
+          lLabels <- lLabels[c(1, length(lLabels))]
+        } else if (mdrt.values == "meansd") {
+          lLabels <- c(paste0("lower sd of ", predy), paste0("upper sd of ", predy), paste0("mean of ", predy))
+        } else if (mdrt.values == "quart") {
+          lLabels <- c(paste0("lower quartile of ", predy), paste0("upper quartile of ", predy), paste0("median of ", predy))
+        } else {
+          lLabels <- c(paste0("0 for ", predy), lLabels[length(lLabels)])
+        }
+      }
     } else {
       # copy plot counter 
       l_nr <- cnt
       # check if we have enough labels. if not, use last labels
-      if (l_nr > length(legendLabels)) l_nr <- length(legendLabels)
+      if (l_nr > length(legend.labels)) l_nr <- length(legend.labels)
       # set legend labels for plot
-      lLabels <- legendLabels[[l_nr]]
+      lLabels <- legend.labels[[l_nr]]
     }
     # -----------------------------------------------------------
     # legend titles
     # -----------------------------------------------------------
-    if (is.null(legendTitle)) {
-      lTitle <- predy
+    if (is.null(legend.title)) {
+      lTitle <- sjmisc::get_label(modfound, def.value = predy)
     } else {
       # copy plot counter 
       l_nr <- cnt
       # check if we have enough legend titles, if not, use last legend title
-      if (l_nr > length(legendTitle)) l_nr <- length(legendTitle)
+      if (l_nr > length(legend.title)) l_nr <- length(legend.title)
       # set legend title for plot
-      lTitle <- legendTitle[l_nr]
+      lTitle <- legend.title[l_nr]
     }
     # -----------------------------------------------------------
     # x axis titles
     # -----------------------------------------------------------
-    if (!is.null(axisTitle.x)) {
+    if (!is.null(axis.title)) {
       # copy plot counter 
       l_nr <- cnt
       # check if we have enough axis titles, if not, use last legend title
-      if (l_nr > length(axisTitle.x)) l_nr <- length(axisTitle.x)
+      if (l_nr > length(axis.title)) l_nr <- length(axis.title)
       # set axis title
-      labx <- axisTitle.x[l_nr]
+      labx <- axis.title[l_nr]
     }
-    if (!is.null(axisTitle.y)) laby <- axisTitle.y
+    if (!is.null(y_title)) laby <- y_title
     # -----------------------------------------------------------
     # prepare annotation labels
     # -----------------------------------------------------------
     # wrap title
-    labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
+    labtitle <- sjmisc::word_wrap(labtitle, wrap.title)
     # wrap legend labels
-    lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
+    lLabels <- sjmisc::word_wrap(lLabels, wrap.legend.labels)
     # wrap legend title
-    lTitle <- sjmisc::word_wrap(lTitle, breakLegendTitleAt)
+    lTitle <- sjmisc::word_wrap(lTitle, wrap.legend.title)
     # -----------------------------------------------------------
     # prepare base plot of interactions
     # -----------------------------------------------------------
@@ -820,13 +785,13 @@ sjp.int <- function(fit,
       # and maximum curve of interactions
       # -----------------------------------------------------------
       geom_ribbon(aes(ymin = 0, ymax = ydiff),
-                  fill = fillColor,
-                  alpha = fillAlpha) +
+                  fill = fill.color,
+                  alpha = fill.alpha) +
         geom_line(size = geom.size)
       # -----------------------------------------------------------
       # show value labels
       # -----------------------------------------------------------
-      if (showValueLabels) {
+      if (show.values) {
         baseplot <- baseplot +
           geom_text(aes(label = round(ydiff, 1)),
                     nudge_y = y.offset,
@@ -839,8 +804,8 @@ sjp.int <- function(fit,
         baseplot <- baseplot +
           # add a shaded region between minimun and maximum curve of interactions
           geom_ribbon(aes(ymin = ymin, ymax = ymax, colour = NULL),
-                      fill = fillColor,
-                      alpha = fillAlpha,
+                      fill = fill.color,
+                      alpha = fill.alpha,
                       show.legend = FALSE)
       }
       # add line
@@ -848,7 +813,7 @@ sjp.int <- function(fit,
       # ------------------------------------------------------------
       # plot value labels
       # ------------------------------------------------------------
-      if (showValueLabels) {
+      if (show.values) {
         baseplot <- baseplot +
           geom_point() +
           geom_text(aes(label = round(y, 1)),
@@ -865,7 +830,7 @@ sjp.int <- function(fit,
       lLabels <- NULL
       lTitle <- NULL
     } else {
-      if (moderatorValues == "minmax" || moderatorValues == "zeromax") {
+      if (mdrt.values == "minmax" || mdrt.values == "zeromax") {
         col.len <- 2
       } else {
         col.len <- 3
@@ -891,7 +856,7 @@ sjp.int <- function(fit,
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
-    if (printPlot) print(baseplot)
+    if (prnt.plot) graphics::plot(baseplot)
     # concatenate plot object
     plotlist[[length(plotlist) + 1]] <- baseplot
     dflist[[length(dflist) + 1]] <- intdf
@@ -905,33 +870,34 @@ sjp.int <- function(fit,
 }
   
   
-#' @importFrom stats plogis na.omit model.frame
+#' @importFrom stats na.omit model.frame
 sjp.eff.int <- function(fit,
                         int.term = NULL,
                         int.plot.index = NULL,
-                        moderatorValues = "minmax",
-                        swapPredictors = FALSE,
+                        mdrt.values = "minmax",
+                        swap.pred = FALSE,
                         plevel = 0.05,
                         title = NULL,
-                        fillAlpha = 0.3,
+                        fill.alpha = 0.3,
                         geom.colors = "Set1",
                         geom.size = 0.7,
-                        axisTitle.x = NULL,
-                        axisTitle.y = NULL,
-                        legendTitle = NULL,
-                        legendLabels = NULL,
-                        showValueLabels = FALSE,
-                        breakTitleAt = 50,
-                        breakLegendLabelsAt = 20,
-                        breakLegendTitleAt = 20,
-                        axisLimits.x = NULL,
-                        axisLimits.y = NULL,
+                        axis.title = NULL,
+                        legend.title = NULL,
+                        legend.labels = NULL,
+                        show.values = FALSE,
+                        wrap.title = 50,
+                        wrap.legend.labels = 20,
+                        wrap.legend.title = 20,
+                        xlim = NULL,
+                        ylim = NULL,
                         y.offset = 0.07,
-                        gridBreaksAt = NULL,
-                        showCI = FALSE,
+                        grid.breaks = NULL,
+                        show.ci = FALSE,
+                        p.kr = FALSE,
                         facet.grid = FALSE,
-                        printPlot = TRUE,
-                        fun) {
+                        prnt.plot = TRUE,
+                        fun,
+                        ...) {
   # --------------------------------------------------------
   # check default geom.size
   # --------------------------------------------------------
@@ -940,20 +906,20 @@ sjp.eff.int <- function(fit,
   # check if suggested package is available
   # ------------------------
   if (!requireNamespace("effects", quietly = TRUE)) {
-    stop("Package 'effects' needed for this function to work. Please install it.", call. = FALSE)
+    stop("Package `effects` needed for this function to work. Please install it.", call. = FALSE)
   }
   # gridbreaks
-  if (is.null(gridBreaksAt)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
+  if (is.null(grid.breaks)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
   # init default
   binom_fam <- FALSE
   # ------------------------
-  # multiple purpose of showCI parameter. if logical,
-  # sets default CI to 0.95, else showCI also may be
+  # multiple purpose of show.ci parameter. if logical,
+  # sets default CI to 0.95, else show.ci also may be
   # numeric
   # ------------------------
-  if (!is.null(showCI) && !is.logical(showCI)) {
-    eci <- showCI
-    showCI = TRUE
+  if (!is.null(show.ci) && !is.logical(show.ci)) {
+    eci <- show.ci
+    show.ci = TRUE
   } else {
     eci <- 0.95
   }
@@ -1011,13 +977,14 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # save response, predictor and moderator names
     # -----------------------------------------------------------
-    pred_x.name <- colnames(intdf)[ifelse(isTRUE(swapPredictors), 1, 2)]
-    moderator.name <- colnames(intdf)[ifelse(isTRUE(swapPredictors), 2, 1)]
+    pred_x.name <- colnames(intdf)[ifelse(isTRUE(swap.pred), 1, 2)]
+    moderator.name <- colnames(intdf)[ifelse(isTRUE(swap.pred), 2, 1)]
     response.name <- dummy.eff$response
     # prepare axis titles
     labx <- sjmisc::get_label(stats::model.frame(fit)[[pred_x.name]], def.value = pred_x.name)
     # check whether x-axis-predictor is a factor or not
     x_is_factor <- is.factor(intdf[[pred_x.name]]) || (length(unique(na.omit(intdf[[pred_x.name]]))) < 3)
+    mod_is_factor <- is.factor(intdf[[moderator.name]])
     # -----------------------------------------------------------
     # check for moderator values, but only, if moderator 
     # is no factor value. In this case, we can choose
@@ -1025,7 +992,7 @@ sjp.eff.int <- function(fit,
     # e.g. only min/max, or mean and sd. We don't need these
     # values for categorical moderator values.
     # -----------------------------------------------------------
-    if (!is.factor(intdf[[moderator.name]])) {
+    if (!mod_is_factor) {
       # retrieve moderator value
       modval <- dummy.eff$data[[moderator.name]]
       # retrieve predictor value
@@ -1034,10 +1001,10 @@ sjp.eff.int <- function(fit,
       # Check whether moderator value has enough unique values
       # for quartiles
       # -----------------------------------------------------------
-      moderatorValues <- mv_check(moderatorValues, modval)
+      mdrt.values <- mv_check(mdrt.values, modval)
       # we have more than two values, so re-calculate effects, just using
       # min and max value of moderator. 
-      if (moderatorValues == "minmax" && length(unique(intdf[[moderator.name]])) > 2) {
+      if (mdrt.values == "minmax" && length(unique(intdf[[moderator.name]])) > 2) {
         # retrieve min and max values
         mv.min <- min(modval, na.rm = T)
         mv.max <- max(modval, na.rm = T)
@@ -1045,22 +1012,22 @@ sjp.eff.int <- function(fit,
         xl1 <- list(x = c(mv.min, mv.max))
         # we have more than two values, so re-calculate effects, just using
         # 0 and max value of moderator.
-      } else if (moderatorValues == "zeromax" && length(unique(intdf[[moderator.name]])) > 2) {
+      } else if (mdrt.values == "zeromax" && length(unique(intdf[[moderator.name]])) > 2) {
         # retrieve max values
         mv.max <- max(modval, na.rm = T)
         # re-compute effects, prepare xlevels
         xl1 <- list(x = c(0, mv.max))
         # compute mean +/- sd
-      } else if (moderatorValues == "meansd") {
+      } else if (mdrt.values == "meansd") {
         # retrieve mean and sd
         mv.mean <- round(mean(modval, na.rm = T), 2)
         mv.sd <- round(sd(modval, na.rm = T), 2)
         # re-compute effects, prepare xlevels
         xl1 <- list(x = c(mv.mean - mv.sd, mv.mean, mv.mean + mv.sd))
-      } else if (moderatorValues == "all") {
+      } else if (mdrt.values == "all") {
         # re-compute effects, prepare xlevels
         xl1 <- list(x = as.vector((unique(sort(modval, na.last = NA)))))
-      } else if (moderatorValues == "quart") {
+      } else if (mdrt.values == "quart") {
         # re-compute effects, prepare xlevels
         xl1 <- list(x = as.vector(stats::quantile(modval, na.rm = T)))
       }
@@ -1076,19 +1043,14 @@ sjp.eff.int <- function(fit,
       # combine lists
       if (is.null(int.term)) {
         # re-compute effects
-        eff.tmp <- effects::allEffects(fit, 
-                                       xlevels = c(xl1, xl2), 
-                                       KR = F, 
-                                       confidence.level = eci)
+        eff.tmp <- effects::allEffects(fit, xlevels = c(xl1, xl2), KR = p.kr, 
+                                       confidence.level = eci, ...)
         # reset data frame
         intdf <- data.frame(eff.tmp[[intpos[i]]])
       } else {
         # re-compute effects
-        eff.tmp <- effects::effect(int.term, 
-                                   fit, 
-                                   xlevels = c(xl1, xl2), 
-                                   KR = F,
-                                   confidence.level = eci)
+        eff.tmp <- effects::effect(int.term, fit, xlevels = c(xl1, xl2), 
+                                   KR = p.kr, confidence.level = eci, ...)
         # reset data frame
         intdf <- data.frame(eff.tmp)
       }
@@ -1097,7 +1059,7 @@ sjp.eff.int <- function(fit,
       # is no factor, select whole range of possible
       # values.
       # -----------------------------------------------------------
-    } else if (!is.factor(intdf[[pred_x.name]])) {
+    } else if (!x_is_factor) {
       # retrieve predictor value
       predval <- dummy.eff$data[[pred_x.name]]
       # add values of interaction term
@@ -1110,19 +1072,14 @@ sjp.eff.int <- function(fit,
       # combine lists
       if (is.null(int.term)) {
         # re-compute effects
-        eff.tmp <- effects::allEffects(fit,
-                                       xlevels = xl, 
-                                       KR = F,
-                                       confidence.level = eci)
+        eff.tmp <- effects::allEffects(fit, xlevels = xl,  KR = p.kr,
+                                       confidence.level = eci, ...)
         # reset data frame
         intdf <- data.frame(eff.tmp[[intpos[i]]])
       } else {
         # re-compute effects
-        eff.tmp <- effects::effect(int.term, 
-                                   fit, 
-                                   xlevels = xl, 
-                                   KR = F,
-                                   confidence.level = eci)
+        eff.tmp <- effects::effect(int.term, fit, xlevels = xl, KR = p.kr,
+                                   confidence.level = eci, ...)
         # reset data frame
         intdf <- data.frame(eff.tmp)
       }
@@ -1130,7 +1087,7 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # change column names
     # -----------------------------------------------------------
-    if (swapPredictors) {
+    if (swap.pred) {
       colnames(intdf) <- c("x", "grp", "y", "se", "conf.low", "conf.high")
     } else {
       colnames(intdf) <- c("grp", "x", "y", "se", "conf.low", "conf.high")
@@ -1142,7 +1099,9 @@ sjp.eff.int <- function(fit,
     intdf <- droplevels(intdf)
     # group as factor
     intdf$grp <- factor(intdf$grp, levels = unique(as.character(intdf$grp)))
+    # reset labels
     x_labels <- NULL
+    lLabels <- NULL
     # does model have labels? we want these if x is a factor.
     # first we need to know whether we have a model-data-frame
     if (x_is_factor) {
@@ -1156,20 +1115,21 @@ sjp.eff.int <- function(fit,
     }
     # make sure x is numeric
     intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
+    # get name of response, for axis title
+    yaxisname <- sjmisc::get_label(stats::model.frame(fit)[[response.name]], 
+                                   def.value = response.name)
     # -----------------------------------------------------------
     # check if we have linear regression
     # -----------------------------------------------------------
     if (fun == "lm" || fun == "lmer" || fun == "lme" || fun == "gls") {
       # Label on y-axis is name of dependent variable
-      if (is.null(axisTitle.y)) 
-        axisTitle.y <- sjmisc::get_label(stats::model.frame(fit)[[response.name]], 
-                                         def.value = response.name)
+      y_title <- sprintf("Predicted values of %s", yaxisname)
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
       # the scale limits
       # -----------------------------------------------------------
-      if (is.null(axisLimits.y)) {
-        if (showCI) {
+      if (is.null(ylim)) {
+        if (show.ci) {
           lowerLim.y <- floor(min(intdf$conf.low, na.rm = T))
           upperLim.y <- ceiling(max(intdf$conf.high, na.rm = T))
         } else {
@@ -1177,8 +1137,8 @@ sjp.eff.int <- function(fit,
           upperLim.y <- ceiling(max(intdf$y, na.rm = T))
         }
       } else {
-        lowerLim.y <- axisLimits.y[1]
-        upperLim.y <- axisLimits.y[2]
+        lowerLim.y <- ylim[1]
+        upperLim.y <- ylim[2]
       }
     } else {
       # ------------------------
@@ -1194,20 +1154,20 @@ sjp.eff.int <- function(fit,
       # --------------------------------------------------------
       # Label on y-axis is fixed
       # --------------------------------------------------------
-      if (is.null(axisTitle.y)) {
-        # for logistic reg.
-        if (isTRUE(binom_fam))
-          axisTitle.y <- "Predicted Probability"
-        else if (isTRUE(poisson_fam))
-          axisTitle.y <- "Predicted Incidents"
-      }
+      # for logistic reg.
+      if (binom_fam)
+        y_title <- sprintf("Predicted probabilities for %s", yaxisname)
+      else if (poisson_fam)
+        y_title <- sprintf("Predicted incidents for %s", yaxisname)
+      else
+        y_title <- sprintf("Predicted values for %s", yaxisname)
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
       # the scale limits
       # -----------------------------------------------------------
-      if (is.null(axisLimits.y)) {
-        if (isTRUE(binom_fam)) {
-          if (showCI) {
+      if (is.null(ylim)) {
+        if (binom_fam) {
+          if (show.ci) {
             lowerLim.y <- as.integer(floor(10 * min(intdf$conf.low, na.rm = T) * .9)) / 10
             upperLim.y <- as.integer(ceiling(10 * max(intdf$conf.high, na.rm = T) * 1.1)) / 10
           } else {
@@ -1215,7 +1175,7 @@ sjp.eff.int <- function(fit,
             upperLim.y <- as.integer(ceiling(10 * max(intdf$y, na.rm = T) * 1.1)) / 10
           }
         } else {
-          if (showCI) {
+          if (show.ci) {
             lowerLim.y <- floor(min(intdf$conf.low, na.rm = T))
             upperLim.y <- ceiling(max(intdf$conf.high, na.rm = T))
           } else {
@@ -1224,16 +1184,16 @@ sjp.eff.int <- function(fit,
           }
         }
       } else {
-        lowerLim.y <- axisLimits.y[1]
-        upperLim.y <- axisLimits.y[2]
+        lowerLim.y <- ylim[1]
+        upperLim.y <- ylim[2]
       }
     }
     # -----------------------------------------------------------
     # check x-axis limits
     # -----------------------------------------------------------
-    if (!is.null(axisLimits.x)) {
-      lowerLim.x <- axisLimits.x[1]
-      upperLim.x <- axisLimits.x[2]
+    if (!is.null(xlim)) {
+      lowerLim.x <- xlim[1]
+      upperLim.x <- xlim[2]
     } else {
       lowerLim.x <- floor(min(intdf$x, na.rm = T))
       upperLim.x <- ceiling(max(intdf$x, na.rm = T))
@@ -1241,9 +1201,9 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # check whether user defined grid breaks / tick marks are used
     # -----------------------------------------------------------
-    if (!is.null(gridBreaksAt)) {
-      gridbreaks.x <- seq(lowerLim.x, upperLim.x, by = gridBreaksAt)
-      gridbreaks.y <- seq(lowerLim.y, upperLim.y, by = gridBreaksAt)
+    if (!is.null(grid.breaks)) {
+      gridbreaks.x <- seq(lowerLim.x, upperLim.x, by = grid.breaks)
+      gridbreaks.y <- seq(lowerLim.y, upperLim.y, by = grid.breaks)
     } else if (x_is_factor) {
       gridbreaks.x <- sort(unique(intdf$x))
     } else {
@@ -1253,12 +1213,8 @@ sjp.eff.int <- function(fit,
     # prepare plot title and axis titles
     # -----------------------------------------------------------
     if (is.null(title)) {
-      labtitle <- paste0("Interaction effect of ",
-                         moderator.name,
-                         " and ",
-                         pred_x.name,
-                         " on ", 
-                         response.name)
+      labtitle <- paste0("Interaction effect of ", moderator.name, " and ",
+                         pred_x.name, " on ", response.name)
     } else {
       # copy plot counter 
       l_nr <- i
@@ -1270,18 +1226,21 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # legend labels
     # -----------------------------------------------------------
-    if (is.null(legendLabels)) {
-      # try to get labels
-      lLabels <- sjmisc::get_labels(stats::model.frame(fit)[[moderator.name]], attr.only = F)
+    if (is.null(legend.labels)) {
+      # try to get labels, but only for factors
+      if (mod_is_factor) {
+        lLabels <- sjmisc::get_labels(stats::model.frame(fit)[[moderator.name]], 
+                                      attr.only = F)
+      }
       # if we still have no labels, get values from group
       if (is.null(lLabels)) lLabels <- unique(as.character(intdf$grp))
     } else {
       # copy plot counter 
       l_nr <- i
       # check if we have enough labels. if not, use last labels
-      if (l_nr > length(legendLabels)) l_nr <- length(legendLabels)
+      if (l_nr > length(legend.labels)) l_nr <- length(legend.labels)
       # set legend labels for plot
-      lLabels <- legendLabels[[l_nr]]
+      lLabels <- legend.labels[[l_nr]]
     }
     # -----------------------------------------------------------
     # prepare facet-labels
@@ -1292,36 +1251,40 @@ sjp.eff.int <- function(fit,
     # -----------------------------------------------------------
     # legend titles
     # -----------------------------------------------------------
-    if (is.null(legendTitle)) {
-      lTitle <- sjmisc::get_label(stats::model.frame(fit)[[moderator.name]], def.value = moderator.name)
+    if (is.null(legend.title)) {
+      lTitle <- sjmisc::get_label(stats::model.frame(fit)[[moderator.name]], 
+                                  def.value = moderator.name)
     } else {
       # copy plot counter 
       l_nr <- i
       # check if we have enough legend titles, if not, use last legend title
-      if (l_nr > length(legendTitle)) l_nr <- length(legendTitle)
+      if (l_nr > length(legend.title)) l_nr <- length(legend.title)
       # set legend title for plot
-      lTitle <- legendTitle[l_nr]
+      lTitle <- legend.title[l_nr]
     }
     # -----------------------------------------------------------
     # x axis titles
     # -----------------------------------------------------------
-    if (!is.null(axisTitle.x)) {
+    if (!is.null(axis.title)) {
       # copy plot counter 
       l_nr <- i
       # check if we have enough axis titles, if not, use last legend title
-      if (l_nr > length(axisTitle.x)) l_nr <- length(axisTitle.x)
+      if (l_nr > length(axis.title)) l_nr <- length(axis.title)
       # set axis title
-      labx <- axisTitle.x[l_nr]
+      labx <- axis.title[l_nr]
     }
-    if (!is.null(axisTitle.y)) laby <- axisTitle.y
+    # y-axis title.
+    laby <- y_title
     # -----------------------------------------------------------
     # wrap titles
     # -----------------------------------------------------------
-    labtitle <- sjmisc::word_wrap(labtitle, breakTitleAt)
+    labtitle <- sjmisc::word_wrap(labtitle, wrap.title)
+    labx <- sjmisc::word_wrap(labx, wrap.title)
+    laby <- sjmisc::word_wrap(laby, wrap.title)
     # wrap legend labels
-    lLabels <- sjmisc::word_wrap(lLabels, breakLegendLabelsAt)
+    lLabels <- sjmisc::word_wrap(lLabels, wrap.legend.labels)
     # wrap legend title
-    lTitle <- sjmisc::word_wrap(lTitle, breakLegendTitleAt)
+    lTitle <- sjmisc::word_wrap(lTitle, wrap.legend.title)
     # ------------------------------------------------------------
     # start plot
     # ------------------------------------------------------------
@@ -1329,7 +1292,7 @@ sjp.eff.int <- function(fit,
     # ------------------------------------------------------------
     # confidence interval?
     # ------------------------------------------------------------
-    if (showCI) {
+    if (show.ci) {
       if (x_is_factor) {
         # -------------------------------------------------
         # for factors, we add error bars instead of
@@ -1337,8 +1300,7 @@ sjp.eff.int <- function(fit,
         # -------------------------------------------------
         baseplot <- baseplot +
           geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = grp),
-                        width = 0,
-                        show.legend = FALSE) +
+                        width = 0, show.legend = FALSE) +
           geom_point()
       } else {
         # -------------------------------------------------
@@ -1347,23 +1309,20 @@ sjp.eff.int <- function(fit,
         # -------------------------------------------------
         baseplot <- baseplot +
           geom_ribbon(aes(ymin = conf.low, ymax = conf.high, colour = NULL, fill = grp),
-                      alpha = fillAlpha,
-                      show.legend = FALSE)
+                      alpha = fill.alpha, show.legend = FALSE)
       }
     }
     baseplot <- baseplot + geom_line(size = geom.size)
     # ------------------------------------------------------------
     # plot value labels
     # ------------------------------------------------------------
-    if (showValueLabels) {
+    if (show.values) {
       # don't need geom_point, because point-layer already 
       # added with x_is_factor
       if (!x_is_factor) baseplot <- baseplot + geom_point()
       # add value label text
       baseplot <- baseplot +
-        geom_text(aes(label = round(y, 1)),
-                  nudge_y = y.offset,
-                  show.legend = FALSE)
+        geom_text(aes(label = round(y, 1)), nudge_y = y.offset, show.legend = FALSE)
     }
     # ------------------------------------------------------------------------------------
     # build plot object with theme and labels
@@ -1388,7 +1347,7 @@ sjp.eff.int <- function(fit,
     # for logistic regression, use 
     # 0 to 1 scale limits and percentage scale
     # ------------------------
-    if (isTRUE(binom_fam)) {
+    if (binom_fam) {
       baseplot <- baseplot +
         scale_y_continuous(limits = c(lowerLim.y, upperLim.y), 
                            breaks = gridbreaks.y,
@@ -1409,12 +1368,12 @@ sjp.eff.int <- function(fit,
     baseplot <- sj.setGeomColors(baseplot, 
                                  geom.colors, 
                                  pal.len = length(unique(stats::na.omit(intdf$grp))), 
-                                 show.legend = !is.null(lLabels) & !isTRUE(facet.grid), 
+                                 show.legend = !is.null(lLabels) & !facet.grid, 
                                  lLabels)
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
-    if (printPlot) print(baseplot)
+    if (prnt.plot) graphics::plot(baseplot)
     # concatenate plot object
     plotlist[[length(plotlist) + 1]] <- baseplot
     dflist[[length(dflist) + 1]] <- intdf
@@ -1429,14 +1388,14 @@ sjp.eff.int <- function(fit,
 
 
 #' @importFrom stats quantile
-mv_check <- function(moderatorValues, x) {
+mv_check <- function(mdrt.values, x) {
   mvc <- length(unique(as.vector(stats::quantile(x, na.rm = T))))
-  if (moderatorValues == "quart" && mvc < 3) {
+  if (mdrt.values == "quart" && mvc < 3) {
     # tell user that quart won't work
-    message("Could not compute quartiles, too small range of moderator variable. Defaulting 'moderatorValues' to 'minmax'.")
-    moderatorValues <- "minmax"
+    message("Could not compute quartiles, too small range of moderator variable. Defaulting `mdrt.values` to `minmax`.")
+    mdrt.values <- "minmax"
   }
-  return(moderatorValues)
+  return(mdrt.values)
 }
 
 
@@ -1447,7 +1406,7 @@ mv_check <- function(moderatorValues, x) {
 # contains no interaction terms or no significant interaction term.
 # else, information on model and interaction terms is returned
 #' @importFrom stats model.matrix model.frame
-getInteractionTerms <- function(fit, fun, plevel) {
+getInteractionTerms <- function(fit, fun, plevel, p.kr) {
   # -----------------------------------------------------------
   # retrieve coefficients
   # -----------------------------------------------------------
@@ -1481,7 +1440,7 @@ getInteractionTerms <- function(fit, fun, plevel) {
       # retrieve model matrix
       fitdat <- data.frame(cbind(as.vector(fit$model[, 1]), stats::model.matrix(fit)))
     } else {
-      depvar.label <- attr(attr(fit$terms, "dataClasses"), "names")[1]
+      depvar.label <- colnames(stats::model.frame(fit))[1]
       # retrieve model matrix
       fitdat <- data.frame(stats::model.matrix(fit))
     }
@@ -1515,7 +1474,7 @@ getInteractionTerms <- function(fit, fun, plevel) {
     # -----------------------------------------------------------
     # retrieve p-values, without intercept
     # -----------------------------------------------------------
-    pval <- get_lmerMod_pvalues(fit)[-1]
+    pval <- get_lmerMod_pvalues(fit, p.kr)[-1]
     # -----------------------------------------------------------
     # retrieve estimates, without intercept
     # -----------------------------------------------------------

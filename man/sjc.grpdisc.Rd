@@ -4,12 +4,11 @@
 \alias{sjc.grpdisc}
 \title{Compute a linear discriminant analysis on classified cluster groups}
 \usage{
-sjc.grpdisc(data, groups, groupcount, showTotalCorrect = TRUE,
-  printPlot = TRUE)
+sjc.grpdisc(data, groups, groupcount, clss.fit = TRUE, prnt.plot = TRUE)
 }
 \arguments{
-\item{data}{data frame containing all variables that should be used for the
-check for goodness of classification of a cluster analysis}
+\item{data}{\code{data.frame} with variables that should be used for the
+cluster analysis.}
 
 \item{groups}{group classification of the cluster analysis that was returned
 from the \code{\link{sjc.cluster}}-function}
@@ -18,11 +17,11 @@ from the \code{\link{sjc.cluster}}-function}
 \code{\link{sjc.elbow}} to determine the group-count depending
 on the elbow-criterion.}
 
-\item{showTotalCorrect}{logical, if \code{TRUE} (default), a vertical line indicating the
+\item{clss.fit}{logical, if \code{TRUE} (default), a vertical line indicating the
 overall goodness of classification is added to the plot, so one can see
 whether a certain group is below or above the average classification goodness.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{

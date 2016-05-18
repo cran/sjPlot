@@ -4,64 +4,142 @@
 \alias{sjt.glm}
 \title{Summary of generalized linear models as HTML table}
 \usage{
-sjt.glm(..., file = NULL, labelPredictors = NULL,
-  labelDependentVariables = NULL, stringPredictors = "Predictors",
-  stringDependentVariables = "Dependent Variables",
-  showHeaderStrings = FALSE, stringModel = "Model",
-  stringIntercept = "(Intercept)", stringObservations = "Observations",
-  stringOR = "OR", stringCI = "CI", stringSE = "std. Error",
-  stringP = "p", digits.est = 2, digits.p = 3, digits.ci = 2,
-  digits.se = 2, digits.summary = 3, exp.coef = TRUE,
-  pvaluesAsNumbers = TRUE, boldpvalues = TRUE, showConfInt = TRUE,
-  showStdError = FALSE, ci.hyphen = "&nbsp;&ndash;&nbsp;",
-  separateConfColumn = TRUE, newLineConf = TRUE, group.pred = TRUE,
-  showAbbrHeadline = TRUE, showPseudoR = FALSE, showICC = FALSE,
-  showREvar = FALSE, showLogLik = FALSE, showAIC = FALSE,
-  showAICc = FALSE, showDeviance = FALSE, showChi2 = FALSE,
-  showHosLem = FALSE, showFamily = FALSE, remove.estimates = NULL,
-  cellSpacing = 0.2, cellGroupIndent = 0.6, encoding = NULL, CSS = NULL,
-  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+sjt.glm(..., pred.labels = NULL, depvar.labels = NULL,
+  remove.estimates = NULL, group.pred = TRUE, exp.coef = TRUE,
+  p.numeric = TRUE, emph.p = TRUE, separate.ci.col = TRUE,
+  newline.ci = TRUE, show.ci = TRUE, show.se = FALSE,
+  show.header = FALSE, show.col.header = TRUE, show.r2 = FALSE,
+  show.icc = FALSE, show.re.var = FALSE, show.loglik = FALSE,
+  show.aic = FALSE, show.aicc = FALSE, show.dev = FALSE,
+  show.hoslem = FALSE, show.family = FALSE, show.chi2 = FALSE,
+  string.pred = "Predictors", string.dv = "Dependent Variables",
+  string.interc = "(Intercept)", string.obs = "Observations",
+  string.est = "OR", string.ci = "CI", string.se = "std. Error",
+  string.p = "p", ci.hyphen = "&nbsp;&ndash;&nbsp;", digits.est = 2,
+  digits.p = 3, digits.ci = 2, digits.se = 2, digits.summary = 3,
+  cell.spacing = 0.2, cell.gpr.indent = 0.6, CSS = NULL,
+  encoding = NULL, file = NULL, use.viewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted generalized linear (mixed) models.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{pred.labels}{character vector with labels of predictor variables.
+If not \code{NULL}, \code{pred.labels} will be used in the first
+table column with the predictors' names. If \code{NULL}, variable
+labels are set based on label attributes (see \code{\link[sjmisc]{get_label}}).
+If \code{pred.labels = ""}, column names (vector names) are used
+as predictor labels. See 'Examples'.}
 
-\item{labelPredictors}{character vector with labels of predictor variables.
-If not \code{NULL}, \code{labelPredictors} will be used in the first
-table column with the predictors' names. See 'Examples'.}
-
-\item{labelDependentVariables}{character vector with labels of dependent 
+\item{depvar.labels}{character vector with labels of dependent 
 variables of all fitted models. See 'Examples'.}
 
-\item{stringPredictors}{string constant used as headline for the predictor column.
+\item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)}) 
+or character vector with coefficient names that indicate which estimates should be removed
+from the table output. The first estimate is the intercept, followed by the model predictors.
+\emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)} 
+would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output. 
+\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
+is \code{NULL}, i.e. all estimates are printed.}
+
+\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with 
+factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
+be grouped, if the factor has more than two levels. Grouping means that a separate headline
+row is inserted to the table just before the predictor values.}
+
+\item{exp.coef}{logical, if \code{TRUE} (default), regression coefficients and 
+confidence intervals are exponentiated. Use \code{FALSE} for 
+non-exponentiated coefficients (log-odds) as provided by 
+the \code{\link{summary}} function.}
+
+\item{p.numeric}{logical, if \code{TRUE}, the p-values are printed 
+as numbers. If \code{FALSE} (default), asterisks are used.}
+
+\item{emph.p}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
+
+\item{separate.ci.col}{if \code{TRUE}, the CI values are shown in a separate table column.
+Default is \code{FALSE}.}
+
+\item{newline.ci}{logical, if \code{TRUE} and \code{separate.ci.col = FALSE}, inserts a line break
+between estimate and CI values. If \code{FALSE}, CI values are printed in the same
+line as estimate values.}
+
+\item{show.ci}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
+\code{FALSE} to omit the CI in the table.}
+
+\item{show.se}{logical, if \code{TRUE}, the standard errors are also printed.
+Default is \code{FALSE}.}
+
+\item{show.header}{logical, if \code{TRUE}, the header strings \code{string.pred}
+and \code{string.dv} are shown. By default, they're hidden.}
+
+\item{show.col.header}{logical, if \code{TRUE} (default), the table data columns have a headline with 
+abbreviations for estimates, std. beta-values, confidence interval and p-values.}
+
+\item{show.r2}{logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
+in the model summary. R2cs is the Cox-Snell-pseudo R-squared value, R2n is Nagelkerke's 
+pseudo R-squared value and \code{D} is Tjur's Coefficient of Discrimination
+(see \code{\link[sjmisc]{cod}}).}
+
+\item{show.icc}{logical, if \code{TRUE}, the intra-class-correlation for each 
+model is printed in the model summary. Only applies to mixed models.}
+
+\item{show.re.var}{logical, if \code{TRUE}, the variance parameters for the random
+effects for each model are printed in the model summary. Only applies to mixed models.
+For details output, see 'Note' in \code{\link[sjmisc]{icc}}.}
+
+\item{show.loglik}{logical, if \code{TRUE}, the Log-Likelihood for each model is printed
+in the model summary. Default is \code{FALSE}.}
+
+\item{show.aic}{logical, if \code{TRUE}, the AIC value for each model is printed
+in the model summary. Default is \code{FALSE}.}
+
+\item{show.aicc}{logical, if \code{TRUE}, the second-order AIC value for each model 
+is printed in the model summary. Default is \code{FALSE}.}
+
+\item{show.dev}{logical, if \code{TRUE}, the deviance for each model 
+is printed in the model summary.}
+
+\item{show.hoslem}{logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
+performed. A well-fitting model shows no significant difference between 
+the model and the observed data, i.e. the reported p-values should be
+greater than 0.05.}
+
+\item{show.family}{logical, if \code{TRUE}, the family object and link function for each fitted model
+are printed. Can be used in case you want to compare models with different link functions
+and same predictors and response, to decide which model fits best. See \code{\link{family}}
+for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{show.aic}) to get a
+decision help for which model to choose.}
+
+\item{show.chi2}{logical, if \code{TRUE}, the p-value of the chi-squared value for each 
+model's residual deviance against the null deviance is printed
+in the model summary. Default is \code{FALSE}. A well-fitting model
+with predictors should significantly differ from the null-model
+(without predictors), thus, a p-value less than 0.05 indicates a
+good model-fit.}
+
+\item{string.pred}{character vector,used as headline for the predictor column.
 Default is \code{"Predictors"}.}
 
-\item{stringDependentVariables}{string constant used as headline for the 
+\item{string.dv}{character vector, used as headline for the 
 dependent variable columns. Default is \code{"Dependent Variables"}.}
 
-\item{showHeaderStrings}{logical, if \code{TRUE}, the header strings \code{stringPredictors}
-and \code{stringDependentVariables} are shown. By default, they're hidden.}
-
-\item{stringModel}{string constant used as headline for the model names in case no 
-labels for the dependent variables are provided (see \code{labelDependentVariables}).
-Default is \code{"Model"}.}
-
-\item{stringIntercept}{string constant used as headline for the Intercept row.
+\item{string.interc}{character vector, used as headline for the Intercept row.
 Default is \code{"Intercept"}.}
 
-\item{stringObservations}{string constant used in the summary row for the count of observation
+\item{string.obs}{character vector, used in the summary row for the count of observation
 (cases). Default is \code{"Observations"}.}
 
-\item{stringOR}{string used for the column heading of odds ratio values. Default is \code{"OR"}.}
+\item{string.est}{character vector, used for the column heading of estimates.}
 
-\item{stringCI}{string used for the column heading of confidence interval values. Default is \code{"CI"}.}
+\item{string.ci}{character vector, used for the column heading of confidence interval values. Default is \code{"CI"}.}
 
-\item{stringSE}{string used for the column heading of standard error values. Default is \code{"std. Error"}.}
+\item{string.se}{character vector, used for the column heading of standard error values. Default is \code{"std. Error"}.}
 
-\item{stringP}{string used for the column heading of p values. Default is \code{"p"}.}
+\item{string.p}{character vector, used for the column heading of p values. Default is \code{"p"}.}
+
+\item{ci.hyphen}{character vector, indicating the hyphen for confidence interval range.
+May be an HTML entity. See 'Examples'.}
 
 \item{digits.est}{amount of decimals for estimates}
 
@@ -73,106 +151,27 @@ Default is \code{"Intercept"}.}
 
 \item{digits.summary}{amount of decimals for values in model summary}
 
-\item{exp.coef}{logical, if \code{TRUE} (default), regression coefficients and 
-confidence intervals are exponentiated. Use \code{FALSE} for 
-non-exponentiated coefficients (log-odds) as provided by 
-the \code{\link{summary}} function.}
-
-\item{pvaluesAsNumbers}{logical, if \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
-p-values are indicated by asterisks.}
-
-\item{boldpvalues}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
-
-\item{showConfInt}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
-\code{FALSE} to omit the CI in the table.}
-
-\item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
-Default is \code{FALSE}.}
-
-\item{ci.hyphen}{string, indicating the hyphen for confidence interval range.
-May be an HTML entity. See 'Examples'.}
-
-\item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
-Default is \code{FALSE}.}
-
-\item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
-between OR and CI values. If \code{FALSE}, CI values are printed in the same
-line with OR values.}
-
-\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with 
-factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
-be grouped, if the factor has more than two levels. Grouping means that a separate headline
-row is inserted to the table just before the predictor values.}
-
-\item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with 
-abbreviations for odds ratios, confidence interval and p-values.}
-
-\item{showPseudoR}{logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
-in the model summary. R2cs is the Cox-Snell-pseudo R-squared value, R2n is Nagelkerke's 
-pseudo R-squared value and \code{D} is Tjur's Coefficient of Discrimination
-(see \code{\link[sjmisc]{cod}}).}
-
-\item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each 
-model is printed in the model summary. Only applies to mixed models.}
-
-\item{showREvar}{logical, if \code{TRUE}, the variance parameters for the random
-effects for each model are printed in the model summary. Only applies to mixed models.}
-
-\item{showLogLik}{logical, if \code{TRUE}, the Log-Likelihood for each model is printed
-in the model summary. Default is \code{FALSE}.}
-
-\item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
-in the model summary. Default is \code{FALSE}.}
-
-\item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model 
-is printed in the model summary. Default is \code{FALSE}.}
-
-\item{showDeviance}{logical, if \code{TRUE}, the deviance for each model 
-is printed in the model summary.}
-
-\item{showChi2}{logical, if \code{TRUE}, the p-value of the chi-squared value for each 
-model's residual deviance against the null deviance is printed
-in the model summary. Default is \code{FALSE}. A well-fitting model
-with predictors should significantly differ from the null-model
-(without predictors), thus, a p-value less than 0.05 indicates a
-good model-fit.}
-
-\item{showHosLem}{logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
-performed. A well-fitting model shows no significant difference between 
-the model and the observed data, i.e. the reported p-values should be
-greater than 0.05.}
-
-\item{showFamily}{logical, if \code{TRUE}, the family object and link function for each fitted model
-are printed. Can be used in case you want to compare models with different link functions
-and same predictors and response, to decide which model fits best. See \code{\link{family}}
-for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{showAIC}) to get a
-decision help for which model to choose.}
-
-\item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)}) 
-or character vector with coefficient names that indicate which estimates should be removed
-from the table output. The first estimate is the intercept, followed by the model predictors.
-\emph{The intercept cannot be removed from the table output!} \code{remove.estimates = c(2:4)} 
-would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) from the output. 
-\code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
-is \code{NULL}, i.e. all estimates are printed.}
-
-\item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
+\item{cell.spacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
-\item{cellGroupIndent}{indent for table rows with grouped factor predictors. Only applies
+\item{cell.gpr.indent}{indent for table rows with grouped factor predictors. Only applies
 if \code{group.pred = TRUE}.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -207,61 +206,48 @@ See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 # prepare dummy variables for binary logistic regression
-y1 <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
-y2 <- ifelse(swiss$Infant.Mortality < median(swiss$Infant.Mortality), 0, 1)
-y3 <- ifelse(swiss$Agriculture < median(swiss$Agriculture), 0, 1)
+swiss$y1 <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
+swiss$y2 <- ifelse(swiss$Infant.Mortality < median(swiss$Infant.Mortality), 0, 1)
+swiss$y3 <- ifelse(swiss$Agriculture < median(swiss$Agriculture), 0, 1)
 
 # Now fit the models. Note that both models share the same predictors
 # and only differ in their dependent variable (y1, y2 and y3)
-fitOR1 <- glm(y1 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+fitOR1 <- glm(y1 ~ Education + Examination + Catholic, data = swiss,
               family = binomial(link = "logit"))
-fitOR2 <- glm(y2 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+fitOR2 <- glm(y2 ~ Education + Examination + Catholic, data = swiss,
               family = binomial(link = "logit"))
-fitOR3 <- glm(y3 ~ swiss$Education + swiss$Examination+swiss$Catholic,
+fitOR3 <- glm(y3 ~ Education + Examination + Catholic, data = swiss,
               family = binomial(link = "logit"))
 
-# open HTML-table in RStudio Viewer Pane or web browser
 \dontrun{
-sjt.glm(fitOR1, 
-        fitOR2, 
-        labelDependentVariables = c("Fertility", 
-                                    "Infant Mortality"),
-        labelPredictors = c("Education", 
-                            "Examination", 
-                            "Catholic"),
-         ci.hyphen = " to ")
+# open HTML-table in RStudio Viewer Pane or web browser
+sjt.glm(fitOR1, fitOR2, 
+        depvar.labels = c("Fertility", "Infant Mortality"),
+        pred.labels = c("Education", "Examination", "Catholic"),
+        ci.hyphen = " to ")
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # integrate CI in OR column
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables = c("Fertility", 
-                                    "Infant Mortality", 
-                                    "Agriculture"),
-        labelPredictors = c("Education", "Examination", "Catholic"),
-        separateConfColumn = FALSE)
+        pred.labels = c("Education", "Examination", "Catholic"),
+        separate.ci.col = FALSE)
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # indicating p-values as numbers and printing CI in a separate column
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables = c("Fertility", 
-                                    "Infant Mortality", 
-                                    "Agriculture"),
-        labelPredictors = c("Education", "Examination", "Catholic"))
-
+        depvar.labels = c("Fertility", "Infant Mortality", "Agriculture"),
+        pred.labels = c("Education", "Examination", "Catholic"))
 
 # -------------------------------------------- 
 # User defined style sheet
 # -------------------------------------------- 
 sjt.glm(fitOR1, fitOR2, fitOR3,
-        labelDependentVariables = c("Fertility", 
-                                    "Infant Mortality", 
-                                    "Agriculture"),
-        labelPredictors = c("Education", "Examination", "Catholic"),
-        showHeaderStrings = TRUE,
+        depvar.labels = c("Fertility", "Infant Mortality", "Agriculture"),
+        pred.labels = c("Education", "Examination", "Catholic"),
+        show.header = TRUE,
         CSS = list(css.table = "border: 2px solid;",
                    css.tdata = "border: 1px solid;",
                    css.depvarhead = "color:#003399;"))
-
 
 # -------------------------------------------- 
 # Compare models with different link functions, 
@@ -274,39 +260,27 @@ data(efc)
 efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, as.num = TRUE)
 # fit 3 models with different link-functions
 fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep, 
-            data=efc, 
-            family=binomial(link="logit"))
+            data = efc, family = binomial(link = "logit"))
 fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep, 
-            data=efc, 
-            family=binomial(link="probit"))
+            data = efc, family = binomial(link = "probit"))
 fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep, 
-            data=efc, 
-            family=poisson(link="log"))
+            data = efc, family = poisson(link = "log"))
             
 # compare models
-sjt.glm(fit1, fit2, fit3, 
-        showAIC = TRUE, 
-        showFamily = TRUE)
-
+sjt.glm(fit1, fit2, fit3, show.aic = TRUE, show.family = TRUE)
 
 # --------------------------------------------
 # Change style of p-values and CI-appearance
 # --------------------------------------------
 # open HTML-table in RStudio Viewer Pane or web browser,
 # table indicating p-values as stars
-sjt.glm(fit1, fit2, fit3, 
-        pvaluesAsNumbers = FALSE,
-        showAIC = TRUE, 
-        showFamily = TRUE)
+sjt.glm(fit1, fit2, fit3, p.numeric = FALSE,
+        show.aic = TRUE, show.family = TRUE)
 
 # open HTML-table in RStudio Viewer Pane or web browser,
 # indicating p-values as stars and integrate CI in OR column
-sjt.glm(fit1, fit2, fit3, 
-        pvaluesAsNumbers = FALSE,
-        separateConfColumn = FALSE,
-        showAIC = TRUE, 
-        showFamily = TRUE,
-        showPseudoR = TRUE)
+sjt.glm(fit1, fit2, fit3, p.numeric = FALSE, separate.ci.col = FALSE,
+        show.aic = TRUE, show.family = TRUE, show.r2 = TRUE)
 
 # ---------------------------------- 
 # automatic grouping of predictors
@@ -317,13 +291,12 @@ data(efc)
 # dichtomozize service usage by "service usage yes/no"
 efc$services <- sjmisc::dicho(efc$tot_sc_e, "v", 0, as.num = TRUE)
 # make dependency categorical
-efc$e42dep <- to_fac(efc$e42dep)
+efc$e42dep <- to_factor(efc$e42dep)
 # fit model with "grouped" predictor
 fit <- glm(services ~ neg_c_7 + c161sex + e42dep, data = efc)
 
 # automatic grouping of categorical predictors
 sjt.glm(fit)
-
 
 # ---------------------------------- 
 # compare models with different predictors
@@ -335,7 +308,7 @@ fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour + c172code,
 # print models with different predictors
 sjt.glm(fit, fit2, fit3)
 
-efc$c172code <- to_fac(efc$c172code)
+efc$c172code <- to_factor(efc$c172code)
 fit2 <- glm(services ~ neg_c_7 + c161sex + c12hour, data = efc)
 fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data = efc)
 

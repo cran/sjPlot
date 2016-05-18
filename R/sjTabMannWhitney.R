@@ -5,7 +5,7 @@
 #'                from the Mann-Whitney-test are obtained by the \code{\link[sjmisc]{mwu}}
 #'                function from the \pkg{sjmisc}-package.
 #'
-#' @param x Results of a Mann-Whitney-U test, provided by \code{\link[sjmisc]{mwu}}. See examples.
+#' @param x results of a Mann-Whitney-U test, provided by \code{\link[sjmisc]{mwu}}. See 'Examples'.
 #'          
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
@@ -33,11 +33,11 @@
 #' @export
 sjt.mwu <- function(x, 
                     title = NULL, 
-                    alternateRowColors = TRUE, 
-                    file=NULL,
-                    encoding=NULL,
-                    CSS=NULL,
-                    useViewer = TRUE, 
+                    altr.row.col = TRUE, 
+                    CSS = NULL,
+                    encoding = NULL,
+                    file = NULL,
+                    use.viewer = TRUE,
                     no.output = FALSE,
                     remove.spaces = TRUE) {
   # --------------------------------------------------------
@@ -66,17 +66,17 @@ sjt.mwu <- function(x,
   html <- sjt.df(x$tab.df, 
                  title = title,
                  describe = F, 
-                 showRowNames = F, 
-                 alternateRowColors = alternateRowColors,
+                 show.rownames = F, 
+                 altr.row.col = altr.row.col,
                  CSS = CSS,
                  no.output = T,
                  encoding = encoding,
-                 hideProgressBar = T,
+                 hide.progress = T,
                  remove.spaces = remove.spaces)
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------
-  out.html.table(no.output, file, html$knitr, html$output.complete, useViewer)  
+  out.html.table(no.output, file, html$knitr, html$output.complete, use.viewer)  
   invisible(list(class = c("sjTable", "sjtmwu"),
                  df = x$tab.df, 
                  page.style = html$page.style,

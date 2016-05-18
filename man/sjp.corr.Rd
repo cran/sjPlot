@@ -4,73 +4,71 @@
 \alias{sjp.corr}
 \title{Plot correlation matrix}
 \usage{
-sjp.corr(data, title = NULL, axisLabels = NULL, type = "circle",
-  sortCorrelations = TRUE, decimals = 3, missingDeletion = "listwise",
-  corMethod = "spearman", geom.colors = "RdBu", geom.size = 15,
-  breakTitleAt = 50, breakLabelsAt = 20, hideLegend = TRUE,
-  legendTitle = NULL, showValueLabels = TRUE, showPValues = TRUE,
-  pvaluesAsNumbers = FALSE, printPlot = TRUE)
+sjp.corr(data, title = NULL, axis.labels = NULL, type = c("circle",
+  "tile"), sort.corr = TRUE, decimals = 3, na.deletion = c("listwise",
+  "pairwise"), corr.method = c("spearman", "pearson", "kendall"),
+  geom.colors = "RdBu", geom.size = 15, wrap.title = 50,
+  wrap.labels = 20, show.legend = FALSE, legend.title = NULL,
+  show.values = TRUE, show.p = TRUE, p.numeric = FALSE,
+  prnt.plot = TRUE)
 }
 \arguments{
 \item{data}{matrix with correlation coefficients as returned by the 
-\code{\link{cor}}-function, or a \code{\link{data.frame}} of variables that
-should be correlated.}
+\code{\link{cor}}-function, or a \code{data.frame} of variables where
+correlations between columns should be computed.}
 
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{axisLabels}{labels for the x- andy y-axis. AxisLabels are detected automatically
-if \code{data} is a \code{\link{data.frame}} where variables have 
-label attributes (see \code{\link[sjmisc]{set_label}}) 
-for details).}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
 \item{type}{indicates whether the geoms of correlation values should be plotted
 as \code{"circle"} (default) or as \code{"tile"}.}
 
-\item{sortCorrelations}{logical, if \code{TRUE} (default), the axis labels are sorted
+\item{sort.corr}{logical, if \code{TRUE} (default), the axis labels are sorted
 according to the correlation strength. If \code{FALSE}, axis labels
 appear in order of how variables were included in the cor-computation or
 data frame.}
 
 \item{decimals}{indicates how many decimal values after comma are printed when
 the values labels are shown. Default is 3. Only applies when
-\code{showValueLabels = TRUE}.}
+\code{show.values = TRUE}.}
 
-\item{missingDeletion}{indicates how missing values are treated. May be either
-\code{"listwise"} (default) or \code{"pairwise"}.}
+\item{na.deletion}{indicates how missing values are treated. May be either
+\code{"listwise"} (default) or \code{"pairwise"}. May be
+abbreviated.}
 
-\item{corMethod}{indicates the correlation computation method. May be one of
-\code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.}
+\item{corr.method}{indicates the correlation computation method. May be one of
+\code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
+May be abbreviated.}
 
-\item{geom.colors}{color palette for fillng the geoms. If not specified, the diverging color palette
-from the color brewer palettes (RdBu) is used, resulting in red colors for negative and blue colors
-for positive correlations, that become lighter the weaker the correlations are. Use any
-color palette that is suitbale for the \code{scale_fill_gradientn} argument of ggplot2.}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
-\item{geom.size}{specifies the circle size factor. The circle size depends on the correlation
-value multiplicated with this factor. Default is 15.}
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
 
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
 
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
-\item{legendTitle}{title of the plot legend, as string.}
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
 
-\item{showValueLabels}{logical, whether correlation values should be plotted to each geom}
+\item{legend.title}{character vector, used as title for the plot legend.}
 
-\item{showPValues}{logical, whether significance levels (p-values) of correlations should
-be plotted to each geom. See 'Note'.}
+\item{show.values}{logical, whether values should be plotted or not.}
 
-\item{pvaluesAsNumbers}{logical, if \code{TRUE}, the significance levels (p-values) are printed as numbers.
-if \code{FALSE} (default), asterisks are used. See 'Note'.}
+\item{show.p}{logical, adds significance levels to values, or value and 
+variable labels.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{p.numeric}{logical, if \code{TRUE}, the p-values are printed 
+as numbers. If \code{FALSE} (default), asterisks are used.}
+
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -79,33 +77,31 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
           (\code{corr.matrix}).
 }
 \description{
-Plot correlation matrix as ellipses or tiles. Required argument is either
-               a \code{\link{data.frame}} or a matrix with correlation coefficients 
-               as returned by the \code{\link{cor}}-function. In case of ellipses, the
-               ellipses size indicates the strength of the correlation. Furthermore,
-               blue and red colors indicate positive or negative correlations, where
-               stronger correlations are darker.
+Plot correlation matrix as ellipses or tiles.
+}
+\details{
+Required argument is either a \code{\link{data.frame}} or a matrix with correlation coefficients 
+           as returned by the \code{\link{cor}}-function. In case of ellipses, the
+           ellipses size indicates the strength of the correlation. Furthermore,
+           blue and red colors indicate positive or negative correlations, where
+           stronger correlations are darker.
 }
 \note{
 If \code{data} is a matrix with correlation coefficients as returned by 
       the \code{\link{cor}}-function, p-values can't be computed.
-      Thus, \code{showPValues} and \code{pvaluesAsNumbers}
+      Thus, \code{show.p} and \code{p.numeric}
       only have an effect if \code{data} is a \code{\link{data.frame}}.
 }
 \examples{
 # create data frame with 5 random variables
-mydf <- data.frame(cbind(runif(10), 
-                         runif(10), 
-                         runif(10), 
-                         runif(10), 
-                         runif(10)))
+mydf <- data.frame(cbind(runif(10), runif(10), runif(10), 
+                         runif(10), runif(10)))
 
 # plot correlation matrix using circles
 sjp.corr(mydf)
 
 # plot correlation matrix using square tiles without diagram background
 sjp.corr(mydf, type = "tile")
-
 
 # -------------------------------
 # Data from the EUROFAMCARE sample dataset
@@ -122,7 +118,7 @@ mydf <- data.frame(efc[, vars.index])
 colnames(mydf) <- varlabs[vars.index]
 
 # show legend
-sjp.corr(mydf, type = "tile", hideLegend = FALSE)
+sjp.corr(mydf, type = "tile", show.legend = TRUE)
 
 # -------------------------------
 # auto-detection of labels

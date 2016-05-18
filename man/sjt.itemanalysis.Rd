@@ -5,10 +5,10 @@
 \title{Summary of item analysis of an item scale as HTML table}
 \usage{
 sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
-  scaleItems = FALSE, minValidRowMeanValue = 2, alternateRowColors = TRUE,
-  orderColumn = NULL, orderAscending = TRUE, showShapiro = FALSE,
-  showKurtosis = FALSE, showCompCorrMat = TRUE, file = NULL,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
+  scale = FALSE, min.valid.rowmean = 2, altr.row.col = TRUE,
+  sort.col = NULL, sort.asc = TRUE, show.shapiro = FALSE,
+  show.kurtosis = FALSE, show.corr.matrix = TRUE, CSS = NULL,
+  encoding = NULL, file = NULL, use.viewer = TRUE, no.output = FALSE,
   remove.spaces = TRUE)
 }
 \arguments{
@@ -24,34 +24,34 @@ component-table. Must be a character vector of same length as \code{length(uniqu
 Default is \code{"auto"}, which means that each table has a standard caption \emph{Component x}.
 Use \code{NULL} to suppress table captions.}
 
-\item{scaleItems}{logical, if \code{TRUE}, the data frame's vectors will be scaled when calculating the
+\item{scale}{logical, if \code{TRUE}, the data frame's vectors will be scaled when calculating the
 Cronbach's Alpha value (see \code{\link[sjmisc]{reliab_test}}). Recommended, when 
 the variables have different measures / scales.}
 
-\item{minValidRowMeanValue}{minimum amount of valid values to compute row means for index scores.
+\item{min.valid.rowmean}{minimum amount of valid values to compute row means for index scores.
 Default is 2, i.e. the return values \code{index.scores} and \code{df.index.scores} are
-computed for those items that have at least \code{minValidRowMeanValue} per case (observation, or
+computed for those items that have at least \code{min.valid.rowmean} per case (observation, or
 technically, row). See \code{mean_n} for details.}
 
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{orderColumn}{indicates a column, either by column name or by column index number,
+\item{sort.col}{indicates a column, either by column name or by column index number,
 that should be sorted. Default order is ascending, which can be changed with
-\code{orderAscending} argument. Default is \code{NULL}, hence the data frame
+\code{sort.asc} argument. Default is \code{NULL}, hence the data frame
 is printed with no specific order. See 'Examples'.}
 
-\item{orderAscending}{logical, if \code{TRUE} (default) and \code{orderColumn} is not \code{NULL},
+\item{sort.asc}{logical, if \code{TRUE} (default) and \code{sort.col} is not \code{NULL},
 data frame is ordered according to the specified column in an ascending order.
 Use \code{FALSE} to apply descending order. See 'Examples'.}
 
-\item{showShapiro}{logical, if \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
+\item{show.shapiro}{logical, if \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
 See \code{\link{shapiro.test}} for details.}
 
-\item{showKurtosis}{logical, if \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
+\item{show.kurtosis}{logical, if \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
 and \code{\link[psych]{describe}} in the \code{psych}-package for more details.}
 
-\item{showCompCorrMat}{logical, if \code{TRUE} (default), a correlation matrix of each component's
+\item{show.corr.matrix}{logical, if \code{TRUE} (default), a correlation matrix of each component's
 index score is shown. Only applies if \code{factor.groups} is not \code{NULL} and \code{df} has
 more than one group. First, for each case (df's row), the sum of all variables (df's columns) is
 scaled (using the \code{\link{scale}}-function) and represents a "total score" for
@@ -59,19 +59,19 @@ each component (a component is represented by each group of \code{factor.groups}
 After that, each case (df's row) has a scales sum score for each component.
 Finally, a correlation of these "scale sum scores" is computed.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -138,9 +138,7 @@ See 'Details' in \code{\link{sjt.frq}}.
 See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
-# -------------------------------
 # Data from the EUROFAMCARE sample dataset
-# -------------------------------
 library(sjmisc)
 data(efc)
 
@@ -159,15 +157,11 @@ colnames(mydf) <- varlabs[c(start:end)]
 \dontrun{
 sjt.itemanalysis(mydf)
 
-# -------------------------------
 # auto-detection of labels
-# -------------------------------
 sjt.itemanalysis(efc[, c(start:end)])
   
-# ---------------------------------------
 # Compute PCA on Cope-Index, and perform a
 # item analysis for each extracted factor.
-# ---------------------------------------
 factor.groups <- sjt.pca(mydf, no.output = TRUE)$factor.index
 sjt.itemanalysis(mydf, factor.groups)}
  

@@ -4,79 +4,60 @@
 \alias{sjt.xtab}
 \title{Summary of contingency tables as HTML table}
 \usage{
-sjt.xtab(var.row, var.col, weightBy = NULL, digits = 1, file = NULL,
-  variableLabels = NULL, valueLabels = NULL, title = NULL,
-  breakVariableLabelsAt = 40, breakValueLabelsAt = 20,
-  stringTotal = "Total", showObserved = TRUE, showCellPerc = FALSE,
-  showRowPerc = FALSE, showColPerc = FALSE, showExpected = FALSE,
-  showHorizontalLine = FALSE, showSummary = TRUE, showLegend = FALSE,
-  showNA = FALSE, labelNA = "NA", tdcol.n = "black",
-  tdcol.expected = "#339999", tdcol.cell = "#993333",
-  tdcol.row = "#333399", tdcol.col = "#339933", highlightTotal = FALSE,
-  highlightColor = "#f8f8f8", percSign = "&nbsp;&#37;", hundret = "100.0",
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+sjt.xtab(var.row, var.col, weight.by = NULL, title = NULL,
+  var.labels = NULL, value.labels = NULL, wrap.labels = 20,
+  show.obs = TRUE, show.cell.prc = FALSE, show.row.prc = FALSE,
+  show.col.prc = FALSE, show.exp = FALSE, show.summary = TRUE,
+  show.legend = FALSE, show.na = FALSE, string.total = "Total",
+  digits = 1, tdcol.n = "black", tdcol.expected = "#339999",
+  tdcol.cell = "#993333", tdcol.row = "#333399", tdcol.col = "#339933",
+  emph.total = FALSE, emph.color = "#f8f8f8", prc.sign = "&nbsp;&#37;",
+  hundret = "100.0", CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{var.row}{variable that should be displayed in the table rows.}
 
 \item{var.col}{variable that should be displayed in the table columns.}
 
-\item{weightBy}{weight factor that will be applied to weight all cases.
-Must be a vector of same length as \code{var.row}. Default is \code{NULL}, so no weights are used.}
-
-\item{digits}{amount of digits used for the percentage values inside table cells.
-Default is 1.}
-
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
-
-\item{variableLabels}{character vector of same length as supplied variables, with 
-the associated variable names. Following order is needed: name of \code{var.row},
-name of \code{var.col}, and - if \code{var.grp} is not \code{NULL} - name of \code{var.grp}.
-See 'Examples'.
-Variable labels are detected automatically, if \code{var.row} or \code{var.col}
-have label attributes (see \code{\link[sjmisc]{set_label}}) for details).}
-
-\item{valueLabels}{\code{\link{list}} of two character vectors that indicate the value labels of the supplied
-variables. Following order is needed: value labels of \code{var.row}
-and value labels of \code{var.col}. See 'Examples'.}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
 \item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
-\item{breakVariableLabelsAt}{determines how many chars of the variable labels are displayed in 
-one line and when a line break is inserted. Default is 40.}
+\item{var.labels}{character vector with variable names, which will be used 
+to label variables in the output.}
 
-\item{breakValueLabelsAt}{determines how many chars of the value labels are displayed in 
-one line and when a line break is inserted. Default is 20.}
+\item{value.labels}{character vector (or \code{list} of character vectors)
+with value labels of the supplied variables, which will be used 
+to label variable values in the output.}
 
-\item{stringTotal}{label for the total column / row header}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
-\item{showObserved}{logical, if \code{TRUE}, observed values are shown}
+\item{show.obs}{logical, if \code{TRUE}, observed values are shown}
 
-\item{showCellPerc}{logical, if \code{TRUE}, cell percentage values are shown}
+\item{show.cell.prc}{logical, if \code{TRUE}, cell percentage values are shown}
 
-\item{showRowPerc}{logical, if \code{TRUE}, row percentage values are shown}
+\item{show.row.prc}{logical, if \code{TRUE}, row percentage values are shown}
 
-\item{showColPerc}{logical, if \code{TRUE}, column percentage values are shown}
+\item{show.col.prc}{logical, if \code{TRUE}, column percentage values are shown}
 
-\item{showExpected}{logical, if \code{TRUE}, expected values are also shown}
+\item{show.exp}{logical, if \code{TRUE}, expected values are also shown}
 
-\item{showHorizontalLine}{logical, if \code{TRUE}, data rows are separated with a horizontal line}
+\item{show.summary}{If \code{TRUE} (default), a summary row with total and valid N as well as mean and
+standard deviation is shown.}
 
-\item{showSummary}{logical, if \code{TRUE} (default), a summary row with chi-square statistics (see \code{\link{chisq.test}}),
-Cramer's V or Phi-value etc. is shown. If a cell contains expected values lower than five (or lower than 10 
-if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is computed instead of chi-square test. 
-If the table's matrix is larger than 2x2, Fisher's excact test with Monte Carlo simulation is computed.}
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
 
-\item{showLegend}{logical, if \code{TRUE}, the color legend for coloring observed and expected
-values as well as cell, row and column percentages is shown. See \code{tdcol.n},
-\code{tdcol.expected}, \code{tdcol.cell}, \code{tdcol.row} and \code{tdcol.col}.}
+\item{show.na}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values)
+are added to the output.}
 
-\item{showNA}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.}
+\item{string.total}{label for the total column / row header}
 
-\item{labelNA}{The label for the missing column/row.}
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{tdcol.n}{Color for highlighting count (observed) values in table cells. Default is black.}
 
@@ -88,28 +69,32 @@ values as well as cell, row and column percentages is shown. See \code{tdcol.n},
 
 \item{tdcol.col}{Color for highlighting column percentage values in table cells. Default is green.}
 
-\item{highlightTotal}{logical, if \code{TRUE}, the total column and row will be highlighted with a
-different background color. See \code{highlightColor}.}
+\item{emph.total}{logical, if \code{TRUE}, the total column and row will be emphasized with a
+different background color. See \code{emph.color}.}
 
-\item{highlightColor}{logical, if \code{highlightTotal = TRUE}, this color value will be used
+\item{emph.color}{logical, if \code{emph.total = TRUE}, this color value will be used
 for painting the background of the total column and row. Default is a light grey.}
 
-\item{percSign}{The percentage sign that is printed in the table cells, in HTML-format.
+\item{prc.sign}{The percentage sign that is printed in the table cells, in HTML-format.
 Default is \code{"&nbsp;\%"}, hence the percentage sign has a non-breaking-space after
 the percentage value.}
 
 \item{hundret}{Default value that indicates the 100-percent column-sums (since rounding values
 may lead to non-exact results). Default is \code{"100.0"}.}
 
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -152,23 +137,14 @@ sjt.xtab(efc$e16sex, efc$e42dep)
          
 # print cross table with manually set
 # labels and expected values
-sjt.xtab(efc$e16sex, 
-         efc$e42dep, 
-         variableLabels = c("Elder's gender", 
-                            "Elder's dependency"),
-         valueLabels = list(efc.labels[['e16sex']], 
-                            efc.labels[['e42dep']]),
-         showExpected = TRUE)
+sjt.xtab(efc$e16sex, efc$e42dep, var.labels = c("Elder's gender", 
+         "Elder's dependency"), value.labels = list(efc.labels[['e16sex']], 
+         efc.labels[['e42dep']]), show.exp = TRUE)
 
 # print minimal cross table with labels, total col/row highlighted
-sjt.xtab(efc$e16sex, efc$e42dep, 
-         showHorizontalLine = FALSE,
-         showCellPerc = FALSE,
-         highlightTotal = TRUE)
+sjt.xtab(efc$e16sex, efc$e42dep, show.cell.prc = FALSE, emph.total = TRUE)
 
-# ---------------------------------------------------------------- 
 # User defined style sheet
-# ---------------------------------------------------------------- 
 sjt.xtab(efc$e16sex, efc$e42dep, 
          CSS = list(css.table = "border: 2px solid;",
                     css.tdata = "border: 1px solid;",

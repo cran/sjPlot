@@ -12,19 +12,7 @@
 #'                should be printed as table to compare their distributions (e.g.
 #'                when plotting scales like SF, Barthel-Index, Quality-of-Life-scales etc.).
 #'                
-#' @param items \code{\link{data.frame}} with each column representing one (likert- or scale-)item.
-#' @param weightBy weight factor that will be applied to weight all cases from \code{items}.
-#'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, so no weights are used.
-#' @param title table caption.
-#' @param varlabels character vector with variable names. If not specified, row names of \code{items}
-#'          will be used, resp. variable labels will automatically be detected, when they have
-#'          a variable label attribute (see \code{\link[sjmisc]{set_label}}) for details).
-#' @param breakLabelsAt determines how many chars of the variable labels are displayed in 
-#'          one line and when a line break is inserted. Default is 40.
-#' @param valuelabels character vector with category/value labels, which
-#'          appear in the header row.
-#' @param breakValueLabelsAt determines how many chars of the value labels are displayed in 
-#'          one line and when a line break is inserted. Default is 20.
+#' @param title table caption, as character vector.
 #' @param sort.frq logical, indicates whether the \code{items} should be ordered by
 #'          by highest count of first or last category of \code{items}.
 #'          \itemize{
@@ -34,25 +22,22 @@
 #'            \item \code{"last.desc"} to order descending by lowest count of last category,
 #'            \item or \code{NULL} (default) for no sorting.
 #'          }
-#' @param digits amount of digits for rounding the percentage values.
-#'          Default is 2, i.e. percentage values have 2 digits after decimal point.
-#' @param showN logical, if \code{TRUE}, each item's category N is printed in the table cells.
-#' @param showTotalN logical, if \code{TRUE}, an additional column with each item's total N is printed.
-#' @param showNA logical, if \code{TRUE}, \code{\link{NA}}'s (missing values) are also printed in the table.
-#' @param labelNA The label for the missing column/row.
-#' @param showSkew logical, if \code{TRUE}, an additional column with each item's skewness is printed.
+#' @param show.total logical, if \code{TRUE}, an additional column with each 
+#'          item's total N is printed.
+#' @param string.na The label for the missing column/row.
+#' @param show.skew logical, if \code{TRUE}, an additional column with each item's skewness is printed.
 #'          The skewness is retrieved from the \code{\link[psych]{describe}}-function 
 #'          of the \pkg{psych}-package.
 #' @param digits.stats amount of digits for rounding the skewness and kurtosis valuess.
 #'          Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.
-#' @param skewString string, which is used as header for the skew column (see \code{showSkew})).
-#'          Default is \code{"Skew"}.
-#' @param kurtosisString string, which is used as header for the kurtosis column (see \code{showKurtosis})).
-#'          Default is \code{"Kurtosis"}.
 #'          
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
 #' @inheritParams sjt.itemanalysis
+#' @inheritParams sjp.glmer
+#' @inheritParams sjt.xtab
+#' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.stackfrq
 #'          
 #' @return Invisibly returns
 #'          \itemize{
@@ -72,39 +57,24 @@
 #' # random sample
 #' # -------------------------------
 #' # prepare data for 4-category likert scale, 5 items
-#' likert_4 <- data.frame(as.factor(sample(1:4, 
-#'                                         500, 
-#'                                         replace = TRUE, 
-#'                                         prob = c(0.2, 0.3, 0.1, 0.4))),
-#'                        as.factor(sample(1:4, 
-#'                                         500, 
-#'                                         replace = TRUE, 
-#'                                         prob = c(0.5, 0.25, 0.15, 0.1))),
-#'                        as.factor(sample(1:4, 
-#'                                         500, 
-#'                                         replace = TRUE, 
-#'                                         prob = c(0.25, 0.1, 0.4, 0.25))),
-#'                        as.factor(sample(1:4, 
-#'                                         500, 
-#'                                         replace = TRUE, 
-#'                                         prob = c(0.1, 0.4, 0.4, 0.1))),
-#'                        as.factor(sample(1:4, 
-#'                                         500, 
-#'                                         replace = TRUE, 
-#'                                         prob = c(0.35, 0.25, 0.15, 0.25))))
+#' likert_4 <- data.frame(
+#'   as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.2, 0.3, 0.1, 0.4))),
+#'   as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.5, 0.25, 0.15, 0.1))),
+#'   as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.25, 0.1, 0.4, 0.25))),
+#'   as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.1, 0.4, 0.4, 0.1))),
+#'   as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25)))
+#' )
+#' 
 #' # create labels
-#' levels_4 <- c("Independent", 
-#'               "Slightly dependent", 
-#'               "Dependent", 
-#'               "Severely dependent")
+#' levels_4 <- c("Independent", "Slightly dependent", 
+#'               "Dependent", "Severely dependent")
 #' 
 #' # create item labels
 #' items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
 #' 
 #' # plot stacked frequencies of 5 (ordered) item-scales
 #' \dontrun{
-#' sjt.stackfrq(likert_4, valuelabels = levels_4, varlabels = items)
-#' 
+#' sjt.stackfrq(likert_4, value.labels = levels_4, var.labels = items)
 #' 
 #' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
@@ -117,23 +87,16 @@
 #' # recveive first item of COPE-index scale
 #' end <- which(colnames(efc) == "c90cop9")
 #' 
-#' sjt.stackfrq(efc[, c(start:end)],
-#'              alternateRowColors = TRUE)
+#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE)
 #' 
-#' sjt.stackfrq(efc[, c(start:end)],
-#'              alternateRowColors = TRUE,
-#'              showN = TRUE,
-#'              showNA = TRUE)
-#'          
+#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+#'              show.n = TRUE, show.na = TRUE)
 #'          
 #' # -------------------------------- 
 #' # User defined style sheet
 #' # -------------------------------- 
-#' sjt.stackfrq(efc[, c(start:end)],
-#'              alternateRowColors = TRUE,
-#'              showTotalN = TRUE,
-#'              showSkew = TRUE,
-#'              showKurtosis = TRUE,
+#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE, 
+#'              show.total = TRUE, show.skew = TRUE, show.kurtosis = TRUE,
 #'              CSS = list(css.ncol = "border-left:1px dotted black;",
 #'                         css.summary = "font-style:italic;"))}
 #'              
@@ -141,28 +104,25 @@
 #' @importFrom stats xtabs
 #' @export
 sjt.stackfrq <- function(items,
-                         weightBy = NULL,
+                         weight.by = NULL,
                          title = NULL,
-                         varlabels = NULL,
-                         breakLabelsAt = 40,
-                         valuelabels = NULL,
-                         breakValueLabelsAt = 20,
+                         var.labels = NULL,
+                         value.labels = NULL,
+                         wrap.labels = 20,
                          sort.frq = NULL,
-                         alternateRowColors = FALSE,
+                         altr.row.col = FALSE,
                          digits = 2,
-                         showN = FALSE,
-                         showTotalN = FALSE,
-                         showNA = FALSE,
-                         labelNA = "NA",
-                         showSkew = FALSE,
-                         showKurtosis = FALSE,
+                         string.na = "NA",
+                         show.n = FALSE,
+                         show.total = FALSE,
+                         show.na = FALSE,
+                         show.skew = FALSE,
+                         show.kurtosis = FALSE,
                          digits.stats = 2,
-                         skewString = "Skew",
-                         kurtosisString = "Kurtosis",
                          file = NULL, 
                          encoding = NULL,
                          CSS = NULL,
-                         useViewer = TRUE,
+                         use.viewer = TRUE,
                          no.output = FALSE,
                          remove.spaces = TRUE) {
   # --------------------------------------------------------
@@ -195,16 +155,16 @@ sjt.stackfrq <- function(items,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
-  if (is.null(valuelabels)) valuelabels <- sjmisc::get_labels(items[[1]],
+  if (is.null(value.labels)) value.labels <- sjmisc::get_labels(items[[1]],
                                                               attr.only = F,
                                                               include.values = NULL,
                                                               include.non.labelled = T)
-  if (is.null(varlabels)) {
-    varlabels <- c()
+  if (is.null(var.labels)) {
+    var.labels <- c()
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      varlabels <- c(varlabels, sjmisc::get_label(items[[i]], def.value = colnames(items)[i]))
+      var.labels <- c(var.labels, sjmisc::get_label(items[[i]], def.value = colnames(items)[i]))
     }
   }
   # ----------------------------
@@ -216,23 +176,23 @@ sjt.stackfrq <- function(items,
   # if we have no value labels, set default labels and find amount
   # of unique categories
   # ----------------------------
-  if (is.null(valuelabels)) valuelabels <- as.character(minval:maxval)
+  if (is.null(value.labels)) value.labels <- as.character(minval:maxval)
   # check whether missings should be shown
-  if (showNA) valuelabels <- c(valuelabels, labelNA)
+  if (show.na) value.labels <- c(value.labels, string.na)
   # save amolunt of values
-  catcount <- length(valuelabels)
+  catcount <- length(value.labels)
   # check length of x-axis-labels and split longer strings at into new lines
-  valuelabels <- sjmisc::word_wrap(valuelabels, breakValueLabelsAt, "<br>")
+  value.labels <- sjmisc::word_wrap(value.labels, wrap.labels, "<br>")
   # ----------------------------
   # if we have no variable labels, use row names
   # ----------------------------
-  if (is.null(varlabels)) varlabels <- colnames(items)
+  if (is.null(var.labels)) var.labels <- colnames(items)
   # check length of x-axis-labels and split longer strings at into new lines
-  varlabels <- sjmisc::word_wrap(varlabels, breakLabelsAt, "<br>")
+  var.labels <- sjmisc::word_wrap(var.labels, wrap.labels, "<br>")
   # ----------------------------  
   # additional statistics required from psych-package?
   # ----------------------------
-  if (showSkew || showKurtosis) pstat <- psych::describe(items)
+  if (show.skew || show.kurtosis) pstat <- psych::describe(items)
   # ----------------------------
   # create data frame with each item in a row
   # therefore, iterate each item
@@ -257,25 +217,25 @@ sjt.stackfrq <- function(items,
     # if we don't have weights, create simple frequency table
     # of each item
     # ----------------------------
-    if (showNA) {
+    if (show.na) {
       # ----------------------------
       # include missing
       # ----------------------------
-      if (is.null(weightBy)) {
+      if (is.null(weight.by)) {
         dummy <- table(addNA(items[[i]]))
       } else {
         # else weight with xtabs
-        dummy <- round(stats::xtabs(weightBy ~ addNA(items[[i]])), 0)
+        dummy <- round(stats::xtabs(weight.by ~ addNA(items[[i]])), 0)
       }
     # ----------------------------
     # exclude missing
     # ----------------------------
     } else {
-      if (is.null(weightBy)) {
+      if (is.null(weight.by)) {
         dummy <- table(items[[i]])
       } else {
         # else weight with xtabs
-        dummy <- round(stats::xtabs(weightBy ~ items[[i]]), 0)
+        dummy <- round(stats::xtabs(weight.by ~ items[[i]]), 0)
       }
     }
     # ----------------------------
@@ -290,7 +250,7 @@ sjt.stackfrq <- function(items,
     # ----------------------------
     # if we have missings, manually change table names
     # ----------------------------
-    if (showNA) {
+    if (show.na) {
       # retrieve amount of categories
       tl <- length(names(dummy))
       # retrieve maximum category value, omitting NA
@@ -367,17 +327,17 @@ sjt.stackfrq <- function(items,
   # check user defined style sheets
   # ------------------------
   if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1)=='+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
-    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1)=='+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
-    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1)=='+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
-    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1)=='+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
-    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1)=='+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1)=='+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1)=='+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1)=='+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
-    if (!is.null(CSS[['css.ncol']])) css.ncol <- ifelse(substring(CSS[['css.ncol']],1,1)=='+', paste0(css.ncol, substring(CSS[['css.ncol']],2)), CSS[['css.ncol']])
-    if (!is.null(CSS[['css.skewcol']])) css.skewcol <- ifelse(substring(CSS[['css.skewcol']],1,1)=='+', paste0(css.skewcol, substring(CSS[['css.skewcol']],2)), CSS[['css.skewcol']])
-    if (!is.null(CSS[['css.kurtcol']])) css.kurtcol <- ifelse(substring(CSS[['css.kurtcol']],1,1)=='+', paste0(css.kurtcol, substring(CSS[['css.kurtcol']],2)), CSS[['css.kurtcol']])
+    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']],1,1) == '+', paste0(css.table, substring(CSS[['css.table']],2)), CSS[['css.table']])
+    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']],1,1) == '+', paste0(css.thead, substring(CSS[['css.thead']],2)), CSS[['css.thead']])
+    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']],1,1) == '+', paste0(css.caption, substring(CSS[['css.caption']],2)), CSS[['css.caption']])
+    if (!is.null(CSS[['css.summary']])) css.summary <- ifelse(substring(CSS[['css.summary']],1,1) == '+', paste0(css.summary, substring(CSS[['css.summary']],2)), CSS[['css.summary']])
+    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']],1,1) == '+', paste0(css.arc, substring(CSS[['css.arc']],2)), CSS[['css.arc']])
+    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']],1,1) == '+', paste0(css.tdata, substring(CSS[['css.tdata']],2)), CSS[['css.tdata']])
+    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']],1,1) == '+', paste0(css.centeralign, substring(CSS[['css.centeralign']],2)), CSS[['css.centeralign']])
+    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']],1,1) == '+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']],2)), CSS[['css.firsttablecol']])
+    if (!is.null(CSS[['css.ncol']])) css.ncol <- ifelse(substring(CSS[['css.ncol']],1,1) == '+', paste0(css.ncol, substring(CSS[['css.ncol']],2)), CSS[['css.ncol']])
+    if (!is.null(CSS[['css.skewcol']])) css.skewcol <- ifelse(substring(CSS[['css.skewcol']],1,1) == '+', paste0(css.skewcol, substring(CSS[['css.skewcol']],2)), CSS[['css.skewcol']])
+    if (!is.null(CSS[['css.kurtcol']])) css.kurtcol <- ifelse(substring(CSS[['css.kurtcol']],1,1) == '+', paste0(css.kurtcol, substring(CSS[['css.kurtcol']],2)), CSS[['css.kurtcol']])
   }
   # ------------------------
   # set page style
@@ -411,14 +371,14 @@ sjt.stackfrq <- function(items,
   page.content <- paste0(page.content, "    <th class=\"thead\">&nbsp;</th>\n")
   # iterate columns
   for (i in 1:catcount) {
-    page.content <- paste0(page.content, sprintf("    <th class=\"thead\">%s</th>\n", valuelabels[i]))
+    page.content <- paste0(page.content, sprintf("    <th class=\"thead\">%s</th>\n", value.labels[i]))
   }
   # add N column
-  if (showTotalN) page.content <- paste0(page.content, "    <th class=\"thead ncol summary\">N</th>\n")
+  if (show.total) page.content <- paste0(page.content, "    <th class=\"thead ncol summary\">N</th>\n")
   # add skew column
-  if (showSkew) page.content <- paste0(page.content, sprintf("    <th class=\"thead skewcol summary\">%s</th>\n", skewString))
+  if (show.skew) page.content <- paste0(page.content, "    <th class=\"thead skewcol summary\">Skew</th>\n")
   # add kurtosis column
-  if (showKurtosis) page.content <- paste0(page.content, sprintf("    <th class=\"thead kurtcol summary\">%s</th>\n", kurtosisString))
+  if (show.kurtosis) page.content <- paste0(page.content, "    <th class=\"thead kurtcol summary\">Kurtosis</th>\n")
   # close table row
   page.content <- paste0(page.content, "  </tr>\n")
   # -------------------------------------
@@ -429,27 +389,27 @@ sjt.stackfrq <- function(items,
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (alternateRowColors) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
+    if (altr.row.col) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
     # write tr-tag
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell
-    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol%s\">%s</td>\n", arcstring, varlabels[facord[i]]))
+    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol%s\">%s</td>\n", arcstring, var.labels[facord[i]]))
     # --------------------------------------------------------
     # iterate all columns
     # --------------------------------------------------------
     for (j in 1:ncol(mat)) {
-      if (showN) {
+      if (show.n) {
         page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%i<br>(%.*f&nbsp;%%)</td>\n", arcstring, mat.n[facord[i], j], digits, 100 * mat[facord[i], j]))
       } else {
         page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign%s\">%.*f&nbsp;%%</td>\n", arcstring, digits, 100 * mat[facord[i], j]))
       }
     }
     # add column with N's
-    if (showTotalN) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign ncol summary%s\">%i</td>\n", arcstring, itemcount[facord[i]]))
+    if (show.total) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign ncol summary%s\">%i</td>\n", arcstring, itemcount[facord[i]]))
     # add column with Skew's
-    if (showSkew) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign skewcol summary%s\">%.*f</td>\n", arcstring, digits.stats, pstat$skew[facord[i]]))
+    if (show.skew) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign skewcol summary%s\">%.*f</td>\n", arcstring, digits.stats, pstat$skew[facord[i]]))
     # add column with Kurtosis's
-    if (showKurtosis) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kurtcol summary%s\">%.*f</td>\n", arcstring, digits.stats, pstat$kurtosis[facord[i]]))
+    if (show.kurtosis) page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign kurtcol summary%s\">%.*f</td>\n", arcstring, digits.stats, pstat$kurtosis[facord[i]]))
     # close row
     page.content <- paste0(page.content, "  </tr>\n")
   }
@@ -498,13 +458,13 @@ sjt.stackfrq <- function(items,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  out.html.table(no.output, file, knitr, toWrite, useViewer) 
+  out.html.table(no.output, file, knitr, toWrite, use.viewer) 
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible (structure(class = "sjtstackfrq",
-                       list(page.style = page.style,
-                            page.content = page.content,
-                            output.complete = toWrite,
-                            knitr = knitr)))
+  invisible(structure(class = "sjtstackfrq",
+                      list(page.style = page.style,
+                           page.content = page.content,
+                           output.complete = toWrite,
+                           knitr = knitr)))
 }

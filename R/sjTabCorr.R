@@ -10,26 +10,8 @@
 #'                a \code{\link{data.frame}} or a matrix with correlation coefficients 
 #'                as returned by the \code{\link{cor}}-function.
 #'                
-#' @param data matrix with correlation coefficients as returned by the 
-#'          \code{\link{cor}}-function, or a \code{\link{data.frame}} of variables that
-#'          should be correlated.
-#' @param missingDeletion indicates how missing values are treated. May be either
-#'          \code{"listwise"} or \code{"pairwise"} (default).
-#' @param corMethod indicates the correlation computation method. May be one of
-#'          \code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
-#' @param showPValues logical, whether significance levels (p-values) of correlations should 
-#'          be printed or not. See 'Note'.
-#' @param pvaluesAsNumbers logical, if \code{TRUE}, the significance levels (p-values) are printed as numbers.
-#'          if \code{FALSE} (default), asterisks are used. See 'Note'.
-#' @param fade.ns logical, if \code{TRUE} (default), non-significant correlation-values appear faded (by using
-#'          a lighter grey text color). See 'Note'.
-#' @param varlabels character vector with item labels that are printed along the 
-#'          first column/row. If no item labels are provided (default), the 
-#'          data frame's column names are used. Item labels are detected automatically 
-#'          if \code{data} is a \code{\link{data.frame}} where variables have
-#'          label attributes (see \code{\link[sjmisc]{set_label}}) for details).
-#' @param digits amount of digits used the values inside table cells.
-#'          Default is 2.
+#' @param fade.ns logical, if \code{TRUE} (default), non-significant correlation-values 
+#'          appear faded (by using a lighter grey text color). See 'Note'.
 #' @param triangle indicates whether only the upper right (use \code{"upper"}), lower left (use \code{"lower"})
 #'          or both (use \code{"both"}) triangles of the correlation table is filled with values. Default
 #'          is \code{"both"}. You can specifiy the inital letter only.
@@ -41,7 +23,7 @@
 #'          the HTML table, but made "invisible" with white foreground color. You can use the \code{CSS}
 #'          argument (\code{"css.valueremove"}) to change color and appearance of those correlation value that are smaller than
 #'          the limit specified by \code{val.rm}. 
-#' @param stringDiagonal a vector with string values of the same length as \code{ncol(data)} (number of
+#' @param string.diag a vector with string values of the same length as \code{ncol(data)} (number of
 #'          correlated items) that can be used to display content in the diagonal cells
 #'          where row and column item are identical (i.e. the "self-correlation"). By defauilt,
 #'          this argument is \code{NULL} and the diagnal cells are empty.
@@ -49,6 +31,9 @@
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
 #' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.glmer
+#' @inheritParams sjp.lm
+#' @inheritParams sjp.corr
 #'          
 #' @return Invisibly returns
 #'          \itemize{
@@ -61,7 +46,7 @@
 #'
 #' @note If \code{data} is a matrix with correlation coefficients as returned by 
 #'       the \code{\link{cor}}-function, p-values can't be computed.
-#'       Thus, \code{showPValues}, \code{pvaluesAsNumbers} and \code{fade.ns}
+#'       Thus, \code{show.p}, \code{p.numeric} and \code{fade.ns}
 #'       only have an effect if \code{data} is a \code{\link{data.frame}}.
 #'       \cr \cr
 #'       Additionally, see 'Note' in \code{\link{sjt.frq}}.
@@ -70,19 +55,10 @@
 #' 
 #' @examples
 #' \dontrun{
-#' # create data frame with 5 random variables
-#' mydf <- data.frame(cbind(runif(10), 
-#'                          runif(10), 
-#'                          runif(10), 
-#'                          runif(10), 
-#'                          runif(10)))
-#' 
 #' # plot correlation matrix using circles
 #' sjt.corr(mydf)
 #' 
-#' # -------------------------------
 #' # Data from the EUROFAMCARE sample dataset
-#' # -------------------------------
 #' library(sjmisc)
 #' data(efc)
 #' 
@@ -100,51 +76,39 @@
 #'
 #' # we have high correlations here, because all items
 #' # belong to one factor. See example from "sjp.pca". 
-#' sjt.corr(mydf, pvaluesAsNumbers = TRUE)
+#' sjt.corr(mydf, p.numeric = TRUE)
 #' 
-#' # -------------------------------
 #' # auto-detection of labels, only lower triangle
-#' # -------------------------------
 #' sjt.corr(efc[, c(start:end)], triangle = "lower")
 #' 
-#' # -------------------------------
-#' # auto-detection of labels, only lower triangle,
-#' # all correlation values smaller than 0.3 are not
-#' # shown in the table
-#' # -------------------------------
-#' sjt.corr(efc[, c(start:end)], 
-#'          triangle = "lower", 
-#'          val.rm = 0.3)
+#' # auto-detection of labels, only lower triangle, all correlation 
+#' # values smaller than 0.3 are not shown in the table
+#' sjt.corr(efc[, c(start:end)], triangle = "lower", val.rm = 0.3)
 #' 
-#' # -------------------------------
-#' # auto-detection of labels, only lower triangle,
-#' # all correlation values smaller than 0.3 are printed
-#' # in blue
-#' # -------------------------------
-#' sjt.corr(efc[, c(start:end)], 
-#'          triangle = "lower",
-#'          val.rm = 0.3, 
+#' # auto-detection of labels, only lower triangle, all correlation 
+#' # values smaller than 0.3 are printed in blue
+#' sjt.corr(efc[, c(start:end)], triangle = "lower",val.rm = 0.3, 
 #'          CSS = list(css.valueremove = 'color:blue;'))}
 #' 
 #' @importFrom stats na.omit
 #' @export
 sjt.corr <- function(data,
-                     missingDeletion = "pairwise",
-                     corMethod = "spearman",
+                     na.deletion = c("listwise", "pairwise"),
+                     corr.method = c("spearman", "pearson", "kendall"),
                      title = NULL,
-                     showPValues = TRUE,
-                     pvaluesAsNumbers = FALSE,
+                     var.labels = NULL,
+                     wrap.labels = 40,
+                     show.p = TRUE,
+                     p.numeric = FALSE,
                      fade.ns = TRUE,
-                     file = NULL, 
-                     varlabels = NULL,
-                     breakLabelsAt = 40,
+                     val.rm = NULL,
                      digits = 3,
                      triangle = "both",
-                     val.rm = NULL,
-                     stringDiagonal = NULL,
-                     encoding = NULL,
+                     string.diag = NULL,
                      CSS = NULL,
-                     useViewer = TRUE,
+                     encoding = NULL,
+                     file = NULL, 
+                     use.viewer = TRUE,
                      no.output = FALSE,
                      remove.spaces = TRUE) {
   # --------------------------------------------------------
@@ -156,6 +120,11 @@ sjt.corr <- function(data,
   } else {
     p_zero <- "0"
   }
+  # --------------------------------------------------------
+  # check args
+  # --------------------------------------------------------
+  na.deletion <- match.arg(na.deletion)
+  corr.method <- match.arg(corr.method)
   # --------------------------------------------------------
   # check encoding
   # --------------------------------------------------------
@@ -173,18 +142,18 @@ sjt.corr <- function(data,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
-  if (is.null(varlabels) && is.data.frame(data)) {
-    varlabels <- c()
+  if (is.null(var.labels) && is.data.frame(data)) {
+    var.labels <- c()
     # if yes, iterate each variable
     for (i in 1:ncol(data)) {
       # retrieve variable name attribute
       vn <- sjmisc::get_label(data[[i]], def.value = colnames(data)[i])
       # if variable has attribute, add to variableLabel list
       if (!is.null(vn)) {
-        varlabels <- c(varlabels, vn)
+        var.labels <- c(var.labels, vn)
       } else {
         # else break out of loop
-        varlabels <- NULL
+        var.labels <- NULL
         break
       }
     }
@@ -192,27 +161,27 @@ sjt.corr <- function(data,
   # ----------------------------
   # check for valid argument
   # ----------------------------
-  if (corMethod != "pearson" && corMethod != "spearman" && corMethod != "kendall") {
-    stop("argument 'corMethod' must be one of: pearson, spearman or kendall")
+  if (corr.method != "pearson" && corr.method != "spearman" && corr.method != "kendall") {
+    stop("argument 'corr.method' must be one of: pearson, spearman or kendall")
   }
   # ----------------------------
   # check if user has passed a data frame
   # or a pca object
   # ----------------------------
-  if (class(data) == "matrix") {
+  if (any(class(data) == "matrix")) {
     corr <- data
     cpvalues <- NULL
   } else {
     # missing deletion corresponds to
     # SPSS listwise
-    if (missingDeletion == "listwise") {
+    if (na.deletion == "listwise") {
       data <- stats::na.omit(data)
-      corr <- cor(data, method = corMethod)
+      corr <- cor(data, method = corr.method)
     } else {
       # missing deletion corresponds to
       # SPSS pairwise
       corr <- cor(data, 
-                  method = corMethod, 
+                  method = corr.method, 
                   use = "pairwise.complete.obs")
     }
     #---------------------------------------
@@ -227,7 +196,7 @@ sjt.corr <- function(data,
           test <- cor.test(df[[i]], 
                            df[[j]], 
                            alternative = "two.sided", 
-                           method = corMethod)
+                           method = corr.method)
           pv <- cbind(pv, round(test$p.value, 5))
         }
         cp <- rbind(cp, pv)
@@ -244,7 +213,7 @@ sjt.corr <- function(data,
   # add column with significance value
   # --------------------------------------------------------
   if (!is.null(cpvalues)) {
-    if (!pvaluesAsNumbers) {
+    if (!p.numeric) {
       # --------------------------------------------------------
       # prepare function for apply-function. replace sig. p
       # with asterisks
@@ -262,24 +231,24 @@ sjt.corr <- function(data,
       }
     }
     cpvalues <- apply(cpvalues, c(1,2), fun.star)
-    if (pvaluesAsNumbers) {
+    if (p.numeric) {
       cpvalues <- apply(cpvalues, c(1,2), function(x) if (x < 0.001) 
                                                         x <- sprintf("&lt;%s.001", p_zero) 
                                                       else 
                                                         x <- sub("0", p_zero, sprintf("%.*f", digits, x)))
     }
   } else {
-    showPValues <- FALSE
+    show.p <- FALSE
   }
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
   # ----------------------------
-  if (is.null(varlabels)) {
-    varlabels <- row.names(corr)
+  if (is.null(var.labels)) {
+    var.labels <- row.names(corr)
   }
   # check length of x-axis-labels and split longer strings at into new lines
-  varlabels <- sjmisc::word_wrap(varlabels, breakLabelsAt, "<br>")
+  var.labels <- sjmisc::word_wrap(var.labels, wrap.labels, "<br>")
   # -------------------------------------
   # init header
   # -------------------------------------
@@ -309,7 +278,7 @@ sjt.corr <- function(data,
   css.notsig <- "color:#999999;"
   css.summary <- "border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;"
   css.pval <- "vertical-align:super;font-size:0.8em;"
-  if (pvaluesAsNumbers) css.pval <- "font-style:italic;"
+  if (p.numeric) css.pval <- "font-style:italic;"
   # ------------------------
   # check user defined style sheets
   # ------------------------
@@ -359,7 +328,7 @@ sjt.corr <- function(data,
   page.content <- paste0(page.content, "    <th class=\"thead\">&nbsp;</th>\n")
   # iterate columns
   for (i in 1:ncol(corr)) {
-    page.content <- paste0(page.content, sprintf("    <th class=\"thead\">%s</th>\n", varlabels[i]))
+    page.content <- paste0(page.content, sprintf("    <th class=\"thead\">%s</th>\n", var.labels[i]))
   }
   # close table row
   page.content <- paste0(page.content, "  </tr>\n")
@@ -371,7 +340,7 @@ sjt.corr <- function(data,
     # write tr-tag
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell
-    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol\">%s</td>\n", varlabels[i]))
+    page.content <- paste0(page.content, sprintf("    <td class=\"firsttablecol\">%s</td>\n", var.labels[i]))
     # --------------------------------------------------------
     # iterate all columns
     # --------------------------------------------------------
@@ -380,11 +349,11 @@ sjt.corr <- function(data,
       # leave out self-correlations
       # --------------------------------------------------------
       if (j == i) {
-        if (is.null(stringDiagonal) || length(stringDiagonal) > ncol(corr)) {
+        if (is.null(string.diag) || length(string.diag) > ncol(corr)) {
           page.content <- paste0(page.content, "    <td class=\"tdata centeralign\">&nbsp;</td>\n")
         } else {
           page.content <- paste0(page.content, sprintf("    <td class=\"tdata centeralign\">%s</td>\n", 
-                                                       stringDiagonal[j]))
+                                                       string.diag[j]))
         }
       } else {
         # --------------------------------------------------------
@@ -399,8 +368,8 @@ sjt.corr <- function(data,
           # --------------------------------------------------------
           # check whether we want to show P-Values
           # --------------------------------------------------------
-          if (showPValues) {
-            if (pvaluesAsNumbers) {
+          if (show.p) {
+            if (p.numeric) {
               # --------------------------------------------------------
               # if we have p-values as number, print them in new row
               # --------------------------------------------------------
@@ -452,7 +421,7 @@ sjt.corr <- function(data,
   # -------------------------------------
   page.content <- paste0(page.content, "  <tr>\n")
   page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"summary\">", ncol(corr) + 1))
-  page.content <- paste0(page.content, sprintf("Computed correlation used %s-method with %s-deletion.", corMethod, missingDeletion))
+  page.content <- paste0(page.content, sprintf("Computed correlation used %s-method with %s-deletion.", corr.method, na.deletion))
   page.content <- paste0(page.content, "</td>\n  </tr>\n")
   # -------------------------------------
   # finish table
@@ -498,7 +467,7 @@ sjt.corr <- function(data,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  out.html.table(no.output, file, knitr, toWrite, useViewer)
+  out.html.table(no.output, file, knitr, toWrite, use.viewer)
   # -------------------------------------
   # return results
   # -------------------------------------

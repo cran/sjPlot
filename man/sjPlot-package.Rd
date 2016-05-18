@@ -7,6 +7,8 @@
 \description{
   Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales, effects plots of interaction terms in regression models, constructing index or score variables and much more.
 
+The package supports labelled data, i.e. value and variable labels from labelled data (like vectors or data frames) are automatically used to label the output. Own labels can be specified as well.
+
   \emph{What does this package do?}
   
   In short, the functions in this package mostly do two things:
@@ -17,7 +19,7 @@
   
   \emph{How does this package help me?}
   
-  One of the more challenging tasks when working with R is to get nicely formatted output of statistical analyses, either in graphical or table format. The sjPlot-package takes over these tasks and makes it very easy to create beautiful figures or tables in a very intuitive way.
+  One of the more challenging tasks when working with R is to get nicely formatted output of statistical analyses, either in graphical or table format. The sjPlot-package takes over these tasks and makes it easy to create beautiful figures or tables.
 
   There are many examples for each function in the related help files and a comprehensive online documentation at \url{http://www.strengejacke.de/sjPlot}.
   
@@ -34,8 +36,8 @@
 \tabular{rl}{
 Package: \tab sjPlot\cr
 Type: \tab Package\cr
-Version: \tab 1.9.4\cr
-Date: \tab 2016-03-29\cr
+Version: \tab 2.0.0\cr
+Date: \tab 2016-05-18\cr
 License: \tab GPL-3\cr
 }
 }

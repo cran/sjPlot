@@ -4,30 +4,30 @@
 \alias{sjc.qclus}
 \title{Compute quick cluster analysis}
 \usage{
-sjc.qclus(data, groupcount = NULL, groups = NULL, method = "k",
-  distance = "euclidean", agglomeration = "ward", iter.max = 20,
-  algorithm = "Hartigan-Wong", showAccuracy = FALSE, title = NULL,
-  axisLabels.x = NULL, axisTitle.x = "Cluster group characteristics",
-  axisTitle.y = "Mean of z-scores", breakTitleAt = 40, breakLabelsAt = 20,
-  breakLegendTitleAt = 20, breakLegendLabelsAt = 20, facetCluster = FALSE,
-  geom.colors = "Paired", geom.size = 0.5, geom.spacing = 0.1,
-  hideLegend = FALSE, showAxisLabels.x = TRUE, showAxisLabels.y = TRUE,
-  showGroupCount = TRUE, showAccuracyLabels = FALSE, legendTitle = NULL,
-  legendLabels = NULL, coord.flip = FALSE, reverseAxis.x = FALSE,
-  printPlot = TRUE)
+sjc.qclus(data, groupcount = NULL, groups = NULL, method = c("kmeans",
+  "hclust"), distance = c("euclidean", "maximum", "manhattan", "canberra",
+  "binary", "minkowski"), agglomeration = c("ward", "ward.D", "ward.D2",
+  "single", "complete", "average", "mcquitty", "median", "centroid"),
+  iter.max = 20, algorithm = c("Hartigan-Wong", "Lloyd", "MacQueen"),
+  show.accuracy = FALSE, title = NULL, axis.labels = NULL,
+  wrap.title = 40, wrap.labels = 20, wrap.legend.title = 20,
+  wrap.legend.labels = 20, facet.grid = FALSE, geom.colors = "Paired",
+  geom.size = 0.5, geom.spacing = 0.1, show.legend = TRUE,
+  show.grpcnt = TRUE, legend.title = NULL, legend.labels = NULL,
+  coord.flip = FALSE, reverse.axis = FALSE, prnt.plot = TRUE)
 }
 \arguments{
-\item{data}{data frame containing all variables that should be used for the
+\item{data}{\code{data.frame} with variables that should be used for the
 cluster analysis.}
 
-\item{groupcount}{amount of groups (clusters) that should be retrieved. May also be
+\item{groupcount}{amount of groups (clusters) used for the cluster solution. May also be
 a set of initial (distinct) cluster centres, in case \code{method = "kmeans"}
 (see \code{\link{kmeans}} for details on \code{centers} argument). 
-If \code{groupcount = NULL}, the optimal amount of clusters is calculated using the 
-gap statistics (see \code{\link{sjc.kgap}}. However, this works only 
-with \code{method = "kmeans"}. If \code{method = "hclust"}, you have 
-to specify \code{groupcount}. Following functions 
-may be helpful for estimating the amount of clusters:
+If \code{groupcount = NULL} and \code{method = "kmeans"}, the optimal 
+amount of clusters is calculated using the gap statistics (see 
+\code{\link{sjc.kgap}}). For \code{method = "hclust"}, \code{groupcount}
+needs to be specified. Following functions may be helpful for estimating 
+the amount of clusters:
 \itemize{
   \item Use \code{\link{sjc.elbow}} to determine the group-count depending on the elbow-criterion.
   \item If \code{method = "kmeans"}, use \code{\link{sjc.kgap}} to determine the group-count according to the gap-statistic.
@@ -65,68 +65,54 @@ If \code{method = "kmeans"} this argument will be ignored. See 'Note'.}
 \code{"Lloyd"} (used by SPSS), or \code{"MacQueen"}. See \code{\link{kmeans}} 
 for details on this argument.}
 
-\item{showAccuracy}{logical, if \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
+\item{show.accuracy}{logical, if \code{TRUE}, the \code{\link{sjc.grpdisc}} function will be called,
 which computes a linear discriminant analysis on the classified cluster groups and plots a 
 bar graph indicating the goodness of classification for each group.}
 
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{axisLabels.x}{a character vector with labels for the x-axis breaks. \strong{Note:} 
-Axis labels will be automatically detected, when data was either imported 
-with \code{\link[sjmisc]{read_spss}} or has named factor levels 
-(see 'Examples'). Else, specifiy argument like this:
-\code{axisLabels.x = c("Label1", "Label2", "Label3")}.}
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
-\item{axisTitle.x}{title for the x-axis.}
-
-\item{axisTitle.y}{title for the y-axis.}
-
-\item{breakTitleAt}{Determines how many chars of the title are displayed in 
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
 
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
 are displayed in one line and when a line break is inserted.}
 
-\item{breakLegendLabelsAt}{determines how many chars of the legend labels are 
+\item{wrap.legend.labels}{numeric, determines how many chars of the legend labels are 
 displayed in one line and when a line break is inserted.}
 
-\item{facetCluster}{If \code{TRUE}, each cluster group will be represented by an own panel.
-Default is \code{FALSE}, thus all cluster groups are plotted in a single graph.}
+\item{facet.grid}{\code{TRUE} to arrange the lay out of of multiple plots 
+in a grid of an integrated single plot.}
 
-\item{geom.colors}{user defined color for bars. See 'Note' in \code{\link{sjp.grpfrq}}.}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
-\item{geom.size}{width of bars. Recommended values for this argument are from 0.4 to 1.5}
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
 
 \item{geom.spacing}{the spacing between geoms (i.e. bar spacing)}
 
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
 
-\item{showAxisLabels.x}{whether x axis labels (cluster variables) should be shown or not.}
-
-\item{showAxisLabels.y}{whether y axis labels (z scores) should be shown or not.}
-
-\item{showGroupCount}{if \code{TRUE} (default), the count within each cluster group is added to the 
+\item{show.grpcnt}{if \code{TRUE} (default), the count within each cluster group is added to the 
 legend labels (e.g. \code{"Group 1 (n=87)"}).}
 
-\item{showAccuracyLabels}{if \code{TRUE}, the accuracy-values for each cluster group is added to the 
-legend labels (e.g. \code{"Group 1 (n=87, accuracy=95.3)"}). Accuracy is calculated by \code{\link{sjc.grpdisc}}.}
+\item{legend.title}{character vector, used as title for the plot legend.}
 
-\item{legendTitle}{title of the plot legend, as string.}
-
-\item{legendLabels}{labels for the guide/legend. If \code{legendLabels = NULL}
-(default), the standard string \code{"Group <nr>"} will be used.}
+\item{legend.labels}{character vector with labels for the guide/legend.}
 
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
-\item{reverseAxis.x}{if \code{TRUE}, the values on the x-axis are reversed.}
+\item{reverse.axis}{if \code{TRUE}, the values on the x-axis are reversed.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -141,15 +127,18 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 }
 \description{
 Compute a quick kmeans or hierarchical cluster analysis and displays "cluster characteristics"
-               as graph.
-               \enumerate{
-               \item If \code{method = "kmeans"}, this function first determines the optimal group count via gap statistics (unless argument \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
-               \item A cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
-               \item Then, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
-               \item These results are plotted as graph.
-               }
-               This method can also be used to plot existing cluster solution as graph witouth computing
-               a new cluster analysis. See argument \code{groups} for more details.
+               as plot.
+}
+\details{
+Following steps are computed in this function:
+         \enumerate{
+           \item If \code{method = "kmeans"}, this function first determines the optimal group count via gap statistics (unless argument \code{groupcount} is specified), using the \code{\link{sjc.kgap}} function.
+           \item A cluster analysis is performed by running the \code{\link{sjc.cluster}} function to determine the cluster groups.
+           \item Then, all variables in \code{data} are scaled and centered. The mean value of these z-scores within each cluster group is calculated to see how certain characteristics (variables) in a cluster group differ in relation to other cluster groups.
+           \item These results are plotted as graph.
+         }
+         This method can also be used to plot existing cluster solution as graph witouth computing
+         a new cluster analysis. See argument \code{groups} for more details.
 }
 \note{
 See 'Note' in \code{\link{sjc.cluster}}
@@ -161,9 +150,7 @@ sjc.qclus(mtcars)
 
 # k-means clustering of mtcars-dataset with 4 pre-defined
 # groups in a faceted panel
-sjc.qclus(airquality, 
-          groupcount = 4, 
-          facetCluster = TRUE)}
+sjc.qclus(airquality, groupcount = 4, facet.grid = TRUE)}
           
 # k-means clustering of airquality data
 # and saving the results. most likely, 3 cluster
@@ -172,9 +159,7 @@ airgrp <- sjc.qclus(airquality)
 
 # "re-plot" cluster groups, without computing
 # new k-means cluster analysis.
-sjc.qclus(airquality,
-          groupcount = 3,
-          groups = airgrp$classification)
+sjc.qclus(airquality, groupcount = 3, groups = airgrp$classification)
 
 }
 \references{

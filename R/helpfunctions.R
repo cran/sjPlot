@@ -13,23 +13,60 @@ base_breaks <- function(n = 10) {
 }
 
 
+get_lm_data <- function(fit) {
+  if (any(class(fit) == "plm")) {
+    # plm objects have different structure than (g)lm
+    fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), stats::model.matrix(fit)))
+    depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
+    # retrieve response vector
+    resp <- as.vector(fit$model[, 1])
+  } else if (any(class(fit) == "pggls")) {
+    # plm objects have different structure than (g)lm
+    fit_x <- data.frame(fit$model)
+    depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
+    # retrieve response vector
+    resp <- as.vector(fit$model[, 1])
+  } else if (is_merMod(fit)) {
+    fit_x <- data.frame(stats::model.matrix(fit))
+    # retrieve response vector
+    resp <- stats::model.frame(fit)[[1]]
+    depvar.label <- colnames(stats::model.frame(fit))[1]
+  } else if (any(class(fit) == "gls")) {
+    fit_x <- data.frame(stats::model.matrix(fit))
+    resp <- nlme::getResponse(fit)
+    depvar.label <- attr(resp, "label")
+  } else {
+    fit_x <- data.frame(stats::model.matrix(fit))
+    depvar.label <- colnames(stats::model.frame(fit))[1]
+    # retrieve response vector
+    resp <- stats::model.frame(fit)[[1]]
+  }
+  # get variable label label
+  depvar.label <- sjmisc::get_label(resp, depvar.label)
+  return(list(matrix = fit_x, resp.label = depvar.label, resp = resp))
+}
+
+
 get_glm_family <- function(fit) {
   c.f <- class(fit)
   # ------------------------
   # do we have glm? if so, get link family. make exceptions
   # for specific models that don't have family function
   # ------------------------
-  if (any(c.f %in% c("lme", "plm")))
+  if (any(c.f %in% c("lme", "plm"))) {
     fitfam <- ""
-  else
+    logit_link <- FALSE
+  } else {
     fitfam <- stats::family(fit)$family
+    logit_link <- stats::family(fit)$link == "logit"
+  }
   # --------------------------------------------------------
   # create logical for family
   # --------------------------------------------------------
   binom_fam <- fitfam %in% c("binomial", "quasibinomial")
   poisson_fam <- fitfam %in% c("poisson", "quasipoisson") ||
     sjmisc::str_contains(fitfam, "negative binomial", ignore.case = T)
-  return(list(is_bin = binom_fam, is_pois = poisson_fam))
+  return(list(is_bin = binom_fam, is_pois = poisson_fam, is_logit = logit_link))
 }
 
 
@@ -37,11 +74,11 @@ get_glm_family <- function(fit) {
 # here we print out total N of cases, chi-square and significance of the table
 print.table.summary <- function(baseplot,
                                 modsum,
-                                tableSummaryPos = "r") {
+                                summary.pos = "r") {
   if (!is.null(modsum)) {
     # add annotations with table summary
     # here we print out total N of cases, chi-square and significance of the table
-    if (tableSummaryPos == "r") {
+    if (summary.pos == "r") {
       t.hjust <- "top"
       x.x <- Inf
     } else {
@@ -63,7 +100,7 @@ print.table.summary <- function(baseplot,
 
 # display html-content in viewer pane
 # or write it to file
-out.html.table <- function(no.output, file, knitr, toWrite, useViewer) {
+out.html.table <- function(no.output, file, knitr, toWrite, use.viewer) {
   if (!no.output) {
     # -------------------------------------
     # check if we have filename specified
@@ -80,7 +117,7 @@ out.html.table <- function(no.output, file, knitr, toWrite, useViewer) {
       write(toWrite, file = htmlFile)
       # check whether we have RStudio Viewer
       viewer <- getOption("viewer")
-      if (useViewer && !is.null(viewer)) {
+      if (use.viewer && !is.null(viewer)) {
         viewer(htmlFile)
       } else {
         utils::browseURL(htmlFile)
@@ -107,11 +144,11 @@ get_var_name <- function(x) {
 #' @importFrom stats na.omit
 #' @importFrom dplyr add_rownames full_join
 create.frq.df <- function(x,
-                          breakLabelsAt = Inf,
+                          wrap.labels = Inf,
                           order.frq = "none",
                           round.prz = 2,
                           na.rm = FALSE,
-                          weightBy = NULL) {
+                          weight.by = NULL) {
   #---------------------------------------------------
   # variable with only mising?
   #---------------------------------------------------
@@ -138,7 +175,7 @@ create.frq.df <- function(x,
   #---------------------------------------------------
   # weight variable
   #---------------------------------------------------
-  if (!is.null(weightBy)) x <- sjmisc::weight(x, weightBy)
+  if (!is.null(weight.by)) x <- sjmisc::weight(x, weight.by)
   #---------------------------------------------------
   # do we have a labelled vector?
   #---------------------------------------------------
@@ -177,11 +214,11 @@ create.frq.df <- function(x,
   # valid values are one row less, because last row is NA row
   valid.vals <- nrow(mydat) - 1
   # total sum of variable, for confindence intervals
-  total_sum = sum(x, na.rm = T)
-  rel_frq <- as.numeric(mydat$frq / total_sum)
-  ci <- 1.96 * suppressWarnings(sqrt(rel_frq * (1 - rel_frq) / total_sum))
-  mydat$upper.ci <- total_sum * (rel_frq + ci)
-  mydat$lower.ci <- total_sum * (rel_frq - ci)
+  total_n = sum(mydat$frq)
+  rel_frq <- as.numeric(mydat$frq / total_n)
+  ci <- 1.96 * suppressWarnings(sqrt(rel_frq * (1 - rel_frq) / total_n))
+  mydat$upper.ci <- total_n * (rel_frq + ci)
+  mydat$lower.ci <- total_n * (rel_frq - ci)
   mydat$rel.upper.ci <- rel_frq + ci
   mydat$rel.lower.ci <- rel_frq - ci
   # --------------------------------------------------------
@@ -211,14 +248,17 @@ create.frq.df <- function(x,
   # "rename" NA values
   # -------------------------------------
   if (!is.null(mydat$label)) mydat$label[is.na(mydat$label)] <- "NA"
-  suppressMessages(sjmisc::replace_na(mydat$val) <- nrow(mydat))
-  mydat$val <- sjmisc::to_value(mydat$val, keep.labels = F)
+  suppressMessages(sjmisc::replace_na(mydat$val) <- max(sjmisc::to_value(mydat$val), na.rm = T) + 1)
+  # save original order
+  mydat$order <- sjmisc::to_value(mydat$val, keep.labels = F)
+  # sort for x-axis
+  mydat$val <- sort(mydat$order)
   # -------------------------------------
   # wrap labels?
   # -------------------------------------
-  if (!is.infinite(breakLabelsAt) && !is.null(labels)) {
+  if (!is.infinite(wrap.labels) && !is.null(labels)) {
     if (anyNA(labels)) labels <- na.omit(labels)
-    labels <- sjmisc::word_wrap(labels, breakLabelsAt)
+    labels <- sjmisc::word_wrap(labels, wrap.labels)
   }
   # -------------------------------------
   # return results
@@ -238,7 +278,7 @@ create.xtab.df <- function(x,
                            grp,
                            round.prz = 2,
                            na.rm = FALSE,
-                           weightBy = NULL) {
+                           weight.by = NULL) {
   # ------------------------------
   # convert to labels
   # ------------------------------
@@ -248,7 +288,7 @@ create.xtab.df <- function(x,
   # create frequency crosstable. we need to convert
   # vector to labelled factor first.
   # ------------------------------
-  if (is.null(weightBy)) {
+  if (is.null(weight.by)) {
     if (na.rm) {
       mydat <- stats::ftable(table(x_full, grp_full))
     } else {
@@ -256,9 +296,9 @@ create.xtab.df <- function(x,
     }
   } else {
     if (na.rm)
-      mydat <- stats::ftable(round(stats::xtabs(weightBy ~ x_full + grp_full)), 0)
+      mydat <- stats::ftable(round(stats::xtabs(weight.by ~ x_full + grp_full)), 0)
     else
-      mydat <- stats::ftable(round(stats::xtabs(weightBy ~ x_full + grp_full, 
+      mydat <- stats::ftable(round(stats::xtabs(weight.by ~ x_full + grp_full, 
                                                 exclude = NULL, 
                                                 na.action = stats::na.pass)), 0)
   }
@@ -344,7 +384,7 @@ is.brewer.pal <- function(pal) {
 
 # Calculate statistics of cross tabs
 #' @importFrom stats chisq.test fisher.test xtabs
-crosstabsum <- function(x, grp, weightBy) {
+crosstabsum <- function(x, grp, weight.by) {
   # --------------------------------------------------------
   # check p-value-style option
   # --------------------------------------------------------
@@ -354,10 +394,10 @@ crosstabsum <- function(x, grp, weightBy) {
   } else {
     p_zero <- "0"
   }
-  if (is.null(weightBy)) {
+  if (is.null(weight.by)) {
     ftab <- table(x, grp)
   } else {
-    ftab <- round(stats::xtabs(weightBy ~ x + grp), 0)
+    ftab <- round(stats::xtabs(weight.by ~ x + grp), 0)
   }
   # calculate chi square value
   chsq <- stats::chisq.test(ftab)
@@ -423,7 +463,7 @@ crosstabsum <- function(x, grp, weightBy) {
 
 # checks at which position in fitted models factors with
 # more than two levels are located.
-#' @importFrom stats model.matrix
+#' @importFrom stats model.frame
 retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
   # init group-row-indices
   group.pred.rows <- c()
@@ -438,8 +478,16 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
   for (k in 1:length(models)) {
     # get model
     fit <- models[[k]]
-    # copy model matrix
-    fmodel <- stats::model.matrix(fit)
+    # copy model frame
+    fmodel <- stats::model.frame(fit)
+    # get model coefficients' names
+    if (is_merMod(fit)) {
+      # for merMod, remove random parts. Therefor, get random part terms
+      tmp <- stats::terms(stats::formula(fit))
+      rnd.terms <- grep("|", attr(tmp, "term.labels"), fixed = TRUE, value = FALSE) + 1
+      # now remove random parts from model frame
+      fmodel <- fmodel[, -rnd.terms]
+    }
     # retrieve all factors from model
     for (grp.cnt in 1:ncol(fmodel)) {
       # get variable
@@ -447,7 +495,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
       # is factor? and has more than two levels?
       # (otherwise, only one category would appear in
       # coefficients, so no grouping needed anyway)
-      if (is.factor(fit.var) && length(levels(fit.var)) > 2) {
+      if (is.factor(fit.var) && nlevels(fit.var) > 2) {
         # get factor name
         fac.name <- colnames(fmodel)[grp.cnt]
         # check whether we already have this factor
@@ -455,12 +503,10 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
           # if not, save found factor variable name
           found.factors <- c(found.factors, fac.name)
           # save factor name
-          lab <- unname(sjmisc::get_label(fit.var))
-          # any label?
-          if (is.null(lab)) lab <- colnames(fmodel)[grp.cnt]
+          lab <- unname(sjmisc::get_label(fit.var, def.value = fac.name))
           # determins startindex
           index <- grp.cnt + add.index - 1
-          index.add <- length(levels(fit.var)) - 2
+          index.add <- nlevels(fit.var) - 2
           # save row index, so we know where to start group
           group.pred.rows <- c(group.pred.rows, index)
           group.pred.span <- c(group.pred.span, index:(index + index.add))
@@ -468,7 +514,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
           # increase add.index by amount of factor levels (minus reference cat.)
           add.index <- add.index + index.add
         } else {
-          add.index <- add.index + length(levels(fit.var)) - 2
+          add.index <- add.index + nlevels(fit.var) - 2
         }
       }
     }
@@ -519,50 +565,80 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
 }
 
 
+is_merMod <- function(fit) {
+  return(any(class(fit) %in% c("lmerMod", "glmerMod", "nlmerMod", "merModLmerTest")))
+}
+
+
 # automatically retrieve predictor labels
 # of fitted (g)lm
-retrieveModelLabels <- function(models) {
+#' @importFrom stats formula terms
+retrieveModelLabels <- function(models, group.pred) {
   fit.labels <- c()
   for (k in 1:length(models)) {
     # get model
     fit <- models[[k]]
     # any valid model?
-    if (any(class(fit) == "gls") ||
-        any(class(fit) == "plm") || 
+    if (any(class(fit) == "plm") || 
         any(class(fit) == "ppgls"))
       return(NULL)
+    # get model frame
+    m_f <- stats::model.frame(fit)
+    # get model coefficients' names
+    if (is_merMod(fit)) {
+      coef_names <- names(lme4::fixef(fit))
+      # for merMod, remove random parts. Therefor, get random part terms
+      tmp <- stats::terms(stats::formula(fit))
+      rnd.terms <- grep("|", attr(tmp, "term.labels"), fixed = TRUE, value = FALSE) + 1
+      # now remove random parts from model frame
+      m_f <- m_f[, -rnd.terms]
+    } else {
+      coef_names <- names(stats::coef(fit))
+    }
     # iterate coefficients (1 is intercept or response)
-    for (i in 2:ncol(fit$model)) {
-      # is predictor a factor?
-      pvar <- fit$model[, i]
-      # if yes, we have this variable multiple
-      # times, so manually set value labels
-      if (is.factor(pvar)) {
-        # get amount of levels
-        pvar.len <- length(levels(pvar))
-        # get value labels, if any
-        pvar.lab <- sjmisc::get_labels(pvar)
-        # have any labels, and have we same amount of labels
-        # as factor levels?
-        if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
-          # add labels
-          if (sjmisc::str_contains(fit.labels, pattern = pvar.lab[2:pvar.len], logic = "NOT")) {
-            fit.labels <- c(fit.labels, pvar.lab[2:pvar.len])
+    for (i in 2:ncol(m_f)) {
+      # check bounds
+      if (i <= length(coef_names)) {
+        # get predictor
+        pvar <- m_f[, i]
+        # check if we have a variable label
+        lab <- sjmisc::get_label(pvar, def.value = colnames(m_f)[i])
+        # get model coefficients' names
+        coef_name <- coef_names[i]
+        # is predictor a factor?
+        # if yes, we have this variable multiple
+        # times, so manually set value labels
+        if (is.factor(pvar)) {
+          # get amount of levels
+          pvar.len <- nlevels(pvar)
+          # get value labels, if any
+          pvar.lab <- sjmisc::get_labels(pvar)
+          # have any labels, and have we same amount of labels
+          # as factor levels?
+          if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
+            # add labels
+            if (sjmisc::str_contains(fit.labels, pattern = pvar.lab[2:pvar.len], logic = "NOT")) {
+              # create labels
+              if (group.pred && pvar.len > 2) {
+                # if predictor grouping is enabled, don't use variable labels again
+                labels.to.add <- pvar.lab[2:pvar.len]
+              } else {
+                # else, if we have not grouped predictors, we have no headin
+                # with variable label, hence, factor levels may not be intuitiv.
+                # thus, add variable label so values have a meaning
+                labels.to.add <- sprintf("%s (%s)", lab, pvar.lab[2:pvar.len])
+              }
+              fit.labels <- c(fit.labels, labels.to.add)
+            }
+          } else {
+            # add labels
+            if (sjmisc::str_contains(fit.labels, pattern = coef_name, logic = "NOT")) {
+              fit.labels <- c(fit.labels, coef_name)
+            }
           }
         } else {
-          # add labels
-          if (sjmisc::str_contains(fit.labels, pattern = names(stats::coef(fit)[i]), logic = "NOT")) {
-            fit.labels <- c(fit.labels, names(stats::coef(fit)[i]))
-          }
+          if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
         }
-      } else {
-        # check if we have label
-        lab <- sjmisc::get_label(fit$model[, i])
-        # if not, use coefficient name
-        if (is.null(lab)) {
-          lab <- colnames(stats::model.frame(fit))[i]
-        }
-        if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
       }
     }
   }
@@ -671,7 +747,7 @@ get_model_response_label <- function(fit) {
 #' data(efc)
 #' # show frequencies of relationship-variable and
 #' # retrieve plot object
-#' gp <- sjp.frq(efc$e15relat, printPlot = FALSE)
+#' gp <- sjp.frq(efc$e15relat, prnt.plot = FALSE)
 #' # show current plot
 #' plot(gp$plot)
 #' # show adjusted plot
@@ -688,8 +764,7 @@ adjust_plot_range <- function(gp, upperMargin=1.05) {
   ylo <- abs(gy$panel$ranges[[1]]$y.range[1])
   yhi <- abs(gy$panel$ranges[[1]]$y.range[2] * upperMargin)
   # change y scale
-  gp <- gp + scale_y_continuous(expand = c(0, 0),
-                                limits = c(0, ylo + yhi))
+  gp <- gp + scale_y_continuous(expand = c(0, 0), limits = c(0, ylo + yhi))
   # return plot
   return(gp)
 }

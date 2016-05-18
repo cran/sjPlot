@@ -4,76 +4,72 @@
 \alias{sjt.pca}
 \title{Summary of principal component analysis as HTML table}
 \usage{
-sjt.pca(data, numberOfFactors = NULL, factorLoadingTolerance = 0.1,
-  file = NULL, varlabels = NULL,
+sjt.pca(data, nmbr.fctr = NULL, fctr.load.tlrn = 0.1,
   title = "Principal Component Analysis (with varimax rotation)",
-  breakLabelsAt = 40, digits = 2, showCronbachsAlpha = TRUE,
-  showMSA = FALSE, showVariance = FALSE, alternateRowColors = FALSE,
-  stringPov = "Proportion of Variance",
-  stringCpov = "Cumulative Proportion", encoding = NULL, CSS = NULL,
-  useViewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  var.labels = NULL, wrap.labels = 40, show.cronb = TRUE,
+  show.msa = FALSE, show.var = FALSE, altr.row.col = FALSE, digits = 2,
+  string.pov = "Proportion of Variance",
+  string.cpov = "Cumulative Proportion", CSS = NULL, encoding = NULL,
+  file = NULL, use.viewer = TRUE, no.output = FALSE,
+  remove.spaces = TRUE)
 }
 \arguments{
-\item{data}{data frame with factors (each columns one variable) that should be used 
-to compute a PCA, or a \code{\link{prcomp}} object.}
+\item{data}{\code{data.frame} that should be used to compute a PCA, or a \code{\link{prcomp}} object.}
 
-\item{numberOfFactors}{number of factors used for calculating the varimax
+\item{nmbr.fctr}{number of factors used for calculating the varimax
 rotation. By default, this value is \code{NULL} and the amount of factors is
-calculated according to the Kaiser-criteria. See paramater \code{plotEigenvalues}.}
+calculated according to the Kaiser-criteria.}
 
-\item{factorLoadingTolerance}{specifies the minimum difference a variable needs to have between
+\item{fctr.load.tlrn}{specifies the minimum difference a variable needs to have between
 factor loadings (components) in order to indicate a clear loading on just one factor and not
 diffusing over all factors. For instance, a variable with 0.8, 0.82 and 0.84 factor loading 
 on 3 possible factors can not be clearly assigned to just one factor and thus would be removed
 from the principal component analysis. By default, the minimum difference of loading values
 between the highest and 2nd highest factor should be 0.1}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{title}{table caption. By default, \code{title = NULL}, hence no title will be used.}
 
-\item{varlabels}{character vector with item labels that are printed in the first column. If no item labels are
-provided (default), the data frame's column names are used.}
+\item{var.labels}{character vector with variable names, which will be used 
+to label variables in the output.}
 
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
 
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{digits}{amount of digits used for table values. Default is 2.}
-
-\item{showCronbachsAlpha}{logical, if \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
+\item{show.cronb}{logical, if \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 i.e. all variables with the highest loading for a factor are taken for the
 reliability test. The result is an alpha value for each factor dimension.
 Only applies when \code{data} is a data frame and no \code{\link{prcomp}} object.}
 
-\item{showMSA}{logical, if \code{TRUE}, shows an additional column with the measure of sampling adequacy according
+\item{show.msa}{logical, if \code{TRUE}, shows an additional column with the measure of sampling adequacy according
 dor each component.}
 
-\item{showVariance}{logical, if \code{TRUE}, the proportions of variances for each component as well as cumulative
+\item{show.var}{logical, if \code{TRUE}, the proportions of variances for each component as well as cumulative
 variance are shown in the table footer.}
 
-\item{alternateRowColors}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
+\item{altr.row.col}{logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{stringPov}{string for the table row that contains the proportions of variances. By default, 
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
+
+\item{string.pov}{string for the table row that contains the proportions of variances. By default, 
 \emph{"Proportion of Variance"} will be used.}
 
-\item{stringCpov}{string for the table row that contains the cumulative variances. By default, 
+\item{string.cpov}{string for the table row that contains the cumulative variances. By default, 
 \emph{"Cumulative Proportion"} will be used.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -93,7 +89,7 @@ Invisibly returns
            \item the complete html-output (\code{output.complete}),
            \item the html-table with inline-css for use with knitr (\code{knitr}),
            \item the \code{factor.index}, i.e. the column index of each variable with the highest factor loading for each factor and
-           \item the \code{removed.items}, i.e. which variables have been removed because they were outside of the \code{factorLoadingTolerance}'s range.
+           \item the \code{removed.items}, i.e. which variables have been removed because they were outside of the \code{fctr.load.tlrn}'s range.
            }
            for further use.
 }
@@ -115,44 +111,7 @@ See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{
-# randomly create data frame with 7 items, each consisting of 4 categories
-likert_4 <- data.frame(sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.2, 0.3, 0.1, 0.4)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.5, 0.25, 0.15, 0.1)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.4, 0.15, 0.25, 0.2)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.25, 0.1, 0.4, 0.25)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.1, 0.4, 0.4, 0.1)),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE),
-                       sample(1:4, 
-                              500, 
-                              replace = TRUE, 
-                              prob = c(0.35, 0.25, 0.15, 0.25)))
-
-# Create variable labels
-colnames(likert_4) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7")
-
-# show table
-sjt.pca(likert_4)
-
-# -------------------------------
 # Data from the EUROFAMCARE sample dataset
-# -------------------------------
 library(sjmisc)
 data(efc)
 
@@ -170,9 +129,7 @@ colnames(mydf) <- varlabs[c(start:end)]
 
 sjt.pca(mydf)
 
-# -------------------------------
 # auto-detection of labels
-# -------------------------------
 sjt.pca(efc[, c(start:end)])}
 
 }

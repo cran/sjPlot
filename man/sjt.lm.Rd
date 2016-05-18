@@ -4,138 +4,35 @@
 \alias{sjt.lm}
 \title{Summary of linear regression as HTML table}
 \usage{
-sjt.lm(..., file = NULL, labelPredictors = NULL,
-  labelDependentVariables = NULL, stringPredictors = "Predictors",
-  stringDependentVariables = "Dependent Variables", stringModel = "Model",
-  showHeaderStrings = FALSE, stringIntercept = "(Intercept)",
-  stringObservations = "Observations", stringB = "B",
-  stringSB = "std. Beta", stringCI = "CI", stringSE = "std. Error",
-  stringP = "p", showEst = TRUE, showConfInt = TRUE, showStdBeta = NULL,
-  showStdError = FALSE, ci.hyphen = "&nbsp;&ndash;&nbsp;",
-  minus.sign = "&#45;", digits.est = 2, digits.p = 3, digits.ci = 2,
-  digits.se = 2, digits.sb = 2, digits.summary = 3,
-  pvaluesAsNumbers = TRUE, boldpvalues = TRUE, separateConfColumn = TRUE,
-  newLineConf = TRUE, group.pred = TRUE, showAbbrHeadline = TRUE,
-  showR2 = TRUE, showICC = FALSE, showREvar = FALSE, showFStat = FALSE,
-  showAIC = FALSE, showAICc = FALSE, showDeviance = FALSE,
-  remove.estimates = NULL, cellSpacing = 0.2, cellGroupIndent = 0.6,
-  encoding = NULL, CSS = NULL, useViewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+sjt.lm(..., pred.labels = NULL, depvar.labels = NULL,
+  remove.estimates = NULL, group.pred = TRUE, p.numeric = TRUE,
+  emph.p = TRUE, p.kr = TRUE, separate.ci.col = TRUE, newline.ci = TRUE,
+  show.est = TRUE, show.std = NULL, show.ci = TRUE, show.se = FALSE,
+  show.header = FALSE, show.col.header = TRUE, show.r2 = TRUE,
+  show.icc = FALSE, show.re.var = FALSE, show.fstat = FALSE,
+  show.aic = FALSE, show.aicc = FALSE, show.dev = FALSE,
+  string.pred = "Predictors", string.dv = "Dependent Variables",
+  string.interc = "(Intercept)", string.obs = "Observations",
+  string.est = "B", string.std = "std. Beta", string.ci = "CI",
+  string.se = "std. Error", string.p = "p",
+  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
+  digits.std = 2, digits.p = 3, digits.ci = 2, digits.se = 2,
+  digits.summary = 3, cell.spacing = 0.2, cell.gpr.indent = 0.6,
+  CSS = NULL, encoding = NULL, file = NULL, use.viewer = TRUE,
+  no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted linear (mixed) models.}
 
-\item{file}{destination file, if the output should be saved as file.
-If \code{NULL} (default), the output will be saved as temporary file and 
-openend either in the IDE's viewer pane or the default web browser.}
+\item{pred.labels}{character vector with labels of predictor variables.
+If not \code{NULL}, \code{pred.labels} will be used in the first
+table column with the predictors' names. If \code{NULL}, variable
+labels are set based on label attributes (see \code{\link[sjmisc]{get_label}}).
+If \code{pred.labels = ""}, column names (vector names) are used
+as predictor labels. See 'Examples'.}
 
-\item{labelPredictors}{character vector with labels of predictor variables.
-If not \code{NULL}, \code{labelPredictors} will be used in the first
-table column with the predictors' names. See 'Examples'.}
-
-\item{labelDependentVariables}{character vector with labels of dependent 
+\item{depvar.labels}{character vector with labels of dependent 
 variables of all fitted models. See 'Examples'.}
-
-\item{stringPredictors}{string constant used as headline for the predictor column.
-Default is \code{"Predictors"}.}
-
-\item{stringDependentVariables}{string constant used as headline for the 
-dependent variable columns. Default is \code{"Dependent Variables"}.}
-
-\item{stringModel}{string constant used as headline for the model names in case no 
-labels for the dependent variables are provided (see \code{labelDependentVariables}).
-Default is \code{"Model"}.}
-
-\item{showHeaderStrings}{logical, if \code{TRUE}, the header strings \code{stringPredictors}
-and \code{stringDependentVariables} are shown. By default, they're hidden.}
-
-\item{stringIntercept}{string constant used as headline for the Intercept row.
-Default is \code{"Intercept"}.}
-
-\item{stringObservations}{string constant used in the summary row for the count of observation
-(cases). Default is \code{"Observations"}.}
-
-\item{stringB}{string used for the column heading of estimates. Default is \code{"B"}.}
-
-\item{stringSB}{string used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.}
-
-\item{stringCI}{string used for the column heading of confidence interval values. Default is \code{"CI"}.}
-
-\item{stringSE}{string used for the column heading of standard error values. Default is \code{"std. Error"}.}
-
-\item{stringP}{string used for the column heading of p values. Default is \code{"p"}.}
-
-\item{showEst}{logical, if \code{TRUE} (default), the estimates are printed.}
-
-\item{showConfInt}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
-\code{FALSE} to omit the CI in the table.}
-
-\item{showStdBeta}{indicates whether standardized beta-coefficients should 
-also printed, and if yes, which type of standardization is done.
-See 'Details'.}
-
-\item{showStdError}{logical, if \code{TRUE}, the standard errors are also printed.
-Default is \code{FALSE}.}
-
-\item{ci.hyphen}{string, indicating the hyphen for confidence interval range.
-May be an HTML entity. See 'Examples'.}
-
-\item{minus.sign}{string, indicating the minus sign for negative numbers.
-May be an HTML entity. See 'Examples'.}
-
-\item{digits.est}{amount of decimals for estimates}
-
-\item{digits.p}{amount of decimals for p-values}
-
-\item{digits.ci}{amount of decimals for confidence intervals}
-
-\item{digits.se}{amount of decimals for standard error}
-
-\item{digits.sb}{amount of decimals for standardized beta}
-
-\item{digits.summary}{amount of decimals for values in model summary}
-
-\item{pvaluesAsNumbers}{logical, if \code{TRUE}, p-values are shown as numbers. If \code{FALSE} (default),
-p-values are indicated by asterisks.}
-
-\item{boldpvalues}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
-
-\item{separateConfColumn}{if \code{TRUE}, the CI values are shown in a separate table column.
-Default is \code{FALSE}.}
-
-\item{newLineConf}{logical, if \code{TRUE} and \code{separateConfColumn = FALSE}, inserts a line break
-between B and CI values. If \code{FALSE}, CI values are printed in the same
-line as B values.}
-
-\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with 
-factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
-be grouped, if the factor has more than two levels. Grouping means that a separate headline
-row is inserted to the table just before the predictor values.}
-
-\item{showAbbrHeadline}{logical, if \code{TRUE} (default), the table data columns have a headline with 
-abbreviations for estimates and std. beta-values, confidence interval and p-values.}
-
-\item{showR2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
-in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
-(see \code{\link[sjmisc]{r2}} for details).}
-
-\item{showICC}{logical, if \code{TRUE}, the intra-class-correlation for each 
-model is printed in the model summary. Only applies to mixed models.}
-
-\item{showREvar}{logical, if \code{TRUE}, the variance parameters for the random
-effects for each model are printed in the model summary. Only applies to mixed models.}
-
-\item{showFStat}{If \code{TRUE}, the F-statistics for each model is printed
-in the model summary. Default is \code{FALSE}.}
-
-\item{showAIC}{logical, if \code{TRUE}, the AIC value for each model is printed
-in the model summary. Default is \code{FALSE}.}
-
-\item{showAICc}{logical, if \code{TRUE}, the second-order AIC value for each model 
-is printed in the model summary. Default is \code{FALSE}.}
-
-\item{showDeviance}{logical, if \code{TRUE}, the deviance for each model 
-is printed in the model summary.}
 
 \item{remove.estimates}{numeric vector with indices (order equals to row index of \code{coef(fit)}) 
 or character vector with coefficient names that indicate which estimates should be removed
@@ -145,23 +42,129 @@ would remove the 2nd to the 4th estimate (1st to 3rd predictor after intercept) 
 \code{remove.estimates = "est_name"} would remove the estimate \emph{est_name}. Default 
 is \code{NULL}, i.e. all estimates are printed.}
 
-\item{cellSpacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
+\item{group.pred}{logical, if \code{TRUE} (default), automatically groups table rows with 
+factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
+be grouped, if the factor has more than two levels. Grouping means that a separate headline
+row is inserted to the table just before the predictor values.}
+
+\item{p.numeric}{logical, if \code{TRUE}, the p-values are printed 
+as numbers. If \code{FALSE} (default), asterisks are used.}
+
+\item{emph.p}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
+
+\item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional 
+F-tests with Kenward-Roger approximation for the df. Caution: Computation
+may take very long time for large samples!}
+
+\item{separate.ci.col}{if \code{TRUE}, the CI values are shown in a separate table column.
+Default is \code{FALSE}.}
+
+\item{newline.ci}{logical, if \code{TRUE} and \code{separate.ci.col = FALSE}, inserts a line break
+between estimate and CI values. If \code{FALSE}, CI values are printed in the same
+line as estimate values.}
+
+\item{show.est}{logical, if \code{TRUE} (default), the estimates are printed.}
+
+\item{show.std}{indicates whether standardized beta-coefficients should 
+also printed, and if yes, which type of standardization is done.
+See 'Details'.}
+
+\item{show.ci}{logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
+\code{FALSE} to omit the CI in the table.}
+
+\item{show.se}{logical, if \code{TRUE}, the standard errors are also printed.
+Default is \code{FALSE}.}
+
+\item{show.header}{logical, if \code{TRUE}, the header strings \code{string.pred}
+and \code{string.dv} are shown. By default, they're hidden.}
+
+\item{show.col.header}{logical, if \code{TRUE} (default), the table data columns have a headline with 
+abbreviations for estimates, std. beta-values, confidence interval and p-values.}
+
+\item{show.r2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
+in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
+(see \code{\link[sjmisc]{r2}} for details).}
+
+\item{show.icc}{logical, if \code{TRUE}, the intra-class-correlation for each 
+model is printed in the model summary. Only applies to mixed models.}
+
+\item{show.re.var}{logical, if \code{TRUE}, the variance parameters for the random
+effects for each model are printed in the model summary. Only applies to mixed models.
+For details output, see 'Note' in \code{\link[sjmisc]{icc}}.}
+
+\item{show.fstat}{If \code{TRUE}, the F-statistics for each model is printed
+in the model summary. Default is \code{FALSE}.}
+
+\item{show.aic}{logical, if \code{TRUE}, the AIC value for each model is printed
+in the model summary. Default is \code{FALSE}.}
+
+\item{show.aicc}{logical, if \code{TRUE}, the second-order AIC value for each model 
+is printed in the model summary. Default is \code{FALSE}.}
+
+\item{show.dev}{logical, if \code{TRUE}, the deviance for each model 
+is printed in the model summary.}
+
+\item{string.pred}{character vector,used as headline for the predictor column.
+Default is \code{"Predictors"}.}
+
+\item{string.dv}{character vector, used as headline for the 
+dependent variable columns. Default is \code{"Dependent Variables"}.}
+
+\item{string.interc}{character vector, used as headline for the Intercept row.
+Default is \code{"Intercept"}.}
+
+\item{string.obs}{character vector, used in the summary row for the count of observation
+(cases). Default is \code{"Observations"}.}
+
+\item{string.est}{character vector, used for the column heading of estimates.}
+
+\item{string.std}{character vector, used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.}
+
+\item{string.ci}{character vector, used for the column heading of confidence interval values. Default is \code{"CI"}.}
+
+\item{string.se}{character vector, used for the column heading of standard error values. Default is \code{"std. Error"}.}
+
+\item{string.p}{character vector, used for the column heading of p values. Default is \code{"p"}.}
+
+\item{ci.hyphen}{character vector, indicating the hyphen for confidence interval range.
+May be an HTML entity. See 'Examples'.}
+
+\item{minus.sign}{string, indicating the minus sign for negative numbers.
+May be an HTML entity. See 'Examples'.}
+
+\item{digits.est}{amount of decimals for estimates}
+
+\item{digits.std}{amount of decimals for standardized beta}
+
+\item{digits.p}{amount of decimals for p-values}
+
+\item{digits.ci}{amount of decimals for confidence intervals}
+
+\item{digits.se}{amount of decimals for standard error}
+
+\item{digits.summary}{amount of decimals for values in model summary}
+
+\item{cell.spacing}{numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
 into Office documents. This is a convenient argument for the \code{CSS} argument for changing
 cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css.tdata = "padding:0.2cm;")}.}
 
-\item{cellGroupIndent}{indent for table rows with grouped factor predictors. Only applies
+\item{cell.gpr.indent}{indent for table rows with grouped factor predictors. Only applies
 if \code{group.pred = TRUE}.}
+
+\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
 depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
 
-\item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\item{file}{destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and 
+openend either in the IDE's viewer pane or the default web browser.}
 
-\item{useViewer}{If \code{TRUE}, the function tries to show the HTML table in the IDE's viewer pane. If
+\item{use.viewer}{If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 \code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
 
 \item{no.output}{logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -192,18 +195,19 @@ Summarizes (multiple) fitted linear models (coefficients, std. beta values etc.)
                the \code{gls}-function from the \pkg{nlme}-package.
 }
 \details{
-Concerning the \code{showStdBeta} argument, \code{showStdBeta = "std"}
-           will print normal standardized estimates. \code{showStdBeta = "std2"},
+Concerning the \code{show.std} argument, \code{show.std = "std"}
+           will print normal standardized estimates. For \code{show.std = "std2"},
            however, standardization of estimates follows 
            \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
            suggestion, rescaling the estimates by dividing them by two standard 
            deviations instead of just one. Resulting coefficients are then 
            directly comparable for untransformed binary predictors. This type 
-           of standardization uses the \code{\link[arm]{standardize}}-function.
-           For backward compatibility reasons, \code{showStdBeta} also may be 
+           of standardization uses the \code{\link[arm]{standardize}}-function
+           from the \pkg{arm}-package.
+           For backward compatibility reasons, \code{show.std} also may be 
            a logical value; if \code{TRUE}, normal standardized estimates are 
-           printed (same effect as \code{showStdBeta = "std"}). Use 
-           \code{showStdBeta = NULL} (default) or \code{showStdBeta = FALSE},
+           printed (same effect as \code{show.std = "std"}). Use 
+           \code{show.std = NULL} (default) or \code{show.std = FALSE},
            if standardized estimats should not be printed.
            \cr \cr
            Furthermore, see 'Details' in \code{\link{sjt.frq}}.
@@ -231,66 +235,30 @@ sjt.lm(fit1, fit2)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser
 # in the following examples, we set labels via argument
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index",
-                                   "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"))
+sjt.lm(fit1, fit2, 
+       depvar.labels = c("Barthel-Index", "Negative Impact"),
+       pred.labels = c("Carer's Age", "Hours of Care", 
+                       "Carer's Sex", "Educational Status"))
+
+# use vector names as labels
+sjt.lm(fit1, fit2, pred.labels = "")
 
 # show HTML-table, indicating p-values as asterisks
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index", 
-                                   "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"),
-       showStdBeta = TRUE, 
-       pvaluesAsNumbers = FALSE)
+sjt.lm(fit1, fit2, show.std = TRUE, p.numeric = FALSE)
 
 # create and open HTML-table in RStudio Viewer Pane or web browser,
 # integrate CI in estimate column
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index", 
-                                   "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"),
-       separateConfColumn = FALSE)
+sjt.lm(fit1, fit2, separate.ci.col = FALSE)
 
 # show HTML-table, indicating p-values as numbers
 # and printing CI in a separate column
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index", 
-                                   "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"),
-       showStdBeta = TRUE)
+sjt.lm(fit1, fit2, show.std = TRUE)
 
 # show HTML-table, indicating p-values as stars
 # and integrate CI in estimate column
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index", 
-                                   "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"),
-       showStdBeta = TRUE, 
-       ci.hyphen = " to ",
-       minus.sign = "&minus;",
-       pvaluesAsNumbers = FALSE, 
-       separateConfColumn = FALSE)
+sjt.lm(fit1, fit2, show.std = TRUE, ci.hyphen = " to ",
+       minus.sign = "&minus;", p.numeric = FALSE, 
+       separate.ci.col = FALSE)
 
 # ---------------------------------- 
 # connecting two html-tables
@@ -300,29 +268,15 @@ fit3 <- lm(tot_sc_e ~ c160age + c12hour + c161sex + c172code, data=efc)
 fit4 <- lm(e42dep ~ c160age + c12hour + c161sex + c172code, data=efc)
 
 # create and save first HTML-table
-part1 <- sjt.lm(fit1, 
-                fit2, 
-                labelDependentVariables = c("Barthel-Index", 
-                                            "Negative Impact"),
-                labelPredictors = c("Carer's Age", 
-                                    "Hours of Care",
-                                    "Carer's Sex", 
-                                    "Educational Status"))
+part1 <- sjt.lm(fit1, fit2)
+
 # create and save second HTML-table
-part2 <- sjt.lm(fit3, 
-                fit4, 
-                labelDependentVariables = c("Service Usage", 
-                                            "Elder's Dependency"),
-                labelPredictors = c("Carer's Age", 
-                                    "Hours of Care",
-                                    "Carer's Sex", 
-                                    "Educational Status"))
+part2 <- sjt.lm(fit3, fit4)
+
 # browse temporary file
 htmlFile <- tempfile(fileext=".html")
 write(sprintf("<html><head>\%s</head><body>\%s<p></p>\%s</body></html>",
-              part1$page.style, 
-              part1$page.content, 
-              part2$page.content),
+              part1$page.style, part1$page.content, part2$page.content),
       file = htmlFile)
 viewer <- getOption("viewer")
 if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)
@@ -330,13 +284,7 @@ if (!is.null(viewer)) viewer(htmlFile) else utils::browseURL(htmlFile)
 # ---------------------------------- 
 # User defined style sheet
 # ---------------------------------- 
-sjt.lm(fit1, 
-       fit2, 
-       labelDependentVariables = c("Barthel-Index", "Negative Impact"),
-       labelPredictors = c("Carer's Age", 
-                           "Hours of Care", 
-                           "Carer's Sex", 
-                           "Educational Status"),
+sjt.lm(fit1, fit2, 
        CSS = list(css.table = "border: 2px solid;",
                   css.tdata = "border: 1px solid;",
                   css.depvarhead = "color:#003399;"))
@@ -356,9 +304,7 @@ fit1 <- lm(barthtot ~ c160age + c12hour + c172code + c161sex, data=efc)
 fit2 <- lm(neg_c_7 ~ c160age + c12hour + c172code + c161sex, data=efc)
 
 # plot models, but group by predictors
-sjt.lm(fit1,
-       fit2,
-       group.pred = TRUE)
+sjt.lm(fit1, fit2, group.pred = TRUE)
 
 # ---------------------------------------- 
 # compare models with different predictors
@@ -380,14 +326,12 @@ fit3 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e, data = efc)
 
 sjt.lm(fit1, fit2, fit3)
 
-
 # ---------------------------------------- 
 # compare models with different predictors
 # and grouping
 # ---------------------------------------- 
-
 # make cope-index categorical
-efc$c82cop1 <- to_fac(efc$c82cop1)
+efc$c82cop1 <- to_factor(efc$c82cop1)
 # fit another model
 fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1, 
            data = efc)
@@ -395,11 +339,8 @@ fit4 <- lm(neg_c_7 ~ c160age + c172code + e42dep + tot_sc_e + c82cop1,
 sjt.lm(fit1, fit2, fit4, fit3)
 
 # show standardized beta only
-sjt.lm(fit1, fit2, fit4, fit3,
-       showEst = FALSE,
-       showStdBeta = TRUE,
-       showAIC = TRUE,
-       showFStat = TRUE)
+sjt.lm(fit1, fit2, fit4, fit3, show.est = FALSE, show.std = TRUE,
+       show.aic = TRUE, show.fstat = TRUE)
 
 # -----------------------------------------------------------
 # color insanity. just to show that each column has an own
@@ -407,11 +348,8 @@ sjt.lm(fit1, fit2, fit4, fit3,
 # you can define column spaces / margins, border etc. to
 # visually separate your models in the table
 # -----------------------------------------------------------
-sjt.lm(fit1, fit2, fit4, fit3,
-       showStdBeta = TRUE,
-       showAIC = TRUE,
-       showFStat = TRUE,
-       showStdError = TRUE,
+sjt.lm(fit1, fit2, fit4, fit3, show.std = TRUE, show.aic = TRUE,
+       show.fstat = TRUE, show.se = TRUE,
        CSS = list(css.modelcolumn1 = 'color:blue;',
                   css.modelcolumn2 = 'color:red;',
                   css.modelcolumn3 = 'color:green;',
@@ -419,11 +357,8 @@ sjt.lm(fit1, fit2, fit4, fit3,
                   css.modelcolumn5 = 'color:#777777;',
                   css.modelcolumn6 = 'color:#3399cc;'))
 
-sjt.lm(fit1, fit2, fit4, fit3,
-       showEst = FALSE,
-       showStdBeta = TRUE,
-       pvaluesAsNumbers = FALSE,
-       group.pred = FALSE,
+sjt.lm(fit1, fit2, fit4, fit3, show.est = FALSE, show.std = TRUE,
+       p.numeric = FALSE, group.pred = FALSE,
        CSS = list(css.modelcolumn4 = 'border-left:1px solid black;',
                   css.modelcolumn5 = 'padding-right:50px;'))}
                   

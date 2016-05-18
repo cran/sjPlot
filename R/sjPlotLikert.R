@@ -18,7 +18,6 @@ utils::globalVariables(c("offset"))
 #'        of categories fails. In such cases, specify the amount of categories
 #'        with the \code{catcount}-argument.
 #' 
-#' @param items \code{\link{data.frame}} with each column representing one likert-item.
 #' @param catcount optional, amount of categories of \code{items} (e.g. \emph{"strongly disagree", 
 #'          "disagree", "agree"} and \emph{"strongly agree"} would be \code{catcount = 4}).
 #'          Note that this argument only applies to "valid" answers, i.e. if you
@@ -30,9 +29,6 @@ utils::globalVariables(c("offset"))
 #'          the index number (value) for this category. Else, set \code{cat.neutral = NULL} (default).
 #'          The proportions of neutral category answers are plotted as grey bars on the left side of
 #'          the figure.
-#' @param weightBy weight factor that will be applied to weight all cases of \code{items}.
-#'          Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, 
-#'          so no weights are used.
 #' @param sort.frq indicates whether the items of \code{items} should be ordered by 
 #'          total sum of positive or negative answers.
 #'          \describe{
@@ -42,43 +38,29 @@ utils::globalVariables(c("offset"))
 #'            \item{\code{"neg.desc"}}{for sorting descending negative answers}
 #'            \item{\code{NULL}}{(default) for no sorting}
 #'          }
-#' @param geom.colors user defined color palette for geoms. If specified, must either be vector with color values 
-#'          of same length as groups defined in \code{legendLabels}, or a specific color palette code.
-#'          See 'Note' in \code{\link{sjp.grpfrq}}.
 #' @param reverse.colors logical, if \code{TRUE}, the color scale from \code{geom.colors} will be reversed,
 #'          so positive and negative values switch colors.
-#' @param geom.size width of bars. Recommended values for this argument are from 0.4 to 1.5
 #' @param cat.neutral.color color of the neutral category, if plotted (see \code{cat.neutral}).
 #' @param intercept.line.color color of the vertical intercept line that divides positive and negative values.
-#' @param legendLabels character vector with names of the 
-#'          likert-scale-categories that appear as legend text.
-#' @param includeN logical, if \code{TRUE} (default), the N of each item will be included in axis labels.
-#' @param value.labels determines style and position of percentage value labels on the bars:
+#' @param values determines style and position of percentage value labels on the bars:
 #'          \describe{
 #'            \item{\code{"show"}}{(default) shows percentage value labels in the middle of each category bar}
 #'            \item{\code{"hide"}}{hides the value labels, so no percentage values on the bars are printed}
 #'            \item{\code{"sum.inside"}}{shows the sums of percentage values for both negative and positive values and prints them inside the end of each bar}
 #'            \item{\code{"sum.outide"}}{shows the sums of percentage values for both negative and positive values and prints them outside the end of each bar}
 #'          }
-#' @param showPercentageSign logical, if \code{TRUE}, \%-signs for value labels are shown.
-#' @param labelDigits amount of digits for rounding \code{value.labels}. Default is 1, 
-#'          i.e. value labels have 1 digit after decimal point.
-#' @param showItemLabels logical, whether x-axis text (category names) should be shown or not
-#' @param axisLabels.y character vector with labels for the y-axis (names of the 
-#'          \code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}.
-#'          Axis labels will automatically be detected, when they have
-#'          label attributes (see \code{\link[sjmisc]{set_label}} for details).
-#' @param gridRange numeric, limits of the x-axis-range, as proportion of 100. 
+#' @param show.prc.sign logical, if \code{TRUE}, \%-signs for value labels are shown.
+#' @param grid.range numeric, limits of the x-axis-range, as proportion of 100. 
 #'          Default is 1, so the x-scale ranges from zero to 100\% on 
 #'          both sides from the center. You can use values beyond 1
 #'          (100\%) in case bar labels are not printed because they exceed the axis range.
-#'          E.g. \code{gridRange = 1.4} will set the axis from -140 to +140\%, however, only
+#'          E.g. \code{grid.range = 1.4} will set the axis from -140 to +140\%, however, only
 #'          (valid) axis labels from -100 to +100\% are printed. Neutral categories are
 #'          adjusted to the most left limit.
-#' @param axisTitle.x title for the x-axis. Default is \code{NULL} (no title).
-#' @param axisTitle.y title for the y-axis. Default is \code{NULL} (no title).
 #' 
 #' @inheritParams sjp.grpfrq
+#' @inheritParams sjp.stackfrq
+#' @inheritParams sjp.glmer
 #' 
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df.neg} for the negative values,
@@ -106,11 +88,8 @@ utils::globalVariables(c("offset"))
 #' likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 #' 
 #' # create labels
-#' levels_4 <- c("Strongly agree", 
-#'               "Agree", 
-#'               "Disagree", 
-#'               "Strongly Disagree", 
-#'               "Don't know")
+#' levels_4 <- c("Strongly agree", "Agree", "Disagree", 
+#'               "Strongly Disagree", "Don't know")
 #' 
 #' # prepare data for 6-category likert scale, 5 items
 #' likert_6 <- data.frame()
@@ -131,73 +110,72 @@ utils::globalVariables(c("offset"))
 #' items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
 #' 
 #' # plot dichotomous likert scale, ordered by "negative" values
-#' sjp.likert(likert_2,
-#'            geom.colors = c("green", "red"),
-#'            legendLabels = levels_2, 
-#'            axisLabels.y = items, 
-#'            sort.frq = "neg.desc")
+#' sjp.likert(likert_2, geom.colors = c("green", "red"), legend.labels = levels_2, 
+#'            axis.labels = items, sort.frq = "neg.desc")
 #' 
 #' # plot 4-category-likert-scale, no order
-#' sjp.likert(likert_4, 
-#'            cat.neutral = 5,
-#'            legendLabels = levels_4, 
-#'            axisLabels.y = items,
-#'            gridRange = 1.2,
-#'            expand.grid = FALSE,
-#'            value.labels = "sum.outside",
-#'            showPercentageSign = TRUE)
+#' sjp.likert(likert_4, cat.neutral = 5, legend.labels = levels_4, 
+#'            axis.labels = items, grid.range = 1.2, expand.grid = FALSE,
+#'            values = "sum.outside", show.prc.sign = TRUE)
 #' 
 #' # plot 6-category-likert-scale, ordered by positive values,
 #' # in brown color scale
-#' sjp.likert(likert_6, 
-#'            legendLabels = levels_6, 
-#'            axisLabels.y = items, 
-#'            sort.frq = "pos.asc", 
-#'            labelDigits = 0,
-#'            showPercentageSign = TRUE,
-#'            value.labels = "sum.inside")
+#' sjp.likert(likert_6,  legend.labels = levels_6, axis.labels = items, 
+#'            sort.frq = "pos.asc", digits = 0, show.prc.sign = TRUE,
+#'            values = "sum.inside")
 #' 
 #' @import ggplot2
 #' @import sjmisc
 #' @importFrom stats na.omit xtabs
 #' @export
 sjp.likert <- function(items,
+                       title = NULL, 
+                       legend.title = NULL,
+                       legend.labels = NULL,
+                       axis.titles = NULL,
+                       axis.labels = NULL,
                        catcount = NULL, 
                        cat.neutral = NULL,
-                       weightBy = NULL,
-                       weightByTitleString = NULL,
                        sort.frq = NULL,
+                       weight.by = NULL,
+                       title.wtd.suffix = NULL,
+                       wrap.title = 50, 
+                       wrap.labels = 30, 
+                       wrap.legend.title = 30, 
+                       wrap.legend.labels = 28,
                        geom.size = .6,
                        geom.colors = "BrBG",
-                       reverse.colors = FALSE,
                        cat.neutral.color = "grey70",
                        intercept.line.color = "grey50",
-                       value.labels = "show",
-                       showPercentageSign = FALSE,
-                       labelDigits = 1,
-                       legendLabels = NULL,
-                       hideLegend = FALSE,
-                       title = NULL, 
-                       legendTitle = NULL,
-                       includeN = TRUE,
-                       showItemLabels = TRUE,
-                       axisLabels.y = NULL,
-                       breakTitleAt = 50, 
-                       breakLabelsAt = 30, 
-                       breakLegendTitleAt = 30, 
-                       breakLegendLabelsAt = 28,
-                       gridRange = 1,
-                       gridBreaksAt = 0.2,
+                       reverse.colors = FALSE,
+                       values = "show",
+                       show.n = TRUE,
+                       show.legend = TRUE,
+                       show.prc.sign = FALSE,
+                       grid.range = 1,
+                       grid.breaks = 0.2,
                        expand.grid = TRUE,
-                       axisTitle.x = NULL,
-                       axisTitle.y = NULL,
+                       digits = 1,
                        coord.flip = TRUE,
-                       printPlot = TRUE) {
+                       prnt.plot = TRUE) {
   # --------------------------------------------------------
   # check param. if we have a single vector instead of
   # a data frame with several items, convert vector to data frame
   # --------------------------------------------------------
   if (!is.data.frame(items) && !is.matrix(items)) items <- as.data.frame(items)
+  # --------------------------------------------------------
+  # copy titles
+  # --------------------------------------------------------
+  if (is.null(axis.titles)) {
+    axisTitle.x <- NULL
+    axisTitle.y <- NULL
+  } else {
+    axisTitle.x <- axis.titles[1]
+    if (length(axis.titles) > 1)
+      axisTitle.y <- axis.titles[2]
+    else
+      axisTitle.y <- NULL
+  }
   # --------------------------------------------------------
   # check sorting
   # --------------------------------------------------------
@@ -224,35 +202,27 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
-  if (is.null(legendLabels)) legendLabels <- sjmisc::get_labels(items[[1]],
-                                                                attr.only = F,
-                                                                include.values = NULL,
-                                                                include.non.labelled = T)
-  if (is.null(axisLabels.y)) {
-    axisLabels.y <- c()
+  if (is.null(legend.labels)) {
+    legend.labels <- sjmisc::get_labels(items[[1]], attr.only = F,
+                                        include.values = NULL, include.non.labelled = T)
+  }
+  if (is.null(axis.labels)) {
+    axis.labels <- c()
     # if yes, iterate each variable
     for (i in 1:ncol(items)) {
       # retrieve variable name attribute
-      axisLabels.y <- c(axisLabels.y, sjmisc::get_label(items[[i]], def.value = colnames(items)[i]))
+      axis.labels <- c(axis.labels, sjmisc::get_label(items[[i]], def.value = colnames(items)[i]))
     }
   }  
   # --------------------------------------------------------
-  # If axisLabels.y were not defined, simply use column names
-  # --------------------------------------------------------
-  if (is.null(axisLabels.y)) axisLabels.y <- colnames(items)
-  # --------------------------------------------------------
-  # unlist/ unname axis labels
-  # --------------------------------------------------------
-  if (!is.null(axisLabels.y)) {
-    # unname labels, if necessary, so we have a simple character vector
-    if (!is.null(names(axisLabels.y))) axisLabels.y <- as.vector(axisLabels.y)
-  } 
+  # unname labels, if necessary, so we have a simple character vector
+  if (!is.null(names(axis.labels))) axis.labels <- as.vector(axis.labels)
   # --------------------------------------------------------
   # unlist/ unname axis labels
   # --------------------------------------------------------
-  if (!is.null(legendLabels)) {
+  if (!is.null(legend.labels)) {
     # unname labels, if necessary, so we have a simple character vector
-    if (!is.null(names(legendLabels))) legendLabels <- as.vector(legendLabels)
+    if (!is.null(names(legend.labels))) legend.labels <- as.vector(legend.labels)
   } 
   # --------------------------------------------------------
   # determine catcount
@@ -272,15 +242,15 @@ sjp.likert <- function(items,
     # then equals catcount
     catcount <- max(catcount) - min(catcount) + 1
     # check if category count matches category label count
-    if (!is.null(legendLabels)) {
+    if (!is.null(legend.labels)) {
       # how many labels do we have?
       # substract 1, if we have neutral category
-      lll <- length(legendLabels) - adding
+      lll <- length(legend.labels) - adding
       # catcount and legend label count equal?
       if (catcount < lll) {
         # warn user that detected amount of categories and supplied legend labels
         # are different.
-        warning("Length of labels for item categories 'legendLabels' differs from detected amount of categories. Use 'catcount' argument to define amount of item categories, if plotting does not work.", call. = F)
+        warning("Length of labels for item categories `legend.labels` differs from detected amount of categories. Use `catcount` argument to define amount of item categories, if plotting does not work.", call. = F)
         # adjust catcount to length of legend labels, because
         # we assume that labels represent the valid range of 
         # item categories
@@ -297,9 +267,7 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # set legend labels, if we have none yet
   # --------------------------------------------------------
-  if (is.null(legendLabels)) {
-    legendLabels <- c(1:(catcount + adding))
-  }
+  if (is.null(legend.labels)) legend.labels <- c(1:(catcount + adding))
   # --------------------------------------------------------
   # prepare data frames
   # --------------------------------------------------------
@@ -347,10 +315,10 @@ sjp.likert <- function(items,
     # --------------------------------------------------------
     # create proportional frequency table
     # --------------------------------------------------------
-    if (is.null(weightBy)) {
+    if (is.null(weight.by)) {
       tab <- round(prop.table(table(items[[i]])), 3)
     } else {
-      tab <- round(prop.table(stats::xtabs(weightBy ~ items[[i]])), 3)
+      tab <- round(prop.table(stats::xtabs(weight.by ~ items[[i]])), 3)
     }
     # --------------------------------------------------------
     # retrieve category number and related frequencies
@@ -373,7 +341,7 @@ sjp.likert <- function(items,
       # automatic detection of amount of categories does not
       # work then.
       if (length(freq) != nrow(freq.df))
-        stop("Could not determine amount of item categories. Please use argument 'catcount'.", call. = F)
+        stop("Could not determine amount of item categories. Please use argument `catcount`.", call. = F)
       else
         freq.df <- as.data.frame(cbind(freq.df, freq))
     }
@@ -383,9 +351,9 @@ sjp.likert <- function(items,
   # Check whether N of each item should be included into
   # axis labels
   # --------------------------------------------------------
-  if (includeN && !is.null(axisLabels.y)) {
-    for (i in 1:length(axisLabels.y)) {
-      axisLabels.y[i] <- paste(axisLabels.y[i], 
+  if (show.n) {
+    for (i in 1:length(axis.labels)) {
+      axis.labels[i] <- paste(axis.labels[i], 
                                sprintf(" (n=%i)", length(stats::na.omit(items[[i]]))), 
                                sep = "")
     }
@@ -466,7 +434,7 @@ sjp.likert <- function(items,
                                             frq = -1 + fr[catcount + adding],
                                             ypos = -1 + (fr[catcount + adding] / 2),
                                             ypos2 = -1 + fr[catcount + adding],
-                                            offset = -1 * gridRange)))
+                                            offset = -1 * grid.range)))
       # cumulative neutral cat
       ypos.sum.dk <- c(ypos.sum.dk, -1 + fr[catcount + adding])
     }
@@ -484,37 +452,39 @@ sjp.likert <- function(items,
   if (!is.null(cat.neutral)) {
     mydat.dk$grp <- as.factor("neutral")
     mydat.dk$geom.size <- geom.size
-    mydat.dk$labelDigits <- labelDigits
+    mydat.dk$digits <- digits
   }
   # --------------------------------------------------------
   # label digits needed
   # --------------------------------------------------------
-  mydat.neg$labelDigits <- labelDigits
-  mydat.pos$labelDigits <- labelDigits
+  mydat.neg$digits <- digits
+  mydat.pos$digits <- digits
   # --------------------------------------------------------
   # Prepare and trim legend labels to appropriate size
   # --------------------------------------------------------
   # wrap legend text lines
-  legendLabels <- sjmisc::word_wrap(legendLabels, breakLegendLabelsAt)
+  legend.labels <- sjmisc::word_wrap(legend.labels, wrap.legend.labels)
   # check whether we have a title for the legend
-  if (!is.null(legendTitle)) {
+  if (!is.null(legend.title)) {
     # if yes, wrap legend title line
-    legendTitle <- sjmisc::word_wrap(legendTitle, breakLegendTitleAt)
+    legend.title <- sjmisc::word_wrap(legend.title, wrap.legend.title)
   }
   # check length of diagram title and split longer string at into new lines
   # every 50 chars
   if (!is.null(title)) {
     # if we have weighted values, say that in diagram's title
-    if (!is.null(weightByTitleString)) {
-      title <- paste(title, weightByTitleString, sep = "")
+    if (!is.null(title.wtd.suffix)) {
+      title <- paste(title, title.wtd.suffix, sep = "")
     }
-    title <- sjmisc::word_wrap(title, breakTitleAt)
+    title <- sjmisc::word_wrap(title, wrap.title)
   }
+  # --------------------------------------------------------
   # check length of x-axis-labels and split longer strings at into new lines
   # every 10 chars, so labels don't overlap
-  if (!is.null(axisLabels.y)) {
-    axisLabels.y <- sjmisc::word_wrap(axisLabels.y, breakLabelsAt)
-  }
+  # --------------------------------------------------------
+  axis.labels <- sjmisc::word_wrap(axis.labels, wrap.labels)
+  # sort labels
+  axis.labels <- axis.labels[sort.freq]
   # --------------------------------------------------------
   # set diagram margins
   # --------------------------------------------------------
@@ -524,17 +494,9 @@ sjp.likert <- function(items,
     expgrid <- c(0, 0)
   }
   # --------------------------------------------------------
-  # Hide or show Category Labels (x axis text) 
-  # --------------------------------------------------------
-  if (!showItemLabels) {
-    axisLabels.y <- c("")
-  } else {
-    axisLabels.y <- axisLabels.y[sort.freq]
-  }
-  # --------------------------------------------------------
   # Set up grid breaks
   # --------------------------------------------------------
-  gridbreaks <- round(c(seq(-gridRange, gridRange, by = gridBreaksAt)), 2)
+  gridbreaks <- round(c(seq(-grid.range, grid.range, by = grid.breaks)), 2)
   gridlabs <- ifelse(abs(gridbreaks) > 1, "", paste0(c(abs(round(100 * gridbreaks))), "%"))
   # --------------------------------------------------------
   # start plot here
@@ -571,30 +533,30 @@ sjp.likert <- function(items,
   # --------------------------------------------------------
   # should percentage value labels be printed?
   # --------------------------------------------------------
-  percsign <- mydat.pos$percsign <- mydat.neg$percsign <- ifelse(isTRUE(showPercentageSign), "%", "")
+  percsign <- mydat.pos$percsign <- mydat.neg$percsign <- ifelse(isTRUE(show.prc.sign), "%", "")
   if (nrow(mydat.dk) > 0) mydat.dk$percsign <- percsign
   # --------------------------------------------------------
   # creating value labels for cumulative percentages, so
   # zero-percentages are not printed
   # --------------------------------------------------------
-  ypos.sum.pos.lab  <- ifelse(ypos.sum.pos > 0, sprintf("%.*f%s", labelDigits, 100 * ypos.sum.pos, percsign), "")
-  ypos.sum.neg.lab  <- ifelse(ypos.sum.neg < 0, sprintf("%.*f%s", labelDigits, 100 * abs(ypos.sum.neg), percsign), "")
-  ypos.sum.dk.lab  <- ifelse(ypos.sum.dk > -1, sprintf("%.*f%s", labelDigits, 100 * (1 + ypos.sum.dk), percsign), "")
+  ypos.sum.pos.lab  <- ifelse(ypos.sum.pos > 0, sprintf("%.*f%s", digits, 100 * ypos.sum.pos, percsign), "")
+  ypos.sum.neg.lab  <- ifelse(ypos.sum.neg < 0, sprintf("%.*f%s", digits, 100 * abs(ypos.sum.neg), percsign), "")
+  ypos.sum.dk.lab  <- ifelse(ypos.sum.dk > -1, sprintf("%.*f%s", digits, 100 * (1 + ypos.sum.dk), percsign), "")
   
-  if (value.labels == "show") {
+  if (values == "show") {
     # show them in middle of bar
     gp <- gp +
       geom_text(data = subset(mydat.pos, frq > 0), 
-                aes(x = x, y = ypos, label = sprintf("%.*f%s", labelDigits, 100 * frq, percsign))) +
+                aes(x = x, y = ypos, label = sprintf("%.*f%s", digits, 100 * frq, percsign))) +
       geom_text(data = subset(mydat.neg, frq < 0), 
-                aes(x = x, y = ypos, label = sprintf("%.*f%s", labelDigits, 100 * abs(frq), percsign)))
+                aes(x = x, y = ypos, label = sprintf("%.*f%s", digits, 100 * abs(frq), percsign)))
     if (!is.null(cat.neutral)) {
       gp <- gp +
-        geom_text(data = subset(mydat.dk, frq > -1), aes(x = x, y = ypos + offset + 1, label = sprintf("%.*f%s", labelDigits, 100 * (1 + frq), percsign)))
+        geom_text(data = subset(mydat.dk, frq > -1), aes(x = x, y = ypos + offset + 1, label = sprintf("%.*f%s", digits, 100 * (1 + frq), percsign)))
     }
-  } else if (value.labels == "sum.inside" || value.labels == "sum.outside") {
+  } else if (values == "sum.inside" || values == "sum.outside") {
     # show cumulative outside bar
-    if (value.labels == "sum.outside") {
+    if (values == "sum.outside") {
       hort.pos <- -0.15
       hort.neg <- 1.15
       hort.dk <- -0.15
@@ -609,20 +571,20 @@ sjp.likert <- function(items,
       annotate("text", x = xpos.sum.neg, y = ypos.sum.neg, hjust = hort.neg, label = ypos.sum.neg.lab)
     if (!is.null(cat.neutral)) {
       gp <- gp +
-        annotate("text", x = xpos.sum.dk, y = ypos.sum.dk + 1 - gridRange, hjust = hort.dk, label = ypos.sum.dk.lab)
+        annotate("text", x = xpos.sum.dk, y = ypos.sum.dk + 1 - grid.range, hjust = hort.dk, label = ypos.sum.dk.lab)
     }
   }
   # ---------------------------------------------------------
   # continues with plot
   # ---------------------------------------------------------
   gp <- gp +
-    labs(title = title, x = axisTitle.x, y = axisTitle.y, fill = legendTitle) +
+    labs(title = title, x = axisTitle.x, y = axisTitle.y, fill = legend.title) +
     # ---------------------------------------------------------
     # scale x is continuous to make plotting the bar annotation
     # for neutral category work...
     # ---------------------------------------------------------
-    scale_x_continuous(breaks = c(1:ncol(freq.df)), labels = axisLabels.y) +
-    scale_y_continuous(breaks = gridbreaks, limits = c(-gridRange, gridRange), expand = expgrid, labels = gridlabs) +
+    scale_x_continuous(breaks = c(1:ncol(freq.df)), labels = axis.labels) +
+    scale_y_continuous(breaks = gridbreaks, limits = c(-grid.range, grid.range), expand = expgrid, labels = gridlabs) +
     geom_hline(yintercept = 0, color = intercept.line.color)
   # ---------------------------------------------------------
   # check whether coordinates should be flipped, i.e.
@@ -635,13 +597,13 @@ sjp.likert <- function(items,
   gp <- sj.setGeomColors(gp, 
                          geom.colors, 
                          (catcount + adding), 
-                         ifelse(isTRUE(hideLegend), FALSE, TRUE), 
-                         legendLabels,
+                         show.legend, 
+                         legend.labels,
                          reverse.colors)
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (printPlot) graphics::plot(gp)
+  if (prnt.plot) graphics::plot(gp)
   # -------------------------------------
   # return results
   # -------------------------------------

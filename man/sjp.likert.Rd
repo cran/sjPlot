@@ -4,20 +4,32 @@
 \alias{sjp.likert}
 \title{Plot likert scales as centered stacked bars}
 \usage{
-sjp.likert(items, catcount = NULL, cat.neutral = NULL, weightBy = NULL,
-  weightByTitleString = NULL, sort.frq = NULL, geom.size = 0.6,
-  geom.colors = "BrBG", reverse.colors = FALSE,
-  cat.neutral.color = "grey70", intercept.line.color = "grey50",
-  value.labels = "show", showPercentageSign = FALSE, labelDigits = 1,
-  legendLabels = NULL, hideLegend = FALSE, title = NULL,
-  legendTitle = NULL, includeN = TRUE, showItemLabels = TRUE,
-  axisLabels.y = NULL, breakTitleAt = 50, breakLabelsAt = 30,
-  breakLegendTitleAt = 30, breakLegendLabelsAt = 28, gridRange = 1,
-  gridBreaksAt = 0.2, expand.grid = TRUE, axisTitle.x = NULL,
-  axisTitle.y = NULL, coord.flip = TRUE, printPlot = TRUE)
+sjp.likert(items, title = NULL, legend.title = NULL, legend.labels = NULL,
+  axis.titles = NULL, axis.labels = NULL, catcount = NULL,
+  cat.neutral = NULL, sort.frq = NULL, weight.by = NULL,
+  title.wtd.suffix = NULL, wrap.title = 50, wrap.labels = 30,
+  wrap.legend.title = 30, wrap.legend.labels = 28, geom.size = 0.6,
+  geom.colors = "BrBG", cat.neutral.color = "grey70",
+  intercept.line.color = "grey50", reverse.colors = FALSE,
+  values = "show", show.n = TRUE, show.legend = TRUE,
+  show.prc.sign = FALSE, grid.range = 1, grid.breaks = 0.2,
+  expand.grid = TRUE, digits = 1, coord.flip = TRUE, prnt.plot = TRUE)
 }
 \arguments{
-\item{items}{\code{\link{data.frame}} with each column representing one likert-item.}
+\item{items}{\code{data.frame} with each column representing one item.}
+
+\item{title}{character vector, used as plot title. Depending on plot type and function,
+will be set automatically. If \code{title = ""}, no title is printed.}
+
+\item{legend.title}{character vector, used as title for the plot legend.}
+
+\item{legend.labels}{character vector with labels for the guide/legend.}
+
+\item{axis.titles}{character vector of length one or two, defining the title(s)
+for the x-axis and y-axis.}
+
+\item{axis.labels}{character vector with labels used as axis labels. Optional
+argument, since in most cases, axis labels are set automatically.}
 
 \item{catcount}{optional, amount of categories of \code{items} (e.g. \emph{"strongly disagree", 
 "disagree", "agree"} and \emph{"strongly agree"} would be \code{catcount = 4}).
@@ -32,14 +44,6 @@ the index number (value) for this category. Else, set \code{cat.neutral = NULL} 
 The proportions of neutral category answers are plotted as grey bars on the left side of
 the figure.}
 
-\item{weightBy}{weight factor that will be applied to weight all cases of \code{items}.
-Must be a vector of same length as \code{nrow(items)}. Default is \code{NULL}, 
-so no weights are used.}
-
-\item{weightByTitleString}{suffix (as string) for the plot's title, if \code{weightBy} is specified,
-e.g. \code{weightByTitleString=" (weighted)"}. Default is \code{NULL}, so plot's 
-title will not have a suffix when cases are weighted.}
-
 \item{sort.frq}{indicates whether the items of \code{items} should be ordered by 
 total sum of positive or negative answers.
 \describe{
@@ -50,20 +54,40 @@ total sum of positive or negative answers.
   \item{\code{NULL}}{(default) for no sorting}
 }}
 
-\item{geom.size}{width of bars. Recommended values for this argument are from 0.4 to 1.5}
+\item{weight.by}{weight factor that will be applied to weight all cases.
+Must be a vector of same length as the input vector. Default is 
+\code{NULL}, so no weights are used.}
 
-\item{geom.colors}{user defined color palette for geoms. If specified, must either be vector with color values 
-of same length as groups defined in \code{legendLabels}, or a specific color palette code.
-See 'Note' in \code{\link{sjp.grpfrq}}.}
+\item{title.wtd.suffix}{suffix (as string) for the title, if \code{weight.by} is specified,
+e.g. \code{title.wtd.suffix=" (weighted)"}. Default is \code{NULL}, so 
+title will not have a suffix when cases are weighted.}
 
-\item{reverse.colors}{logical, if \code{TRUE}, the color scale from \code{geom.colors} will be reversed,
-so positive and negative values switch colors.}
+\item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
+one line and when a line break is inserted.}
+
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+labels are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.title}{numeric, determines how many chars of the legend's title 
+are displayed in one line and when a line break is inserted.}
+
+\item{wrap.legend.labels}{numeric, determines how many chars of the legend labels are 
+displayed in one line and when a line break is inserted.}
+
+\item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
+depending on plot type and function). Note that bar and bin widths mostly 
+need smaller values than dot sizes.}
+
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
 
 \item{cat.neutral.color}{color of the neutral category, if plotted (see \code{cat.neutral}).}
 
 \item{intercept.line.color}{color of the vertical intercept line that divides positive and negative values.}
 
-\item{value.labels}{determines style and position of percentage value labels on the bars:
+\item{reverse.colors}{logical, if \code{TRUE}, the color scale from \code{geom.colors} will be reversed,
+so positive and negative values switch colors.}
+
+\item{values}{determines style and position of percentage value labels on the bars:
 \describe{
   \item{\code{"show"}}{(default) shows percentage value labels in the middle of each category bar}
   \item{\code{"hide"}}{hides the value labels, so no percentage values on the bars are printed}
@@ -71,65 +95,33 @@ so positive and negative values switch colors.}
   \item{\code{"sum.outide"}}{shows the sums of percentage values for both negative and positive values and prints them outside the end of each bar}
 }}
 
-\item{showPercentageSign}{logical, if \code{TRUE}, \%-signs for value labels are shown.}
+\item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
+group or category to the labels.}
 
-\item{labelDigits}{amount of digits for rounding \code{value.labels}. Default is 1, 
-i.e. value labels have 1 digit after decimal point.}
+\item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
+function, a legend is added to the plot.}
 
-\item{legendLabels}{character vector with names of the 
-likert-scale-categories that appear as legend text.}
+\item{show.prc.sign}{logical, if \code{TRUE}, \%-signs for value labels are shown.}
 
-\item{hideLegend}{logical, indicates whether legend (guide) should be shown or not.}
-
-\item{title}{plot title as string. Example: \code{title = "my title"}.
-Use \code{NULL} to automatically detect variable names that will be used as title
-(see \code{\link[sjmisc]{set_label}}) for details). If \code{title = ""},
-no title is printed.}
-
-\item{legendTitle}{title of the plot legend, as string.}
-
-\item{includeN}{logical, if \code{TRUE} (default), the N of each item will be included in axis labels.}
-
-\item{showItemLabels}{logical, whether x-axis text (category names) should be shown or not}
-
-\item{axisLabels.y}{character vector with labels for the y-axis (names of the 
-\code{items}). Example: \code{axisLabels.y = c("Q1", "Q2", "Q3")}.
-Axis labels will automatically be detected, when they have
-label attributes (see \code{\link[sjmisc]{set_label}} for details).}
-
-\item{breakTitleAt}{determines how many chars of the plot title are displayed in
-one line and when a line break is inserted into the title.}
-
-\item{breakLabelsAt}{determines how many chars of the category labels are displayed in 
-one line and when a line break is inserted.}
-
-\item{breakLegendTitleAt}{determines how many chars of the legend's title 
-are displayed in one line and when a line break is inserted.}
-
-\item{breakLegendLabelsAt}{determines how many chars of the legend labels are 
-displayed in one line and when a line break is inserted.}
-
-\item{gridRange}{numeric, limits of the x-axis-range, as proportion of 100. 
+\item{grid.range}{numeric, limits of the x-axis-range, as proportion of 100. 
 Default is 1, so the x-scale ranges from zero to 100\% on 
 both sides from the center. You can use values beyond 1
 (100\%) in case bar labels are not printed because they exceed the axis range.
-E.g. \code{gridRange = 1.4} will set the axis from -140 to +140\%, however, only
+E.g. \code{grid.range = 1.4} will set the axis from -140 to +140\%, however, only
 (valid) axis labels from -100 to +100\% are printed. Neutral categories are
 adjusted to the most left limit.}
 
-\item{gridBreaksAt}{set breaks for the axis, i.e. at every \code{gridBreaksAt}'th 
-position a major grid is being printed.}
+\item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
+i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
 
 \item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 axes and plotting region. Default is \code{FALSE}.}
 
-\item{axisTitle.x}{title for the x-axis. Default is \code{NULL} (no title).}
-
-\item{axisTitle.y}{title for the y-axis. Default is \code{NULL} (no title).}
+\item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
-\item{printPlot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
+\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
@@ -173,11 +165,8 @@ Q5 <- as.factor(sample(1:4, 500, replace = TRUE, prob = c(0.35, 0.25, 0.15, 0.25
 likert_4 <- data.frame(Q1, Q2, Q3, Q4, Q5)
 
 # create labels
-levels_4 <- c("Strongly agree", 
-              "Agree", 
-              "Disagree", 
-              "Strongly Disagree", 
-              "Don't know")
+levels_4 <- c("Strongly agree", "Agree", "Disagree", 
+              "Strongly Disagree", "Don't know")
 
 # prepare data for 6-category likert scale, 5 items
 likert_6 <- data.frame()
@@ -198,31 +187,19 @@ levels_6 <- c("Very strongly agree", "Strongly agree", "Agree",
 items <- c("Q1", "Q2", "Q3", "Q4", "Q5")
 
 # plot dichotomous likert scale, ordered by "negative" values
-sjp.likert(likert_2,
-           geom.colors = c("green", "red"),
-           legendLabels = levels_2, 
-           axisLabels.y = items, 
-           sort.frq = "neg.desc")
+sjp.likert(likert_2, geom.colors = c("green", "red"), legend.labels = levels_2, 
+           axis.labels = items, sort.frq = "neg.desc")
 
 # plot 4-category-likert-scale, no order
-sjp.likert(likert_4, 
-           cat.neutral = 5,
-           legendLabels = levels_4, 
-           axisLabels.y = items,
-           gridRange = 1.2,
-           expand.grid = FALSE,
-           value.labels = "sum.outside",
-           showPercentageSign = TRUE)
+sjp.likert(likert_4, cat.neutral = 5, legend.labels = levels_4, 
+           axis.labels = items, grid.range = 1.2, expand.grid = FALSE,
+           values = "sum.outside", show.prc.sign = TRUE)
 
 # plot 6-category-likert-scale, ordered by positive values,
 # in brown color scale
-sjp.likert(likert_6, 
-           legendLabels = levels_6, 
-           axisLabels.y = items, 
-           sort.frq = "pos.asc", 
-           labelDigits = 0,
-           showPercentageSign = TRUE,
-           value.labels = "sum.inside")
+sjp.likert(likert_6,  legend.labels = levels_6, axis.labels = items, 
+           sort.frq = "pos.asc", digits = 0, show.prc.sign = TRUE,
+           values = "sum.inside")
 
 }
 \seealso{
