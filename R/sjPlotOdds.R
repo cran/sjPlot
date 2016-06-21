@@ -118,8 +118,6 @@ utils::globalVariables(c("OR", "lower", "upper", "p"))
 #' sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), facet.grid = FALSE)
 #' 
 #' @import ggplot2
-#' @import sjmisc
-#' @importFrom car outlierTest influencePlot crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot vif
 #' @importFrom stats na.omit coef confint logLik
 #' @export
 sjp.glm <- function(fit,
@@ -179,7 +177,7 @@ sjp.glm <- function(fit,
   # check type
   # --------------------------------------------------------
   if (type == "slope") {
-    return(invisible(sjp.glm.slope(fit, title, geom.size, remove.estimates, vars,
+    return(invisible(sjp.glm.slope(fit, title, geom.size, geom.colors, remove.estimates, vars,
                                    ylim = axis.lim, show.ci, facet.grid, prnt.plot)))
   }
   if (type == "eff") {
@@ -189,6 +187,7 @@ sjp.glm <- function(fit,
   }
   if (type == "pred") {
     return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
+                                   a.title = axis.title,
                                    geom.colors, show.ci, geom.size, ylim = axis.lim,
                                    facet.grid, type = "fe", show.loess = F, prnt.plot)))
   }
@@ -393,7 +392,7 @@ sjp.glm <- function(fit,
   # for plotting in the diagram later
   # ----------------------------
   if (show.summary) {
-    psr <- sjmisc::r2(fit)
+    psr <- sjstats::r2(fit)
     modsum <- as.character(as.expression(
       substitute("(Intercept)" == ic * "," ~~ italic(R)[CS]^2 == r2cs * "," ~~ italic(R)[N]^2 == r2n * "," ~~ -2 * lambda == la * "," ~~ chi^2 == c2 * "," ~~ "AIC" == aic,
                  list(ic = sprintf("%.2f", exp(stats::coef(fit)[1])),
@@ -522,10 +521,12 @@ sjp.glm <- function(fit,
 
 
 #' @importFrom stats predict coef formula model.frame
-sjp.glm.slope <- function(fit, title, geom.size, remove.estimates, vars,
+sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, vars,
                           ylim, show.ci, facet.grid, prnt.plot) {
   # check size argument
   if (is.null(geom.size)) geom.size <- .7
+  # check geom-color argument
+  geom.colors <- col_check2(geom.colors, 1)
   # ----------------------------
   # do we have mermod object?
   # ----------------------------
@@ -684,22 +685,20 @@ sjp.glm.slope <- function(fit, title, geom.size, remove.estimates, vars,
       # special handling for negativ binomial
       if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
         mp <- mp +
-          stat_smooth(method = "glm",
-                      method.args = list(family = "poisson"),
+          stat_smooth(method = "glm.nb",
                       se = show.ci,
                       size = geom.size,
-                      colour = "black")
+                      colour = geom.colors)
       } else {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = fitfam$family), 
                       se = show.ci,
                       size = geom.size,
-                      colour = "black")
+                      colour = geom.colors)
       }
-      # y-limits for binomial models
-      if (binom_fam)
-        mp <- mp + coord_cartesian(ylim = y.limits)
+      # y-limits
+      mp <- mp + coord_cartesian(ylim = y.limits)
       # add plot to list
       plot.metricpred[[length(plot.metricpred) + 1]] <- mp
     }
@@ -719,27 +718,25 @@ sjp.glm.slope <- function(fit, title, geom.size, remove.estimates, vars,
       # special handling for negativ binomial
       if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
         mp <- mp +
-          stat_smooth(method = "glm", 
-                      method.args = list(family = "poisson"),
+          stat_smooth(method = "glm.nb", 
                       se = show.ci,
                       size = geom.size,
-                      colour = "black")
+                      colour = geom.colors)
       } else {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = fitfam$family), 
                       se = show.ci,
                       size = geom.size,
-                      colour = "black")
+                      colour = geom.colors)
       }
       mp <- mp +
         facet_wrap(~grp,
                    ncol = round(sqrt(length(mydf.metricpred))),
                    scales = "free_x") +
         guides(colour = FALSE)
-      # y-limits for binomial models
-      if (binom_fam)
-        mp <- mp + coord_cartesian(ylim = y.limits)
+      # y-limits
+      mp <- mp + coord_cartesian(ylim = y.limits)
       # add integrated plot to plot list
       plot.facet <- mp
       # add integrated data frame to plot list
@@ -751,10 +748,10 @@ sjp.glm.slope <- function(fit, title, geom.size, remove.estimates, vars,
   # --------------------------
   if (prnt.plot) {
     if (facet.grid && !is.null(plot.facet)) {
-      graphics::plot(plot.facet)
+      suppressWarnings(graphics::plot(plot.facet))
     } else {
       for (i in 1:length(plot.metricpred)) {
-        graphics::plot(plot.metricpred[[i]])
+        suppressWarnings(graphics::plot(plot.metricpred[[i]]))
       }
     }
   }
@@ -773,6 +770,7 @@ sjp.glm.predy <- function(fit,
                           vars,
                           t.title,
                           l.title,
+                          a.title,
                           geom.colors,
                           show.ci,
                           geom.size,
@@ -855,8 +853,13 @@ sjp.glm.predy <- function(fit,
       t.title <- "Predicted values"
   }
   # axis titles
-  x.title <- sjmisc::get_label(fitfram[[vars[1]]], def.value = vars[1])
-  y.title <- sjmisc::get_label(fitfram[[1]], def.value = colnames(fitfram)[1])
+  if (is.null(a.title) || length(a.title) != 2) {
+    x.title <- sjmisc::get_label(fitfram[[vars[1]]], def.value = vars[1])
+    y.title <- sjmisc::get_label(fitfram[[1]], def.value = colnames(fitfram)[1])
+  } else {
+    x.title <- a.title[1]
+    y.title <- a.title[2]
+  }
   # legend title
   if (is.null(l.title))
     l.title <- sjmisc::get_label(fitfram[[vars[2]]], def.value = vars[2])
@@ -880,11 +883,13 @@ sjp.glm.predy <- function(fit,
     colnames(mydf) <- c("x", "y")
     # x needs to be numeric
     mydf$x <- sjmisc::to_value(mydf$x)
+    # convert to factor for proper legend
+    mydf$grp <- sjmisc::to_factor(1)
     # set colors
-    if (is.null(geom.colors)) geom.colors <- col_check2(geom.colors, 1)
+    geom.colors <- col_check2(geom.colors, 1)
     # init plot
-    mp <- ggplot(mydf, aes(x = x, y = y)) +
-      labs(x = x.title, y = y.title, title = t.title)
+    mp <- ggplot(mydf, aes(x = x, y = y, colour = grp)) +
+      labs(x = x.title, y = y.title, title = t.title, colour = NULL)
   } else {
     colnames(mydf) <- c("x", "grp", "y")
     # x needs to be numeric
@@ -922,8 +927,7 @@ sjp.glm.predy <- function(fit,
     # special handling for negativ binomial
     if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
       mp <- mp +
-        stat_smooth(method = "glm",
-                    method.args = list(family = "poisson"),
+        stat_smooth(method = "glm.nb",
                     se = show.ci,
                     size = geom.size)
     } else {
@@ -941,12 +945,22 @@ sjp.glm.predy <- function(fit,
                                          se = F,
                                          size = geom.size,
                                          colour = "darkred")
+  # ---------------------------------------------------------
+  # coord-system for y-axis limits
+  # cartesian coord still plots range of se, even
+  # when se exceeds plot range.
+  # ---------------------------------------------------------
+  # add percentage labels for binomial family
   if (binom_fam) {
-    # cartesian coord still plots range of se, even
-    # when se exceeds plot range.
-    mp <- mp + coord_cartesian(ylim = ylim) +
-      scale_y_continuous(labels = scales::percent)
+    mp <- mp + 
+      scale_y_continuous(labels = scales::percent) +
+      coord_cartesian(ylim = ylim)
+  } else {
+    mp <- mp + ylim(ylim)    
   }
+  # ---------------------------------------------------------
+  # facet grid, if we have grouping variable
+  # ---------------------------------------------------------
   if (facet.grid && length(vars) == 2) {
     mp <- mp + 
       facet_wrap(~grp, ncol = round(sqrt(length(unique(mydf$grp)))), 
@@ -954,14 +968,24 @@ sjp.glm.predy <- function(fit,
       scale_colour_manual(values = geom.colors) +
       guides(colour = FALSE)
   } else if (!is.null(legend.labels)) {
+    if (length(legend.labels) == 1) {
+      mp <- mp +
+        scale_colour_manual(values = geom.colors) +
+        guides(colour = FALSE)
+    } else {
+      mp <- mp +
+        scale_colour_manual(values = geom.colors, labels = legend.labels)
+    }
+  } else {
     mp <- mp +
-      scale_colour_manual(values = geom.colors, labels = legend.labels)
+      scale_colour_manual(values = geom.colors) +
+      guides(colour = FALSE)
   }
   
   # --------------------------
   # plot plots
   # --------------------------
-  if (prnt.plot) graphics::plot(mp)
+  if (prnt.plot) suppressWarnings(graphics::plot(mp))
   return(structure(class = c("sjPlot", "sjpglm.ppresp"),
                    list(data = mydf, plot = mp)))
 }
@@ -970,6 +994,12 @@ sjp.glm.predy <- function(fit,
 #' @importFrom stats update qqnorm qqline residuals anova
 #' @importFrom graphics points text abline plot
 sjp.glm.ma <- function(logreg) {
+  # -----------------------------------
+  # check package availability
+  # -----------------------------------
+  if (!requireNamespace("car", quietly = TRUE)) {
+    stop("Package `car` needed for this function to work. Please install it.", call. = F)
+  }
   # ---------------------------------
   # remove outliers
   # ---------------------------------

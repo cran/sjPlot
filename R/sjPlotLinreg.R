@@ -60,7 +60,7 @@ utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta
 #'                  plotting the curvilinear relationships of response and quadratic, cubic etc. 
 #'                  terms. This function accepts following argument.}
 #'            \item{\code{type = "ma"}}{checks model assumptions. Please note that only 
-#'                  three arguments are relevant: \code{fit} and \code{completeDiagnostic}. 
+#'                  three arguments are relevant: \code{fit} and \code{complete.dgns}. 
 #'                  All other arguments are ignored.}
 #'            \item{\code{type = "vif"}}{Variance Inflation Factors (check for multicollinearity) 
 #'                  are plotted. As a rule of thumb, values below 5 are considered as good 
@@ -80,7 +80,7 @@ utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta
 #'            \item{\code{"pred"}}{to plot predicted values for the response, related to specific predictors. See 'Details'.}
 #'            \item{\code{"eff"}}{to plot marginal effects of all terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms.}
 #'            \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples').}
-#'            \item{\code{"ma"}}{to check model assumptions. Note that only three arguments are relevant for this option \code{fit} and \code{completeDiagnostic}. All other arguments are ignored.}
+#'            \item{\code{"ma"}}{to check model assumptions. Note that only three arguments are relevant for this option \code{fit} and \code{complete.dgns}. All other arguments are ignored.}
 #'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 #'          }
 #' @param sort.est logical, determines whether estimates should be sorted according to their values.
@@ -109,7 +109,10 @@ utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta
 #' @param scatter.plot logical, if \code{TRUE} (default), a scatter plot of
 #'          response and predictor values for each predictor of the model
 #'          is plotted. Only applies for slope-type plots.
-#' @param completeDiagnostic logical, if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
+#' @param legend.title character vector, used as title for the plot legend. Note that
+#'          only some plot types have legends (e.g. \code{type = "pred"} or when
+#'          grouping estimates with \code{group.estimates}).
+#' @param complete.dgns logical, if \code{TRUE}, additional tests are performed. Default is \code{FALSE}
 #'          Only applies if \code{type = "ma"}.
 #'
 #' @inheritParams sjp.grpfrq
@@ -241,10 +244,9 @@ utils::globalVariables(c("fit", "vars", "Beta", "xv", "lower", "upper", "stdbeta
 #' sjp.lm(fit, type = "poly", poly.term = "e17age")}
 #'
 #' @import ggplot2
-#' @import sjmisc
-#' @importFrom car outlierTest crPlots durbinWatsonTest leveragePlots ncvTest spreadLevelPlot vif
 #' @importFrom stats model.matrix confint coef residuals sd
 #' @importFrom dplyr slice
+#' @importFrom sjmisc is_empty
 #' @importFrom nlme getData getResponse getCovariateFormula
 #' @export
 sjp.lm <- function(fit,
@@ -280,7 +282,7 @@ sjp.lm <- function(fit,
                    coord.flip = TRUE,
                    y.offset = .15,
                    facet.grid = TRUE,
-                   completeDiagnostic = FALSE,
+                   complete.dgns = FALSE,
                    prnt.plot = TRUE,
                    ...) {
   # -----------------------------------------------------------
@@ -331,6 +333,7 @@ sjp.lm <- function(fit,
   }
   if (type == "pred") {
     return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
+                                   a.title = axis.title,
                                    geom.colors, show.ci, geom.size, ylim = axis.lim,
                                    facet.grid, type = "fe", show.loess, prnt.plot)))
   }
@@ -340,11 +343,11 @@ sjp.lm <- function(fit,
   }
   if (type == "eff") {
     return(invisible(sjp.glm.eff(fit, title, geom.size, remove.estimates, vars,
-                                 show.ci, ylim = NULL, facet.grid,
+                                 show.ci, ylim = axis.lim, facet.grid,
                                  fun = "lm", prnt.plot, ...)))
   }
   if (type == "ma") {
-    return(invisible(sjp.lm.ma(fit, completeDiagnostic)))
+    return(invisible(sjp.lm.ma(fit, complete.dgns)))
   }
   if (type == "vif") {
     return(invisible(sjp.vif(fit)))
@@ -393,7 +396,7 @@ sjp.lm <- function(fit,
   # -------------------------------------------------
   if (type == "std" || type == "std2") {
     # retrieve standardized betas
-    tmp <- suppressWarnings(sjmisc::std_beta(fit, include.ci = TRUE, type = type))
+    tmp <- suppressWarnings(sjstats::std_beta(fit, include.ci = TRUE, type = type))
     # add "std." to title?
     if (!is.null(axis.title) && axis.title == "Estimates")
       axis.title <- "Std. Estimates"
@@ -678,8 +681,9 @@ sjp.reglin <- function(fit,
     # -----------------------------------------------------------
     # plot jittered values if requested
     # -----------------------------------------------------------
-    if (scatter.plot) reglinplot <- reglinplot + geom_jitter(alpha = point.alpha,
-                                                             colour = pointColor)
+    if (scatter.plot) {
+      reglinplot <- reglinplot + geom_jitter(alpha = point.alpha, colour = pointColor)
+    }
     # -----------------------------------------------------------
     # check whether additional loess-line should be plotted
     # -----------------------------------------------------------
@@ -698,12 +702,21 @@ sjp.reglin <- function(fit,
     # y-axis limit
     # -----------------------------------------------------------
     if (!is.null(ylim)) {
-      reglinplot <- reglinplot + ylim(ylim)
+      # find current loop index
+      loopcnt <- which(p_v == predvars)
+      # if we have one axis limits range for all plots, use this here
+      if (!is.list(ylim) && length(ylim) == 2) {
+        reglinplot <- reglinplot + ylim(ylim)
+      } else if (is.list(ylim) && length(ylim) >= loopcnt) {
+        # we may have multiple axis-limits-values, one pair for
+        # each plot. so check for correct length here
+        reglinplot <- reglinplot + ylim(ylim[[loopcnt]])
+      }
     }
     # ---------------------------------------------------------
     # Check whether ggplot object should be returned or plotted
     # ---------------------------------------------------------
-    # concatenate plot object
+    # add plot object to list
     plotlist[[length(plotlist) + 1]] <- reglinplot
     dflist[[length(dflist) + 1]] <- mydat
     # print plot
@@ -773,7 +786,7 @@ col_check2 <- function(geom.colors, collen) {
 
 #' @importFrom stats fitted rstudent residuals sd median
 #' @importFrom dplyr add_rownames
-sjp.lm.ma <- function(linreg, completeDiagnostic = FALSE) {
+sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # ------------------------
   # prepare plot list
   # ------------------------
@@ -781,8 +794,11 @@ sjp.lm.ma <- function(linreg, completeDiagnostic = FALSE) {
   # ------------------------
   # check if suggested package is available
   # ------------------------
+  if (!requireNamespace("car", quietly = TRUE)) {
+    stop("Package `car` needed for this function to work. Please install it.", call. = F)
+  }
   if (!requireNamespace("lmtest", quietly = TRUE)) {
-    stop("Package 'lmtest' needed for this function to work. Please install it.", call. = FALSE)
+    stop("Package `lmtest` needed for this function to work. Please install it.", call. = FALSE)
   }
   # copy current model
   model <- linreg
@@ -973,7 +989,7 @@ sjp.lm.ma <- function(linreg, completeDiagnostic = FALSE) {
     plot.list[[length(plot.list) + 1]] <- p1
     # print plot
     graphics::plot(p1)
-    if (completeDiagnostic) {
+    if (complete.dgns) {
       # ---------------------------------
       # Plot residuals against predictors
       # ---------------------------------

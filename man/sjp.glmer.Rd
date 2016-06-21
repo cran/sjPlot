@@ -5,21 +5,21 @@
 \title{Plot estimates, predictions or effects of generalized linear mixed effects models}
 \usage{
 sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL,
-  remove.estimates = NULL, emph.grp = NULL, sample.n = NULL,
-  sort.est = NULL, title = NULL, axis.labels = NULL, axis.title = NULL,
-  geom.colors = "Set1", geom.size = NULL, show.values = TRUE,
-  show.p = TRUE, show.ci = FALSE, show.legend = FALSE,
-  show.intercept = TRUE, string.interc = "(Intercept)", fade.ns = FALSE,
-  axis.lim = NULL, digits = 2, vline.type = 2, vline.color = "grey70",
-  facet.grid = TRUE, free.scale = FALSE, y.offset = 0.1,
-  prnt.plot = TRUE, ...)
+  group.estimates = NULL, remove.estimates = NULL, emph.grp = NULL,
+  sample.n = NULL, sort.est = NULL, title = NULL, legend.title = NULL,
+  axis.labels = NULL, axis.title = NULL, geom.colors = "Set1",
+  geom.size = NULL, show.values = TRUE, show.p = TRUE, show.ci = FALSE,
+  show.legend = FALSE, show.intercept = FALSE,
+  string.interc = "(Intercept)", fade.ns = FALSE, axis.lim = NULL,
+  digits = 2, vline.type = 2, vline.color = "grey70", facet.grid = TRUE,
+  free.scale = FALSE, y.offset = 0.1, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{a fitted model as returned by the \code{\link[lme4]{glmer}}-function.}
 
 \item{type}{type of plot. Use one of following:
 \describe{
-  \item{\code{"re"}}{(default) for odds or incidents ratios of random effects}
+  \item{\code{"re"}}{(default) for conditional modes (odds or incidents ratios) of random effects}
   \item{\code{"fe"}}{for odds or incidents ratios of fixed effects}
   \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
   \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
@@ -43,6 +43,10 @@ and fitted model has more than one random intercept, \code{ri.nr} indicates
 which random effects of which random intercept (or: which list elements
 of \code{\link[lme4]{ranef}}) will be plotted. Default is \code{NULL},
 so all random effects will be plotted.}
+
+\item{group.estimates}{numeric or character vector, indicating a group identifier for
+each estimate. Dots and confidence intervals of estimates are coloured
+according to their group association. See 'Examples'.}
 
 \item{remove.estimates}{character vector with coefficient names that indicate
 which estimates should be removed from the plot.
@@ -77,15 +81,24 @@ random effects for plotting (useful when ecomparing multiple models).}
 
 \item{title}{character vector with one or more labels that are used as plot title.}
 
+\item{legend.title}{character vector, used as title for the plot legend. Note that
+only some plot types have legends (e.g. \code{type = "pred"} or when
+grouping estimates with \code{group.estimates}).}
+
 \item{axis.labels}{character vector with labels for the model terms, used as axis labels.
 For mixed models, should either be vector of fixed effects variable labels 
 (if \code{type = "fe"} or \code{type = "fe.std"}) or a vector of group (value)
 labels from the random intercept's categories (if \code{type = "re"}).}
 
-\item{axis.title}{character vector, used as title for the axis. If not specified, 
-a default labelling depending on the plot function and type is chosen.}
+\item{axis.title}{character vector of length one or two (depending on
+the plot function and type), used as title(s) for the x and y axis. 
+If not specified, a default labelling  is chosen.}
 
-\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
+\item{geom.colors}{user defined color palette for geoms. If \code{group.estimates}
+is \emph{not} specified, must either be vector with two color values or a specific
+color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
+\code{group.estimates} is specified, \code{geom.colors} must be a vector
+of same length as groups. See 'Examples'.}
 
 \item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
 depending on plot type and function). Note that bar and bin widths mostly 
@@ -113,7 +126,11 @@ if \code{show.intercept = TRUE} and \code{axis.labels} is not \code{NULL}.}
 \item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
 
 \item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
-Depending on plot type, may effect either x- or y-axis, or both.}
+Depending on plot type, may effect either x- or y-axis, or both.
+For multiple plot outputs (e.g., from \code{type = "eff"} or 
+\code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
+also be a list of vectors of length 2, defining axis limits for each
+plot (only if non-faceted).}
 
 \item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
@@ -156,6 +173,10 @@ By default, this function plots estimates (odds, risk or incidents
 }
 \details{
 \describe{
+           \item{\code{type = "re"}}{plots the conditional modes of the random
+           effects, inclduing predicion intervals. It basically does the same
+           as \code{dotplot(exp(ranef(fit, condVar = TRUE)[[i]])}, where \code{i}
+           denotes the random effect index.}
            \item{\code{type = "fe.slope"}}{the predicted values
            are based on the fixed effects intercept's estimate and each specific
            fixed term's estimate. All other fixed effects are set to zero (i.e. ignored),

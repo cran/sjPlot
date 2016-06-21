@@ -24,6 +24,10 @@ utils::globalVariables(c("dep", "n"))
 #'          shaded background.
 #' @param axis.lim numeric vector of length 2, defining the range of the plot axis.
 #'          Depending on plot type, may effect either x- or y-axis, or both.
+#'          For multiple plot outputs (e.g., from \code{type = "eff"} or 
+#'          \code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
+#'          also be a list of vectors of length 2, defining axis limits for each
+#'          plot (only if non-faceted).
 #'
 #' @return (Insisibily) returns the ggplot-object with the complete plot
 #'           (\code{plot}) as well as the data frame that
@@ -51,10 +55,10 @@ utils::globalVariables(c("dep", "n"))
 #' sjp.gpt(efc$c172code, efc$e42dep, efc$n4pstu)
 #'
 #' @import ggplot2
-#' @import sjmisc
 #' @importFrom magrittr "%>%"
 #' @importFrom dplyr group_by summarise bind_rows
 #' @importFrom scales percent
+#' @importFrom sjmisc to_factor rec
 #' @importFrom stats na.omit chisq.test
 #' @export
 sjp.gpt <- function(x,

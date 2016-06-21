@@ -29,7 +29,7 @@
 #'          will be plotted.
 #' @param show.p logical, if \code{TRUE} (default), p-values for polynomial terms are
 #'          printed to the console.
-#' @param loessLineColor color of the loess-smoothed line. Only applies, if \code{show.loess = TRUE}.
+#' @param loess.color color of the loess-smoothed line. Only applies, if \code{show.loess = TRUE}.
 #' @param point.color color of the scatter plot's point. Only applies, if \code{scatter.plot = TRUE}.
 #' @return (insisibily) returns 
 #'           \describe{
@@ -108,7 +108,7 @@ sjp.poly <- function(x,
                      show.p = TRUE,
                      geom.colors = NULL,
                      geom.size = .8,
-                     loessLineColor = "#808080",
+                     loess.color = "#808080",
                      point.color = "#404040",
                      point.alpha = .2,
                      prnt.plot = TRUE) {
@@ -127,8 +127,6 @@ sjp.poly <- function(x,
   # parameter check: fitted model or variables?
   # --------------------------------------------
   if (is_merMod(x)) { 
-    if (!requireNamespace("lme4", quietly = TRUE))
-      stop("Package `lme4`` needed for this function to work. Please install it.", call. = FALSE)
     # retrieve response vector
     resp <- lme4::getME(x, "y")
     # get model frame
@@ -212,7 +210,7 @@ sjp.poly <- function(x,
   # show loess curve? this curve indicates the "perfect" curve through
   # the data
   if (show.loess) polyplot <- polyplot + stat_smooth(method = "loess", 
-                                                    color = loessLineColor,
+                                                    color = loess.color,
                                                     se = show.loess.ci,
                                                     size = geom.size)
   # add curves for polynomials

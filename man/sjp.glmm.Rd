@@ -31,7 +31,9 @@ will be set automatically. If \code{title = ""}, no title is printed.}
 \item{depvar.labels}{character vector with labels of dependent 
 variables of all fitted models. See 'Examples'.}
 
-\item{legend.title}{character vector, used as title for the plot legend.}
+\item{legend.title}{character vector, used as title for the plot legend. Note that
+only some plot types have legends (e.g. \code{type = "pred"} or when
+grouping estimates with \code{group.estimates}).}
 
 \item{legend.pval.title}{character vector, used as title of the plot legend that 
 indicates the p-values. Default is \code{"p-level"}. Only applies if \code{p.shape = TRUE}.}
@@ -39,11 +41,16 @@ indicates the p-values. Default is \code{"p-level"}. Only applies if \code{p.sha
 \item{axis.labels}{character vector with labels used as axis labels. Optional
 argument, since in most cases, axis labels are set automatically.}
 
-\item{axis.title}{character vector, used as title for the axis. If not specified, 
-a default labelling depending on the plot function and type is chosen.}
+\item{axis.title}{character vector of length one or two (depending on
+the plot function and type), used as title(s) for the x and y axis. 
+If not specified, a default labelling  is chosen.}
 
 \item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
-Depending on plot type, may effect either x- or y-axis, or both.}
+Depending on plot type, may effect either x- or y-axis, or both.
+For multiple plot outputs (e.g., from \code{type = "eff"} or 
+\code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
+also be a list of vectors of length 2, defining axis limits for each
+plot (only if non-faceted).}
 
 \item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}

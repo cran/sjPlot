@@ -154,7 +154,7 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #' sjp.grpfrq(efc$neg_c_7, efc$e42dep, type = "line")
 #'            
 #' @import ggplot2
-#' @import sjmisc
+#' @importFrom sjstats weight2
 #' @importFrom tidyr gather
 #' @importFrom dplyr group_by mutate arrange summarise add_rownames
 #' @importFrom stats na.omit xtabs wilcox.test sd
@@ -505,7 +505,7 @@ sjp.grpfrq <- function(var.cnt,
       if (is.null(weight.by)) {
         gc <- table(var.grp, intr.var, useNA = nas)
       } else {
-        gc <- table(sjmisc::weight2(var.grp, weight.by), intr.var, useNA = nas)
+        gc <- table(sjstats::weight2(var.grp, weight.by), intr.var, useNA = nas)
       }
       # determinte loop-steps
       lst <- length(intr.var.labels)

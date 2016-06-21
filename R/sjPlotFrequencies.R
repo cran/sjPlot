@@ -104,7 +104,8 @@ utils::globalVariables(c("val", "frq", "grp", "label.pos", "upper.ci", "lower.ci
 #'         normal.curve.size = 3, ylim = c(0,50))
 #' 
 #' @import ggplot2
-#' @import sjmisc
+#' @importFrom sjstats wtd_sd
+#' @importFrom sjmisc set_labels group_labels group_var
 #' @importFrom stats na.omit sd weighted.mean
 #' @export
 sjp.frq <- function(var.cnt,
@@ -298,7 +299,7 @@ sjp.frq <- function(var.cnt,
     stddev <- stats::sd(var.cnt, na.rm = TRUE)
   } else {
     mittelwert <- stats::weighted.mean(var.cnt, weight.by, na.rm = TRUE)
-    stddev <- sjmisc::wtd_sd(var.cnt, weights = weight.by)
+    stddev <- sjstats::wtd_sd(var.cnt, weights = weight.by)
   }
   # --------------------------------------------------------
   # If we have boxplots, use different data frame structure

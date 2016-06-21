@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("Freq"))
+utils::globalVariables(c("Freq", "vif"))
 
 # Help-functions
 
@@ -13,6 +13,7 @@ base_breaks <- function(n = 10) {
 }
 
 
+#' @importFrom sjmisc get_label get_labels str_contains to_label to_value replace_na word_wrap
 get_lm_data <- function(fit) {
   if (any(class(fit) == "plm")) {
     # plm objects have different structure than (g)lm
@@ -141,6 +142,7 @@ get_var_name <- function(x) {
 
 # Create frequency data frame of a variable
 # for sjp and sjt frq functions
+#' @importFrom sjstats weight table_values cramer phi
 #' @importFrom stats na.omit
 #' @importFrom dplyr add_rownames full_join
 create.frq.df <- function(x,
@@ -175,7 +177,7 @@ create.frq.df <- function(x,
   #---------------------------------------------------
   # weight variable
   #---------------------------------------------------
-  if (!is.null(weight.by)) x <- sjmisc::weight(x, weight.by)
+  if (!is.null(weight.by)) x <- sjstats::weight(x, weight.by)
   #---------------------------------------------------
   # do we have a labelled vector?
   #---------------------------------------------------
@@ -402,7 +404,7 @@ crosstabsum <- function(x, grp, weight.by) {
   # calculate chi square value
   chsq <- stats::chisq.test(ftab)
   p.value <- chsq$p.value
-  tab <- sjmisc::table_values(ftab)
+  tab <- sjstats::table_values(ftab)
   # do we have cells with less than 5 observations?
   if (min(tab$expected) < 5 || (min(tab$expected) < 10 && chsq$parameter == 1)) {
     fish <- stats::fisher.test(ftab, simulate.p.value = (nrow(ftab) > 2 || ncol(ftab) > 2))
@@ -426,14 +428,14 @@ crosstabsum <- function(x, grp, weight.by) {
                    list(tn = summary(ftab)$n.cases,
                         c2 = sprintf("%.2f", chsq$statistic),
                         dft = c(chsq$parameter),
-                        kook = sprintf("%.2f", sjmisc::cramer(ftab)),
+                        kook = sprintf("%.2f", sjstats::cramer(ftab)),
                         pva = pvas))))
     } else {
       modsum <- as.character(as.expression(
         substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi[c] == kook * "," ~~ "Fisher's p" < pva,
                    list(tn = summary(ftab)$n.cases,
                         dft = c(chsq$parameter),
-                        kook = sprintf("%.2f", sjmisc::cramer(ftab)),
+                        kook = sprintf("%.2f", sjstats::cramer(ftab)),
                         pva = pvas))))
     }
   # if variables have two categories (2x2 table), use phi to calculate
@@ -446,14 +448,14 @@ crosstabsum <- function(x, grp, weight.by) {
                    list(tn = summary(ftab)$n.cases,
                         c2 = sprintf("%.2f", chsq$statistic),
                         dft = c(chsq$parameter),
-                        kook = sprintf("%.2f", sjmisc::phi(ftab)),
+                        kook = sprintf("%.2f", sjstats::phi(ftab)),
                         pva = pvas))))
     } else {
       modsum <- as.character(as.expression(
         substitute("N" == tn * "," ~~ "df" == dft * "," ~~ phi == kook * "," ~~ "Fisher's p" == pva,
                    list(tn = summary(ftab)$n.cases,
                         dft = c(chsq$parameter),
-                        kook = sprintf("%.2f", sjmisc::phi(ftab)),
+                        kook = sprintf("%.2f", sjstats::phi(ftab)),
                         pva = pvas))))
     }
   }
@@ -479,15 +481,10 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
     # get model
     fit <- models[[k]]
     # copy model frame
-    fmodel <- stats::model.frame(fit)
-    # get model coefficients' names
-    if (is_merMod(fit)) {
-      # for merMod, remove random parts. Therefor, get random part terms
-      tmp <- stats::terms(stats::formula(fit))
-      rnd.terms <- grep("|", attr(tmp, "term.labels"), fixed = TRUE, value = FALSE) + 1
-      # now remove random parts from model frame
-      fmodel <- fmodel[, -rnd.terms]
-    }
+    if (is_merMod(fit))
+      fmodel <- stats::model.frame(fit, fixed.only = T)
+    else
+      fmodel <- stats::model.frame(fit)
     # retrieve all factors from model
     for (grp.cnt in 1:ncol(fmodel)) {
       # get variable
@@ -582,18 +579,15 @@ retrieveModelLabels <- function(models, group.pred) {
     if (any(class(fit) == "plm") || 
         any(class(fit) == "ppgls"))
       return(NULL)
-    # get model frame
-    m_f <- stats::model.frame(fit)
     # get model coefficients' names
     if (is_merMod(fit)) {
       coef_names <- names(lme4::fixef(fit))
-      # for merMod, remove random parts. Therefor, get random part terms
-      tmp <- stats::terms(stats::formula(fit))
-      rnd.terms <- grep("|", attr(tmp, "term.labels"), fixed = TRUE, value = FALSE) + 1
-      # now remove random parts from model frame
-      m_f <- m_f[, -rnd.terms]
+      # get model frame
+      m_f <- stats::model.frame(fit, fixed.only = TRUE)
     } else {
       coef_names <- names(stats::coef(fit))
+      # get model frame
+      m_f <- stats::model.frame(fit)
     }
     # iterate coefficients (1 is intercept or response)
     for (i in 2:ncol(m_f)) {
@@ -733,7 +727,7 @@ get_model_response_label <- function(fit) {
 #'
 #' @param gp A ggplot-object. Usually, this will be returned by most of this
 #'          package's plotting functions.
-#' @param upperMargin Defines the new margin of the upper y-bound of the plot. This value will
+#' @param upper.mrgn Defines the new margin of the upper y-bound of the plot. This value will
 #'          be multiplied with \code{gp}'s current total y-range. Default is 1.05, which means
 #'          that the upper margin of the new plot's "visible" plot area will be increased
 #'          by 5 percent. (i.e. the y-range is 105 percent of the original range,
@@ -755,14 +749,14 @@ get_model_response_label <- function(fit) {
 #'
 #' @import ggplot2
 #' @export
-adjust_plot_range <- function(gp, upperMargin=1.05) {
+adjust_plot_range <- function(gp, upper.mrgn=1.05) {
   # retrieve y-range of original plot
   gp <- gp + scale_y_continuous(limits = NULL)
   # build ggplot object
   gy <- ggplot_build(gp)
   # calculate new limit
   ylo <- abs(gy$panel$ranges[[1]]$y.range[1])
-  yhi <- abs(gy$panel$ranges[[1]]$y.range[2] * upperMargin)
+  yhi <- abs(gy$panel$ranges[[1]]$y.range[2] * upper.mrgn)
   # change y scale
   gp <- gp + scale_y_continuous(expand = c(0, 0), limits = c(0, ylo + yhi))
   # return plot
@@ -772,6 +766,12 @@ adjust_plot_range <- function(gp, upperMargin=1.05) {
 
 #' @importFrom stats reorder
 sjp.vif <- function(fit) {
+  # -----------------------------------
+  # check package availability
+  # -----------------------------------
+  if (!requireNamespace("car", quietly = TRUE)) {
+    stop("Package `car` needed for this function to work. Please install it.", call. = F)
+  }
   vifval <- NULL
   vifplot <- NULL
   mydat <- NULL

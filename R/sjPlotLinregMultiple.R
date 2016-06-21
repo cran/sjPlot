@@ -85,9 +85,9 @@ utils::globalVariables(c("beta", "lower", "upper", "p", "pa", "shape"))
 #' sjp.lmm(fit1, fit2, fit3, type = "std2")
 #' 
 #' @import ggplot2
-#' @import sjmisc
 #' @importFrom stats coef confint
 #' @importFrom dplyr slice
+#' @importFrom sjstats merMod_p
 #' @export
 sjp.lmm <- function(...,
                     type = "lm",
@@ -167,7 +167,7 @@ sjp.lmm <- function(...,
     if (type == "std") {
       # retrieve standardized betas
       betas <- data.frame(rbind(data.frame(beta = 0, ci.low = 0, ci.hi = 0),
-                                suppressWarnings(sjmisc::std_beta(fit, include.ci = TRUE))))
+                                suppressWarnings(sjstats::std_beta(fit, include.ci = TRUE))))
       # no intercept for std
       show.intercept <- FALSE
       # add "std." to title?
@@ -175,7 +175,7 @@ sjp.lmm <- function(...,
     } else if (type == "std2") {
       # retrieve standardized betas
       betas <- data.frame(rbind(data.frame(beta = 0, ci.low = 0, ci.hi = 0),
-                                sjmisc::std_beta(fit, include.ci = TRUE, type = "std2")))
+                                sjstats::std_beta(fit, include.ci = TRUE, type = "std2")))
       # no intercept for std
       show.intercept <- FALSE
       # add "std." to title?
@@ -197,7 +197,7 @@ sjp.lmm <- function(...,
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
     if (sjmisc::str_contains(class(fit), "merMod", ignore.case = T))
-      pv <- get_lmerMod_pvalues(fit, p.kr)
+      pv <- sjstats::merMod_p(fit, p.kr)
     else
       pv <- get_lm_pvalues(fit)$p
     # for better readability, convert p-values to asterisks

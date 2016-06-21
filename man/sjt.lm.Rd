@@ -18,8 +18,8 @@ sjt.lm(..., pred.labels = NULL, depvar.labels = NULL,
   ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
   digits.std = 2, digits.p = 3, digits.ci = 2, digits.se = 2,
   digits.summary = 3, cell.spacing = 0.2, cell.gpr.indent = 0.6,
-  CSS = NULL, encoding = NULL, file = NULL, use.viewer = TRUE,
-  no.output = FALSE, remove.spaces = TRUE)
+  sep.column = TRUE, CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{one or more fitted linear (mixed) models.}
@@ -83,14 +83,14 @@ abbreviations for estimates, std. beta-values, confidence interval and p-values.
 
 \item{show.r2}{logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
 in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
-(see \code{\link[sjmisc]{r2}} for details).}
+(see \code{\link[sjstats]{r2}} for details).}
 
 \item{show.icc}{logical, if \code{TRUE}, the intra-class-correlation for each 
 model is printed in the model summary. Only applies to mixed models.}
 
 \item{show.re.var}{logical, if \code{TRUE}, the variance parameters for the random
 effects for each model are printed in the model summary. Only applies to mixed models.
-For details output, see 'Note' in \code{\link[sjmisc]{icc}}.}
+For details output, see 'Note' in \code{\link[sjstats]{icc}}.}
 
 \item{show.fstat}{If \code{TRUE}, the F-statistics for each model is printed
 in the model summary. Default is \code{FALSE}.}
@@ -151,6 +151,12 @@ cell spacing, which would be: \code{CSS = list(css.thead = "padding:0.2cm;", css
 
 \item{cell.gpr.indent}{indent for table rows with grouped factor predictors. Only applies
 if \code{group.pred = TRUE}.}
+
+\item{sep.column}{logical, if \code{TRUE}, an empty table column is added after 
+each model column, to add margins between model columns. By default, this
+column will be added to the output; however, when copying tables to 
+office applications, it might be helpful not to add this separator column
+when modifying the table layout.}
 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}

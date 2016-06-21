@@ -19,7 +19,7 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' @param fit a fitted model as returned by the \code{\link[lme4]{glmer}}-function.
 #' @param type type of plot. Use one of following:
 #'          \describe{
-#'            \item{\code{"re"}}{(default) for odds or incidents ratios of random effects}
+#'            \item{\code{"re"}}{(default) for conditional modes (odds or incidents ratios) of random effects}
 #'            \item{\code{"fe"}}{for odds or incidents ratios of fixed effects}
 #'            \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
 #'            \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
@@ -63,8 +63,9 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'          For mixed models, should either be vector of fixed effects variable labels 
 #'          (if \code{type = "fe"} or \code{type = "fe.std"}) or a vector of group (value)
 #'          labels from the random intercept's categories (if \code{type = "re"}).
-#' @param axis.title character vector, used as title for the axis. If not specified, 
-#'          a default labelling depending on the plot function and type is chosen.
+#' @param axis.title character vector of length one or two (depending on
+#'          the plot function and type), used as title(s) for the x and y axis. 
+#'          If not specified, a default labelling  is chosen.
 #' @param vline.type linetype of the vertical "zero point" line. Default is \code{2} (dashed line).
 #' @param vline.color color of the vertical "zero point" line. Default value is \code{"grey70"}.
 #' @param digits numeric, amount of digits after decimal point when rounding estimates and values.
@@ -83,9 +84,9 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' @param ... other arguments, passed down to the \code{\link[effects]{effect}} resp. 
 #'          \code{\link[effects]{allEffects}} function when \code{type = "eff"}.
 #'
-#' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.lm
 #' @inheritParams sjp.glm
+#' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.gpt
 #'
 #' @return (Insisibily) returns, depending on the plot type
@@ -110,6 +111,10 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'        }
 #'
 #' @details \describe{
+#'            \item{\code{type = "re"}}{plots the conditional modes of the random
+#'            effects, inclduing predicion intervals. It basically does the same
+#'            as \code{dotplot(exp(ranef(fit, condVar = TRUE)[[i]])}, where \code{i}
+#'            denotes the random effect index.}
 #'            \item{\code{type = "fe.slope"}}{the predicted values
 #'            are based on the fixed effects intercept's estimate and each specific
 #'            fixed term's estimate. All other fixed effects are set to zero (i.e. ignored),
@@ -226,11 +231,13 @@ sjp.glmer <- function(fit,
                       type = "re",
                       vars = NULL,
                       ri.nr = NULL,
+                      group.estimates = NULL,
                       remove.estimates = NULL,
                       emph.grp = NULL,
                       sample.n = NULL,
                       sort.est = NULL,
                       title = NULL,
+                      legend.title = NULL,
                       axis.labels = NULL,
                       axis.title = NULL,
                       geom.colors = "Set1",
@@ -239,7 +246,7 @@ sjp.glmer <- function(fit,
                       show.p = TRUE,
                       show.ci = FALSE,
                       show.legend = FALSE,
-                      show.intercept = TRUE,
+                      show.intercept = FALSE,
                       string.interc = "(Intercept)",
                       fade.ns = FALSE,
                       axis.lim = NULL,
@@ -268,6 +275,7 @@ sjp.glmer <- function(fit,
            ri.nr,
            emph.grp,
            title,
+           legend.title,
            geom.size,
            geom.colors,
            show.intercept,
@@ -278,6 +286,7 @@ sjp.glmer <- function(fit,
            axis.lim,
            vline.type,
            vline.color,
+           group.estimates,
            remove.estimates,
            show.values,
            digits,
@@ -313,6 +322,10 @@ sjp.glmer <- function(fit,
 #'                predicted values or diagnostic plots.
 #'
 #' @details \describe{
+#'            \item{\code{type = "re"}}{plots the conditional modes of the random
+#'            effects, inclduing predicion intervals. It basically does the same
+#'            as \code{dotplot(ranef(fit, condVar = TRUE)[[i]])}, where \code{i}
+#'            denotes the random effect index.}
 #'            \item{\code{type = "fe.slope"}}{plots the linear relationship between
 #'            each fixed effect and the response. The regression lines are \emph{not}
 #'            based on the fitted model's fixed effects estimates (though they may
@@ -361,7 +374,7 @@ sjp.glmer <- function(fit,
 #' @param fit a fitted model as returned by the \code{\link[lme4]{lmer}}-function.
 #' @param type type of plot. Use one of following:
 #'          \describe{
-#'            \item{\code{"re"}}{(default) for estimates of random effects as forest plot}
+#'            \item{\code{"re"}}{(default) for conditional modes of random effects as forest plot}
 #'            \item{\code{"fe"}}{for estimates of fixed effects as forest plot}
 #'            \item{\code{"fe.std"}}{for standardized estimates of fixed effects as forest plot}
 #'            \item{\code{"fe.slope"}}{to plot regression lines (slopes) with confidence intervals for each single fixed effect, i.e. all fixed terms are extracted and each is plotted against the response variable (linear relationship between each fixed term and response)}
@@ -408,7 +421,7 @@ sjp.glmer <- function(fit,
 #'         the \pkg{pbkrtest}-package. If \pkg{pbkrtest} is not available or
 #'         \code{p.kr = FALSE}, computation of p-values is based 
 #'         on normal-distribution assumption, treating the t-statistics as Wald
-#'         z-statistics.
+#'         z-statistics. See 'Details' in \code{\link[sjstats]{merMod_p}}.
 #'
 #' @examples
 #' # fit model
@@ -500,18 +513,21 @@ sjp.glmer <- function(fit,
 #'          facet.grid = FALSE, show.ci = FALSE)}
 #'
 #' @import ggplot2
+#' @importFrom sjstats se std_beta merMod_p
 #' @importFrom dplyr sample_n add_rownames slice
 #' @export
 sjp.lmer <- function(fit,
                      type = "re",
                      vars = NULL,
                      ri.nr = NULL,
+                     group.estimates = NULL,
                      remove.estimates = NULL,
                      emph.grp = NULL,
                      sample.n = NULL,
                      poly.term = NULL,
                      sort.est = NULL,
                      title = NULL,
+                     legend.title = NULL,
                      axis.labels = NULL,
                      axis.title = NULL,
                      geom.size = NULL,
@@ -522,7 +538,7 @@ sjp.lmer <- function(fit,
                      show.legend = FALSE,
                      show.loess = FALSE,
                      show.loess.ci = FALSE,
-                     show.intercept = TRUE,
+                     show.intercept = FALSE,
                      string.interc = "(Intercept)",
                      p.kr = TRUE,
                      point.alpha = 0.2,
@@ -553,6 +569,7 @@ sjp.lmer <- function(fit,
            ri.nr,
            emph.grp,
            title,
+           legend.title,
            geom.size,
            geom.colors,
            show.intercept,
@@ -563,6 +580,7 @@ sjp.lmer <- function(fit,
            axis.lim,
            vline.type,
            vline.color,
+           group.estimates,
            remove.estimates,
            show.values,
            digits,
@@ -591,6 +609,7 @@ sjp.lme4  <- function(fit,
                       ri.nr,
                       emph.grp,
                       title,
+                      legend.title,
                       geom.size,
                       geom.colors,
                       show.intercept,
@@ -601,6 +620,7 @@ sjp.lme4  <- function(fit,
                       axis.lim,
                       vline.type,
                       vline.color,
+                      group.estimates,
                       remove.estimates,
                       show.values,
                       digits,
@@ -621,15 +641,6 @@ sjp.lme4  <- function(fit,
                       sample.n = NULL,
                       show.legend = FALSE,
                       ...) {
-  # ------------------------
-  # check if suggested package is available
-  # ------------------------
-  if (!requireNamespace("lme4", quietly = TRUE)) {
-    stop("Package `lme4` needed for this function to work. Please install it.", call. = FALSE)
-  }
-  if (!requireNamespace("arm", quietly = TRUE)) {
-    stop("Package `arm` needed for this function to work. Please install it.", call. = FALSE)
-  }
   # -------------------------------------
   # check type
   # -------------------------------------
@@ -701,6 +712,10 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     if (!is.null(emph.grp)) {
       # ---------------------------------------
+      # check default for facet grid. if not specified, set to false
+      # ---------------------------------------
+      if (missing(facet.grid)) facet.grid <- FALSE
+      # ---------------------------------------
       # emphasizing groups does only work if
       # plot is not faceted!
       # ---------------------------------------
@@ -759,15 +774,15 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     # plot slopes for each fixed coefficient
     # ---------------------------------------
+    if (geom.colors == "Set1") geom.colors <- "black"
     if (fun == "lm") {
       # reset default color setting, does not look that good.
-      if (geom.colors == "Set1") geom.colors <- NULL
       return(invisible(sjp.reglin(fit, title, 50, geom.colors, show.ci, point.alpha,
                                   scatter.plot, show.loess, show.loess.ci, 
                                   useResiduals = ifelse(type == "fe.slope", FALSE, TRUE),
                                   remove.estimates, vars, ylim = axis.lim, prnt.plot)))
     } else {
-      return(invisible(sjp.glm.slope(fit, title, geom.size, remove.estimates, vars,
+      return(invisible(sjp.glm.slope(fit, title, geom.size, geom.colors, remove.estimates, vars,
                                      ylim = axis.lim, show.ci, facet.grid, prnt.plot)))
     }
   } else if (type == "poly") {
@@ -794,7 +809,7 @@ sjp.lme4  <- function(fit,
     # depending on random intercept levels
     # ---------------------------------------
     if (fun == "lm") {
-      return(invisible(sjp.lmer.ri.slope(fit, ri.nr, vars, emph.grp, geom.size, prnt.plot)))
+      return(invisible(sjp.lmer.ri.slope(fit, ri.nr, vars, emph.grp, ylim = axis.lim, geom.size, prnt.plot)))
     } else {
       return(invisible(sjp.glmer.ri.slope(fit, show.ci, facet.grid, ri.nr, vars,
                                           emph.grp, ylim = axis.lim, prnt.plot)))
@@ -812,21 +827,33 @@ sjp.lme4  <- function(fit,
                                   vline.type, vline.color, fun,
                                   prnt.plot)))
   } else if (type == "pred") {
+    # fix color
+    if (geom.colors == "Set1" && length(vars) == 1) geom.colors <- "black"
     # ---------------------------------------
     # plot predicted probabilities / values of
     # response value
     # ---------------------------------------
-    return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = NULL,
+    return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
+                                   a.title = axis.title,
                                    geom.colors, show.ci, geom.size, ylim = axis.lim, facet.grid, 
                                    type = "re", show.loess = F, prnt.plot)))
   } else if (type == "pred.fe") {
+    # fix color
+    if (geom.colors == "Set1" && length(vars) == 1) geom.colors <- "black"
     # ---------------------------------------
     # plot predicted probabilities / values of
     # response value
     # ---------------------------------------
-    return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = NULL,
+    return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
+                                   a.title = axis.title,
                                    geom.colors, show.ci, geom.size, ylim = axis.lim, facet.grid, 
                                    type = "fe", show.loess = F, prnt.plot)))
+  }
+  # ------------------------
+  # check if suggested package is available
+  # ------------------------
+  if (!requireNamespace("arm", quietly = TRUE)) {
+    stop("Package `arm` needed for this function to work. Please install it.", call. = FALSE)
   }
   # ---------------------------------------
   # check geom size
@@ -836,6 +863,13 @@ sjp.lme4  <- function(fit,
   # init plot list
   # ---------------------------------------
   me.plot.list <- list()
+  # ---------------------------------------
+  # grouping estimates only for fixed effects
+  # ---------------------------------------
+  if ((type == "re" || type == "coef") && !is.null(group.estimates)) {
+    warning("`group.estimates` nor supported for random effects.", call. = F)
+    group.estimates <- NULL
+  }
   # ---------------------------------------
   # start plotting here. for fixed effects,
   # only one plot. For random effect, we loop
@@ -876,7 +910,7 @@ sjp.lme4  <- function(fit,
       # retrieve standard errors, for ci
       # ---------------------------------------
       if (type == "coef") {
-        se.fit <- data.frame(t(sjmisc::se(fit)[[lcnt]]))
+        se.fit <- data.frame(t(sjstats::se(fit)[[lcnt]]))
       } else {
         se.fit <- arm::se.ranef(fit)[[lcnt]]
       }
@@ -969,13 +1003,13 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       if (fun == "glm") {
         if (type == "fe.std") {
-          warning("'type = fe.std' only works for linear models.", call. = F)
+          warning("`type = \"fe.std\"` only works for linear models.", call. = F)
         }
         # get odds ratios and cleaned CI
         mydf <- get_cleaned_ciMerMod(fit, fun)
       } else {
         if (type == "fe.std") {
-          tmpdf <- sjmisc::std_beta(fit)
+          tmpdf <- sjstats::std_beta(fit)
           mydf <- data.frame(estimate = tmpdf$stdcoef,
                              conf.low = tmpdf$stdcoef - (1.96 * tmpdf$stdse),
                              conf.high = tmpdf$stdcoef + (1.96 * tmpdf$stdse))
@@ -989,7 +1023,7 @@ sjp.lme4  <- function(fit,
       # ----------------------------
       # retrieve sigificance level of independent variables (p-values)
       # ----------------------------
-      pv <- get_lmerMod_pvalues(fit, p.kr)
+      pv <- sjstats::merMod_p(fit, p.kr)
       # ----------------------------
       # retrieve odds ratios resp.
       # betas or standardized betas
@@ -998,7 +1032,7 @@ sjp.lme4  <- function(fit,
         ov <- exp(lme4::fixef(fit))
       } else {
         if (type == "fe.std") {
-          ov <- sjmisc::std_beta(fit)$stdcoef
+          ov <- sjstats::std_beta(fit)$stdcoef
         } else {
           ov <- lme4::fixef(fit)
         }
@@ -1040,6 +1074,25 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       if (!show.intercept) mydf <- mydf[-1, ]
       # -------------------------------------------------
+      # group estimates?
+      # -------------------------------------------------
+      if (!is.null(group.estimates)) {
+        # check for correct length
+        if (length(group.estimates) != nrow(mydf)) {
+          warning("Length of `group.estimates` does not equal number of model coefficients. Ignoring this argument.", call. = F)
+          group.estimates = NULL
+          show.legend <- FALSE
+          legend.title <- NULL
+        } else {
+          mydf$grp <- as.character(group.estimates)
+          # by default, legend should be visible
+          if (missing(show.legend)) show.legend <- TRUE
+        }
+      } else {
+        show.legend <- FALSE
+        legend.title <- NULL
+      }
+      # -------------------------------------------------
       # remove any estimates from the output?
       # -------------------------------------------------
       if (!is.null(remove.estimates)) {
@@ -1077,7 +1130,11 @@ sjp.lme4  <- function(fit,
       # just one sorting option, simply sort estimates
       # ---------------------------------------
       if (!is.null(sort.est)) {
-        reihe <- order(mydf$estimate)
+        # sort according to group assignment?
+        if (!is.null(group.estimates))
+          reihe <- order(mydf$grp, mydf$estimate)
+        else
+          reihe <- order(mydf$estimate)
         # sort data frame
         mydf <- mydf[reihe, ]
       }
@@ -1123,7 +1180,9 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     plot.effe <- function(mydf,
                           title,
+                          legend.title,
                           facet.grid,
+                          group.estimates,
                           show.ci,
                           vline.type,
                           vline.color,
@@ -1135,10 +1194,22 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       interc <- ifelse(fun == "glm", 1, 0)
       mydf$interc <- interc
-      gp <- ggplot(mydf, aes(x = x,
-                             y = estimate,
-                             colour = (estimate > interc),
-                             alpha = fade)) +
+      # --------------------------------------------------------
+      # Start plot here! First check how to colour geoms
+      # (whether grouped or not)
+      # --------------------------------------------------------
+      if (!is.null(group.estimates)) {
+        gp <- ggplot(mydf, aes(x = x,
+                               y = estimate,
+                               colour = grp,
+                               alpha = fade))
+      } else {
+        gp <- ggplot(mydf, aes(x = x,
+                               y = estimate,
+                               colour = (estimate > interc),
+                               alpha = fade))
+      }
+      gp <- gp +
         # Intercept-line
         geom_hline(yintercept = interc,
                    linetype = vline.type,
@@ -1178,30 +1249,37 @@ sjp.lme4  <- function(fit,
       # axis titles
       # ---------------------------------------
       if (type == "fe" || type == "fe.std") {
-        if (is.null(axis.title)) axis.title <- ""
+        if (is.null(axis.title)) axis.title <- c("", "")
       } else if (type == "re") {
-        if (is.null(axis.title)) axis.title <- "Group levels"
+        if (is.null(axis.title)) axis.title <- c("Group levels", "BLUP")
+      }
+      # check if we have required length of axis titles
+      if (length(axis.title) == 1) {
+        if (type == "fe" || type == "fe.std")
+          axis.title <- c("", axis.title)
+        else
+          axis.title <- c(axis.title, "")
       }
       # ---------------------------------------
       # add facet grid here, faceting by group
       # (level) of random intercept
       # ---------------------------------------
       if (facet.grid) {
-        gp <- gp + labs(x = axis.title)
+        # no title for facets
+        title <- NULL
         # check if user wants free scale for each facet
         if (free.scale)
           gp  <- gp + facet_wrap(~grp, scales = "free_y")
         else
           gp  <- gp + facet_grid(~grp)
-      } else {
-        gp <- gp + labs(x = axis.title, title = title)
       }
+      gp <- gp + labs(x = axis.title[1], y = axis.title[2], title = title, colour = legend.title)
       return(gp)
     }
     # ---------------------------------------
     # facet grid means, just one plot
     # ---------------------------------------
-    if (facet.grid) {
+    if (facet.grid || !is.null(group.estimates)) {
       # ---------------------------------------
       # for random effects, no title is displayed in facet. so
       # tell user via message that random effects are plotted
@@ -1209,7 +1287,9 @@ sjp.lme4  <- function(fit,
       if (type == "re") message("Plotting random effects...")
       me.plot <- plot.effe(mydf,
                            title,
+                           legend.title,
                            facet.grid,
+                           group.estimates,
                            show.ci,
                            vline.type,
                            vline.color,
@@ -1217,9 +1297,20 @@ sjp.lme4  <- function(fit,
                            type,
                            free.scale)
       # ---------------------------------------------------------
+      # grouped estimates should be shown in legend
+      # ---------------------------------------------------------
+      if (!is.null(group.estimates)) {
+        pal.len <- length(unique(group.estimates))
+        legend.labels <- unique(mydf$grp)
+      } else {
+        pal.len <- 2
+        show.legend <- FALSE
+        legend.labels <- NULL
+      }
+      # ---------------------------------------------------------
       # set geom colors
       # ---------------------------------------------------------
-      me.plot <- sj.setGeomColors(me.plot, geom.colors, 2, FALSE, NULL)
+      me.plot <- sj.setGeomColors(me.plot, geom.colors, pal.len, show.legend, legend.labels)
       me.plot.list[[length(me.plot.list) + 1]]  <- me.plot
       # ---------------------------------------------------------
       # Check whether ggplot object should be returned or plotted
@@ -1242,7 +1333,9 @@ sjp.lme4  <- function(fit,
       for (j in 1:length(groups)) {
         me.plot <- plot.effe(mydf[mydf$grp == groups[j], ],
                              title[j],
+                             NULL,
                              facet.grid,
+                             group.estimates,
                              show.ci,
                              vline.type,
                              vline.color,
@@ -1288,7 +1381,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
   # we have any numeric terms in fitted model; and
   # get model family, for link-inverse function
   # ----------------------------
-  fit.df <- stats::model.frame(fit)
+  fit.df <- stats::model.frame(fit, fixed.only = TRUE)
   fitfam <- stats::family(fit)
   faminfo <- get_glm_family(fit)
   # --------------------------------------------------------
@@ -1302,9 +1395,8 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
   # ----------------------------
   plot.prob <- list()
   mydf.prob <- list()
-  fit.term.length <- length(names(lme4::fixef(fit))[-1])
-  fit.term.names <- stats::na.omit(attr(attr(fit.df, "terms"), "term.labels")[1:fit.term.length])
-  response.name <- attr(attr(attr(fit.df, "terms"), "dataClasses"), "names")[1]
+  fit.term.names <- colnames(fit.df)[-1]
+  response.name <- colnames(fit.df)[1]
   fi <- unname(lme4::fixef(fit))[1]
   # ----------------------------
   # filter vars?
@@ -1398,9 +1490,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
           # special handling for negativ binomial
           if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
             mp <- mp +
-              stat_smooth(method = "glm",
-                          method.args = list(family = "poisson"),
-                          se = show.ci)
+              stat_smooth(method = "glm.b", se = show.ci)
           } else {
             mp <- mp +
               stat_smooth(method = "glm",
@@ -1412,19 +1502,28 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
             labs(x = NULL, y = y.title,
                  title = sprintf("%s of %s on %s", y.title, pred.name, response.name))
           # ------------------------------
-          # check axis limits
+          # prepare default y-axis limits
           # ------------------------------
-          if (is.null(ylim)) {
-            y.limits <- c(as.integer(floor(10 * min(final.df$prob, na.rm = T) * .9)) / 10,
-                          as.integer(ceiling(10 * max(final.df$prob, na.rm = T) * 1.1)) / 10)
-          } else {
-            y.limits <- ylim
-          }
+          y.limits <- c(as.integer(floor(10 * min(final.df$prob, na.rm = T) * .9)) / 10,
+                        as.integer(ceiling(10 * max(final.df$prob, na.rm = T) * 1.1)) / 10)
+          # ------------------------------
+          # check axis limits, if we have user defined values
+          # ------------------------------
+          if (!is.null(ylim)) {
+            # if we have one axis limits range for all plots, use this here
+            if (!is.list(ylim) && length(ylim) == 2) {
+              y.limits <- ylim
+            } else if (is.list(ylim) && length(ylim) >= i) {
+              # we may have multiple axis-limits-values here, one pair for
+              # each plot. so check for correct length here
+              y.limits <- ylim[[i]]
+            }
+          } 
+          # ---------------------------------------------------------
           # cartesian coord still plots range of se, even
           # when se exceeds plot range.
-          # y-limits for binomial models
-          if (binom_fam)
-            mp <- mp + coord_cartesian(ylim = y.limits)
+          # ---------------------------------------------------------
+          mp <- mp + coord_cartesian(ylim = y.limits)
           # ---------------------------------------------------------
           # wrap to facets
           # ---------------------------------------------------------
@@ -1455,7 +1554,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
           # -------------------------------------
           # check if metric plots should be plotted
           # -------------------------------------
-          if (prnt.plot) graphics::plot(mp)
+          if (prnt.plot) suppressWarnings(graphics::plot(mp))
         }
       }
     }
@@ -1466,7 +1565,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
 }
 
 
-sjp.lmer.ri.slope <- function(fit, ri.nr, vars, emph.grp, geom.size, prnt.plot) {
+sjp.lmer.ri.slope <- function(fit, ri.nr, vars, emph.grp, ylim, geom.size, prnt.plot) {
   # check size argument
   if (is.null(geom.size)) geom.size <- .7
   # -----------------------------------------------------------
@@ -1559,6 +1658,19 @@ sjp.lmer.ri.slope <- function(fit, ri.nr, vars, emph.grp, geom.size, prnt.plot) 
         labs(title = sprintf("Random effect \"%s\"", ri.name),
              x = fit.term.names[j],
              y = response.name)
+      # ------------------------------
+      # check axis limits, if we have user defined values
+      # ------------------------------
+      if (!is.null(ylim)) {
+        # if we have one axis limits range for all plots, use this here
+        if (!is.list(ylim) && length(ylim) == 2) {
+          gp <- gp + ylim(ylim)
+        } else if (is.list(ylim) && length(ylim) >= j) {
+          # we may have multiple axis-limits-values here, one pair for
+          # each plot. so check for correct length here
+          gp <- gp + ylim(ylim[[j]])
+        }
+      } 
       # ------------------------------
       # highlight specific groups?
       # ------------------------------
@@ -1756,9 +1868,7 @@ sjp.lme.rsri <- function(fit,
         # special handling for negativ binomial
         if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
           gp <- gp +
-            stat_smooth(method = "glm",
-                        method.args = list(family = "poisson"),
-                        se = F)
+            stat_smooth(method = "glm.nb", se = F)
         } else {
           gp <- gp +
             stat_smooth(method = "glm", se = F,
@@ -1928,39 +2038,6 @@ sjp.lme.fecor <- function(fit,
 }
 
 
-#' @importFrom stats coef
-get_lmerMod_pvalues <- function(fitmod, KR = TRUE) {
-  # retrieve sigificance level of independent variables (p-values)
-  if (any(class(fitmod) == "merModLmerTest") && requireNamespace("lmerTest", quietly = TRUE)) {
-    cs <- suppressWarnings(stats::coef(lmerTest::summary(fitmod)))
-  } else {
-    cs <- stats::coef(summary(fitmod))
-  }
-  # check if we have p-values in summary
-  if (ncol(cs) >= 4) {
-    # do we have a p-value column?
-    pvcn <- which(colnames(cs) == "Pr(>|t|)")
-    # if not, default to 4
-    if (length(pvcn) == 0) pvcn <- 4
-    pv <- cs[, pvcn]
-  } else if (any(class(fitmod) == "lmerMod") && requireNamespace("pbkrtest", quietly = TRUE) && KR) {
-    # compute Kenward-Roger-DF for p-statistic. Code snippet adapted from
-    # http://mindingthebrain.blogspot.de/2014/02/three-ways-to-get-parameter-specific-p.html
-    message("Computing p-values via Kenward-Roger approximation. Use `p.kr = FALSE` if computation takes too long.")
-    #first coefficients need to be data frame
-    cs <- as.data.frame(cs)
-    # get KR DF
-    df.kr <- pbkrtest::get_Lb_ddf(fitmod, lme4::fixef(fitmod))
-    # compute p-values, assuming an approximate t-dist
-    pv <- 2 * (1 - pt(abs(cs$`t value`), df.kr))
-  } else {
-    message("Computing p-values via Wald-statistics approximation (treating t as Wald z).")
-    pv <- (1 - pnorm(abs(cs[, 3]))) * 2
-  }
-  return(pv)
-}
-
-
 #' @importFrom stats family model.frame na.omit
 #' @importFrom dplyr filter
 sjp.glm.eff <- function(fit,
@@ -1974,18 +2051,11 @@ sjp.glm.eff <- function(fit,
                         fun,
                         prnt.plot,
                         ...) {
-  # ---------------------------------------
-  # check axis range
-  # ---------------------------------------
-  if (is.null(ylim)) ylim <- c(0, 1)
   # ------------------------
   # check if suggested package is available
   # ------------------------
   if (!requireNamespace("effects", quietly = TRUE)) {
     stop("Package `effects` needed for this function to work. Please install it.", call. = FALSE)
-  }
-  if ((any(class(fit) == "lmerMod" || any(class(fit) == "merModLmerTest"))) && !requireNamespace("lme4", quietly = TRUE)) {
-    stop("Package `lme4` needed for this function to work. Please install it.", call. = FALSE)
   }
   # ---------------------------------------
   # init plot list
@@ -2162,12 +2232,14 @@ sjp.glm.eff <- function(fit,
     # ------------------------
     # for logistic regression, use percentage scale
     # ------------------------
-    if (fun == "glm" && binom_fam) {
-      eff.plot <- eff.plot +
-        scale_y_continuous(labels = scales::percent)
-      # do we have axis limits?
-      if (!is.null(ylim))
+    if (fun == "glm" && binom_fam)
+      eff.plot <- eff.plot + scale_y_continuous(labels = scales::percent)
+    # do we have axis limits?
+    if (!is.null(ylim)) {
+      if (fun == "glm" && binom_fam)
         eff.plot <- eff.plot + coord_cartesian(ylim = ylim)
+      else
+        eff.plot <- eff.plot + ylim(ylim)
     }
     # ------------------------
     # print plot?
@@ -2187,12 +2259,33 @@ sjp.glm.eff <- function(fit,
       # ------------------------
       # for logistic regression, use percentage scale
       # ------------------------
-      if (fun == "glm" && binom_fam) {
-        eff.plot <- eff.plot +
-          scale_y_continuous(labels = scales::percent)
-        # do we have axis limits?
-        if (!is.null(ylim))
-          eff.plot <- eff.plot + coord_cartesian(ylim = ylim)
+      if (fun == "glm" && binom_fam)
+        eff.plot <- eff.plot + scale_y_continuous(labels = scales::percent)
+      # ------------------------
+      # do we have axis limits?
+      # ------------------------
+      y.limits <- NULL
+      if (!is.null(ylim)) {
+        # find current loop index
+        loopcnt <- which(i == unique(mydat$grp))
+        # if we have one axis limits range for all plots, use this here
+        if (!is.list(ylim) && length(ylim) == 2) {
+          y.limits <- ylim
+        } else if (is.list(ylim) && length(ylim) >= loopcnt) {
+          # we may have multiple axis-limits-values here, one pair for
+          # each plot. so check for correct length here
+          y.limits <- ylim[[loopcnt]]
+        }
+      }
+      # ---------------------------------------------------------
+      # cartesian coord still plots range of se, even
+      # when se exceeds plot range. only for binomial models
+      # ---------------------------------------------------------
+      if (!is.null(y.limits)) {
+        if (fun == "glm" && binom_fam)
+          eff.plot <- eff.plot + coord_cartesian(ylim = y.limits)
+        else
+          eff.plot <- eff.plot + ylim(y.limits)
       }
       # ------------------------
       # continuous or discrete scale?

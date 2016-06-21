@@ -98,7 +98,6 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #' sjc.qclus(airquality, groupcount = 3, groups = airgrp$classification)
 #' 
 #' @import ggplot2
-#' @import sjmisc
 #' @importFrom stats na.omit
 #' @importFrom graphics plot
 #' @export
@@ -538,12 +537,17 @@ sjc.dend <- function(data, groupcount, distance = "euclidean", agglomeration = "
 #' # plot goodness of group classificatoin
 #' sjc.grpdisc(mtcars, groups, 5)
 #' 
-#' @importFrom MASS lda
 #' @importFrom stats na.omit
 #' @importFrom graphics plot
 #' @import ggplot2
 #' @export
 sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = TRUE) {
+  # -----------------------------------
+  # check package availability
+  # -----------------------------------
+  if (!requireNamespace("MASS", quietly = TRUE)) {
+    stop("Package `MASS` needed for this function to work. Please install it.", call. = F)
+  }
   # Prepare Data
   # listwise deletion of missing
   data <- stats::na.omit(data)

@@ -11,9 +11,9 @@ sjp.int(fit, type = c("eff", "cond", "emm"), int.term = NULL,
   legend.title = NULL, legend.labels = NULL, wrap.title = 50,
   wrap.legend.labels = 20, wrap.legend.title = 20, geom.colors = "Set1",
   geom.size = NULL, fill.color = "grey", fill.alpha = 0.3,
-  show.values = FALSE, show.ci = FALSE, p.kr = TRUE, grid.breaks = NULL,
-  xlim = NULL, ylim = NULL, y.offset = 0.07, digits = 2,
-  facet.grid = FALSE, prnt.plot = TRUE, ...)
+  show.values = FALSE, show.ci = FALSE, jitter.ci = FALSE, p.kr = TRUE,
+  grid.breaks = NULL, xlim = NULL, ylim = NULL, y.offset = 0.07,
+  digits = 2, facet.grid = FALSE, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{the fitted (generalized) linear (mixed) model object, including interaction terms. Accepted model
@@ -81,7 +81,7 @@ which means that each plot's x-axis uses the predictor's name as title.}
 \item{axis.labels}{character vector with value labels of the interaction, used
 to label the x-axis. Only applies to \code{type = "emm"}.}
 
-\item{legend.title}{title of the diagram's legend. A character vector of same length as 
+\item{legend.title}{title of the plot's legend. A character vector of same length as 
 amount of interaction plots to be plotted (i.e. one vector element for each
 plot's legend title).}
 
@@ -122,6 +122,10 @@ Use either 0 or set \code{fill.color} to \code{NULL} if you want to hide the sha
 if numeric, must be a number between 0 and 1, indicating the proportion
 for the confidence regeion (e.g. \code{show.ci = 0.9} plots a 90\% CI).
 Only applies to \code{type = "emm"} or \code{type = "eff"}.}
+
+\item{jitter.ci}{logical, if \code{TRUE} and \code{show.ci = TRUE} and confidence
+bands are displayed as error bars, adds jittering to lines and error bars
+to avoid overlapping.}
 
 \item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional 
 F-tests with Kenward-Roger approximation for the df. Caution: Computation
@@ -336,7 +340,7 @@ sjp.int(fit, type = "eff", int.plot.index = 3, show.ci = TRUE, facet.grid = TRUE
 \references{
 \itemize{
              \item Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
-             \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82 \href{https://files.nyu.edu/mrg217/public/pa_final.pdf}{download}
+             \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82. \doi{10.1093/pan/mpi014}
              \item Esarey J, Sumner JL (2015) Marginal Effects in Interaction Models: Determining and Controlling the False Positive Rate. \href{http://jee3.web.rice.edu/interaction-overconfidence.pdf}{download}
              \item Fox J (2003) Effect displays in R for generalised linear models. Journal of Statistical Software 8:15, 1–27, \href{http://www.jstatsoft.org/v08/i15/}{<http://www.jstatsoft.org/v08/i15/>}
              \item Hayes AF (2012) PROCESS: A versatile computational tool for observed variable mediation, moderation, and conditional process modeling [White paper] \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{download}

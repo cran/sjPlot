@@ -3,7 +3,7 @@
 #'
 #' @references \itemize{
 #'              \item Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
-#'              \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82 \href{https://files.nyu.edu/mrg217/public/pa_final.pdf}{download}
+#'              \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82. \doi{10.1093/pan/mpi014}
 #'              \item Esarey J, Sumner JL (2015) Marginal Effects in Interaction Models: Determining and Controlling the False Positive Rate. \href{http://jee3.web.rice.edu/interaction-overconfidence.pdf}{download}
 #'              \item Fox J (2003) Effect displays in R for generalised linear models. Journal of Statistical Software 8:15, 1–27, \href{http://www.jstatsoft.org/v08/i15/}{<http://www.jstatsoft.org/v08/i15/>}
 #'              \item Hayes AF (2012) PROCESS: A versatile computational tool for observed variable mediation, moderation, and conditional process modeling [White paper] \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{download}
@@ -92,7 +92,7 @@
 #'          which means that each plot's x-axis uses the predictor's name as title.
 #' @param axis.labels character vector with value labels of the interaction, used
 #'          to label the x-axis. Only applies to \code{type = "emm"}.
-#' @param legend.title title of the diagram's legend. A character vector of same length as 
+#' @param legend.title title of the plot's legend. A character vector of same length as 
 #'          amount of interaction plots to be plotted (i.e. one vector element for each
 #'          plot's legend title).
 #' @param legend.labels labels for the guide/legend. Either a character vector of same length as
@@ -105,6 +105,9 @@
 #'          if numeric, must be a number between 0 and 1, indicating the proportion
 #'          for the confidence regeion (e.g. \code{show.ci = 0.9} plots a 90\% CI).
 #'          Only applies to \code{type = "emm"} or \code{type = "eff"}.
+#' @param jitter.ci logical, if \code{TRUE} and \code{show.ci = TRUE} and confidence
+#'          bands are displayed as error bars, adds jittering to lines and error bars
+#'          to avoid overlapping.
 #' 
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.frq
@@ -271,8 +274,8 @@
 #' sjp.int(fit, type = "eff", int.plot.index = 3, show.ci = TRUE, facet.grid = TRUE)}
 #'
 #' @import ggplot2
-#' @import sjmisc
 #' @importFrom stats family quantile
+#' @importFrom sjmisc is_num_fac
 #' @importFrom effects allEffects effect
 #' @export
 sjp.int <- function(fit,
@@ -297,6 +300,7 @@ sjp.int <- function(fit,
                     fill.alpha = 0.3,
                     show.values = FALSE,
                     show.ci = FALSE,
+                    jitter.ci = FALSE,
                     p.kr = TRUE,
                     grid.breaks = NULL,
                     xlim = NULL,
@@ -348,9 +352,6 @@ sjp.int <- function(fit,
   # ------------------------
   # check if suggested package is available
   # ------------------------
-  if ((fun == "lmer" || fun == "glmer" || fun == "nlmer") && !requireNamespace("lme4", quietly = TRUE)) {
-    stop("Package `lme4` needed for this function to work. Please install it.", call. = FALSE)
-  }
   if (fun == "plm" && !"package:plm" %in% search()) {
     stop("Package `plm` needs to be loaded for this function to work... Use `library(plm)` and call this function again.", call. = FALSE)
   }
@@ -365,7 +366,7 @@ sjp.int <- function(fit,
   if (is.null(grid.breaks)) gridbreaks.x <- gridbreaks.y <- ggplot2::waiver()
   # check matching argument combinations
   if (type == "cond" && mdrt.values == "all") {
-    message("`mdrt.values = \"all\"` only applies to `type = \"eff\". Defaulting `mdrt.values` to `minmax`.")
+    message("`mdrt.values = \"all\"` only applies to `type = \"eff\"`. Defaulting `mdrt.values` to `minmax`.")
     mdrt.values <- "minmax"
   }
   # ------------------------
@@ -409,7 +410,7 @@ sjp.int <- function(fit,
                        title, fill.alpha, geom.colors, geom.size, axis.title,
                        legend.title, legend.labels, show.values, wrap.title, wrap.legend.labels, 
                        wrap.legend.title, xlim, ylim, y.offset, grid.breaks, 
-                       show.ci, p.kr, facet.grid, prnt.plot, fun, ...))
+                       show.ci, jitter.ci, p.kr, facet.grid, prnt.plot, fun, ...))
   }
   # -----------------------------------------------------------
   # set axis title
@@ -893,6 +894,7 @@ sjp.eff.int <- function(fit,
                         y.offset = 0.07,
                         grid.breaks = NULL,
                         show.ci = FALSE,
+                        jitter.ci = FALSE,
                         p.kr = FALSE,
                         facet.grid = FALSE,
                         prnt.plot = TRUE,
@@ -1293,15 +1295,27 @@ sjp.eff.int <- function(fit,
     # confidence interval?
     # ------------------------------------------------------------
     if (show.ci) {
+      # -------------------------------------------------
+      # for factors, we add error bars instead of
+      # continuous confidence region
+      # -------------------------------------------------
       if (x_is_factor) {
         # -------------------------------------------------
-        # for factors, we add error bars instead of
-        # continuous confidence region
+        # check if to add jittering
         # -------------------------------------------------
-        baseplot <- baseplot +
-          geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = grp),
-                        width = 0, show.legend = FALSE) +
-          geom_point()
+        if (jitter.ci) {
+          baseplot <- baseplot +
+            geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = grp),
+                          width = 0, show.legend = FALSE, position = position_dodge(.2)) +
+            geom_point(position = position_dodge(.2)) +
+            geom_line(size = geom.size, position = position_dodge(.2))
+        } else {
+          baseplot <- baseplot +
+            geom_errorbar(aes(ymin = conf.low, ymax = conf.high, colour = grp),
+                          width = 0, show.legend = FALSE) +
+            geom_point() +
+            geom_line(size = geom.size)
+        }
       } else {
         # -------------------------------------------------
         # for continuous variables, we add  continuous 
@@ -1309,10 +1323,12 @@ sjp.eff.int <- function(fit,
         # -------------------------------------------------
         baseplot <- baseplot +
           geom_ribbon(aes(ymin = conf.low, ymax = conf.high, colour = NULL, fill = grp),
-                      alpha = fill.alpha, show.legend = FALSE)
+                      alpha = fill.alpha, show.legend = FALSE) +
+          geom_line(size = geom.size)
       }
+    } else {
+      baseplot <- baseplot + geom_line(size = geom.size)
     }
-    baseplot <- baseplot + geom_line(size = geom.size)
     # ------------------------------------------------------------
     # plot value labels
     # ------------------------------------------------------------
@@ -1474,7 +1490,7 @@ getInteractionTerms <- function(fit, fun, plevel, p.kr) {
     # -----------------------------------------------------------
     # retrieve p-values, without intercept
     # -----------------------------------------------------------
-    pval <- get_lmerMod_pvalues(fit, p.kr)[-1]
+    pval <- sjstats::merMod_p(fit, p.kr)[-1]
     # -----------------------------------------------------------
     # retrieve estimates, without intercept
     # -----------------------------------------------------------

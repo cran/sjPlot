@@ -81,7 +81,6 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "pa", "shape"))
 #' sjp.glmm(fit1, fit2, fit3)
 #' 
 #' @import ggplot2
-#' @import sjmisc
 #' @importFrom stats na.omit coef confint
 #' @export
 sjp.glmm <- function(...,
@@ -168,7 +167,7 @@ sjp.glmm <- function(...,
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
     if (sjmisc::str_contains(class(fit), "merMod", ignore.case = T))
-      pv <- get_lmerMod_pvalues(fit)
+      pv <- sjstats::merMod_p(fit)
     else
       pv <- unname(stats::coef(summary(fit))[, 4])
     # for better readability, convert p-values to asterisks

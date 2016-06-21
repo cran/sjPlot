@@ -5,23 +5,23 @@
 \title{Plot estimates, predictions or effects of linear mixed effects models}
 \usage{
 sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL,
-  remove.estimates = NULL, emph.grp = NULL, sample.n = NULL,
-  poly.term = NULL, sort.est = NULL, title = NULL, axis.labels = NULL,
-  axis.title = NULL, geom.size = NULL, geom.colors = "Set1",
-  show.values = TRUE, show.p = TRUE, show.ci = FALSE,
-  show.legend = FALSE, show.loess = FALSE, show.loess.ci = FALSE,
-  show.intercept = TRUE, string.interc = "(Intercept)", p.kr = TRUE,
-  point.alpha = 0.2, scatter.plot = TRUE, fade.ns = FALSE,
-  axis.lim = NULL, digits = 2, vline.type = 2, vline.color = "grey70",
-  facet.grid = TRUE, free.scale = FALSE, y.offset = 0.1,
-  prnt.plot = TRUE, ...)
+  group.estimates = NULL, remove.estimates = NULL, emph.grp = NULL,
+  sample.n = NULL, poly.term = NULL, sort.est = NULL, title = NULL,
+  legend.title = NULL, axis.labels = NULL, axis.title = NULL,
+  geom.size = NULL, geom.colors = "Set1", show.values = TRUE,
+  show.p = TRUE, show.ci = FALSE, show.legend = FALSE,
+  show.loess = FALSE, show.loess.ci = FALSE, show.intercept = FALSE,
+  string.interc = "(Intercept)", p.kr = TRUE, point.alpha = 0.2,
+  scatter.plot = TRUE, fade.ns = FALSE, axis.lim = NULL, digits = 2,
+  vline.type = 2, vline.color = "grey70", facet.grid = TRUE,
+  free.scale = FALSE, y.offset = 0.1, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{a fitted model as returned by the \code{\link[lme4]{lmer}}-function.}
 
 \item{type}{type of plot. Use one of following:
 \describe{
-  \item{\code{"re"}}{(default) for estimates of random effects as forest plot}
+  \item{\code{"re"}}{(default) for conditional modes of random effects as forest plot}
   \item{\code{"fe"}}{for estimates of fixed effects as forest plot}
   \item{\code{"fe.std"}}{for standardized estimates of fixed effects as forest plot}
   \item{\code{"fe.slope"}}{to plot regression lines (slopes) with confidence intervals for each single fixed effect, i.e. all fixed terms are extracted and each is plotted against the response variable (linear relationship between each fixed term and response)}
@@ -49,6 +49,10 @@ and fitted model has more than one random intercept, \code{ri.nr} indicates
 which random effects of which random intercept (or: which list elements
 of \code{\link[lme4]{ranef}}) will be plotted. Default is \code{NULL},
 so all random effects will be plotted.}
+
+\item{group.estimates}{numeric or character vector, indicating a group identifier for
+each estimate. Dots and confidence intervals of estimates are coloured
+according to their group association. See 'Examples'.}
 
 \item{remove.estimates}{character vector with coefficient names that indicate
 which estimates should be removed from the plot.
@@ -87,19 +91,28 @@ for polynomial terms. See 'Examples'.}
 
 \item{title}{character vector with one or more labels that are used as plot title.}
 
+\item{legend.title}{character vector, used as title for the plot legend. Note that
+only some plot types have legends (e.g. \code{type = "pred"} or when
+grouping estimates with \code{group.estimates}).}
+
 \item{axis.labels}{character vector with labels for the model terms, used as axis labels.
 For mixed models, should either be vector of fixed effects variable labels 
 (if \code{type = "fe"} or \code{type = "fe.std"}) or a vector of group (value)
 labels from the random intercept's categories (if \code{type = "re"}).}
 
-\item{axis.title}{character vector, used as title for the axis. If not specified, 
-a default labelling depending on the plot function and type is chosen.}
+\item{axis.title}{character vector of length one or two (depending on
+the plot function and type), used as title(s) for the x and y axis. 
+If not specified, a default labelling  is chosen.}
 
 \item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
 depending on plot type and function). Note that bar and bin widths mostly 
 need smaller values than dot sizes.}
 
-\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
+\item{geom.colors}{user defined color palette for geoms. If \code{group.estimates}
+is \emph{not} specified, must either be vector with two color values or a specific
+color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
+\code{group.estimates} is specified, \code{geom.colors} must be a vector
+of same length as groups. See 'Examples'.}
 
 \item{show.values}{logical, whether values should be plotted or not.}
 
@@ -141,7 +154,11 @@ is plotted. Only applies for slope-type plots.}
 \item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
 
 \item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
-Depending on plot type, may effect either x- or y-axis, or both.}
+Depending on plot type, may effect either x- or y-axis, or both.
+For multiple plot outputs (e.g., from \code{type = "eff"} or 
+\code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
+also be a list of vectors of length 2, defining axis limits for each
+plot (only if non-faceted).}
 
 \item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
@@ -182,6 +199,10 @@ By default, this function plots estimates (coefficients) with confidence
 }
 \details{
 \describe{
+           \item{\code{type = "re"}}{plots the conditional modes of the random
+           effects, inclduing predicion intervals. It basically does the same
+           as \code{dotplot(ranef(fit, condVar = TRUE)[[i]])}, where \code{i}
+           denotes the random effect index.}
            \item{\code{type = "fe.slope"}}{plots the linear relationship between
            each fixed effect and the response. The regression lines are \emph{not}
            based on the fitted model's fixed effects estimates (though they may
@@ -233,7 +254,7 @@ Computation of p-values (if necessary and if \code{p.kr = TRUE}) are based
         the \pkg{pbkrtest}-package. If \pkg{pbkrtest} is not available or
         \code{p.kr = FALSE}, computation of p-values is based 
         on normal-distribution assumption, treating the t-statistics as Wald
-        z-statistics.
+        z-statistics. See 'Details' in \code{\link[sjstats]{merMod_p}}.
 }
 \examples{
 # fit model

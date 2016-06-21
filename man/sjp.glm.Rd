@@ -50,13 +50,16 @@ according to their group assignment.}
 \item{title}{character vector, used as plot title. Depending on plot type and function,
 will be set automatically. If \code{title = ""}, no title is printed.}
 
-\item{legend.title}{character vector, used as title for the plot legend.}
+\item{legend.title}{character vector, used as title for the plot legend. Note that
+only some plot types have legends (e.g. \code{type = "pred"} or when
+grouping estimates with \code{group.estimates}).}
 
 \item{axis.labels}{character vector with labels used as axis labels. Optional
 argument, since in most cases, axis labels are set automatically.}
 
-\item{axis.title}{character vector, used as title for the axis. If not specified, 
-a default labelling depending on the plot function and type is chosen.}
+\item{axis.title}{character vector of length one or two (depending on
+the plot function and type), used as title(s) for the x and y axis. 
+If not specified, a default labelling  is chosen.}
 
 \item{geom.size}{size resp. width of the geoms (bar width, line thickness or point size, 
 depending on plot type and function). Note that bar and bin widths mostly 
@@ -75,7 +78,11 @@ one line and when a line break is inserted.}
 labels are displayed in one line and when a line break is inserted.}
 
 \item{axis.lim}{numeric vector of length 2, defining the range of the plot axis.
-Depending on plot type, may effect either x- or y-axis, or both.}
+Depending on plot type, may effect either x- or y-axis, or both.
+For multiple plot outputs (e.g., from \code{type = "eff"} or 
+\code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
+also be a list of vectors of length 2, defining axis limits for each
+plot (only if non-faceted).}
 
 \item{grid.breaks}{numeric; sets the distance between breaks for the axis, 
 i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
