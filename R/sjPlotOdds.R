@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("OR", "lower", "upper", "p"))
+utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
 
 
 #' @title Plot estimates, predictions or effects of generalized linear models
@@ -172,7 +172,7 @@ sjp.glm <- function(fit,
   # -----------------------------------------------------------
   # set default title
   # -----------------------------------------------------------
-  if (is.null(title) && (type != "eff" && type != "slope")) title <- get_model_response_label(fit)
+  if (is.null(title) && (type != "eff" && type != "slope" && type != "pred")) title <- get_model_response_label(fit)
   # --------------------------------------------------------
   # check type
   # --------------------------------------------------------
@@ -508,7 +508,7 @@ sjp.glm <- function(fit,
   # -------------------------------------
   # set proper column names
   # -------------------------------------
-  odds <- dplyr::add_rownames(odds)
+  odds <- tibble::rownames_to_column(odds)
   colnames(odds) <- c("term", "estimate", "conf.low", "conf.high", 
                       "p.string", "p.value", "xpos")
   # -------------------------------------
@@ -870,11 +870,17 @@ sjp.glm.predy <- function(fit,
     message("`vars` must have not more than two values. Using first two values now.")
     vars <- vars[1:2]
   } 
+  # ----------------------------
+  # check for correct vars specification
+  # ----------------------------
+  if (!all(vars %in% colnames(fitfram))) {
+    stop("At least one term specified in `vars` is no valid model term.", call. = F)
+  }
   mydf <- dplyr::select(fitfram, match(c(vars, "predicted.values"), colnames(fitfram)))
   # init legend labels
   legend.labels <- NULL
   # check if we have a categorical variable with value
-  # labels at the x-axis
+  # labels at the x-axis.
   axis_labels <- sjmisc::get_labels(mydf[[1]])
   # ----------------------------
   # with or w/o grouping factor?

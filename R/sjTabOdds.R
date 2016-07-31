@@ -163,6 +163,7 @@
 #' @importFrom dplyr full_join slice
 #' @importFrom stats nobs AIC confint coef logLik family deviance
 #' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof
+#' @importFrom tibble lst
 #' @export
 sjt.glm <- function(...,
                     pred.labels = NULL,
@@ -236,7 +237,7 @@ sjt.glm <- function(...,
   # ------------------------
   # retrieve fitted models
   # ------------------------
-  input_list <- list(...)
+  input_list <- tibble::lst(...)
   # --------------------------------------------------------
   # check length. if we have a list of fitted model,
   # we need to "unlist" them
@@ -327,13 +328,20 @@ sjt.glm <- function(...,
     }
     # -------------------------------------
     # extracting p-values and se differs between
-    # lmer and lm
+    # glmer and glm, and also pglm. Note that
+    # pglm-models do not have the "pglm"-class-attribute,
+    # differently stated in the help ?pglm
     # -------------------------------------
     if (lmerob) {
       # p-values
       fit.df$pv <- round(sjstats::merMod_p(fit), digits.p)
       # standard error
       fit.df$se <- sprintf("%.*f", digits.se, stats::coef(summary(fit))[, "Std. Error"])
+    } else if (any(class(fit) %in% c("pglm", "maxLik"))) {
+      # p-values
+      fit.df$pv <- round(summary(fit)$estimate[, 4], digits.p)
+      # standard error
+      fit.df$se <- sprintf("%.*f", digits.se, summary(fit)$estimate[, 2])
     } else {
       # p-values
       fit.df$pv <- round(summary(fit)$coefficients[, 4], digits.p)
@@ -456,10 +464,11 @@ sjt.glm <- function(...,
   if (show.se) headerColSpanFactor <- headerColSpanFactor + 1
   # now that we know how many columns each model needs,
   # we multiply columns per model with count of models, so we have
-  # the column span over all models together; furthermore, we add
-  # count of models  to the overall column span, because
+  # the column span over all models together
+  headerColSpan <- headerColSpanFactor * headerColSpan
+  # furthermore, we add count of models  to the overall column span, if
   # each model is separated with an empty table column
-  headerColSpan <- headerColSpanFactor * headerColSpan + length(input_list)
+  if (sep.column) headerColSpan <- headerColSpan + length(input_list)
   linebreakstring <- " "
   if (newline.ci) linebreakstring <- "<br>"
   # -------------------------------------
@@ -1239,7 +1248,7 @@ sjt.glmer <- function(...,
                       no.output = FALSE,
                       remove.spaces = TRUE) {
 
-  input_list <- list(...)
+  input_list <- tibble::lst(...)
   return(sjt.glm(input_list, file = file, pred.labels = pred.labels,
                  depvar.labels = depvar.labels, string.pred = string.pred,
                  string.dv = string.dv, show.header = show.header,

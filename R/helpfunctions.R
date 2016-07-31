@@ -14,13 +14,14 @@ base_breaks <- function(n = 10) {
 
 
 #' @importFrom sjmisc get_label get_labels str_contains to_label to_value replace_na word_wrap
+#' @importFrom sjstats resp_val resp_var
 get_lm_data <- function(fit) {
   if (any(class(fit) == "plm")) {
     # plm objects have different structure than (g)lm
     fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), stats::model.matrix(fit)))
-    depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
     # retrieve response vector
-    resp <- as.vector(fit$model[, 1])
+    resp <- sjstats::resp_val(fit)
+    depvar.label <- sjstats::resp_var(fit)
   } else if (any(class(fit) == "pggls")) {
     # plm objects have different structure than (g)lm
     fit_x <- data.frame(fit$model)
@@ -30,17 +31,17 @@ get_lm_data <- function(fit) {
   } else if (is_merMod(fit)) {
     fit_x <- data.frame(stats::model.matrix(fit))
     # retrieve response vector
-    resp <- stats::model.frame(fit)[[1]]
-    depvar.label <- colnames(stats::model.frame(fit))[1]
+    resp <- sjstats::resp_val(fit)
+    depvar.label <- sjstats::resp_var(fit)
   } else if (any(class(fit) == "gls")) {
     fit_x <- data.frame(stats::model.matrix(fit))
     resp <- nlme::getResponse(fit)
     depvar.label <- attr(resp, "label")
   } else {
     fit_x <- data.frame(stats::model.matrix(fit))
-    depvar.label <- colnames(stats::model.frame(fit))[1]
     # retrieve response vector
-    resp <- stats::model.frame(fit)[[1]]
+    resp <- sjstats::resp_val(fit)
+    depvar.label <- sjstats::resp_var(fit)
   }
   # get variable label label
   depvar.label <- sjmisc::get_label(resp, depvar.label)
@@ -144,7 +145,7 @@ get_var_name <- function(x) {
 # for sjp and sjt frq functions
 #' @importFrom sjstats weight table_values cramer phi
 #' @importFrom stats na.omit
-#' @importFrom dplyr add_rownames full_join
+#' @importFrom dplyr full_join
 create.frq.df <- function(x,
                           wrap.labels = Inf,
                           order.frq = "none",
@@ -310,10 +311,12 @@ create.xtab.df <- function(x,
   proptab.row <- rbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 1), round.prz))), 
                        colSums(proptab.cell))
   rownames(proptab.row)[nrow(proptab.row)] <- "total"
+  proptab.row <- as.data.frame(apply(proptab.row, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
   # create proportional tables, column  percentages, including total row
   proptab.col <- cbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 2), round.prz))), 
                        rowSums(proptab.cell))
   colnames(proptab.col)[ncol(proptab.col)] <- "total"
+  proptab.col <- as.data.frame(apply(proptab.col, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
   # add total row and column to cell percentages afterwards
   proptab.cell <- rbind(as.data.frame(as.matrix(proptab.cell)), colSums(proptab.cell))
   proptab.cell <- cbind(as.data.frame(as.matrix(proptab.cell)), rowSums(proptab.cell))

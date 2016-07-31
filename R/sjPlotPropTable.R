@@ -83,7 +83,7 @@ utils::globalVariables(c("rowname", "total", "ges", "prc", "n", "Count", "Group"
 #'          bar.pos = "stack", coord.flip = TRUE)
 #'
 #' @import ggplot2
-#' @importFrom dplyr group_by mutate arrange add_rownames filter select summarize
+#' @importFrom dplyr group_by mutate arrange filter select summarize
 #' @importFrom tidyr gather
 #' @importFrom scales percent
 #' @importFrom stats na.omit
@@ -235,7 +235,7 @@ sjp.xtab <- function(x,
     myptab <- mydat$proptab.col
   else if (margin == "row")
     myptab <- mydat$proptab.row
-  myptab <- dplyr::add_rownames(data.frame(myptab))
+  myptab <- tibble::rownames_to_column(data.frame(myptab))
   # -----------------------------------------------
   # tidy data
   #---------------------------------------------------
@@ -246,8 +246,7 @@ sjp.xtab <- function(x,
   if (margin != "row")
     mydat$mydat$total <- unname(rowSums(mydat$mydat[, -1]))
   if (margin != "col")
-    mydat$mydat <-
-    rbind(mydat$mydat, c("total", unname(colSums(mydat$mydat[, -1]))))
+    mydat$mydat <- rbind(mydat$mydat, c("total", unname(colSums(mydat$mydat[, -1]))))
   # -----------------------------------------------
   # add n-values to tidy data frame
   #---------------------------------------------------
@@ -332,7 +331,7 @@ sjp.xtab <- function(x,
       upper_lim <- 1
   } else {
     # factor depends on labels
-    if (isTRUE(show.values))
+    if (show.values)
       mlp <- 1.2
     else
       mlp <- 1.1

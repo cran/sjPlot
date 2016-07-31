@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.0.1
-Date: 2016-06-21
+Version: 2.0.2
+Date: 2016-07-31
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
@@ -15,15 +15,16 @@ Description: Collection of plotting and table output functions for data
     terms) and much more. This package supports labelled data.
 License: GPL-3
 Depends: R (>= 3.2), graphics, grDevices, methods, stats, utils
-Imports: dplyr (>= 0.4.3), effects, ggplot2 (>= 2.1.0), lme4 (>=
-        1.1-10), magrittr, nlme, psych, scales, sjmisc (>= 1.8),
-        sjstats (>= 0.2.0), tidyr (>= 0.4.1)
+Imports: broom (>= 0.4.1), dplyr (>= 0.5.0), effects, ggplot2 (>=
+        2.1.0), lme4 (>= 1.1-10), magrittr, nlme, psych, scales, sjmisc
+        (>= 1.8), sjstats (>= 0.3.0), tibble (>= 1.1.0), tidyr (>=
+        0.5.0)
 Suggests: AICcmodavg, arm, car, cluster, ggrepel, lmerTest, lmtest,
         lsmeans, MASS
 URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-06-21 12:41:09 UTC; Standardbenutzer
+Packaged: 2016-07-31 19:06:18 UTC; Standardbenutzer
 Repository: CRAN
-Date/Publication: 2016-06-21 20:24:51
+Date/Publication: 2016-07-31 22:40:46

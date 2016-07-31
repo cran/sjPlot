@@ -127,7 +127,7 @@ sjp.corr <- function(data,
   if (is.null(axis.labels) && is.data.frame(data)) {
     axis.labels <- c()
     # if yes, iterate each variable
-    for (i in 1:ncol(data)) {
+    for (i in seq_len(ncol(data))) {
       # retrieve variable name attribute
       vn <- sjmisc::get_label(data[[i]], def.value = colnames(data)[i])
       # if variable has attribute, add to variableLabel list
@@ -211,13 +211,12 @@ sjp.corr <- function(data,
     orderedCorr <- corr[neword, neword]
     # order variable labels as well
     axis.labels <- axis.labels[neword]
-    if (!is.null(cpvalues)) {
-      cpvalues <- cpvalues[neword, neword]
-    }
+    if (!is.null(cpvalues)) cpvalues <- cpvalues[neword, neword]
   } else {
-    orderedCorr <- rev(corr)
+    cl <- ncol(corr)
+    orderedCorr <- corr[cl:1, cl:1]
     axis.labels <- rev(axis.labels)
-    if (!is.null(cpvalues)) cpvalues <- rev(cpvalues)
+    if (!is.null(cpvalues)) cpvalues <- cpvalues[cl:1, cl:1]
   }
   # --------------------------------------------------------
   # prepare a ordering-index-column needed for the data frame
@@ -225,7 +224,7 @@ sjp.corr <- function(data,
   # --------------------------------------------------------
   yo <- c()
   for (i in 1:nrow(corr)) {
-    yo <- c(yo, c(rep(i, nrow(corr))))
+    yo <- c(yo, rep(i, nrow(corr)))
   }
   # --------------------------------------------------------
   # melt correlation matrix and create data frame
@@ -241,8 +240,8 @@ sjp.corr <- function(data,
   # if (!is.null(cpvalues)) cpvalues <- melt(cpvalues)
   # bind additional information like order for x- and y-axis
   # as well as the size of plotted points
-  orderedCorr <- cbind(orderedCorr, ordx = c(1:nrow(corr)), ordy = yo, 
-                       psize = c(exp(abs(orderedCorr$value)) * geom.size))
+  orderedCorr <- cbind(orderedCorr, ordx = 1:nrow(corr), ordy = yo, 
+                       psize = exp(abs(orderedCorr$value)) * geom.size)
   # diagonal circles should be hidden, set their point size to 0
   orderedCorr$psize[which(orderedCorr$value >= 0.999)] <- 0
   # remove lower trianglwe of geoms
@@ -253,18 +252,16 @@ sjp.corr <- function(data,
   # --------------------------------------------------------
   # add column with significance value
   # --------------------------------------------------------
-  cpv <- c()
   if (!is.null(cpvalues)) {
     if (!p.numeric) {
-      for (cpi in 1:nrow(cpvalues)) {
-        cpv <- c(cpv, get_p_stars(cpvalues$value[cpi]))
-      }
+      cpv <- sapply(cpvalues$value, get_p_stars)
     } else {
-      cpv <- cpvalues$value
-      cpv <- sapply(cpv, function(x) if (x < 0.001) 
-                                       x <- sprintf("\n(< %s.001)", p_zero) 
-                                     else 
-                                       x <- sub("0", p_zero, sprintf("\n(%.*f)", decimals, x)))
+      cpv <- sapply(cpvalues$value, function(x) {
+        if (x < 0.001) 
+          x <- sprintf("\n(< %s.001)", p_zero) 
+        else 
+          x <- sub("0", p_zero, sprintf("\n(%.*f)", decimals, x))
+      })
     }
   } else {
     cpv <- ""
