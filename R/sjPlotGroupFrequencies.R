@@ -41,7 +41,10 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #'          of the y scale. By default, this argument is set to \code{NULL}, i.e. the 
 #'          y-axis fits to the required range of the data.
 #' @param facet.grid \code{TRUE} to arrange the lay out of of multiple plots 
-#'          in a grid of an integrated single plot.
+#'          in a grid of an integrated single plot. This argument calls 
+#'          \code{\link[ggplot2]{facet_wrap}} or \code{\link[ggplot2]{facet_grid}}
+#'          to arrange plots. Use \code{\link{plot_grid}} to plot multiple plot-objects 
+#'          as an arranged grid with \code{\link[gridExtra]{grid.arrange}}.
 #' @param title character vector, used as plot title. Depending on plot type and function,
 #'          will be set automatically. If \code{title = ""}, no title is printed.
 #' @param legend.title character vector, used as title for the plot legend.
@@ -240,18 +243,14 @@ sjp.grpfrq <- function(var.cnt,
   # check default geom.size
   # --------------------------------------------------------
   if (is.null(geom.size)) {
-    if (type == "bar")
-      geom.size <- .7
-    else if (type == "dot")
-      geom.size <- 3
-    else if (type == "line")
-      geom.size <- .8
-    else if (type == "boxplot")
-      geom.size <- .5
-    else if (type == "violin")
-      geom.size <- .6
-    else
-      geom.size <- .7
+    geom.size <- dplyr::case_when(
+      type == "bar" ~ .7,
+      type == "dot" ~ 3,
+      type == "line" ~ .8,
+      type == "boxplot" ~ .5,
+      type == "violin" ~ .6,
+      TRUE ~ .7
+    )
   }
   # --------------------------------------------------------
   # set text label offset

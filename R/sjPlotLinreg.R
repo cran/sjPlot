@@ -250,6 +250,7 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' @importFrom sjmisc is_empty
 #' @importFrom tibble as_tibble
 #' @importFrom nlme getData getResponse getCovariateFormula
+#' @importFrom sjstats get_model_pval std_beta
 #' @export
 sjp.lm <- function(fit,
                    type = "lm",
@@ -386,7 +387,7 @@ sjp.lm <- function(fit,
   # print beta- and p-values in bar charts
   # ----------------------------
   # retrieve sigificance level of independent variables (p-values)
-  pv <- get_lm_pvalues(fit, include.intercept = F)$p
+  pv <- sjstats::get_model_pval(fit, p.kr = F)[["p.value"]][-1]
   # -------------------------------------------------
   # for better readability, convert p-values to asterisks
   # with:
@@ -398,9 +399,14 @@ sjp.lm <- function(fit,
   # -------------------------------------------------
   if (type == "std" || type == "std2") {
     # retrieve standardized betas
-    tmp <- suppressWarnings(sjstats::std_beta(fit, include.ci = TRUE, type = type))
+    tmp <- suppressWarnings(
+      sjstats::std_beta(fit, type = type) %>% 
+        dplyr::select_("-std.error")
+    )
     # add "std." to title?
     if (!is.null(axis.title) && axis.title == "Estimates") axis.title <- "Std. Estimates"
+    # give common column names
+    colnames(tmp) <- c("term", "estimate", "conf.low", "conf.high")
   } else {
     tmp <- broom::tidy(fit, conf.int = TRUE) %>%
              dplyr::slice(-1) %>% 
@@ -449,7 +455,7 @@ sjp.lm <- function(fit,
   # copy p-values into data column
   # --------------------------------------------------------
   if (show.p) {
-    for (i in 1:length(pv)) {
+    for (i in seq_len(length(pv))) {
       ps[i] <- sjmisc::trim(paste(ps[i], get_p_stars(pv[i])))
     }
   }
@@ -487,7 +493,7 @@ sjp.lm <- function(fit,
     axis.labels <- rev(axis.labels)
     betas <- betas[nrow(betas):1, ]
   }
-  betas <- cbind(xpos = 1:nrow(betas), betas)
+  betas <- cbind(xpos = seq_len(nrow(betas)), betas)
   betas[["p.string"]] <- as.character(betas[["p.string"]])
   betas[["xpos"]] <- as.factor(betas[["xpos"]])
   # --------------------------------------------------------
@@ -513,7 +519,7 @@ sjp.lm <- function(fit,
   # (whether grouped or not)
   # --------------------------------------------------------
   if (!is.null(group.estimates)) {
-    betaplot <- ggplot(betas, aes(x = xpos, y = estimate, colour = group))
+    betaplot <- ggplot(betas, aes_string(x = "xpos", y = "estimate", colour = "group"))
     pal.len <- length(unique(group.estimates))
     legend.labels <- unique(betas[["group"]])
   } else {
@@ -562,7 +568,7 @@ sjp.lm <- function(fit,
                            data = tibble::as_tibble(betas))))
 }
 
-
+#' @importFrom sjstats resp_val resp_var pred_vars
 sjp.reglin <- function(fit, 
                        title = NULL, 
                        wrap.title = 50, 
@@ -598,9 +604,9 @@ sjp.reglin <- function(fit,
   # column the data for each predictor is.
   # -----------------------------------------------------------
   model_data <- stats::model.frame(fit)
-  depvar.label <- sjmisc::get_label(model_data[[1]], def.value = colnames(model_data)[1])
-  resp <- model_data[[1]]
-  predvars <- all.vars(stats::formula(fit)[[3L]])
+  depvar.label <- sjmisc::get_label(model_data[[1]], def.value = sjstats::resp_var(fit))
+  resp <- sjstats::resp_val(fit)
+  predvars <- sjstats::pred_vars(fit)
   # ------------------------
   # remove estimates?
   # ------------------------
@@ -647,7 +653,7 @@ sjp.reglin <- function(fit,
     # -----------------------------------------------------------
     # plot regression line and confidence intervall
     # -----------------------------------------------------------
-    reglinplot <- ggplot(mydat, aes(x = x, y = y)) +
+    reglinplot <- ggplot(mydat, aes_string(x = "x", y = "y")) +
       stat_smooth(method = "lm", se = show.ci, colour = lineColor)
     # -----------------------------------------------------------
     # plot jittered values if requested
@@ -834,7 +840,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
     # ---------------------------------
     # show VIF-Values
     # ---------------------------------
-    sjp.setTheme(theme = "539w")
+    set_theme("539w")
     sjp.vif(linreg)
   } else {
     # we have no updated model w/o outliers for
@@ -845,51 +851,28 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # Print non-normality of residuals and outliers both of original and updated model
   # dots should be plotted along the line, this the dots should follow a linear direction
   # ---------------------------------
-  ggqqp <- function(fit) {
-    # mixed model model?
-    if (any(class(fit) == "lme") || any(class(fit) == "lmerMod")) {
-      res_ <- sort(stats::residuals(fit), na.last = NA)
-      y_lab <- "Residuals"
-    } else {
-      # else, normal model
-      res_ <- sort(stats::rstudent(fit), na.last = NA)
-      y_lab <- "Studentized Residuals"
-    }
-    fitted_ <- sort(stats::fitted(fit), na.last = NA)
-    # create data frame
-    mydf <- na.omit(data.frame(x = fitted_, y = res_))
-    # try to estimate outlier
-    mydf <- cbind(quot = mydf$x / mydf$y, mydf)
-    mydf$case.nr <- names(res_)
-    mydf$ratio <- mydf$y / mydf$quot
-    # something like a ratio of maximum distance from residuals
-    quot.md <- stats::median(mydf$ratio)
-    quot.sd <- stats::sd(mydf$ratio)
-    quot.rng <- c(quot.md - quot.sd, quot.md + quot.sd)
-    # label outliers with case number
-    mydf$label <- NA
-    outl <- which(mydf$ratio < (2 * quot.rng[1]))
-    mydf$label[outl] <- mydf$case.nr[outl]
-    outl <- which(mydf$ratio > (2 * quot.rng[2]))
-    mydf$label[outl] <- mydf$case.nr[outl]
-    # ggrepel installed?
-    if (!requireNamespace("ggrepel", quietly = TRUE)) {
-      text_label <- geom_text(hjust = "bottom", vjust = "bottom")
-    } else {
-      text_label <- ggrepel::geom_label_repel()
-    }
-    # plot it
-    return(ggplot(mydf, aes(x = x, y = y, label = label)) +
-             geom_point() +
-             text_label +
-             stat_smooth(method = "lm", se = FALSE) +
-             labs(title = "Non-normality of residuals and outliers\n(Dots should be plotted along the line)",
-                  y = y_lab, x = "Theoretical quantiles"))
-  }
-  sjp.setTheme(theme = "scatterw")
+  set_theme("scatterw")
   # qq-plot of studentized residuals for base model
-  p1 <- ggqqp(linreg)
-  # save plot
+  # mixed model model?
+  if (any(class(linreg) == "lme") || any(class(linreg) == "lmerMod")) {
+    res_ <- sort(stats::residuals(linreg), na.last = NA)
+    y_lab <- "Residuals"
+  } else {
+    # else, normal model
+    res_ <- sort(stats::rstudent(linreg), na.last = NA)
+    y_lab <- "Studentized Residuals"
+  }
+  fitted_ <- sort(stats::fitted(linreg), na.last = NA)
+  # create data frame
+  mydf <- na.omit(data.frame(x = fitted_, y = res_))
+  # plot it
+  p1 <- ggplot(mydf, aes(x = x, y = y)) +
+           geom_point() +
+           scale_colour_manual(values = c("#0033cc", "#993300")) +
+           stat_smooth(method = "lm", se = FALSE) +
+           labs(title = "Non-normality of residuals and outliers\n(Dots should be plotted along the line)",
+                y = y_lab, x = "Theoretical quantiles (predicted values)")
+  # save plots
   plot.list[[length(plot.list) + 1]] <- p1
   # print plot
   suppressWarnings(graphics::plot(p1))
@@ -910,7 +893,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
                   y = "Density",
                   title = "Non-normality of residuals\n(Distribution should look like normal curve)"))
   }
-  sjp.setTheme(theme = "539w")
+  set_theme("539w")
   # residuals histrogram for base model
   p1 <- gghist(linreg)
   # save plot
@@ -942,7 +925,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
                   y = "Residuals",
                   title = "Homoscedasticity (homogeneity of variance,\nrandomly distributed residuals)\n(Amount and distance of points scattered above/below line is equal)"))
   }
-  sjp.setTheme(theme = "scatterw")
+  set_theme("scatterw")
   # homoscedascity for base model
   p1 <- ggsced(linreg)
   # save plot
@@ -953,7 +936,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # summarize old and new model
   # ---------------------------------
   if (any(class(linreg) == "lm")) {
-    sjp.setTheme(theme = "forestw")
+    set_theme("forestw")
     p1 <- sjp.lm(linreg, prnt.plot = FALSE)$plot
     # save plot
     plot.list[[length(plot.list) + 1]] <- p1
@@ -963,7 +946,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
       # ---------------------------------
       # Plot residuals against predictors
       # ---------------------------------
-      sjp.setTheme(theme = "scatterw")
+      set_theme("scatterw")
       p1 <- sjp.reglin(linreg,
                        title = "Relationship of residuals against predictors (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
                        wrap.title = 60, useResiduals = T)$plot.list

@@ -6,15 +6,15 @@
 \usage{
 sjt.lm(..., pred.labels = NULL, depvar.labels = NULL,
   remove.estimates = NULL, group.pred = TRUE, p.numeric = TRUE,
-  emph.p = TRUE, p.kr = TRUE, separate.ci.col = TRUE, newline.ci = TRUE,
-  show.est = TRUE, show.std = NULL, show.ci = TRUE, show.se = FALSE,
-  show.header = FALSE, show.col.header = TRUE, show.r2 = TRUE,
-  show.icc = FALSE, show.re.var = FALSE, show.fstat = FALSE,
-  show.aic = FALSE, show.aicc = FALSE, show.dev = FALSE,
-  string.pred = "Predictors", string.dv = "Dependent Variables",
-  string.interc = "(Intercept)", string.obs = "Observations",
-  string.est = "B", string.std = "std. Beta", string.ci = "CI",
-  string.se = "std. Error", string.p = "p",
+  emph.p = TRUE, p.zero = FALSE, p.kr = TRUE, separate.ci.col = TRUE,
+  newline.ci = TRUE, show.est = TRUE, show.std = NULL, show.ci = TRUE,
+  show.se = FALSE, show.header = FALSE, show.col.header = TRUE,
+  show.r2 = TRUE, show.icc = FALSE, show.re.var = FALSE,
+  show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
+  show.dev = FALSE, string.pred = "Predictors",
+  string.dv = "Dependent Variables", string.interc = "(Intercept)",
+  string.obs = "Observations", string.est = "B", string.std = "std. Beta",
+  string.ci = "CI", string.se = "std. Error", string.p = "p",
   ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
   digits.std = 2, digits.p = 3, digits.ci = 2, digits.se = 2,
   digits.summary = 3, cell.spacing = 0.2, cell.gpr.indent = 0.6,
@@ -51,6 +51,10 @@ row is inserted to the table just before the predictor values.}
 as numbers. If \code{FALSE} (default), asterisks are used.}
 
 \item{emph.p}{logical, if \code{TRUE} (default), significant p-values are shown bold faced.}
+
+\item{p.zero}{logical, if \code{TRUE}, p-values have a leading 0 before the
+period (e.g. \emph{0.002}), else p-values start with a period and
+without a zero (e.g. \emph{.002}).}
 
 \item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional 
 F-tests with Kenward-Roger approximation for the df. Caution: Computation
@@ -93,7 +97,8 @@ effects for each model are printed in the model summary. Only applies to mixed m
 For details output, see 'Note' in \code{\link[sjstats]{icc}}.}
 
 \item{show.fstat}{If \code{TRUE}, the F-statistics for each model is printed
-in the model summary. Default is \code{FALSE}.}
+in the model summary. Default is \code{FALSE}. This argument does not apply to
+\code{\link{sjt.lmer}}.}
 
 \item{show.aic}{logical, if \code{TRUE}, the AIC value for each model is printed
 in the model summary. Default is \code{FALSE}.}
@@ -361,7 +366,8 @@ sjt.lm(fit1, fit2, fit4, fit3, show.std = TRUE, show.aic = TRUE,
                   css.modelcolumn3 = 'color:green;',
                   css.modelcolumn4 = 'color:#ffff00;',
                   css.modelcolumn5 = 'color:#777777;',
-                  css.modelcolumn6 = 'color:#3399cc;'))
+                  css.modelcolumn6 = 'color:#3399cc;',
+                  css.modelcolumn7 = 'color:#cc9933;'))
 
 sjt.lm(fit1, fit2, fit4, fit3, show.est = FALSE, show.std = TRUE,
        p.numeric = FALSE, group.pred = FALSE,

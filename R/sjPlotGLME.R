@@ -877,7 +877,7 @@ sjp.lme4  <- function(fit,
   # grouping estimates only for fixed effects
   # ---------------------------------------
   if ((type == "re" || type == "coef") && !is.null(group.estimates)) {
-    warning("`group.estimates` nor supported for random effects.", call. = F)
+    warning("`group.estimates` not supported for random effects.", call. = F)
     group.estimates <- NULL
   }
   # ---------------------------------------
@@ -919,29 +919,39 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # retrieve standard errors, for ci
       # ---------------------------------------
-      if (type == "coef") {
-        se.fit <- data.frame(t(sjstats::se(fit)[[lcnt]]))
-      } else {
-        se.fit <- arm::se.ranef(fit)[[lcnt]]
+      if (show.ci) {
+        if (type == "coef") {
+          se.fit <- data.frame(t(sjstats::se(fit)[[lcnt]]))
+        } else {
+          se.fit <- arm::se.ranef(fit)[[lcnt]]
+        }
       }
       # ---------------------------------------
       # select random effects for each coefficient
       # ---------------------------------------
-      for (i in 1:ncol(mydf.ef)) {
+      for (i in seq_len(ncol(mydf.ef))) {
         # ---------------------------------------
         # create data frame
         # 1. col: odds ratios /estimates of re-estimates
         # 2. col.: lower conf int
         # 3. col: upper conf int
         # ---------------------------------------
-        if (fun == "glm") {
-          tmp <- data.frame(estimate = exp(mydf.ef[, i]),
-                            conf.low = exp(mydf.ef[, i] - (1.96 * se.fit[, i])),
-                            conf.high = exp(mydf.ef[, i] + (1.96 * se.fit[, i])))
+        if (show.ci) {
+          if (fun == "glm") {
+            tmp <- data.frame(estimate = exp(mydf.ef[, i]),
+                              conf.low = exp(mydf.ef[, i] - (1.96 * se.fit[, i])),
+                              conf.high = exp(mydf.ef[, i] + (1.96 * se.fit[, i])))
+          } else {
+            tmp <- data.frame(estimate = mydf.ef[, i],
+                              conf.low = mydf.ef[, i] - (1.96 * se.fit[, i]),
+                              conf.high = mydf.ef[, i] + (1.96 * se.fit[, i]))
+          }
         } else {
-          tmp <- data.frame(estimate = mydf.ef[, i],
-                            conf.low = mydf.ef[, i] - (1.96 * se.fit[, i]),
-                            conf.high = mydf.ef[, i] + (1.96 * se.fit[, i]))
+          if (fun == "glm") {
+            tmp <- data.frame(estimate = exp(mydf.ef[, i]), conf.low = NA, conf.high = NA)
+          } else {
+            tmp <- data.frame(estimate = mydf.ef[, i], conf.low = NA, conf.high = NA)
+          }
         }
         # ---------------------------------------
         # set column names (variable / coefficient name)
@@ -951,7 +961,7 @@ sjp.lme4  <- function(fit,
         # ---------------------------------------
         # sort data frame. init order
         # ---------------------------------------
-        reihe <- c(1:nrow(tmp))
+        reihe <- seq_len(nrow(tmp))
         # ---------------------------------------
         # sorting requested?
         # ---------------------------------------
@@ -1019,12 +1029,8 @@ sjp.lme4  <- function(fit,
         mydf <- get_cleaned_ciMerMod(fit, fun)
       } else {
         if (type == "fe.std") {
-          tmpdf <- sjstats::std_beta(fit)
-          mydf <- data.frame(estimate = tmpdf$stdcoef,
-                             conf.low = tmpdf$stdcoef - (1.96 * tmpdf$stdse),
-                             conf.high = tmpdf$stdcoef + (1.96 * tmpdf$stdse))
-          # set default row names
-          rownames(mydf) <- names(lme4::fixef(fit))
+          mydf <- sjstats::std_beta(fit) %>% 
+            dplyr::select_("term", "std.estimate", "conf.low", "conf.high")
         } else {
           # get odds ratios and cleaned CI
           mydf <- get_cleaned_ciMerMod(fit, fun)
@@ -1042,7 +1048,7 @@ sjp.lme4  <- function(fit,
         ov <- exp(lme4::fixef(fit))
       } else {
         if (type == "fe.std") {
-          ov <- sjstats::std_beta(fit)$stdcoef
+          ov <- mydf$std.estimate
         } else {
           ov <- lme4::fixef(fit)
         }
@@ -1062,7 +1068,7 @@ sjp.lme4  <- function(fit,
       # p < 0.05 = *
       # ----------------------------
       if (show.p) {
-        for (i in 1:length(pv)) {
+        for (i in seq_len(length(pv))) {
           ps[i] <- sjmisc::trim(paste(ps[i], get_p_stars(pv[i])))
         }
       }
@@ -1072,11 +1078,11 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # set proper column names
       # ---------------------------------------
-      colnames(mydf) <- c("estimate", "conf.low", "conf.high", "p.string", "p.value")
+      colnames(mydf) <- c("term", "estimate", "conf.low", "conf.high", "p.string", "p.value")
       # ---------------------------------------
       # just one group, so no faceting needed
       # ---------------------------------------
-      mydf$grp <- c("1")
+      mydf$grp <- "1"
       facet.grid <- FALSE
       if (is.null(title)) title <- ifelse(type == "fe.std", "Standardized fixed effects", "Fixed effects")
       # ---------------------------------------
@@ -1107,13 +1113,9 @@ sjp.lme4  <- function(fit,
       # -------------------------------------------------
       if (!is.null(remove.estimates)) {
         # get row indices of rows that should be removed
-        remrows <- match(remove.estimates, row.names(mydf))
-        # remember old rownames
-        keepnames <- row.names(mydf)[-remrows]
+        remrows <- match(remove.estimates, mydf$term)
         # remove rows
-        mydf <- dplyr::slice(mydf, c(1:nrow(mydf))[-remrows])
-        # set back rownames
-        row.names(mydf) <- keepnames
+        mydf <- dplyr::slice(mydf, seq_len(nrow(mydf))[-remrows])
         # remove labels?
         if (!empty.axis.labels && length(axis.labels) > nrow(mydf))
           axis.labels <- axis.labels[-remrows]
@@ -1126,7 +1128,7 @@ sjp.lme4  <- function(fit,
         axis.labels <- suppressWarnings(retrieveModelLabels(list(fit), group.pred = FALSE))
         if (show.intercept) axis.labels <- c(string.interc, axis.labels)
         # check for correct length
-        if (length(axis.labels) != nrow(mydf)) axis.labels <- rownames(mydf)
+        if (length(axis.labels) != nrow(mydf)) axis.labels <- mydf$term
       } else {
         # check if intercept should be added, in case
         # axis.labels are passed
@@ -1135,7 +1137,7 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # sort data frame. init order
       # ---------------------------------------
-      reihe <- c(1:nrow(mydf))
+      reihe <- seq_len(nrow(mydf))
       # ---------------------------------------
       # just one sorting option, simply sort estimates
       # ---------------------------------------
@@ -1155,7 +1157,7 @@ sjp.lme4  <- function(fit,
     # ---------------------------------------
     if (!is.null(vars)) {
       # find estimates that should be removed
-      remes <- which(!is.na(match(rownames(mydf), vars)))
+      remes <- which(!is.na(match(mydf$term, vars)))
       # remove data rows for these estimates
       mydf <- mydf[remes, ]
       # also remove predictor labels
@@ -1169,12 +1171,12 @@ sjp.lme4  <- function(fit,
     if (length(axis.labels) != nrow(mydf) &&
         (length(axis.labels) != (nrow(mydf) / length(unique(mydf$grp))))) {
       warning("`axis.labels` has insufficient length. Using row names.", call. = F)
-      axis.labels <- row.names(mydf)[order(mydf$sorting)]
+      axis.labels <- mydf$term[order(mydf$sorting)]
     }
     # ---------------------------------------
     # discrete x position, needed for ggplot
     # ---------------------------------------
-    mydf$x <- as.factor(1:length(axis.labels))
+    mydf$x <- as.factor(seq_len(length(axis.labels)))
     # ---------------------------------------
     # set indicator whether or not non significant
     # odds ratios should be faded.
@@ -1209,15 +1211,11 @@ sjp.lme4  <- function(fit,
       # (whether grouped or not)
       # --------------------------------------------------------
       if (!is.null(group.estimates)) {
-        gp <- ggplot(mydf, aes(x = x,
-                               y = estimate,
-                               colour = grp,
-                               alpha = fade))
+        gp <- ggplot(mydf, aes_string(x = "x", y = "estimate",
+                                      colour = "grp", alpha = "fade"))
       } else {
-        gp <- ggplot(mydf, aes(x = x,
-                               y = estimate,
-                               colour = (estimate > interc),
-                               alpha = fade))
+        gp <- ggplot(mydf, aes(x = x, y = estimate, 
+                               colour = (estimate > interc), alpha = fade))
       }
       gp <- gp +
         # Intercept-line
@@ -1226,7 +1224,7 @@ sjp.lme4  <- function(fit,
                    color = vline.color) +
         geom_point(size = geom.size) +
         # print value labels and p-values
-        geom_text(aes(label = p.string, y = estimate), nudge_x = y.offset) +
+        geom_text(aes_string(label = "p.string", y = "estimate"), nudge_x = y.offset) +
         # ---------------------------------------
       # labels in sorted order
       # ---------------------------------------
@@ -1254,7 +1252,7 @@ sjp.lme4  <- function(fit,
       # hide error bars (conf int)?
       # ---------------------------------------
       if (show.ci)  gp <- gp +
-          geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0)
+          geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high"), width = 0)
       # ---------------------------------------
       # axis titles
       # ---------------------------------------
@@ -1340,7 +1338,7 @@ sjp.lme4  <- function(fit,
       # ---------------------------------------
       # iterate coefficients
       # ---------------------------------------
-      for (j in 1:length(groups)) {
+      for (j in seq_len(length(groups))) {
         me.plot <- plot.effe(mydf[mydf$grp == groups[j], ],
                              title[j],
                              NULL,
@@ -1367,12 +1365,6 @@ sjp.lme4  <- function(fit,
   }
   # me plot contains first of all plots...
   me.plot <- me.plot.list[[1]]
-  # -------------------------------------
-  # add term names
-  # -------------------------------------
-  if (type == "fe" || type == "fe.std") {
-    mydf <- tibble::rownames_to_column(mydf, var = "term")
-  }
   # -------------------------------------
   # return results
   # -------------------------------------
@@ -2078,6 +2070,7 @@ sjp.lme.fecor <- function(fit,
 
 #' @importFrom stats family model.frame na.omit
 #' @importFrom dplyr filter
+#' @importFrom sjstats pred_vars
 sjp.glm.eff <- function(fit,
                         title,
                         geom.size,
@@ -2102,7 +2095,10 @@ sjp.glm.eff <- function(fit,
   # ------------------------
   # Get link family and model frame
   # ------------------------
-  fitfram <- stats::model.frame(fit)
+  if (is_merMod(fit))
+    fitfram <- stats::model.frame(fit, fixed.only = TRUE)
+  else
+    fitfram <- stats::model.frame(fit)
   fitfam <- get_glm_family(fit)
   # --------------------------------------------------------
   # create logical for family
@@ -2110,9 +2106,11 @@ sjp.glm.eff <- function(fit,
   poisson_fam <- fitfam$is_pois
   binom_fam <- fitfam$is_bin
   # ------------------------
-  # retrieve all terms excluding intercept
+  # retrieve all terms and term name, excluding intercept,
+  # both as they appear as column name and as real variable name
   # ------------------------
   all.terms <- colnames(fitfram)[-1]
+  all.pred.names <- sjstats::pred_vars(fit)[seq_len(length(all.terms))]
   # ------------------------
   # Retrieve response for automatic title
   # ------------------------
@@ -2141,19 +2139,23 @@ sjp.glm.eff <- function(fit,
   # remove setimates?
   # ------------------------
   if (!is.null(remove.estimates)) {
-    remcols <- match(remove.estimates, all.terms)
+    remcols <- match(remove.estimates, all.pred.names)
     # remember old rownames
-    if (!sjmisc::is_empty(remcols))
+    if (!sjmisc::is_empty(remcols)) {
       all.terms <- all.terms[-remcols]
+      all.pred.names <- all.pred.names[-remcols]
+    }
   }
   # ------------------------
   # select specific setimates?
   # ------------------------
   if (!is.null(vars)) {
-    remcols <- match(vars, all.terms)
+    remcols <- match(vars, all.pred.names)
     # remember old rownames
-    if (!sjmisc::is_empty(remcols))
+    if (!sjmisc::is_empty(remcols)) {
       all.terms <- all.terms[remcols]
+      all.pred.names <- all.pred.names[remcols]
+    }
   }
   # ------------------------
   # prepare getting unique values of predictors,
@@ -2172,14 +2174,17 @@ sjp.glm.eff <- function(fit,
   # compute marginal effects for each model term
   # ------------------------
   eff <- effects::allEffects(fit, xlevels = xl, KR = FALSE, ...)
+  # remove spaces from model terms, required, because 'effects()' removes
+  # them, too, else we don't match the model term ("log(term + 1)" => "log(term+1)")
+  all.terms <- gsub(" ", "", all.terms, fixed = TRUE)
   # select specific terms only
-  eff <- eff[which(names(eff) %in% all.terms)]
+  eff <- eff[which(names(eff) %in% all.terms | names(eff) %in% all.pred.names)]
   # init final df
   mydat <- data.frame()
   # interaction term found?
   int.found <- FALSE
   # iterate all effects
-  for (i in 1:length(eff)) {
+  for (i in seq_len(length(eff))) {
     # get term, for which effects were calculated
     t <- eff[[i]]$term
     # check if we have interaction term
@@ -2225,7 +2230,8 @@ sjp.glm.eff <- function(fit,
       # -------------------------
       tmp$x <- sjmisc::to_value(tmp$x, keep.labels = F)
       # sort rows. we may need to do this if we have factors
-      tmp <- tmp[order(tmp$x), ]
+      # tmp <- tmp[order(tmp$x), ]
+      tmp$x <- sort(tmp$x)
       # get possible variable labels
       tmp$var.label <- sjmisc::get_label(fitfram[[t]], def.value = t)
       # do we already have data?
@@ -2245,7 +2251,7 @@ sjp.glm.eff <- function(fit,
     return(list(p = NULL, se = NULL))
   }
   # continuous numbering of row names
-  rownames(mydat) <- c(1:nrow(mydat))
+  rownames(mydat) <- seq_len(nrow(mydat))
   # ------------------------
   # tell user that interaction terms are ignored
   # ------------------------
@@ -2262,9 +2268,9 @@ sjp.glm.eff <- function(fit,
   # create plot
   # ------------------------
   if (facet.grid) {
-    eff.plot <- ggplot(mydat, aes(x = x, y = y))
+    eff.plot <- ggplot(mydat, aes_string(x = "x", y = "y"))
     # show confidence region?
-    if (show.ci) eff.plot <- eff.plot + geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .15)
+    if (show.ci) eff.plot <- eff.plot + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), alpha = .15)
     eff.plot <- eff.plot +
       geom_line(size = geom.size) +
       facet_wrap(~var.label, ncol = round(sqrt(grp.cnt)), scales = "free_x") +
@@ -2290,9 +2296,17 @@ sjp.glm.eff <- function(fit,
     for (i in unique(mydat$grp)) {
       # select subset
       mydat_sub <- dplyr::filter(mydat, grp == i)
-      eff.plot <- ggplot(mydat_sub, aes(x = x, y = y))
+      # check if is factor
+      x_is_factor <- anyNA(suppressWarnings(as.numeric(mydat_sub$label)))
+      # start plot
+      eff.plot <- ggplot(mydat_sub, aes_string(x = "x", y = "y"))
       # show confidence region?
-      if (show.ci) eff.plot <- eff.plot + geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .15)
+      if (show.ci) {
+        if (x_is_factor)
+          eff.plot <- eff.plot + geom_errorbar(aes_string(ymin = "lower", ymax = "upper"), width = 0)
+        else
+          eff.plot <- eff.plot + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), alpha = .15)
+      }
       eff.plot <- eff.plot +
         geom_line(size = geom.size) +
         labs(x = NULL, y = axisTitle.y, title = sprintf("Marginal effects of %s", mydat_sub$var.label[1]))
@@ -2330,7 +2344,7 @@ sjp.glm.eff <- function(fit,
       # ------------------------
       # continuous or discrete scale?
       # ------------------------
-      if (anyNA(suppressWarnings(as.numeric(mydat_sub$label)))) {
+      if (x_is_factor) {
         eff.plot <- eff.plot +
           scale_x_continuous(labels = mydat_sub$label, breaks = mydat_sub$x)
       }
@@ -2357,12 +2371,12 @@ sjp.glm.eff <- function(fit,
 #' @importFrom graphics plot
 sjp.glmer.ma <- function(fit) {
   m_f <- stats::model.frame(fit)
-  sjp.setTheme("scatterw")
+  set_theme("scatterw")
   gp <- ggplot(data.frame(x = stats::predict(fit),
                           y = stats::residuals(fit),
                           grp = as.factor(lme4::getME(fit, "y"))),
-               aes(x, y)) +
-    geom_point(aes(colour = grp), show.legend = F) +
+               aes_string(x = "x", y = "y")) +
+    geom_point(aes_string(colour = "grp"), show.legend = F) +
     geom_hline(yintercept = 0) +
     stat_smooth(method = "loess", se = T) +
     labs(title = "Residual plot (original model)",
@@ -2376,8 +2390,8 @@ sjp.glmer.ma <- function(fit) {
       mydat <- data.frame(x = m_f[[pr]],
                           y = stats::residuals(fit),
                           grp = as.factor(lme4::getME(fit, "y")))
-      gp <- ggplot(mydat, aes(x, y)) +
-        geom_point(aes(colour = grp), show.legend = F) +
+      gp <- ggplot(mydat, aes_string(x = "x", y = "y")) +
+        geom_point(aes_string(colour = "grp"), show.legend = F) +
         geom_hline(yintercept = 0) +
         stat_smooth(method = "loess", se = T) +
         labs(x = pr, y = "Residuals",
@@ -2389,6 +2403,8 @@ sjp.glmer.ma <- function(fit) {
 
 
 #' @importFrom lme4 fixef confint.merMod
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr select_ rename_
 get_cleaned_ciMerMod <- function(fit, fun, ci.only = FALSE) {
   # get odds ratios of fixed effects
   estimate <- lme4::fixef(fit)
@@ -2399,10 +2415,12 @@ get_cleaned_ciMerMod <- function(fit, fun, ci.only = FALSE) {
     mydf <- data.frame(cbind(estimate, CI))
   else
     mydf <- data.frame(exp(cbind(estimate, CI)))
+  # add rownames
+  mydf <- mydf %>% 
+    tibble::rownames_to_column(var = "term") %>% 
+    dplyr::rename_(.dots = list("conf.low" = "X2.5..", "conf.high" = "X97.5.."))
   # only return ci?
-  if (ci.only)
-    return(as.data.frame(CI))
-  else
-    # return df
-    return(mydf)
+  if (ci.only) mydf <- mydf %>% dplyr::select_("-estimate")
+  # return df
+  return(mydf)
 }
