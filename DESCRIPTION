@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.1.0
-Date: 2016-09-27
+Version: 2.1.1
+Date: 2016-11-01
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
@@ -24,6 +24,6 @@ URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-09-27 14:04:23 UTC; Standardbenutzer
+Packaged: 2016-10-31 10:32:26 UTC; Standardbenutzer
 Repository: CRAN
-Date/Publication: 2016-09-27 16:39:57
+Date/Publication: 2016-10-31 16:53:58

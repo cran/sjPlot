@@ -3,6 +3,36 @@ utils::globalVariables(c("Freq", "vif"))
 
 # Help-functions
 
+
+# evaluates arguments
+get_dot_data <- function(data, dots) {
+  # any dots?
+  if (length(dots) > 0)
+    # get variable names
+    vars <- dot_names(dots)
+  else
+    vars <- NULL
+  
+  # check if data is a data frame
+  if (is.data.frame(data)) {
+    # get valid variable names
+    vars <- vars[vars %in% colnames(data)]
+    vars.is.empty <- suppressWarnings(sjmisc::is_empty(vars))
+    if (!is.null(vars) && !vars.is.empty)
+      # select variables, if any
+      x <- data[, vars, drop = FALSE]
+    else
+      # else return complete data frame
+      x <- data
+  }
+    
+  x
+}
+
+# return names of objects passed as ellipses argument
+dot_names <- function(dots) unname(unlist(lapply(dots, as.character)))
+
+
 # function to create pretty breaks
 # for log-scales
 #' @importFrom grDevices axisTicks
@@ -44,7 +74,7 @@ get_lm_data <- function(fit) {
     depvar.label <- sjstats::resp_var(fit)
   }
   # get variable label label
-  depvar.label <- sjmisc::get_label(resp, depvar.label)
+  depvar.label <- unname(sjmisc::get_label(x = resp, def.value = depvar.label))
   return(list(matrix = fit_x, resp.label = depvar.label, resp = resp))
 }
 
@@ -484,7 +514,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
   # retrieve fitted models
   # ------------------------
   # go through fitted models
-  for (k in 1:length(models)) {
+  for (k in seq_len(length(models))) {
     # get model
     fit <- models[[k]]
     # copy model frame
@@ -716,59 +746,9 @@ unlistlabels <- function(lab) {
 
 get_model_response_label <- function(fit) {
   m_f <- stats::model.frame(fit)
-  sjmisc::get_label(m_f[[1]], def.value = colnames(m_f)[1])
+  unname(sjmisc::get_label(m_f[[1]], def.value = colnames(m_f)[1]))
 }
 
-
-#' @title Adjust y range of ggplot-objects
-#' @name adjust_plot_range
-#'
-#' @description This method adjusts the y-range of a ggplot-object, which is useful when
-#'                value labels are outside the plot region. A modified ggplot-object will
-#'                be returned with adjusted y-range so everything should be visible.
-#'                Note that this function only works on \code{scale_y_continuous}.
-#'
-#' @note This function only works on \code{scale_y_continuous}.
-#'
-#' @references \href{http://blog.ouseful.info/2013/12/03/setting-axis-limits-on-ggplot-charts/}{OUseful.Info (2013)}
-#'
-#' @param gp A ggplot-object. Usually, this will be returned by most of this
-#'          package's plotting functions.
-#' @param upper.mrgn Defines the new margin of the upper y-bound of the plot. This value will
-#'          be multiplied with \code{gp}'s current total y-range. Default is 1.05, which means
-#'          that the upper margin of the new plot's "visible" plot area will be increased
-#'          by 5 percent. (i.e. the y-range is 105 percent of the original range,
-#'          in order to make all object visible).
-#' @return The same ggplot-object, with adjusted y-range, so all graphics and labels
-#'          should be visible.
-#'
-#' @examples
-#' # sample data set
-#' library(sjmisc)
-#' data(efc)
-#' # show frequencies of relationship-variable and
-#' # retrieve plot object
-#' gp <- sjp.frq(efc$e15relat, prnt.plot = FALSE)
-#' # show current plot
-#' plot(gp$plot)
-#' # show adjusted plot
-#' adjust_plot_range(gp$plot)
-#'
-#' @import ggplot2
-#' @export
-adjust_plot_range <- function(gp, upper.mrgn=1.05) {
-  # retrieve y-range of original plot
-  gp <- gp + scale_y_continuous(limits = NULL)
-  # build ggplot object
-  gy <- ggplot_build(gp)
-  # calculate new limit
-  ylo <- abs(gy$panel$ranges[[1]]$y.range[1])
-  yhi <- abs(gy$panel$ranges[[1]]$y.range[2] * upper.mrgn)
-  # change y scale
-  gp <- gp + scale_y_continuous(expand = c(0, 0), limits = c(0, ylo + yhi))
-  # return plot
-  return(gp)
-}
 
 
 #' @importFrom stats reorder
