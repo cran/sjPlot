@@ -164,12 +164,14 @@ sjp.lmm <- function(...,
     # ----------------------------
     # retrieve beta's (lm)
     # ----------------------------
-    if (type == "std" || type == "std2") {
+    if (type %in% c("std", "std2")) {
       # retrieve standardized betas
       betas <- suppressWarnings(sjstats::std_beta(fit, type = type)) %>% 
         dplyr::select_("-std.error")
       # no intercept for std
       show.intercept <- FALSE
+      # remove intercept for merMod
+      if (is_merMod(fit)) betas <- betas[-1, ]
       # add "std." to title?
       if (axis.title == "Estimates") axis.title <- "Std. Estimates"
     } else {
@@ -180,9 +182,9 @@ sjp.lmm <- function(...,
         # copy estimates to data frame
         betas <- data.frame(stats::coef(fit), stats::confint(fit))
         betas <- tibble::rownames_to_column(betas, var = "term")
-        # show intercept?
-        if (!show.intercept) betas <- betas[-1, ]
       }
+      # show intercept?
+      if (!show.intercept) betas <- betas[-1, ]
     }
     # ----------------------------
     # give proper column names
@@ -193,7 +195,7 @@ sjp.lmm <- function(...,
     # ----------------------------
     # retrieve sigificance level of independent variables (p-values)
     pv <- sjstats::get_model_pval(fit, p.kr = p.kr)$p.value
-    #remove intercept from df
+    # remove intercept from df, if necessary
     if (!show.intercept) pv <- pv[-1]
     # for better readability, convert p-values to asterisks
     # with:
@@ -265,7 +267,7 @@ sjp.lmm <- function(...,
                                          stop = nchar(remove.estimates[re])) == remove.estimates[re]))
     }
     # remove rows
-    finalbetas <- dplyr::slice(finalbetas, c(1:nrow(finalbetas))[-remrows])
+    finalbetas <- dplyr::slice(finalbetas, seq_len(nrow(finalbetas))[-remrows])
   }
   # set axis labels
   if (is.null(axis.labels)) {
