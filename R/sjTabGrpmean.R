@@ -67,10 +67,14 @@ sjt.grpmean <- function(var.cnt,
   # --------------------------------------
   # set value and row labels
   # --------------------------------------
-  if (is.null(value.labels)) value.labels <- sjmisc::get_labels(var.grp,
-                                                          attr.only = F,
-                                                          include.values = NULL,
-                                                          include.non.labelled = T)
+  if (is.null(value.labels)) {
+    # first, drop unused labels
+    var.grp <- sjmisc::drop_labels(var.grp, drop.na = TRUE)
+    # now get valid value labels
+    value.labels <- sjmisc::get_labels(
+      var.grp, attr.only = F, include.values = NULL, include.non.labelled = T
+    )
+  }
   varGrpLabel <- sjmisc::get_label(var.grp, def.value = get_var_name(deparse(substitute(var.grp))))
   varCountLabel <- sjmisc::get_label(var.cnt, def.value = get_var_name(deparse(substitute(var.cnt))))
   # --------------------------------------
@@ -98,7 +102,7 @@ sjt.grpmean <- function(var.cnt,
   means.p <- sum.fit$coefficients[, 4]
   pval <- c()
   # convert means to apa style
-  for (i in 1:length(means.p)) {
+  for (i in seq_len(length(means.p))) {
     if (means.p[i] < 0.001) {
       pval <- c(pval, sprintf("&lt;%s.001", p_zero))
     } else {
@@ -113,7 +117,7 @@ sjt.grpmean <- function(var.cnt,
   # --------------------------------------
   # iterate all groups
   # --------------------------------------
-  for (i in 1:length(indices)) {
+  for (i in seq_len(length(indices))) {
     # --------------------------------------
     # do we have weighted means?
     # --------------------------------------

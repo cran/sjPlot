@@ -10,12 +10,17 @@
 #'              
 #' @param var.row variable that should be displayed in the table rows.
 #' @param var.col variable that should be displayed in the table columns.
+#' @param var.labels character vector with variable names, which will be used 
+#'          to label variables in the output.
 #' @param string.total label for the total column / row header
 #' @param show.cell.prc logical, if \code{TRUE}, cell percentage values are shown
 #' @param show.row.prc logical, if \code{TRUE}, row percentage values are shown
 #' @param show.col.prc logical, if \code{TRUE}, column percentage values are shown
 #' @param show.obs logical, if \code{TRUE}, observed values are shown
 #' @param show.exp logical, if \code{TRUE}, expected values are also shown
+#' @param show.summary logical, if \code{TRUE}, a summary row with 
+#'          chi-squared statistics, degrees of freedom and Cramer's V or Phi
+#'          coefficient and p-value for the chi-squared statistics.
 #' @param tdcol.n Color for highlighting count (observed) values in table cells. Default is black.
 #' @param tdcol.expected Color for highlighting expected values in table cells. Default is cyan.
 #' @param tdcol.cell Color for highlighting cell percentage values in table cells. Default is red.
@@ -315,11 +320,11 @@ sjt.xtab <- function(var.row,
   # -------------------------------------
   # table content
   # -------------------------------------
-  rowlabelcnt <- 1:length(labels.var.row)
+  rowlabelcnt <- seq_len(length(labels.var.row))
   # -------------------------------------
   # iterate all table data rows
   # -------------------------------------
-  for (irow in 1:totalnrow) {
+  for (irow in seq_len(totalnrow)) {
     # -------------------------------------
     # start new table row
     # -------------------------------------
@@ -341,7 +346,7 @@ sjt.xtab <- function(var.row,
     # -------------------------------------
     # iterate all data columns
     # -------------------------------------
-    for (icol in 1:totalncol) {
+    for (icol in seq_len(totalncol)) {
       cellstring <- ""
       # -------------------------------------
       # first table cell data contains observed values

@@ -106,9 +106,8 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #'          is added to the plot.
 #' @param show.ci logical, if \code{TRUE}, depending on \code{type}, a confidence
 #'          interval or region is added to the plot.
-#' @param scatter.plot logical, if \code{TRUE} (default), a scatter plot of
-#'          response and predictor values for each predictor of the model
-#'          is plotted. Only applies for slope-type plots.
+#' @param show.scatter logical, if \code{TRUE} (default), adds a scatter plot of
+#'          data points to the plot. Only applies for slope-type or predictions plots.
 #' @param legend.title character vector, used as title for the plot legend. Note that
 #'          only some plot types have legends (e.g. \code{type = "pred"} or when
 #'          grouping estimates with \code{group.estimates}).
@@ -119,6 +118,7 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' @inheritParams sjp.lmer
 #' @inheritParams sjp.aov1
 #' @inheritParams sjp.glmer
+#' @inheritParams sjp.int
 #'
 #' @references Gelman A (2008) "Scaling regression inputs by dividing by two standard deviations." \emph{Statistics in Medicine 27: 2865–2873.} \url{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}
 #'             \cr \cr
@@ -170,7 +170,7 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' sjp.lm(fit, type = "slope")
 #'
 #' # reression line w/o scatter plot
-#' sjp.lm(fit, type = "slope", scatter.plot = FALSE)
+#' sjp.lm(fit, type = "slope", show.scatter = FALSE)
 #'
 #' # --------------------------
 #' # plotting model assumptions
@@ -203,7 +203,8 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' library(sjmisc)
 #' data(efc)
 #' efc$education <- to_label(to_factor(efc$c172code))
-#' fit <- lm(barthtot ~ c160age + c12hour + e17age+ education,
+#' efc$gender <- to_label(to_factor(efc$c161sex))
+#' fit <- lm(barthtot ~ c160age + c12hour + e17age + gender + education,
 #'           data = efc)
 #'
 #' sjp.lm(fit, type = "pred", vars = "c160age")
@@ -218,6 +219,9 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' sjp.lm(fit, type = "pred", vars = c("c12hour", "education"),
 #'        facet.grid = FALSE)
 #' 
+#' # two groupings
+#' sjp.lm(fit, type = "pred", vars = c("c12hour", "gender", "education"))
+#' 
 #' # --------------------------
 #' # plotting polynomial terms
 #' # --------------------------
@@ -229,7 +233,7 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' # try to find appropiate polynomial. Grey line (loess smoothed)
 #' # indicates best fit. Looks like x^3 has a good fit.
 #' # (not checked for significance yet).
-#' sjp.poly(fit, "e17age", 2:4, scatter.plot = FALSE)
+#' sjp.poly(fit, "e17age", 2:4, show.scatter = FALSE)
 #' # fit new model
 #' fit <- lm(tot_sc_e ~ c12hour + e42dep +
 #'           e17age + I(e17age^2) + I(e17age^3),
@@ -266,8 +270,6 @@ sjp.lm <- function(fit,
                    resp.label = NULL,
                    geom.size = NULL,
                    geom.colors = "Set1",
-                   point.alpha = 0.2,
-                   scatter.plot = TRUE,
                    wrap.title = 50,
                    wrap.labels = 25,
                    axis.lim = NULL,
@@ -279,6 +281,10 @@ sjp.lm <- function(fit,
                    show.loess = FALSE,
                    show.loess.ci = FALSE,
                    show.summary = FALSE,
+                   show.scatter = TRUE,
+                   point.alpha = 0.2,
+                   point.color = NULL,
+                   jitter.ci = FALSE,
                    digits = 2,
                    vline.type = 2,
                    vline.color = "grey70",
@@ -295,7 +301,7 @@ sjp.lm <- function(fit,
   # -----------------------------------------------------------
   # check argument. No model-summary supported for plm-objects
   # -----------------------------------------------------------
-  if (any(class(fit) == "plm") || any(class(fit) == "pggls")) {
+  if (inherits(fit, c("plm", "pggls"))) {
     show.summary <- FALSE
     # -----------------------------------------------------------
     # check package availability if fit is plm-object
@@ -322,30 +328,31 @@ sjp.lm <- function(fit,
     if (geom.colors == "Set1") geom.colors <- NULL
     return(invisible(sjp.lm1(fit, title, wrap.title, axis.labels, resp.label,
                              wrap.labels, geom.colors, show.ci, point.alpha,
-                             scatter.plot, show.loess, show.loess.ci, show.summary,
+                             show.scatter, show.loess, show.loess.ci, show.summary,
                              useResiduals = ifelse(type == "lm", FALSE, TRUE),
-                             prnt.plot)))
+                             prnt.plot, ...)))
   }
   if (type == "slope" || type == "resid") {
     # reset default color setting, does not look that good.
     if (geom.colors == "Set1") geom.colors <- NULL
     return(invisible(sjp.reglin(fit, title, wrap.title, geom.colors, show.ci,
-                                point.alpha, scatter.plot, show.loess, show.loess.ci,
+                                point.alpha, show.scatter, show.loess, show.loess.ci,
                                 useResiduals = ifelse(type == "slope", FALSE, TRUE),
-                                remove.estimates, vars, ylim = axis.lim, prnt.plot)))
+                                remove.estimates, vars, ylim = axis.lim, prnt.plot, ...)))
   }
   if (type == "pred") {
     return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
                                    a.title = axis.title,
-                                   geom.colors, show.ci, geom.size, ylim = axis.lim,
-                                   facet.grid, type = "fe", show.loess, prnt.plot)))
+                                   geom.colors, show.ci, jitter.ci, geom.size, ylim = axis.lim,
+                                   facet.grid, type = "fe", show.scatter, point.alpha, 
+                                   point.color, show.loess, prnt.plot, ...)))
   }
   if (type == "poly") {
     return(invisible(sjp.lm.poly(fit, poly.term, geom.colors, geom.size, axis.title,
                                  show.ci, prnt.plot)))
   }
   if (type == "eff") {
-    return(invisible(sjp.glm.eff(fit, title, geom.size, remove.estimates, vars,
+    return(invisible(sjp.glm.eff(fit, title, axis.title, geom.size, remove.estimates, vars,
                                  show.ci, ylim = axis.lim, facet.grid,
                                  fun = "lm", prnt.plot, ...)))
   }
@@ -575,18 +582,23 @@ sjp.reglin <- function(fit,
                        geom.colors = NULL,
                        show.ci = TRUE,
                        point.alpha = 0.2,
-                       scatter.plot = TRUE,
+                       show.scatter = TRUE,
                        show.loess = TRUE,
                        show.loess.ci = FALSE,
                        useResiduals = FALSE,
                        remove.estimates = NULL,
                        vars = NULL,
                        ylim = NULL,
-                       prnt.plot = TRUE) {
+                       prnt.plot = TRUE,
+                       ...) {
   # -----------------------------------------------------------
   # check argument
   # -----------------------------------------------------------
   geom.colors <- col_check(geom.colors, show.loess)
+  # ---------------------------------------
+  # get ...-arguments
+  # ---------------------------------------
+  dot.args <- get_dot_args(match.call(expand.dots = FALSE)$`...`)
   # -----------------------------------------------------------
   # set color defaults
   # -----------------------------------------------------------
@@ -654,19 +666,21 @@ sjp.reglin <- function(fit,
     # plot regression line and confidence intervall
     # -----------------------------------------------------------
     reglinplot <- ggplot(mydat, aes_string(x = "x", y = "y")) +
-      stat_smooth(method = "lm", se = show.ci, colour = lineColor)
+      stat_smooth(method = "lm", se = show.ci, colour = lineColor, 
+                  fill = lineColor, alpha = dot.args[["ci.alpha"]], level = dot.args[["ci.lvl"]])
     # -----------------------------------------------------------
     # plot jittered values if requested
     # -----------------------------------------------------------
-    if (scatter.plot) {
-      reglinplot <- reglinplot + geom_jitter(alpha = point.alpha, colour = pointColor)
+    if (show.scatter) {
+      reglinplot <- reglinplot + geom_jitter(alpha = point.alpha, colour = pointColor, shape = 16)
     }
     # -----------------------------------------------------------
     # check whether additional loess-line should be plotted
     # -----------------------------------------------------------
     if (show.loess) {
       reglinplot <- reglinplot +
-        stat_smooth(method = "loess", se = show.loess.ci, colour = loessLineColor)
+        stat_smooth(method = "loess", se = show.loess.ci, 
+                    colour = loessLineColor, alpha = dot.args[["ci.alpha"]], level = dot.args[["ci.lvl"]])
     }
     # -----------------------------------------------------------
     # set plot labs
@@ -781,7 +795,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # ---------------------------------
   # remove outliers, only non-mixed models
   # ---------------------------------
-  if (any(class(linreg) == "lm")) {
+  if (inherits(linreg, "lm")) {
     # get r2
     rs <- summary(model)$r.squared
     # maximum loops
@@ -854,7 +868,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   set_theme("scatterw")
   # qq-plot of studentized residuals for base model
   # mixed model model?
-  if (any(class(linreg) == "lme") || any(class(linreg) == "lmerMod")) {
+  if (inherits(linreg, c("lme", "lmerMod"))) {
     res_ <- sort(stats::residuals(linreg), na.last = NA)
     y_lab <- "Residuals"
   } else {
@@ -866,7 +880,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # create data frame
   mydf <- na.omit(data.frame(x = fitted_, y = res_))
   # plot it
-  p1 <- ggplot(mydf, aes(x = x, y = y)) +
+  p1 <- ggplot(mydf, aes_string(x = "x", y = "y")) +
            geom_point() +
            scale_colour_manual(values = c("#0033cc", "#993300")) +
            stat_smooth(method = "lm", se = FALSE) +
@@ -935,7 +949,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
   # ---------------------------------
   # summarize old and new model
   # ---------------------------------
-  if (any(class(linreg) == "lm")) {
+  if (inherits(linreg, "lm")) {
     set_theme("forestw")
     p1 <- sjp.lm(linreg, prnt.plot = FALSE)$plot
     # save plot
@@ -949,7 +963,7 @@ sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
       set_theme("scatterw")
       p1 <- sjp.reglin(linreg,
                        title = "Relationship of residuals against predictors (if scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
-                       wrap.title = 60, useResiduals = T)$plot.list
+                       wrap.title = 60, useResiduals = T, alpha = .15)$plot.list
       # save plot
       plot.list <- c(plot.list, p1)
       # ---------------------------------
@@ -989,16 +1003,21 @@ sjp.lm1 <- function(fit,
                    geom.colors = NULL,
                    show.ci=TRUE,
                    point.alpha=0.2,
-                   scatter.plot=TRUE,
+                   show.scatter=TRUE,
                    show.loess=FALSE,
                    show.loess.ci=FALSE,
                    show.summary=TRUE,
                    useResiduals=FALSE,
-                   prnt.plot=TRUE) {
+                   prnt.plot=TRUE,
+                   ...) {
   # -----------------------------------------------------------
   # check argument
   # -----------------------------------------------------------
   geom.colors <- col_check(geom.colors, show.loess)
+  # ---------------------------------------
+  # get ...-argument, and check if it was "alpha"
+  # ---------------------------------------
+  dot.args <- get_dot_args(match.call(expand.dots = FALSE)$`...`)
   # -----------------------------------------------------------
   # set color defaults
   # -----------------------------------------------------------
@@ -1073,17 +1092,20 @@ sjp.lm1 <- function(fit,
   # -----------------------------------------------------------
   # plot regression line and confidence intervall
   # -----------------------------------------------------------
-  reglinplot <- ggplot(mydat,
-                       aes(x = x, y = y)) +
+  reglinplot <- ggplot(mydat, aes_string(x = "x", y = "y")) +
     stat_smooth(method = "lm",
                 se = show.ci,
-                colour = lineColor)
+                colour = lineColor,
+                fill = lineColor,
+                alpha = dot.args[["ci.alpha"]],
+                level = dot.args[["ci.lvl"]])
   # -----------------------------------------------------------
   # plot jittered values if requested
   # -----------------------------------------------------------
-  if (scatter.plot) {
+  if (show.scatter) {
     reglinplot <- reglinplot + geom_jitter(alpha = point.alpha,
-                                           colour = pointColor)
+                                           colour = pointColor,
+                                           shape = 16)
   }
   # -----------------------------------------------------------
   # check whether additional loess-line should be plotted
@@ -1092,7 +1114,9 @@ sjp.lm1 <- function(fit,
     reglinplot <- reglinplot +
       stat_smooth(method = "loess",
                   se = show.loess.ci,
-                  colour = loessLineColor)
+                  colour = loessLineColor,
+                  alpha = dot.args[["ci.alpha"]],
+                  level = dot.args[["ci.lvl"]])
   }
   # -----------------------------------------------------------
   # set plot labs
@@ -1209,9 +1233,9 @@ sjp.lm.poly <- function(fit,
                       lower = eff$lower,
                       upper = eff$upper)
   # base plot
-  polyplot <- ggplot(mydat, aes(x = x, y = y))
+  polyplot <- ggplot(mydat, aes_string(x = "x", y = "y"))
   # show confidence region?
-  if (show.ci) polyplot <- polyplot + geom_ribbon(aes(ymin = lower, ymax = upper), alpha = .15)
+  if (show.ci) polyplot <- polyplot + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), alpha = .15)
   # plot predicted effect of polynomial term
   polyplot <- polyplot +
     geom_line(colour = geom.colors[1], size = geom.size) +
@@ -1227,10 +1251,10 @@ sjp.lm.poly <- function(fit,
 
 get_lm_pvalues <- function(fit, include.intercept = TRUE) {
   # retrieve sigificance level of independent variables (p-values)
-  if (any(class(fit) == "pggls")) {
+  if (inherits(fit, "pggls")) {
     p <- summary(fit)$CoefTable[, 4]
     se <- summary(fit)$CoefTable[, 2]
-  } else if (any(class(fit) == "gls")) {
+  } else if (inherits(fit, "gls")) {
     p <- summary(fit)$tTable[, 4]
     se <- summary(fit)$tTable[, 2]
   } else {

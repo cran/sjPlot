@@ -11,7 +11,8 @@ sjp.glm(fit, type = "dots", vars = NULL, group.estimates = NULL,
   wrap.labels = 25, axis.lim = NULL, grid.breaks = 0.5,
   trns.ticks = TRUE, show.intercept = FALSE, show.values = TRUE,
   show.p = TRUE, show.ci = FALSE, show.legend = FALSE,
-  show.summary = FALSE, digits = 2, vline.type = 2,
+  show.summary = FALSE, show.scatter = TRUE, point.alpha = 0.2,
+  point.color = NULL, jitter.ci = FALSE, digits = 2, vline.type = 2,
   vline.color = "grey70", coord.flip = TRUE, y.offset = 0.15,
   facet.grid = TRUE, prnt.plot = TRUE, ...)
 }
@@ -30,9 +31,8 @@ sjp.glm(fit, type = "dots", vars = NULL, group.estimates = NULL,
 
 \item{vars}{numeric vector with column indices of selected variables or a character vector with
 variable names of selected variables from the fitted model, which should be used to plot
-estimates, fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability or
-incidents curves
-(for \code{\link[lme4]{glmer}}) of random intercepts.}
+- depending on \code{type} - estimates, fixed effects slopes or predicted values 
+(mean, probabilities, incidents rates, ...). See 'Examples'.}
 
 \item{group.estimates}{numeric or character vector, indicating a group identifier for
 each estimate. Dots and confidence intervals of estimates are coloured
@@ -48,7 +48,9 @@ If \code{group.estimates} is \emph{not} \code{NULL}, estimates are sorted
 according to their group assignment.}
 
 \item{title}{character vector, used as plot title. Depending on plot type and function,
-will be set automatically. If \code{title = ""}, no title is printed.}
+will be set automatically. If \code{title = ""}, no title is printed.
+For effect-plots, may also be a character vector of length > 1,
+to define titles for each sub-plot or facet.}
 
 \item{legend.title}{character vector, used as title for the plot legend. Note that
 only some plot types have legends (e.g. \code{type = "pred"} or when
@@ -112,6 +114,19 @@ function, a legend is added to the plot.}
 \item{show.summary}{logical, if \code{TRUE}, a summary with model statistics 
 is added to the plot.}
 
+\item{show.scatter}{logical, if \code{TRUE} (default), adds a scatter plot of
+data points to the plot. Only applies for slope-type or predictions plots.}
+
+\item{point.alpha}{alpha value of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{point.color}{color of of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{jitter.ci}{logical, if \code{TRUE} and \code{show.ci = TRUE} and confidence
+bands are displayed as error bars, adds jittering to lines and error bars
+to avoid overlapping.}
+
 \item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{vline.type}{linetype of the vertical "zero point" line. Default is \code{2} (dashed line).}
@@ -132,8 +147,17 @@ as an arranged grid with \code{\link[gridExtra]{grid.arrange}}.}
 \item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 
-\item{...}{other arguments, passed down to the \code{\link[effects]{effect}} resp. 
-\code{\link[effects]{allEffects}} function when \code{type = "eff"}.}
+\item{...}{other arguments passed down to further functions. Currently, following
+arguments are supported:
+\describe{
+  \item{\code{?effects::effect}}{
+    Any arguments accepted by the \code{\link[effects]{effect}} resp. 
+    \code{\link[effects]{allEffects}} function, for \code{type = "eff"}.
+  }
+  \item{\code{width}}{The \code{width}-argument for error bars.}
+  \item{\code{alpha}}{The \code{alpha}-argument for confidence bands.}
+  \item{\code{level}}{The \code{level}-argument confidence bands.}
+}}
 }
 \value{
 (Insisibily) returns, depending on the plot type
@@ -194,7 +218,7 @@ data(efc)
 y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
 # create data frame for fitted model
 mydf <- data.frame(y = as.factor(y),
-                   sex = efc$c161sex,
+                   sex = to_factor(efc$c161sex),
                    dep = to_factor(efc$e42dep),
                    barthel = efc$barthtot,
                    education = to_factor(efc$c172code))
@@ -214,7 +238,7 @@ sjp.glm(fit,  group.estimates = c(1, 2, 2, 2, 3, 4, 4))
 
 # --------------------------
 # model predictions, with selected model terms.
-# 'vars' needs to be a character vector of length 1 or 2
+# 'vars' needs to be a character vector of length 1 to 3
 # with names of model terms for x-axis and grouping factor.
 # --------------------------
 sjp.glm(fit, type = "pred", vars = "barthel")
@@ -222,6 +246,8 @@ sjp.glm(fit, type = "pred", vars = "barthel")
 sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), show.ci = TRUE)
 # w/o facets
 sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), facet.grid = FALSE)
+# with third grouping variable - this type automatically uses grid layout
+sjp.glm(fit, type = "pred", vars = c("barthel", "sex", "education"))
 
 }
 \seealso{

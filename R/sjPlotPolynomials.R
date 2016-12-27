@@ -30,7 +30,6 @@
 #' @param show.p logical, if \code{TRUE} (default), p-values for polynomial terms are
 #'          printed to the console.
 #' @param loess.color color of the loess-smoothed line. Only applies, if \code{show.loess = TRUE}.
-#' @param point.color color of the scatter plot's point. Only applies, if \code{scatter.plot = TRUE}.
 #' @return (insisibily) returns 
 #'           \describe{
 #'            \item{\code{plot}}{the ggplot-object with the complete plot}
@@ -71,19 +70,19 @@
 #' sjp.poly(efc$c160age, efc$quol_5, 2)
 #' 
 #' # linear to cubic fit
-#' sjp.poly(efc$c160age, efc$quol_5, 1:4, scatter.plot = FALSE)
+#' sjp.poly(efc$c160age, efc$quol_5, 1:4, show.scatter = FALSE)
 #' 
 #' library(sjmisc)
 #' data(efc)
 #' # fit sample model
 #' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
 #' # inspect relationship between predictors and response
-#' sjp.lm(fit, type = "slope", show.loess = TRUE, scatter.plot = FALSE)
+#' sjp.lm(fit, type = "slope", show.loess = TRUE, show.scatter = FALSE)
 #' # "e17age" does not seem to be linear correlated to response
 #' # try to find appropiate polynomial. Grey line (loess smoothed)
 #' # indicates best fit. Looks like x^4 has the best fit,
 #' # however, only x^3 has significant p-values.
-#' sjp.poly(fit, "e17age", 2:4, scatter.plot = FALSE)
+#' sjp.poly(fit, "e17age", 2:4, show.scatter = FALSE)
 #' 
 #' \dontrun{
 #' # fit new model
@@ -102,15 +101,15 @@ sjp.poly <- function(x,
                      poly.scale = FALSE,
                      fun = NULL,
                      axis.title = NULL,
-                     scatter.plot = TRUE,
+                     geom.colors = NULL,
+                     geom.size = .8,
                      show.loess = TRUE,
                      show.loess.ci = TRUE,
                      show.p = TRUE,
-                     geom.colors = NULL,
-                     geom.size = .8,
-                     loess.color = "#808080",
-                     point.color = "#404040",
+                     show.scatter = TRUE,
                      point.alpha = .2,
+                     point.color = "#404040",
+                     loess.color = "#808080",
                      prnt.plot = TRUE) {
   # --------------------------------------------
   # check color parameter
@@ -133,7 +132,7 @@ sjp.poly <- function(x,
     mf <- stats::model.frame(x)
     # retrieve polynomial term
     poly.term <- mf[[poly.term]]
-  } else if (any(class(x) == "lm") || any(class(x) == "glm")) {
+  } else if (inherits(x, c("lm", "glm"))) {
     # get model frame
     mf <- stats::model.frame(x)
     # retrieve response vector
@@ -194,7 +193,7 @@ sjp.poly <- function(x,
       # prepare output string
       p.out <- sprintf("Polynomial degrees: %.*f\n---------------------\n", poly.digit, i)
       # iterate polynomial terms and print p-value for each polynom
-      for (j in 1:i) p.out <- paste0(p.out, sprintf("p(x^%i): %.3f\n", j, unname(pvals[j])))
+      for (j in seq_len(i)) p.out <- paste0(p.out, sprintf("p(x^%i): %.3f\n", j, unname(pvals[j])))
       # add separator line after each model
       p.out <- paste0(p.out, "\n")
       # print p-values for fitted model
@@ -204,9 +203,10 @@ sjp.poly <- function(x,
   # name df
   colnames(plot.df) <- c("x","y", "pred", "grp")
   # create plot
-  polyplot <- ggplot(plot.df, aes(x, y, colour = grp))
+  polyplot <- ggplot(plot.df, aes_string(x = "x", y = "y", colour = "grp"))
   # show scatter plot as well?
-  if (scatter.plot) polyplot <- polyplot + geom_jitter(colour = point.color, alpha = point.alpha)
+  if (show.scatter) polyplot <- polyplot + 
+    geom_jitter(colour = point.color, alpha = point.alpha, shape = 16)
   # show loess curve? this curve indicates the "perfect" curve through
   # the data
   if (show.loess) polyplot <- polyplot + stat_smooth(method = "loess", 
@@ -215,7 +215,7 @@ sjp.poly <- function(x,
                                                     size = geom.size)
   # add curves for polynomials
   polyplot <- polyplot + 
-    geom_line(aes(y = pred), size = geom.size) + 
+    geom_line(aes_string(y = "pred"), size = geom.size) + 
     scale_color_manual(values = geom.colors, labels = lapply(poly.degree, function(j) bquote(x^.(j)))) +
     labs(x = axis.title, y = axisTitle.y, colour = "Polynomial\ndegrees")
   # ---------------------------------------------------------

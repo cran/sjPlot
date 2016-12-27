@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.1.2
-Date: 2016-11-13
+Version: 2.2.0
+Date: 2016-12-16
 Author: Daniel Lüdecke <d.luedecke@uke.de>
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
@@ -14,16 +14,17 @@ Description: Collection of plotting and table output functions for data
     plots, Likert scales, effects plots of regression models (including interaction
     terms) and much more. This package supports labelled data.
 License: GPL-3
-Depends: R (>= 3.2), graphics, grDevices, methods, stats, utils
+Depends: R (>= 3.3), graphics, grDevices, methods, stats, utils
 Imports: broom (>= 0.4.1), dplyr (>= 0.5.0), effects, ggplot2 (>=
-        2.2.0), lme4 (>= 1.1-10), nlme, psych, scales, sjmisc (>=
-        2.0.1), sjstats (>= 0.6.0), tibble (>= 1.2.0), tidyr (>= 0.6.0)
+        2.2.0), lme4 (>= 1.1-10), merTools (>= 0.3.0), modelr, nlme,
+        psych, purrr, scales, sjmisc (>= 2.2.0), sjstats (>= 0.7.1),
+        tibble (>= 1.2.0), tidyr (>= 0.6.0)
 Suggests: AICcmodavg, arm, car, cluster, gridExtra, ggrepel, lmerTest,
         lmtest, lsmeans, MASS
 URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: no
-Packaged: 2016-11-12 19:42:41 UTC; Standardbenutzer
+Packaged: 2016-12-26 14:17:15 UTC; danielludecke
 Repository: CRAN
-Date/Publication: 2016-11-12 21:41:39
+Date/Publication: 2016-12-27 11:58:46

@@ -1,5 +1,5 @@
 # bind global variables
-utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
+utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est", "ci.low", "ci.high"))
 
 
 #' @title Plot estimates, predictions or effects of generalized linear models
@@ -36,6 +36,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.aov1
 #' @inheritParams sjp.glmer
+#' @inheritParams sjp.int
 #' 
 #' @return (Insisibily) returns, depending on the plot type
 #'          \itemize{
@@ -88,7 +89,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
 #' y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
 #' # create data frame for fitted model
 #' mydf <- data.frame(y = as.factor(y),
-#'                    sex = efc$c161sex,
+#'                    sex = to_factor(efc$c161sex),
 #'                    dep = to_factor(efc$e42dep),
 #'                    barthel = efc$barthtot,
 #'                    education = to_factor(efc$c172code))
@@ -108,7 +109,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
 #'
 #' # --------------------------
 #' # model predictions, with selected model terms.
-#' # 'vars' needs to be a character vector of length 1 or 2
+#' # 'vars' needs to be a character vector of length 1 to 3
 #' # with names of model terms for x-axis and grouping factor.
 #' # --------------------------
 #' sjp.glm(fit, type = "pred", vars = "barthel")
@@ -116,6 +117,8 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est"))
 #' sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), show.ci = TRUE)
 #' # w/o facets
 #' sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), facet.grid = FALSE)
+#' # with third grouping variable - this type automatically uses grid layout
+#' sjp.glm(fit, type = "pred", vars = c("barthel", "sex", "education"))
 #' 
 #' @import ggplot2
 #' @importFrom stats na.omit coef confint logLik
@@ -143,6 +146,10 @@ sjp.glm <- function(fit,
                     show.ci = FALSE,
                     show.legend = FALSE,
                     show.summary = FALSE,
+                    show.scatter = TRUE,
+                    point.alpha = 0.2,
+                    point.color = NULL,
+                    jitter.ci = FALSE,
                     digits = 2,
                     vline.type = 2,
                     vline.color = "grey70",
@@ -154,7 +161,7 @@ sjp.glm <- function(fit,
   # check args -----
   if (type == "pc" || type == "prob") type <- "slope"
 
-  if (any(class(fit) == "logistf")) {
+  if (inherits(fit, "logistf")) {
     # no model summary currently supported for logistf class
     show.summary <- FALSE
     # create "dummy" variable, to avoid errors
@@ -172,18 +179,20 @@ sjp.glm <- function(fit,
   # check plot-type -----
   if (type == "slope") {
     return(invisible(sjp.glm.slope(fit, title, geom.size, geom.colors, remove.estimates, vars,
-                                   ylim = axis.lim, show.ci, facet.grid, prnt.plot)))
+                                   ylim = axis.lim, show.ci, facet.grid, show.scatter,
+                                   point.alpha, prnt.plot)))
   }
   if (type == "eff") {
-    return(invisible(sjp.glm.eff(fit, title, geom.size, remove.estimates, vars,
+    return(invisible(sjp.glm.eff(fit, title, axis.title, geom.size, remove.estimates, vars,
                                  show.ci, ylim = axis.lim, facet.grid, fun = "glm", 
                                  prnt.plot, ...)))
   }
   if (type == "pred") {
     return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
                                    a.title = axis.title,
-                                   geom.colors, show.ci, geom.size, ylim = axis.lim,
-                                   facet.grid, type = "fe", show.loess = F, prnt.plot)))
+                                   geom.colors, show.ci, jitter.ci, geom.size, ylim = axis.lim,
+                                   facet.grid, type = "fe", show.scatter, point.alpha, 
+                                   point.color, show.loess = F, prnt.plot, ...)))
   }
   if (type == "ma") {
     return(invisible(sjp.glm.ma(fit)))
@@ -480,15 +489,19 @@ sjp.glm <- function(fit,
 
 #' @importFrom stats predict coef formula model.frame
 sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, vars,
-                          ylim, show.ci, facet.grid, prnt.plot) {
+                          ylim, show.ci, facet.grid, show.scatter = FALSE, point.alpha = .2, prnt.plot) {
   # check size argument
   if (is.null(geom.size)) geom.size <- .7
   # check geom-color argument
-  geom.colors <- col_check2(geom.colors, 1)
+  geom.colors <- col_check2(geom.colors, ifelse(isTRUE(show.scatter), 2, 1))
+  # ---------------------------------------
+  # get ...-argument, and check if it was "width"
+  # ---------------------------------------
+  dot.args <- get_dot_args(match.call(expand.dots = FALSE)$`...`)
   # ----------------------------
   # do we have mermod object?
   # ----------------------------
-  isMerMod <- any(class(fit) == "glmerMod")
+  isMerMod <- inherits(fit, "glmerMod")
   # ----------------------------
   # prepare additional plots, when metric
   # predictors should also be plotted
@@ -595,6 +608,11 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
         axisLabels.mp <- c(axisLabels.mp, pred.name)
         # assign group
         mydf.vals$grp <- pred.name
+        # now copy original values for response and predictor,
+        # so we can also plot a scatter plot
+        mydf.vals$resp.y <- sjmisc::to_value(resp, start.at = 0, keep.labels = F)
+        if (is.factor(values)) values <- sjmisc::to_value(values, start.at = 0, keep.labels = F)
+        mydf.vals$coef.x <- values
         # add mydf to list
         mydf.metricpred[[length(mydf.metricpred) + 1]] <- mydf.vals
       }
@@ -632,32 +650,59 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
       # check axis limits
       # ------------------------------
       if (is.null(ylim)) {
-        y.limits <- c(as.integer(floor(10 * min(mydf.metricpred[[i]]$y, na.rm = T) * .9)) / 10,
-                      as.integer(ceiling(10 * max(mydf.metricpred[[i]]$y, na.rm = T) * 1.1)) / 10)
+        # if we have a scatter plot, we need to take the y-values from the
+        # original response as range, else just the y-values from the predictions...
+        if (show.scatter) {
+          # ... except for binomial models. here we have a response vector with
+          # 0 and 1, so the limits are 0 and 1
+          if (binom_fam) {
+            y.limits <- c(0, 1)
+          } else {
+            y.limits <- c(as.integer(floor(10 * min(mydf.metricpred[[i]]$resp.y, na.rm = T) * .9)) / 10,
+                          as.integer(ceiling(10 * max(mydf.metricpred[[i]]$resp.y, na.rm = T) * 1.1)) / 10)
+          }
+        } else {
+          y.limits <- c(as.integer(floor(10 * min(mydf.metricpred[[i]]$y, na.rm = T) * .9)) / 10,
+                        as.integer(ceiling(10 * max(mydf.metricpred[[i]]$y, na.rm = T) * 1.1)) / 10)
+        }
       } else {
         y.limits <- ylim
       }
       # create single plots for each numeric predictor
       mp <- ggplot(mydf.metricpred[[i]], aes_string(x = "values", y = "y")) +
         labs(x = axisLabels.mp[i], y = y.title, title = title)
+      
+      # plot jittered values if requested
+      if (show.scatter)
+        mp <- mp + geom_jitter(aes_string(x = "coef.x", y = "resp.y"),
+                               alpha = point.alpha, colour = geom.colors[2], shape = 16,
+                               position = position_jitter(width = .1, height = .1))
+      
       # special handling for negativ binomial
       if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = "poisson"), 
                       se = show.ci,
+                      level = dot.args[["ci.lvl"]],
+                      alpha = dot.args[["ci.alpha"]],
                       size = geom.size,
-                      colour = geom.colors)
+                      colour = geom.colors[1])
       } else {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = fitfam$family), 
                       se = show.ci,
+                      level = dot.args[["ci.lvl"]],
+                      alpha = dot.args[["ci.alpha"]],
                       size = geom.size,
-                      colour = geom.colors)
+                      colour = geom.colors[1])
       }
       # y-limits
       mp <- mp + coord_cartesian(ylim = y.limits)
+      # for logistic regression, use percentage scale
+      if (binom_fam)
+        mp <- mp + scale_y_continuous(labels = scales::percent)
       # add plot to list
       plot.metricpred[[length(plot.metricpred) + 1]] <- mp
     }
@@ -667,28 +712,52 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
       # check axis limits
       # ------------------------------
       if (is.null(ylim)) {
-        y.limits <- c(as.integer(floor(10 * min(mydf.ges$y, na.rm = T) * .9)) / 10,
-                      as.integer(ceiling(10 * max(mydf.ges$y, na.rm = T) * 1.1)) / 10)
+        # if we have a scatter plot, we need to take the y-values from the
+        # original response as range, else just the y-values from the predictions...
+        if (show.scatter) {
+          # ... except for binomial models. here we have a response vector with
+          # 0 and 1, so the limits are 0 and 1
+          if (binom_fam) {
+            y.limits <- c(0, 1)
+          } else {
+            y.limits <- c(as.integer(floor(10 * min(mydf.ges$resp.y, na.rm = T) * .9)) / 10,
+                          as.integer(ceiling(10 * max(mydf.ges$resp.y, na.rm = T) * 1.1)) / 10)
+          }
+        } else {
+          y.limits <- c(as.integer(floor(10 * min(mydf.ges$y, na.rm = T) * .9)) / 10,
+                        as.integer(ceiling(10 * max(mydf.ges$y, na.rm = T) * 1.1)) / 10)
+        }
       } else {
         y.limits <- ylim
       }
       mp <- ggplot(mydf.ges, aes_string(x = "values", y = "y")) +
         labs(x = NULL, y = y.title, title = title)
+      
+      # plot jittered values if requested
+      if (show.scatter)
+        mp <- mp + geom_jitter(aes_string(x = "coef.x", y = "resp.y"),
+                               alpha = point.alpha, colour = geom.colors[2], shape = 16,
+                               position = position_jitter(width = .1, height = .1))
+
       # special handling for negativ binomial
       if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = "poisson"), 
                       se = show.ci,
+                      level = dot.args[["ci.lvl"]],
+                      alpha = dot.args[["ci.alpha"]],
                       size = geom.size,
-                      colour = geom.colors)
+                      colour = geom.colors[1])
       } else {
         mp <- mp +
           stat_smooth(method = "glm", 
                       method.args = list(family = fitfam$family), 
+                      level = dot.args[["ci.lvl"]],
+                      alpha = dot.args[["ci.alpha"]],
                       se = show.ci,
                       size = geom.size,
-                      colour = geom.colors)
+                      colour = geom.colors[1])
       }
       mp <- mp +
         facet_wrap(~grp,
@@ -697,6 +766,9 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
         guides(colour = FALSE)
       # y-limits
       mp <- mp + coord_cartesian(ylim = y.limits)
+      # for logistic regression, use percentage scale
+      if (binom_fam)
+        mp <- mp + scale_y_continuous(labels = scales::percent)
       # add integrated plot to plot list
       plot.facet <- mp
       # add integrated data frame to plot list
@@ -725,7 +797,9 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
 
 
 #' @importFrom stats model.frame predict predict.glm family
-#' @importFrom dplyr select
+#' @importFrom dplyr select mutate group_by_ summarize
+#' @importFrom sjstats resp_val
+#' @importFrom merTools predictInterval
 sjp.glm.predy <- function(fit,
                           vars,
                           t.title,
@@ -733,12 +807,17 @@ sjp.glm.predy <- function(fit,
                           a.title,
                           geom.colors,
                           show.ci,
+                          jitter.ci,
                           geom.size,
                           ylim,
                           facet.grid,
                           type = "fe",
+                          show.scatter,
+                          point.alpha,
+                          point.color,
                           show.loess = FALSE,
-                          prnt.plot) {
+                          prnt.plot,
+                          ...) {
   # -----------------------------------------------------------
   # check class of fitted model
   # -----------------------------------------------------------
@@ -765,26 +844,16 @@ sjp.glm.predy <- function(fit,
   # check size argument
   # ----------------------------
   if (is.null(geom.size)) geom.size <- .7
-  # ----------------------------
+  # ---------------------------------------
+  # get ...-arguments
+  # ---------------------------------------
+  dot.args <- get_dot_args(match.call(expand.dots = FALSE)$`...`)
+  # ---------------------------------------
   # check vars argument
   # ----------------------------
   if (is.null(vars)) {
     warning("`vars` needs to be a character vector with one or two predictor names: one term used for the x-axis, another optional term as grouping factor.", call. = F)
     return(NULL)
-  }
-  # ----------------------------
-  # get predicted values for response
-  # ----------------------------
-  fitfram <- stats::model.frame(fit)
-  if (fun == "glm") {
-    fitfram$predicted.values <- stats::predict.glm(fit, newdata = fitfram, type = "response")
-  } else if (fun %in% c("glmer", "lmer", "nlmer")) {
-    if (type == "fe")
-      fitfram$predicted.values <- stats::predict(fit, newdata = fitfram, type = "response", re.form = NA)
-    else
-      fitfram$predicted.values <- stats::predict(fit, newdata = fitfram, type = "response", re.form = NULL)
-  } else {
-    fitfram$predicted.values <- stats::predict(fit, newdata = fitfram, type = "response")
   }
   # ----------------------------
   # check model family, do we have count model?
@@ -801,6 +870,51 @@ sjp.glm.predy <- function(fit,
   # --------------------------------------------------------
   binom_fam <- faminfo$is_bin
   poisson_fam <- faminfo$is_pois
+  # ----------------------------
+  # get predicted values for response
+  # ----------------------------
+  fitfram <- stats::model.frame(fit)
+  # normal GLM's should work with the predict()-function from stats-package
+  if (fun == "glm") {
+    # get predictions with SE
+    prdat <- stats::predict.glm(fit, newdata = fitfram, type = "response", se.fit = T)
+    # copy predictions
+    fitfram$predicted.values <- prdat$fit
+    # calculate CI
+    fitfram$conf.low <- prdat$fit - 1.96 * prdat$se.fit
+    fitfram$conf.high <- prdat$fit + 1.96 * prdat$se.fit
+  } else if (show.ci && (fun == "lmer" || (fun == "glmer" && binom_fam))) {
+    # prediction intervals from merMod-package only work for linear or
+    # binary logistic multilevel models
+    prdat <- merTools::predictInterval(
+      fit, newdata = fitfram, which = ifelse(type == "fe", "fixed", "full"),
+      type = ifelse(fit.m == "lm", "linear.prediction", "probability"),
+      level = dot.args[["ci.lvl"]]
+    )
+    # copy predictions
+    fitfram$predicted.values <- prdat$fit
+    # calculate CI
+    fitfram$conf.low <- prdat$lwr
+    fitfram$conf.high <- prdat$upr
+  } else if (fun %in% c("lmer", "nlmer", "glmer")) {
+    # for all other kinds of glmer or nlmer, we need the predict-function from
+    # lme4, however, without ci-bands
+    if (type == "fe")
+      fitfram$predicted.values <- stats::predict(fit, newdata = fitfram, type = "response", re.form = NA)
+    else
+      fitfram$predicted.values <- stats::predict(fit, newdata = fitfram, type = "response", re.form = NULL)
+    # no CI for lme4-predictions
+    fitfram$conf.low <- NA
+    fitfram$conf.high <- NA
+  } else {
+    # get predictions with SE
+    prdat <- stats::predict(fit, newdata = fitfram, type = "response", se.fit = T, level = dot.args[["ci.lvl"]])
+    # copy predictions
+    fitfram$predicted.values <- prdat$fit
+    # calculate CI
+    fitfram$conf.low <- prdat$fit - 1.96 * prdat$se.fit
+    fitfram$conf.high <- prdat$fit + 1.96 * prdat$se.fit
+  }
   # ----------------------------
   # check default titles
   # ----------------------------
@@ -826,9 +940,9 @@ sjp.glm.predy <- function(fit,
   # ----------------------------
   # check for correct length of vector
   # ----------------------------
-  if (length(vars) > 2) {
-    message("`vars` must have not more than two values. Using first two values now.")
-    vars <- vars[1:2]
+  if (length(vars) > 3) {
+    message("`vars` must have not more than three values. Using first three values now.")
+    vars <- vars[1:3]
   } 
   # ----------------------------
   # check for correct vars specification
@@ -836,17 +950,21 @@ sjp.glm.predy <- function(fit,
   if (!all(vars %in% colnames(fitfram))) {
     stop("At least one term specified in `vars` is no valid model term.", call. = F)
   }
-  mydf <- dplyr::select(fitfram, match(c(vars, "predicted.values"), colnames(fitfram)))
+  # now select only relevant variables: the predictors on the x-axis,
+  # the predictions and the originial response vector (needed for scatter plot)
+  mydf <- fitfram %>% 
+    dplyr::select(match(c(vars, "predicted.values", "conf.low", "conf.high"), colnames(fitfram))) %>% 
+    dplyr::mutate(resp.y = sjmisc::to_value(sjstats::resp_val(fit), start.at = 0, keep.labels = F))
   # init legend labels
   legend.labels <- NULL
   # check if we have a categorical variable with value
   # labels at the x-axis.
-  axis_labels <- sjmisc::get_labels(mydf[[1]])
+  axis_labels <- sjmisc::get_labels(mydf[[1]], include.non.labelled = T, drop.unused = TRUE)
   # ----------------------------
   # with or w/o grouping factor?
   # ----------------------------
   if (length(vars) == 1) {
-    colnames(mydf) <- c("x", "y")
+    colnames(mydf) <- c("x", "y", "ci.low", "ci.high", "resp.y")
     # x needs to be numeric
     mydf$x <- sjmisc::to_value(mydf$x)
     # convert to factor for proper legend
@@ -854,28 +972,75 @@ sjp.glm.predy <- function(fit,
     # set colors
     geom.colors <- col_check2(geom.colors, 1)
     # init plot
-    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp")) +
-      labs(x = x.title, y = y.title, title = t.title, colour = NULL)
+    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp", fill = "grp")) +
+      labs(x = x.title, y = y.title, title = t.title, colour = NULL, fill = NULL)
   } else {
-    colnames(mydf) <- c("x", "grp", "y")
+    # name data depending on whether we have a facet-variable or not
+    if (length(vars) == 2) {
+      colnames(mydf) <- c("x", "grp", "y", "ci.low", "ci.high", "resp.y")
+    } else {
+      colnames(mydf) <- c("x", "grp", "facet", "y", "ci.low", "ci.high", "resp.y")
+      mydf$facet <- sjmisc::to_label(mydf$facet, prefix = T, drop.na = T, drop.levels = T)
+    }
     # x needs to be numeric
     mydf$x <- sjmisc::to_value(mydf$x)
     # convert to factor for proper legend
     mydf$grp <- sjmisc::to_factor(mydf$grp)
     # check if we have legend labels
     legend.labels <- sjmisc::get_labels(mydf$grp)
+    # for facets, label factor
+    if (facet.grid) mydf$grp <- sjmisc::to_label(mydf$grp, prefix = T, drop.na = T, drop.levels = T)
     # set colors
     geom.colors <- col_check2(geom.colors, length(legend.labels))
     # init plot
-    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp", group = "grp")) +
-      labs(x = x.title, y = y.title, title = t.title, colour = l.title)
+    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp", fill = "grp")) +
+      labs(x = x.title, y = y.title, title = t.title, colour = l.title, fill = NULL)
   }
+  # check correct labels
+  if (!is.null(axis_labels) && length(axis_labels) != length(stats::na.omit(unique(mydf$x))))
+    axis_labels <- as.vector(sort(stats::na.omit(unique(mydf$x))))
+  
   # ------------------------------
   # check axis limits
   # ------------------------------
   if (is.null(ylim)) {
-    ylim <- c(as.integer(floor(10 * min(mydf$y, na.rm = T) * .9)) / 10,
-              as.integer(ceiling(10 * max(mydf$y, na.rm = T) * 1.1)) / 10)
+    # if we have a scatter plot, we need to take the y-values from the
+    # original response as range, else just the y-values from the predictions...
+    if (show.scatter) {
+      # ... except for binomial models. here we have a response vector with
+      # 0 and 1, so the limits are 0 and 1
+      if (binom_fam) {
+        ylim <- c(0, 1)
+      } else {
+        if (show.ci && !any(is.na(mydf$ci.low))) {
+          # first, get lowest value from response and CI
+          lowest.y <- suppressWarnings(
+            c(as.integer(floor(10 * min(mydf$resp.y, na.rm = T) * .9)) / 10,
+              as.integer(floor(10 * min(mydf$ci.low, na.rm = T) * .9)) / 10)
+          )
+          # then, get highest value from response and CI
+          highest.y <- suppressWarnings(
+            c(as.integer(ceiling(10 * max(mydf$resp.y, na.rm = T) * 1.1)) / 10,
+              as.integer(ceiling(10 * max(mydf$ci.high, na.rm = T) * 1.1)) / 10)
+          )
+        } else {
+          lowest.y <- as.integer(floor(10 * min(mydf$resp.y, na.rm = T) * .9)) / 10
+          highest.y <- as.integer(ceiling(10 * max(mydf$resp.y, na.rm = T) * 1.1)) / 10
+        }
+        # now check which is lower/higher: response value or CI
+        ylim <- c(min(lowest.y, na.rm = T), max(highest.y, na.rm = T))
+      }
+    } else {
+      if (show.ci && !any(is.na(mydf$ci.low))) {
+        ylim <-
+          c(as.integer(floor(10 * min(mydf$ci.low, na.rm = T) * .9)) / 10,
+            as.integer(ceiling(10 * max(mydf$ci.high, na.rm = T) * 1.1)) / 10)
+      } else {
+        ylim <-
+          c(as.integer(floor(10 * min(mydf$y, na.rm = T) * .9)) / 10,
+            as.integer(ceiling(10 * max(mydf$y, na.rm = T) * 1.1)) / 10)
+      }
+    }
   }
   # ---------------------------------------------------------
   # Prepare plot
@@ -884,24 +1049,97 @@ sjp.glm.predy <- function(fit,
     # if we have value labels, use these as axis labels
     mp <- mp + scale_x_continuous(breaks = sort(unique(mydf$x)), labels = axis_labels)
   }
-  if (fit.m == "lm") {
-    mp <- mp +
-      stat_smooth(method = fit.m, 
-                  se = show.ci,
-                  size = geom.size)
-  } else {
-    # special handling for negativ binomial
-    if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
-      mp <- mp +
-        stat_smooth(method = "glm.nb",
-                    se = show.ci,
-                    size = geom.size)
+  
+  # plot jittered values if requested
+  if (show.scatter) {
+    if (is.null(point.color))
+      mp <- mp + geom_jitter(aes_string(y = "resp.y"),
+                             alpha = point.alpha, 
+                             shape = 16,
+                             position = position_jitter(width = .1, height = .1))
+    else
+      mp <- mp + geom_jitter(aes_string(y = "resp.y"),
+                             alpha = point.alpha,
+                             colour = point.color,
+                             shape = 16,
+                             position = position_jitter(width = .1, height = .1))
+  }
+  
+  # for factors, use error bars. but only if we have predicted CI in our data
+  if (is.factor(fitfram[[vars[1]]]) && !any(is.na(mydf$ci.low))) {
+    # predictions for factor levels slightly vary, so take the mean value
+    # for the predictions at each factor level. This ensures a unique
+    # data point for each level
+    datpoint <- mydf %>% 
+      dplyr::group_by_("x", "grp") %>% 
+      dplyr::summarize(y = mean(y), ci.low = mean(ci.low), ci.high = mean(ci.high))
+    
+    # no jittering, when we have no CI
+    if (!show.ci) jitter.ci <- F
+    
+    # show confidence intervals?
+    if (show.ci) {
+      if (jitter.ci) {
+        mp <- mp + geom_errorbar(
+          aes_string(ymin = "ci.low", ymax = "ci.high"),
+          data = datpoint,
+          size = geom.size,
+          width = dot.args[["eb.width"]],
+          position = position_dodge(.2)
+        )
+      } else {
+        mp <- mp + geom_errorbar(
+          aes_string(ymin = "ci.low", ymax = "ci.high"), 
+          data = datpoint,
+          size = geom.size,
+          width = dot.args[["eb.width"]]
+        )
+        
+      }
+    }
+    
+    # plot line and data points. we don't need smoothing for discrete levels
+    if (jitter.ci) {
+      mp <- mp + 
+        geom_line(aes_string(x = "x", y = "y", colour = "grp"), 
+                  data = datpoint, 
+                  size = geom.size,
+                  position = position_dodge(.2)) +
+        geom_point(aes_string(x = "x", y = "y", colour = "grp"), 
+                   data = datpoint,
+                   shape = 16,
+                   position = position_dodge(.2))
     } else {
+      mp <- mp + 
+        geom_line(aes_string(x = "x", y = "y", colour = "grp"), data = datpoint, size = geom.size) +
+        geom_point(aes_string(x = "x", y = "y", colour = "grp"), data = datpoint, shape = 16)
+    }
+  } else {
+    if (fit.m == "lm") {
       mp <- mp +
         stat_smooth(method = fit.m, 
-                    method.args = list(family = fitfam$family), 
                     se = show.ci,
-                    size = geom.size)
+                    level = dot.args[["ci.lvl"]],
+                    size = geom.size,
+                    alpha = dot.args[["ci.alpha"]])
+    } else {
+      # special handling for negativ binomial
+      if (sjmisc::str_contains(fitfam$family, "negative binomial", ignore.case = T)) {
+        mp <- mp +
+          stat_smooth(method = "glm.nb",
+                      se = show.ci,
+                      level = dot.args[["ci.lvl"]],
+                      size = geom.size,
+                      alpha = dot.args[["ci.alpha"]])
+      } else {
+        mp <- mp +
+          stat_smooth(method = fit.m, 
+                      method.args = list(family = fitfam$family), 
+                      se = show.ci,
+                      level = dot.args[["ci.lvl"]],
+                      size = geom.size,
+                      alpha = dot.args[["ci.alpha"]])
+      }
     }
   }
   # ---------------------------------------------------------
@@ -910,7 +1148,8 @@ sjp.glm.predy <- function(fit,
   if (show.loess) mp <- mp + stat_smooth(method = "loess",
                                          se = F,
                                          size = geom.size,
-                                         colour = "darkred")
+                                         colour = "darkred",
+                                         alpha = dot.args[["ci.alpha"]])
   # ---------------------------------------------------------
   # coord-system for y-axis limits
   # cartesian coord still plots range of se, even
@@ -927,25 +1166,36 @@ sjp.glm.predy <- function(fit,
   # ---------------------------------------------------------
   # facet grid, if we have grouping variable
   # ---------------------------------------------------------
-  if (facet.grid && length(vars) == 2) {
+  if (length(vars) == 3) {
+    mp <- mp + 
+      facet_wrap(~facet, ncol = round(sqrt(length(unique(mydf$facet))))) +
+      scale_colour_manual(values = geom.colors, labels = legend.labels) +
+      scale_fill_manual(values = geom.colors) +
+      guides(fill = FALSE)
+  } else if (facet.grid && length(vars) == 2) {
     mp <- mp + 
       facet_wrap(~grp, ncol = round(sqrt(length(unique(mydf$grp)))), 
                  scales = "free_x") +
       scale_colour_manual(values = geom.colors) +
-      guides(colour = FALSE)
+      scale_fill_manual(values = geom.colors) +
+      guides(colour = FALSE, fill = FALSE)
   } else if (!is.null(legend.labels)) {
     if (length(legend.labels) == 1) {
       mp <- mp +
         scale_colour_manual(values = geom.colors) +
-        guides(colour = FALSE)
+        scale_fill_manual(values = geom.colors) +
+        guides(colour = FALSE, fill = FALSE)
     } else {
       mp <- mp +
-        scale_colour_manual(values = geom.colors, labels = legend.labels)
+        scale_colour_manual(values = geom.colors, labels = legend.labels) +
+        scale_fill_manual(values = geom.colors) +
+        guides(fill = FALSE)
     }
   } else {
     mp <- mp +
       scale_colour_manual(values = geom.colors) +
-      guides(colour = FALSE)
+      scale_fill_manual(values = geom.colors) +
+      guides(colour = FALSE, fill = FALSE)
   }
   
   # --------------------------
@@ -1070,8 +1320,8 @@ sjp.glm.ma <- function(logreg) {
   gp <- ggplot(data.frame(x = stats::predict(logreg), 
                           y = stats::residuals(logreg),
                           grp = stats::model.frame(logreg)[[1]]),
-               aes(x, y)) + 
-    geom_point(aes(colour = grp), show.legend = F) + 
+               aes_string(x = "x", y = "y")) + 
+    geom_point(aes_string(colour = "grp"), show.legend = F) + 
     geom_hline(yintercept = 0) +
     stat_smooth(method = "loess", se = T) +
     labs(title = "Residual plot",
@@ -1087,8 +1337,8 @@ sjp.glm.ma <- function(logreg) {
       mydat <- data.frame(x = logreg$model[[pr]], 
                           y = stats::residuals(logreg),
                           grp = as.factor(stats::model.frame(logreg)[[1]]))
-      gp <- ggplot(mydat, aes(x, y)) + 
-        geom_point(aes(colour = grp), show.legend = F) + 
+      gp <- ggplot(mydat, aes_string(x = "x", y = "y")) + 
+        geom_point(aes_string(colour = "grp"), show.legend = F) + 
         geom_hline(yintercept = 0) +
         stat_smooth(method = "loess", se = T) +
         labs(x = pr, y = "Residuals",

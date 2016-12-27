@@ -11,10 +11,11 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL,
   geom.size = NULL, geom.colors = "Set1", show.values = TRUE,
   show.p = TRUE, show.ci = FALSE, show.legend = FALSE,
   show.loess = FALSE, show.loess.ci = FALSE, show.intercept = FALSE,
-  string.interc = "(Intercept)", p.kr = TRUE, point.alpha = 0.2,
-  scatter.plot = TRUE, fade.ns = FALSE, axis.lim = NULL, digits = 2,
-  vline.type = 2, vline.color = "grey70", facet.grid = TRUE,
-  free.scale = FALSE, y.offset = 0.1, prnt.plot = TRUE, ...)
+  string.interc = "(Intercept)", p.kr = TRUE, show.scatter = TRUE,
+  point.alpha = 0.2, point.color = NULL, jitter.ci = FALSE,
+  fade.ns = FALSE, axis.lim = NULL, digits = 2, vline.type = 2,
+  vline.color = "grey70", facet.grid = TRUE, free.scale = FALSE,
+  y.offset = 0.1, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{a fitted model as returned by the \code{\link[lme4]{lmer}}-function.}
@@ -41,9 +42,8 @@ sjp.lmer(fit, type = "re", vars = NULL, ri.nr = NULL,
 
 \item{vars}{numeric vector with column indices of selected variables or a character vector with
 variable names of selected variables from the fitted model, which should be used to plot
-estimates, fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability or
-incidents curves
-(for \code{\link[lme4]{glmer}}) of random intercepts.}
+- depending on \code{type} - estimates, fixed effects slopes or predicted values 
+(mean, probabilities, incidents rates, ...). See 'Examples'.}
 
 \item{ri.nr}{numeric vector. If \code{type = "re"} or \code{type = "ri.slope"},
 and fitted model has more than one random intercept, \code{ri.nr} indicates
@@ -146,11 +146,18 @@ if \code{show.intercept = TRUE} and \code{axis.labels} is not \code{NULL}.}
 F-tests with Kenward-Roger approximation for the df. Caution: Computation
 may take very long time for large samples!}
 
-\item{point.alpha}{alpha value of point-geoms in the scatter plots.}
+\item{show.scatter}{logical, if \code{TRUE} (default), adds a scatter plot of
+data points to the plot. Only applies for slope-type or predictions plots.}
 
-\item{scatter.plot}{logical, if \code{TRUE} (default), a scatter plot of
-response and predictor values for each predictor of the model
-is plotted. Only applies for slope-type plots.}
+\item{point.alpha}{alpha value of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{point.color}{color of of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{jitter.ci}{logical, if \code{TRUE} and \code{show.ci = TRUE} and confidence
+bands are displayed as error bars, adds jittering to lines and error bars
+to avoid overlapping.}
 
 \item{fade.ns}{if \code{TRUE}, non significant estimates will be printed in slightly faded colors.}
 
@@ -183,8 +190,17 @@ to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
 \item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 
-\item{...}{other arguments, passed down to the \code{\link[effects]{effect}} resp. 
-\code{\link[effects]{allEffects}} function when \code{type = "eff"}.}
+\item{...}{other arguments passed down to further functions. Currently, following
+arguments are supported:
+\describe{
+  \item{\code{?effects::effect}}{
+    Any arguments accepted by the \code{\link[effects]{effect}} resp. 
+    \code{\link[effects]{allEffects}} function, for \code{type = "eff"}.
+  }
+  \item{\code{width}}{The \code{width}-argument for error bars.}
+  \item{\code{alpha}}{The \code{alpha}-argument for confidence bands.}
+  \item{\code{level}}{The \code{level}-argument confidence bands.}
+}}
 }
 \value{
 (Insisibily) returns
@@ -265,7 +281,7 @@ Computation of p-values (if necessary and if \code{p.kr = TRUE}) are based
         the \pkg{pbkrtest}-package. If \pkg{pbkrtest} is not available or
         \code{p.kr = FALSE}, computation of p-values is based 
         on normal-distribution assumption, treating the t-statistics as Wald
-        z-statistics. See 'Details' in \code{\link[sjstats]{merMod_p}}.
+        z-statistics. See 'Details' in \code{\link[sjstats]{get_model_pval}}.
 }
 \examples{
 # fit model
@@ -321,7 +337,7 @@ sjp.lmer(fit, type = "fe.slope", show.loess = TRUE)
 # try to find appropiate polynomial. Grey line (loess smoothed)
 # indicates best fit. Looks like x^4 has the best fit,
 # however, x^2 seems to be suitable according to p-values.
-sjp.poly(fit, "barthel", 2:4, scatter.plot = FALSE)
+sjp.poly(fit, "barthel", 2:4, show.scatter = FALSE)
 
 # fit new model
 fit <- lmer(neg_c_7 ~ sex + c12hour + barthel +
@@ -332,7 +348,7 @@ sjp.lmer(fit, type = "poly", poly.term = "barthel")
 
 # lme4 complaints about scale of polynomial term, so
 # try centering this predictor
-mydf$barthel_s <- scale(mydf$barthel, center = TRUE, scale = TRUE)
+mydf$barthel_s <- sjstats::std(mydf$barthel)
 
 # re-fit model
 fit_s <- lmer(neg_c_7 ~ sex + c12hour + barthel_s +

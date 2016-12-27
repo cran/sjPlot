@@ -47,6 +47,8 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #'          as an arranged grid with \code{\link[gridExtra]{grid.arrange}}.
 #' @param title character vector, used as plot title. Depending on plot type and function,
 #'          will be set automatically. If \code{title = ""}, no title is printed.
+#'          For effect-plots, may also be a character vector of length > 1,
+#'          to define titles for each sub-plot or facet.
 #' @param legend.title character vector, used as title for the plot legend.
 #' @param axis.labels character vector with labels used as axis labels. Optional
 #'          argument, since in most cases, axis labels are set automatically.
@@ -261,6 +263,8 @@ sjp.grpfrq <- function(var.cnt,
     if (coord.flip) {
       if (missing(vjust)) vjust <- "center"
       if (missing(hjust)) hjust <- "bottom"
+      # for flipped coordinates, we need to adjust
+      # y-offset according to horizontal adjustemnt of labels
       if (hjust == "bottom")
         y_offset <- y.offset
       else if (hjust == "top")
@@ -268,6 +272,8 @@ sjp.grpfrq <- function(var.cnt,
       else
         y_offset <- 0
     } else {
+      # for non-flipped coordinates, we need to adjust
+      # y-offset according to vertical adjustemnt of labels
       if (vjust == "bottom")
         y_offset <- y.offset
       else if (vjust == "top")
@@ -317,7 +323,7 @@ sjp.grpfrq <- function(var.cnt,
   # x-position as numeric factor, added later after
   # tidying
   # --------------------------------------------------------
-  bars.xpos <- 1:nrow(mydat$mydat)
+  bars.xpos <- seq_len(nrow(mydat$mydat))
   # --------------------------------------------------------
   # try to automatically set labels if not passed as argument
   # --------------------------------------------------------
@@ -583,7 +589,7 @@ sjp.grpfrq <- function(var.cnt,
       geob <- geom_bar(stat = "identity", width = geom.size,
                        position = position_dodge(posdodge))
     } else {
-      geob <- geom_bar(stat = "identity", width = geom.size, position = "stack")
+      geob <- geom_bar(stat = "identity", width = geom.size, position = position_stack(reverse = TRUE))
     }
   } else if (type == "line") {
     if (smooth.lines) {

@@ -4,6 +4,25 @@ utils::globalVariables(c("Freq", "vif"))
 # Help-functions
 
 
+# get additional arguments for geoms
+get_dot_args <- function(x) {
+  # ---------------------------------------
+  # get ...-argument, and check if it was "width"
+  # ---------------------------------------
+  eb.width <- x[["width"]]
+  if (is.null(eb.width)) eb.width <- 0
+  # get ...-argument, and check if it was "alpha"
+  ci.alpha <- x[["alpha"]]
+  if (is.null(ci.alpha)) ci.alpha <- .15
+  # get ...-argument, and check if it was "level"
+  ci.lvl <- x[["level"]]
+  if (is.null(ci.lvl)) ci.lvl <- .95
+  
+  list(eb.width = eb.width,
+       ci.alpha = ci.alpha,
+       ci.lvl = ci.lvl)
+}
+
 # evaluates arguments
 get_dot_data <- function(data, dots) {
   # any dots?
@@ -12,12 +31,12 @@ get_dot_data <- function(data, dots) {
     vars <- dot_names(dots)
   else
     vars <- NULL
-  
+
   # check if data is a data frame
   if (is.data.frame(data)) {
     # get valid variable names
     vars <- vars[vars %in% colnames(data)]
-    vars.is.empty <- suppressWarnings(sjmisc::is_empty(vars))
+    vars.is.empty <- sjmisc::is_empty(vars)
     if (!is.null(vars) && !vars.is.empty)
       # select variables, if any
       x <- data[, vars, drop = FALSE]
@@ -25,7 +44,7 @@ get_dot_data <- function(data, dots) {
       # else return complete data frame
       x <- data
   }
-    
+
   x
 }
 
@@ -46,13 +65,13 @@ base_breaks <- function(n = 10) {
 #' @importFrom sjmisc get_label get_labels str_contains to_label to_value replace_na word_wrap
 #' @importFrom sjstats resp_val resp_var
 get_lm_data <- function(fit) {
-  if (any(class(fit) == "plm")) {
+  if (inherits(fit, "plm")) {
     # plm objects have different structure than (g)lm
     fit_x <- data.frame(cbind(as.vector(fit$model[, 1]), stats::model.matrix(fit)))
     # retrieve response vector
     resp <- sjstats::resp_val(fit)
     depvar.label <- sjstats::resp_var(fit)
-  } else if (any(class(fit) == "pggls")) {
+  } else if (inherits(fit, "pggls")) {
     # plm objects have different structure than (g)lm
     fit_x <- data.frame(fit$model)
     depvar.label <- attr(attr(attr(fit$model, "terms"), "dataClasses"), "names")[1]
@@ -63,7 +82,7 @@ get_lm_data <- function(fit) {
     # retrieve response vector
     resp <- stats::model.frame(fit)[[1]]
     depvar.label <- sjstats::resp_var(fit)
-  } else if (any(class(fit) == "gls")) {
+  } else if (inherits(fit, "gls")) {
     fit_x <- data.frame(stats::model.matrix(fit))
     resp <- nlme::getResponse(fit)
     depvar.label <- attr(resp, "label")
@@ -176,12 +195,17 @@ get_var_name <- function(x) {
 #' @importFrom sjstats weight table_values cramer phi
 #' @importFrom stats na.omit
 #' @importFrom dplyr full_join
+#' @importFrom sjmisc zap_inf
 create.frq.df <- function(x,
                           wrap.labels = Inf,
                           order.frq = "none",
                           round.prz = 2,
                           na.rm = FALSE,
                           weight.by = NULL) {
+  #---------------------------------------------------
+  # zap inf and NaN
+  #---------------------------------------------------
+  x <- sjmisc::zap_inf(x)
   #---------------------------------------------------
   # variable with only mising?
   #---------------------------------------------------
@@ -334,19 +358,19 @@ create.xtab.df <- function(x,
     if (na.rm)
       mydat <- stats::ftable(round(stats::xtabs(weight.by ~ x_full + grp_full)), 0)
     else
-      mydat <- stats::ftable(round(stats::xtabs(weight.by ~ x_full + grp_full, 
-                                                exclude = NULL, 
+      mydat <- stats::ftable(round(stats::xtabs(weight.by ~ x_full + grp_full,
+                                                exclude = NULL,
                                                 na.action = stats::na.pass)), 0)
   }
   # create proportional tables, cell values
   proptab.cell <- round(100 * prop.table(mydat), round.prz)
   # create proportional tables, row percentages, including total row
-  proptab.row <- rbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 1), round.prz))), 
+  proptab.row <- rbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 1), round.prz))),
                        colSums(proptab.cell))
   rownames(proptab.row)[nrow(proptab.row)] <- "total"
   proptab.row <- as.data.frame(apply(proptab.row, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
   # create proportional tables, column  percentages, including total row
-  proptab.col <- cbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 2), round.prz))), 
+  proptab.col <- cbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 2), round.prz))),
                        rowSums(proptab.cell))
   colnames(proptab.col)[ncol(proptab.col)] <- "total"
   proptab.col <- as.data.frame(apply(proptab.col, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
@@ -600,7 +624,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
 
 
 is_merMod <- function(fit) {
-  return(any(class(fit) %in% c("lmerMod", "glmerMod", "nlmerMod", "merModLmerTest")))
+  return(inherits(fit, c("lmerMod", "glmerMod", "nlmerMod", "merModLmerTest")))
 }
 
 
@@ -613,9 +637,7 @@ retrieveModelLabels <- function(models, group.pred) {
     # get model
     fit <- models[[k]]
     # any valid model?
-    if (any(class(fit) == "plm") || 
-        any(class(fit) == "ppgls"))
-      return(NULL)
+    if (inherits(fit, c("plm", "ppgls"))) return(NULL)
     # get model coefficients' names
     if (is_merMod(fit)) {
       coef_names <- names(lme4::fixef(fit))
@@ -647,25 +669,19 @@ retrieveModelLabels <- function(models, group.pred) {
           # have any labels, and have we same amount of labels
           # as factor levels?
           if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
-            # add labels
-            if (sjmisc::str_contains(fit.labels, pattern = pvar.lab[2:pvar.len], logic = "NOT")) {
-              # create labels
-              if (group.pred && pvar.len > 2) {
-                # if predictor grouping is enabled, don't use variable labels again
-                labels.to.add <- pvar.lab[2:pvar.len]
-              } else {
-                # else, if we have not grouped predictors, we have no headin
-                # with variable label, hence, factor levels may not be intuitiv.
-                # thus, add variable label so values have a meaning
-                labels.to.add <- sprintf("%s (%s)", lab, pvar.lab[2:pvar.len])
-              }
-              fit.labels <- c(fit.labels, labels.to.add)
+            # create labels
+            if (group.pred && pvar.len > 2) {
+              # if predictor grouping is enabled, don't use variable labels again
+              labels.to.add <- pvar.lab[2:pvar.len]
+            } else {
+              # else, if we have not grouped predictors, we have no headin
+              # with variable label, hence, factor levels may not be intuitiv.
+              # thus, add variable label so values have a meaning
+              labels.to.add <- sprintf("%s (%s)", lab, pvar.lab[2:pvar.len])
             }
+            fit.labels <- c(fit.labels, labels.to.add)
           } else {
-            # add labels
-            if (sjmisc::str_contains(fit.labels, pattern = coef_name, logic = "NOT")) {
-              fit.labels <- c(fit.labels, coef_name)
-            }
+            fit.labels <- c(fit.labels, coef_name)
           }
         } else {
           if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
@@ -673,14 +689,14 @@ retrieveModelLabels <- function(models, group.pred) {
       }
     }
   }
-  return(fit.labels)
+  return(unique(fit.labels))
 }
 
 
 # compute chi-square for glm
 Chisquare.glm <- function(rr, digits = 3) {
-  return(with(rr, pchisq(null.deviance - deviance, 
-                         df.null - df.residual, 
+  return(with(rr, pchisq(null.deviance - deviance,
+                         df.null - df.residual,
                          lower.tail = FALSE), digits = digits))
 }
 

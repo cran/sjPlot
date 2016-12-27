@@ -1,3 +1,36 @@
+# sjPlot 2.2.0
+
+## New Functions
+
+* `sjp.kfold_cv()` to plot model fit from k-fold cross-validation.
+
+## Changes to functions
+
+* Argument `scatter.plot` was renamed to `show.scatter`.
+* Argument `varl.labels` in `sjt.frq()` was renamed to `title`.
+* `sjplot()` and `sjtab()` also accept grouped data frames, to create plots or tables for all subgroups.
+* For `sjp.glm()` and `sjp.glmer()`, `type = "pred"`, `type = "slope"`, `type = "pred.fe"` and `type = "fe.slope"` can now also plot data points when `show.scatter = TRUE`. Use `point.alpha` to adjust alpha-level of data points.
+* For `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()`, `type = "pred"` and `type = "pred.fe"` now plot error bars for `show.ci = TRUE` and a discrete variable on the x-axis.
+* For `sjp.glm()` and `sjp.glmer()`, `type = "pred"` and `type = "pred.fe"` now accept three variables for the `vars`-argument, to facet grouped predictions by a third variable.
+* For `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()`, the `...`-ellipses argument now is also passed down to all errorbars- and smooth-geoms in prediction- and effect-plots, so you can now use the `width`-argument to show the small stripes at the lower/upper end of the error bars, the `alpha`-argument to define alpha-level or the `level`-argument to define the level of confidence bands.
+* `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()` get a `point.color`-argument, do define color of point-geoms when `show.scatter = TRUE`. If not defined, point-geoms will have same group-color as lines.
+* Effect-plots (`type = "eff"`) now plot data points for discrete variables on the x-axis.
+* `sjt.lm()` and `sjt.glm()` get a `robust`-argument to compute robust standard errors and confidence intervals.
+* `sjp.resid()` now also returns a plot with the residual pattern, `$pattern`.
+* Plot and axis titles from effect-plots can now be changed with `title` or `axis.title` argument. Use a character vector of length > 1 to define (axis) titles for each plot or facet; use `""` to remove the titles.
+* Pick better defaults for `geom.size`-argument for histogram and density plots in `sjp.frq()`.
+* Improved automatic label detection for regression models for plot or table output.
+
+## Bug fixes
+
+* Restored correct order of categories in `sjp.xtab()` and `sjp.grpfrq()` for stacked bars (`position_stack()` reversed order since last ggplot2-update), so labels are now correclty positioned again.
+* Restored correct order of categories in `sjp.likert()`, so groups are now in correct order again.
+* Fixed bug in `sjt.grpmean()` for variables with unused value labels (values that were labelled, but did not appear on the vector).
+* Fixed wrong documentation for `show.summary`-argument in `sjt.xtab()`.
+* `sjt.frq()` and `sjp.frq()` showed messed up labels when a labelled vector had both `NA` values _and_ `NaN` or infinite values.
+* `sjtab()` did not create tables for `fun = "xtab"` with additional arguments.
+
+
 # sjPlot 2.1.2
 
 ## General

@@ -2,7 +2,7 @@
 utils::globalVariables(c("xn", "vld", "conf.low", "conf.high"))
 
 #' @importFrom dplyr filter
-#' @importFrom sjstats merMod_p
+#' @importFrom sjstats get_model_pval
 #' @importFrom stats terms
 sjp.emm <- function(fit,
                     swap.pred = FALSE,
@@ -25,18 +25,23 @@ sjp.emm <- function(fit,
                     ylim = NULL,
                     grid.breaks = NULL,
                     facet.grid = FALSE,
-                    prnt.plot = TRUE) {
+                    prnt.plot = TRUE,
+                    ...) {
   # --------------------------------------------------------
   # check default geom.size
   # --------------------------------------------------------
   if (is.null(geom.size)) geom.size = .7
+  # ---------------------------------------
+  # get ...-arguments
+  # ---------------------------------------
+  dot.args <- get_dot_args(match.call(expand.dots = FALSE)$`...`)
   # ------------------------
   # check if suggested packages are available
   # ------------------------
   if (!requireNamespace("lsmeans", quietly = TRUE)) {
     stop("Package `lsmeans` needed for this function to work. Please install it.", call. = FALSE)
   }
-  if ((any(class(fit) == "lmerMod" || any(class(fit) == "merModLmerTest"))) && !requireNamespace("lmerTest", quietly = TRUE)) {
+  if (inherits(fit, c("lmerMod", "merModLmerTest")) && !requireNamespace("lmerTest", quietly = TRUE)) {
     stop("Package `lmerTest` needed for this function to work. Please install it.", call. = FALSE)
   }
   # --------------------------------------------------------
@@ -86,13 +91,8 @@ sjp.emm <- function(fit,
   # -----------------------------------------------------------
   # get terms of fitted model
   # -----------------------------------------------------------
-  if (is_mer_mod) {
-    # get all p-values
-    pval <- sjstats::merMod_p(fit, p.kr)[pos]
-  } else {
-    # retrieve p-values
-    pval <- summary(fit)$coefficients[pos, 4]
-  }
+  # get all p-values
+  pval <- sjstats::get_model_pval(fit, p.kr)[["p.value"]][pos]
   # get significant interactions
   intnames <- cf[pos[which(pval < plevel)]]
   # check for any signigicant interactions, stop if nothing found
@@ -150,7 +150,7 @@ sjp.emm <- function(fit,
   # check if we have any valid interaction terms
   # for lsmeans function
   # -----------------------------------------------------------
-  is.em <- suppressWarnings(sjmisc::is_empty(interactionterms));
+  is.em <- sjmisc::is_empty(interactionterms)
   if (!is.em && nrow(interactionterms) > 0) {
     for (cnt in seq_len(nrow(interactionterms))) {
       # -----------------------------------------------------------
@@ -240,9 +240,9 @@ sjp.emm <- function(fit,
       # -----------------------------------------------------------
       # prepare label for x-axix
       # -----------------------------------------------------------
-      alx <- sjmisc::get_labels(m_f[[term.pairs[2]]], 
-                                attr.only = F, 
-                                include.values = NULL, 
+      alx <- sjmisc::get_labels(m_f[[term.pairs[2]]],
+                                attr.only = F,
+                                include.values = NULL,
                                 include.non.labelled = T)
       # check if we have any
       if (is.null(alx)) alx <- term.pairs[2]
@@ -306,13 +306,13 @@ sjp.emm <- function(fit,
       # Confidence intervals?
       # -----------------------------------------------------------
       if (show.ci) baseplot <- baseplot +
-          geom_ribbon(aes(x = xn, ymin = conf.low, ymax = conf.high, fill = grp), alpha = .3)
+          geom_ribbon(aes_string(x = "xn", ymin = "conf.low", ymax = "conf.high", fill = "grp"), alpha = dot.args[["ci.alpha"]])
       # -----------------------------------------------------------
       # continue with plot. point and line layers above ribbon
       # -----------------------------------------------------------
       baseplot <- baseplot +
-        geom_point(aes(x = x, y = y, colour = grp)) +
-        geom_line(aes(x = xn, y = y, colour = grp), size = geom.size) +
+        geom_point(aes_string(x = "x", y = "y", colour = "grp")) +
+        geom_line(aes_string(x = "xn", y = "y", colour = "grp"), size = geom.size) +
         scale_x_discrete(labels = axis.labels)
       # ------------------------------------------------------------
       # plot value labels
@@ -337,7 +337,7 @@ sjp.emm <- function(fit,
       # ---------------------------------------------------------
       # facet grid?
       # ---------------------------------------------------------
-      if (facet.grid) baseplot <- baseplot + facet_grid( ~grp)    
+      if (facet.grid) baseplot <- baseplot + facet_grid( ~grp)
       # ---------------------------------------------------------
       # set geom colors
       # ---------------------------------------------------------

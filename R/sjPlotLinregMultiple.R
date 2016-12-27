@@ -86,7 +86,7 @@
 #' @import ggplot2
 #' @importFrom stats coef confint
 #' @importFrom dplyr slice
-#' @importFrom sjstats merMod_p
+#' @importFrom sjstats get_model_pval
 #' @importFrom tibble lst
 #' @export
 sjp.lmm <- function(...,
@@ -137,15 +137,14 @@ sjp.lmm <- function(...,
   # ----------------------------
   # Prepare length of title and labels
   # ----------------------------
+  # auto-retrieve value labels
+  if (is.null(axis.labels)) {
+    axis.labels <- suppressWarnings(retrieveModelLabels(input_list, group.pred = FALSE))
+  }
   # if we have no labels of dependent variables supplied, use a 
   # default string (Model) for legend
-  if (is.null(depvar.labels)) {
-    depvar.labels <- c()
-    for (i in seq_len(fitlength)) {
-      depvar.labels <- c(depvar.labels, 
-                         get_model_response_label(input_list[[i]]))
-    }
-  }
+  if (is.null(depvar.labels))
+    depvar.labels <- unname(unlist(lapply(input_list, get_model_response_label)))
   # check length of diagram title and split longer string at into new lines
   if (!is.null(title)) title <- sjmisc::word_wrap(title, wrap.title)
   # check length of x-axis title and split longer string at into new lines
@@ -255,6 +254,8 @@ sjp.lmm <- function(...,
   finalbetas$grp <- as.factor(finalbetas$grp)
   # convert to character
   finalbetas$shape <- as.character(finalbetas$shape)
+  # sort labels
+  axis.labels <- axis.labels[order(unique(finalbetas$xpos))]
   # -------------------------------------------------
   # remove any estimates from the output?
   # -------------------------------------------------
@@ -301,7 +302,7 @@ sjp.lmm <- function(...,
   if (is.null(grid.breaks)) {
     ticks <- pretty(c(lower_lim, upper_lim))
   } else {
-    ticks <- c(seq(lower_lim, upper_lim, by = grid.breaks))
+    ticks <- seq(lower_lim, upper_lim, by = grid.breaks)
   }
   # --------------------------------------------------------
   # prepare star and shape values. we just copy those values
@@ -400,7 +401,7 @@ sjp.lmm <- function(...,
   # ---------------------------------------------------------
   # Check whether ggplot object should be returned or plotted
   # ---------------------------------------------------------
-  if (prnt.plot) graphics::plot(plotHeader)
+  if (prnt.plot) suppressWarnings(graphics::plot(plotHeader))
   # -------------------------------------
   # set proper column names
   # -------------------------------------

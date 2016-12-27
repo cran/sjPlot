@@ -8,13 +8,14 @@ sjp.lm(fit, type = "lm", vars = NULL, group.estimates = NULL,
   remove.estimates = NULL, sort.est = TRUE, poly.term = NULL,
   title = NULL, legend.title = NULL, axis.labels = NULL,
   axis.title = NULL, resp.label = NULL, geom.size = NULL,
-  geom.colors = "Set1", point.alpha = 0.2, scatter.plot = TRUE,
-  wrap.title = 50, wrap.labels = 25, axis.lim = NULL,
-  grid.breaks = NULL, show.values = TRUE, show.p = TRUE, show.ci = TRUE,
-  show.legend = FALSE, show.loess = FALSE, show.loess.ci = FALSE,
-  show.summary = FALSE, digits = 2, vline.type = 2,
-  vline.color = "grey70", coord.flip = TRUE, y.offset = 0.15,
-  facet.grid = TRUE, complete.dgns = FALSE, prnt.plot = TRUE, ...)
+  geom.colors = "Set1", wrap.title = 50, wrap.labels = 25,
+  axis.lim = NULL, grid.breaks = NULL, show.values = TRUE,
+  show.p = TRUE, show.ci = TRUE, show.legend = FALSE,
+  show.loess = FALSE, show.loess.ci = FALSE, show.summary = FALSE,
+  show.scatter = TRUE, point.alpha = 0.2, point.color = NULL,
+  jitter.ci = FALSE, digits = 2, vline.type = 2, vline.color = "grey70",
+  coord.flip = TRUE, y.offset = 0.15, facet.grid = TRUE,
+  complete.dgns = FALSE, prnt.plot = TRUE, ...)
 }
 \arguments{
 \item{fit}{fitted linear regression model (of class \code{\link{lm}}, \code{\link[nlme]{gls}} or \code{plm}).}
@@ -35,9 +36,8 @@ sjp.lm(fit, type = "lm", vars = NULL, group.estimates = NULL,
 
 \item{vars}{numeric vector with column indices of selected variables or a character vector with
 variable names of selected variables from the fitted model, which should be used to plot
-estimates, fixed effects slopes (for \code{\link[lme4]{lmer}}) or probability or
-incidents curves
-(for \code{\link[lme4]{glmer}}) of random intercepts.}
+- depending on \code{type} - estimates, fixed effects slopes or predicted values 
+(mean, probabilities, incidents rates, ...). See 'Examples'.}
 
 \item{group.estimates}{numeric or character vector, indicating a group identifier for
 each estimate. Dots and confidence intervals of estimates are coloured
@@ -57,7 +57,9 @@ specified, if \code{type = "poly"}, in order to plot marginal effects
 for polynomial terms. See 'Examples'.}
 
 \item{title}{character vector, used as plot title. Depending on plot type and function,
-will be set automatically. If \code{title = ""}, no title is printed.}
+will be set automatically. If \code{title = ""}, no title is printed.
+For effect-plots, may also be a character vector of length > 1,
+to define titles for each sub-plot or facet.}
 
 \item{legend.title}{character vector, used as title for the plot legend. Note that
 only some plot types have legends (e.g. \code{type = "pred"} or when
@@ -82,12 +84,6 @@ is \emph{not} specified, must either be vector with two color values or a specif
 color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
 \code{group.estimates} is specified, \code{geom.colors} must be a vector
 of same length as groups. See 'Examples'.}
-
-\item{point.alpha}{alpha value of point-geoms in the scatter plots.}
-
-\item{scatter.plot}{logical, if \code{TRUE} (default), a scatter plot of
-response and predictor values for each predictor of the model
-is plotted. Only applies for slope-type plots.}
 
 \item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
@@ -127,6 +123,19 @@ or \code{type = "fe.resid"}).}
 \item{show.summary}{logical, if \code{TRUE}, a summary with model statistics 
 is added to the plot.}
 
+\item{show.scatter}{logical, if \code{TRUE} (default), adds a scatter plot of
+data points to the plot. Only applies for slope-type or predictions plots.}
+
+\item{point.alpha}{alpha value of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{point.color}{color of of point-geoms in the scatter plots. Only applies,
+if \code{show.scatter = TRUE}.}
+
+\item{jitter.ci}{logical, if \code{TRUE} and \code{show.ci = TRUE} and confidence
+bands are displayed as error bars, adds jittering to lines and error bars
+to avoid overlapping.}
+
 \item{digits}{numeric, amount of digits after decimal point when rounding estimates and values.}
 
 \item{vline.type}{linetype of the vertical "zero point" line. Default is \code{2} (dashed line).}
@@ -150,8 +159,17 @@ Only applies if \code{type = "ma"}.}
 \item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
 want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 
-\item{...}{other arguments, passed down to the \code{\link[effects]{effect}} resp. 
-\code{\link[effects]{allEffects}} function when \code{type = "eff"}.}
+\item{...}{other arguments passed down to further functions. Currently, following
+arguments are supported:
+\describe{
+  \item{\code{?effects::effect}}{
+    Any arguments accepted by the \code{\link[effects]{effect}} resp. 
+    \code{\link[effects]{allEffects}} function, for \code{type = "eff"}.
+  }
+  \item{\code{width}}{The \code{width}-argument for error bars.}
+  \item{\code{alpha}}{The \code{alpha}-argument for confidence bands.}
+  \item{\code{level}}{The \code{level}-argument confidence bands.}
+}}
 }
 \value{
 Depending on the \code{type}, in most cases (insisibily)
@@ -262,7 +280,7 @@ fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
 sjp.lm(fit, type = "slope")
 
 # reression line w/o scatter plot
-sjp.lm(fit, type = "slope", scatter.plot = FALSE)
+sjp.lm(fit, type = "slope", show.scatter = FALSE)
 
 # --------------------------
 # plotting model assumptions
@@ -295,7 +313,8 @@ sjp.lm(fit, group.estimates = c(1, 2, 1, 3, 4, 3),
 library(sjmisc)
 data(efc)
 efc$education <- to_label(to_factor(efc$c172code))
-fit <- lm(barthtot ~ c160age + c12hour + e17age+ education,
+efc$gender <- to_label(to_factor(efc$c161sex))
+fit <- lm(barthtot ~ c160age + c12hour + e17age + gender + education,
           data = efc)
 
 sjp.lm(fit, type = "pred", vars = "c160age")
@@ -310,6 +329,9 @@ sjp.lm(fit, type = "pred", vars = c("c12hour", "education"))
 sjp.lm(fit, type = "pred", vars = c("c12hour", "education"),
        facet.grid = FALSE)
 
+# two groupings
+sjp.lm(fit, type = "pred", vars = c("c12hour", "gender", "education"))
+
 # --------------------------
 # plotting polynomial terms
 # --------------------------
@@ -321,7 +343,7 @@ fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
 # try to find appropiate polynomial. Grey line (loess smoothed)
 # indicates best fit. Looks like x^3 has a good fit.
 # (not checked for significance yet).
-sjp.poly(fit, "e17age", 2:4, scatter.plot = FALSE)
+sjp.poly(fit, "e17age", 2:4, show.scatter = FALSE)
 # fit new model
 fit <- lm(tot_sc_e ~ c12hour + e42dep +
           e17age + I(e17age^2) + I(e17age^3),
