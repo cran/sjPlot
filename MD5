@@ -1,7 +1,7 @@
-2369c61db415ac0c6880c10739fbd47d *DESCRIPTION
+c7f43e3af20b10abddff7060570d5632 *DESCRIPTION
 7ea199f5e40a9e4a8398f8214043a8e9 *NAMESPACE
-49110ce049747932eda69a889f7d540c *NEWS
-bb4b1377fc420486c2be6af3f65cfe0b *NEWS.md
+97617c74f684d491e7d4f2d8c6679fef *NEWS
+a6824d5f998d7290e021330f8e349b4e *NEWS.md
 51c8e2522b29527a50819aecb22ddfdc *R/helpfunctions.R
 b3e39c6899235457ef0cead5f83e95da *R/plot_grid.R
 4ed84920c36c4b4ba353f6ecbb3f8445 *R/set_theme.R
@@ -15,9 +15,9 @@ d714247f576b33b236387ad840d70d27 *R/sjPlotCorr.R
 1cf99625f11fa888092cb0be1274d19c *R/sjPlotGroupFrequencies.R
 cadd8de8fc3e00d2dfa255278554f29b *R/sjPlotGroupPropTable.R
 31d2d6d7b917762a024ac42e2daf9bd3 *R/sjPlotInteractions.R
-b2910fb6870db4577eaee3e5e5b77727 *R/sjPlotKfoldCV.R
+6f1dd0aecc8741a97d67c276b1a3a673 *R/sjPlotKfoldCV.R
 58f58cda9941eb048df562aea280a2ac *R/sjPlotLikert.R
-214dc56e816357752905168fdbed6003 *R/sjPlotLinreg.R
+12427edf47d224bbdcfed5f81cbfe08d *R/sjPlotLinreg.R
 2a1701cc24c0808d1ee1cd94fbc70b75 *R/sjPlotLinregMultiple.R
 13eee656f792b7d7ad45f5e6e240f99f *R/sjPlotOdds.R
 d1d9f7844334c685a4492c98c0e283fe *R/sjPlotOddsMultiple.R
@@ -45,7 +45,7 @@ f7d8a82fc14c737eec4e32712728e64c *R/sjplot.R
 91c2387856a617427be006dc9f5792ab *R/table_functions.R
 db094e636a512442beee311aac546c7a *R/zzz.R
 b6ec549a5cd46f113bf1dfc8e7ed4c28 *README.md
-77d9c79d1c6dbc857bcdf12505b4a1de *build/partial.rdb
+3ff5978a6a4730db13041d7483129f63 *build/partial.rdb
 964feaeebd30942263c7f847614e1bc3 *inst/CITATION
 49ab2e252d0b3f0968112d5adcc0ae17 *man/dist_chisq.Rd
 48fbfa9099f225cd2cc87b411bb0c3e5 *man/dist_f.Rd
@@ -54,7 +54,7 @@ b6ec549a5cd46f113bf1dfc8e7ed4c28 *README.md
 de299358d4d0861907107f98cff749b0 *man/plot_grid.Rd
 4cfb7d0ecc69d4e1fd05b88f16cec14d *man/save_plot.Rd
 4c068920fa7350cbbe54a90dd54735a0 *man/set_theme.Rd
-d06a257c36f695b65a5b4bbb3453ca15 *man/sjPlot-package.Rd
+996cf7b67ca9461f2f862512cbda27e8 *man/sjPlot-package.Rd
 53a78cf7e21d119b17a74ca77591a67d *man/sjc.cluster.Rd
 a57c75629b2b2e5ab757595fae863640 *man/sjc.dend.Rd
 417ea08cd3202029d79ecc9a6b34ae61 *man/sjc.elbow.Rd
@@ -70,10 +70,10 @@ befc3cd39f3294d21b938ee100379fd0 *man/sjp.glmer.Rd
 14390a4537e479a29cf3c74a434a13ed *man/sjp.glmm.Rd
 42d29523f7a24a9fbd23f311b9764cc6 *man/sjp.gpt.Rd
 4a1db9a17a71bb3f1474f41a0eba6de1 *man/sjp.grpfrq.Rd
-a95359cc0b9958907f832ad03f7ca4db *man/sjp.int.Rd
+7b029c109113033fba9d107955d15d16 *man/sjp.int.Rd
 d3773f389f2b75c80f2de899b2cb84b2 *man/sjp.kfold_cv.Rd
 bcd2104564abeca031fa37fbde4667e3 *man/sjp.likert.Rd
-78c01fce2f42043a98b3c3f52807ca36 *man/sjp.lm.Rd
+1f497018f2da9b3effe427da242bcc52 *man/sjp.lm.Rd
 55e1d9a356d78a1e43d9d6c0684a0362 *man/sjp.lmer.Rd
 05e86886a5627a1273aa6cea86bf527d *man/sjp.lmm.Rd
 fd325fd4ae9206be2b505669e3686b7f *man/sjp.pca.Rd
