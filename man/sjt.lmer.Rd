@@ -164,7 +164,9 @@ office applications, it might be helpful not to add this separator column
 when modifying the table layout.}
 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
+see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+\code{\link{sjt.frq}}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
@@ -252,7 +254,7 @@ efc$grp = as.factor(efc$e15relat)
 levels(x = efc$grp) <- get_labels(efc$e15relat)
 efc$care.level <- sjmisc::rec(efc$n4pstu, 
                               recodes = "0=0;1=1;2=2;3:4=3", 
-                              as.fac = TRUE)
+                              as.num = FALSE)
 levels(x = efc$care.level) <- c("none", "I", "II", "III")
 
 # data frame for fitted model
@@ -300,4 +302,3 @@ sjt.lmer(fit1, fit2, fit3, pred.labels = c("Elder's gender (female)",
 \href{http://strengejacke.de/sjPlot/sjt.lmer/}{sjPlot manual: sjt.lmer} 
            and \code{\link{sjt.lm}} for further examples.
 }
-

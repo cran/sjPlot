@@ -1,3 +1,22 @@
+Version 2.3.0
+-----------------------------------------------------------------------------
+General:
+* Vignettes were added to this package.
+
+Changes to functions:
+* You can use `geom.colors = "bw"` for linetype-plots, to create black & white figures that use different linetypes instead of different colors.
+* `sjp.kfold_cv()` now also supports poisson and negative binomial regression models.
+* `sjp.pca()` and `sjt.pca()` get a `rotation`-argument, to use either varimax- or oblimin-transformation of factor loadings.
+* Argument `show.value` now also applies to bar plots in `sjp.pca()`. 
+* `sjt.glm()`, for generalized linar (mixed) models, now shows adjusted standard errors, using the Taylor series-based delta method. 
+* More precise rounding of percentage values in `sjt.xtab()`, `sjp.xtab()` and `sjp.grpfrq()`.
+* Cramer's V in `sjt.xtab()` is now dentoted as V.
+* `sjt.xtab()` gets a `...`-argument, to pass down further arguments to the test statistics functions `chisq.test()` and `fisher.test()`.
+* `sjt.xtab()` gets a `statistics`-argument, to select one of different measures of associations for the table summary.
+
+Bug fixes:
+* Plotting or table output of regression models did not work with null-models (i.e. with intercept only).
+
 Version 2.2.1
 -----------------------------------------------------------------------------
 Changes to functions:

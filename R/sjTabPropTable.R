@@ -35,6 +35,11 @@
 #'          the percentage value.
 #' @param hundret Default value that indicates the 100-percent column-sums (since rounding values
 #'          may lead to non-exact results). Default is \code{"100.0"}.
+#' @param statistics Name of measure of association that should be computed. May
+#'          be one of \code{"auto"}, \code{"cramer"}, \code{"phi"}, \code{"spearman"},
+#'          \code{"kendall"} or \code{"pearson"}. See 'Details'.
+#' @param ... Other arguments, currently passed down to the test statistics functions
+#'        \code{chisq.test()} or \code{fisher.test()}.
 #'          
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
@@ -50,9 +55,18 @@
 #'            }
 #'            for further use.
 #'          
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
-#'  
-#' @details See 'Details' in \code{\link{sjt.frq}}.
+#' @details The p-value for Cramer's V and the Phi coefficient are based
+#'          on \code{chisq.test()}. If any expected value of a table cell is
+#'          smaller than 5, or smaller than 10 and the df is 1, then \code{fisher.test()}
+#'          is used to compute the p-value. The test statistic is calculated
+#'          with \code{cramer()} resp. \code{phi()}.
+#'          \cr \cr
+#'          Both test statistic and p-value for Spearman's rho, Kendall's tau
+#'          and Pearson's r are calculated with \code{cor.test()}.
+#'          \cr \cr
+#'          When \code{statistics = "auto"}, only Cramer's V or Phi are calculated,
+#'          based on the dimension of the table (i.e. if the table has more than
+#'          two rows or columns, Cramer's V is calculated, else Phi).
 #'         
 #' @examples 
 #' # prepare sample data set
@@ -79,7 +93,7 @@
 #'                     css.tdata = "border: 1px solid;",
 #'                     css.horline = "border-bottom: double blue;"))}
 #'
-#' @importFrom stats xtabs ftable
+#' @importFrom stats xtabs ftable chisq.test fisher.test
 #' @export
 sjt.xtab <- function(var.row,
                      var.col,
@@ -93,9 +107,10 @@ sjt.xtab <- function(var.row,
                      show.row.prc = FALSE,
                      show.col.prc = FALSE,
                      show.exp = FALSE,
-                     show.summary = TRUE,
                      show.legend = FALSE,
                      show.na = FALSE,
+                     show.summary = TRUE,
+                     statistics = c("auto", "cramer", "phi", "spearman", "kendall", "pearson"),
                      string.total = "Total",
                      digits = 1,
                      tdcol.n = "black",
@@ -112,7 +127,8 @@ sjt.xtab <- function(var.row,
                      file = NULL,
                      use.viewer = TRUE,
                      no.output = FALSE,
-                     remove.spaces = TRUE) {
+                     remove.spaces = TRUE,
+                     ...) {
   # --------------------------------------------------------
   # check p-value-style option
   # --------------------------------------------------------
@@ -126,6 +142,8 @@ sjt.xtab <- function(var.row,
   # check encoding
   # -------------------------------------
   encoding <- get.encoding(encoding)
+  # match arguments
+  statistics <- match.arg(statistics)
   # --------------------------------------------------------
   # get variable name
   # --------------------------------------------------------
@@ -398,54 +416,30 @@ sjt.xtab <- function(var.row,
   # table summary
   # -------------------------------------
   if (show.summary) {
-    # re-compute simple table
-    ftab <- stats::ftable(stats::xtabs(~var.row + var.col))
-    # start new table row
-    page.content <- paste(page.content, "\n  <tr>\n    ", sep = "")
-    # calculate chi square value
-    chsq <- chisq.test(ftab)
-    fish <- NULL
-    # check whether variables are dichotome or if they have more
-    # than two categories. if they have more, use Cramer's V to calculate
-    # the contingency coefficient
-    if (nrow(ftab) > 2 || ncol(ftab) > 2) {
-      kook <- sprintf("&Phi;<sub>c</sub>=%.3f", sjstats::cramer(ftab))
-      # if minimum expected values below 5, compute fisher's exact test
-      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) 
-        fish <- fisher.test(ftab, simulate.p.value = TRUE)
-    } else {
-      kook <- sprintf("&Phi;=%.3f", sjstats::phi(ftab))
-      # if minimum expected values below 5 and df=1, compute fisher's exact test
-      if (min(tab.expected) < 5 || (min(tab.expected) < 10 && chsq$parameter == 1)) 
-        fish <- fisher.test(ftab)
-    }
-    # make phi-value apa style
-    kook <- gsub("0.", paste0(p_zero, "."), kook, fixed = TRUE)
-    # create summary row
-    if (is.null(fish)) {
-      pvalstring <- ifelse(chsq$p.value < 0.001, 
-                           sprintf("p&lt;%s.001", p_zero), 
-                           sub("0", p_zero, sprintf("p=%.3f", chsq$p.value)))
-      page.content <- paste(page.content, 
-                            sprintf("    <td class=\"summary tdata\" colspan=\"%i\">&Chi;<sup>2</sup>=%.3f &middot; df=%i &middot; %s &middot; %s</td>", 
-                                    totalncol + 1, 
-                                    chsq$statistic, 
-                                    chsq$parameter, 
-                                    kook, 
-                                    pvalstring), 
-                            sep = "")
-    } else {
-      pvalstring <- ifelse(fish$p.value < 0.001, 
-                           sprintf("p&lt;%s.001", p_zero), 
-                           sub("0", p_zero, sprintf("p=%.3f", fish$p.value)))
-      page.content <- paste(page.content, 
-                            sprintf("    <td class=\"summary tdata\" colspan=\"%i\">Fisher's %s &middot; df=%i &middot; %s</td>", 
-                                    totalncol + 1, 
-                                    pvalstring, 
-                                    chsq$parameter, 
-                                    kook), 
-                            sep = "")
-    }
+    xt_stat <- xtab_stats(data.frame(var.row, var.col), statistics = statistics, ...)
+    chsq <- stats::chisq.test(var.row, var.col)
+    
+    # fisher's exact test?
+    if (xt_stat$fisher)
+      pstring <- "Fisher's p"
+    else
+      pstring <- "p"
+    
+    page.content <- paste(
+      page.content,
+      sprintf(
+        "    <td class=\"summary tdata\" colspan=\"%i\">%s=%.3f &middot; df=%i &middot; %s=%.3f &middot; %s=%.3f</td>",
+        totalncol + 1,
+        xt_stat$stat.name,
+        xt_stat$statistic,
+        chsq$parameter,
+        xt_stat$method,
+        xt_stat$estimate,
+        pstring,
+        xt_stat$p.value,
+        sep = ""
+      )
+    )
     # close table row
     page.content <- paste(page.content, "\n  </tr>\n")
   }  
@@ -560,4 +554,88 @@ sjt.xtab <- function(var.row,
                            page.content = page.content,
                            output.complete = toWrite,
                            knitr = knitr)))
+}
+
+
+#' @importFrom stats fisher.test chisq.test cor.test ftable
+#' @importFrom dplyr case_when
+#' @importFrom sjstats table_values cramer phi
+xtab_stats <- function(data, statistics = c("auto", "cramer", "phi", "spearman", "kendall", "pearson"), ...) {
+  # match arguments
+  statistics <- match.arg(statistics)
+
+  # copy data as table  
+  tab <- table(data)
+
+  # get expected values
+  tab.val <- sjstats::table_values(tab)
+  
+  # remember whether fisher's exact test was used or not
+  use.fisher <- FALSE
+  
+  # select statistics automatically, based on number of rows/columns
+  if (statistics %in% c("auto", "cramer", "phi")) {
+    # get chisq-statistics, for df and p-value
+    chsq <- suppressWarnings(stats::chisq.test(tab, ...))
+    pv <- chsq$p.value
+    test <- chsq$statistic
+    # set statistics name
+    names(test) <- "Chi-squared"
+    
+    # check row/column
+    if ((nrow(tab) > 2 || ncol(tab) > 2 || statistics == "cramer") && statistics != "phi") {
+      # get cramer's V
+      s <- sjstats::cramer(tab)
+      
+      # if minimum expected values below 5, compute fisher's exact test
+      if (min(tab.val$expected) < 5 ||
+          (min(tab.val$expected) < 10 && chsq$parameter == 1)) {
+        pv <- stats::fisher.test(tab, simulate.p.value = TRUE, ...)$p.value
+        use.fisher <- TRUE
+      }
+      
+      # set statistics
+      statistics <- "cramer"
+    } else {
+      # get Phi
+      s <- sjstats::phi(tab)
+      
+      # if minimum expected values below 5 and df=1, compute fisher's exact test
+      if (min(tab.val$expected) < 5 ||
+          (min(tab.val$expected) < 10 && chsq$parameter == 1)) {
+        pv <- stats::fisher.test(tab, ...)$p.value
+        use.fisher <- TRUE
+      }
+      
+      # set statistics
+      statistics <- "phi"
+    }
+  } else {
+    # compute correlation coefficient
+    cv <- stats::cor.test(x = data[[1]], y = data[[2]], method = statistics, ...)
+    # get statistics and p-value
+    s <- cv$estimate
+    pv <- cv$p.value
+    test <- cv$statistic
+  }
+  
+  # compute method string
+  method <- dplyr::case_when(
+    statistics == "kendall" ~ "Kendall's tau",
+    statistics == "spearman" ~ "Spearman's rho",
+    statistics == "pearson" ~ "Person's r",
+    statistics == "cramer" ~ "Cramer's V",
+    statistics == "phi" ~ "Phi"
+  )
+  
+  # return result
+  return(list(
+    estimate = s,
+    p.value = pv,
+    statistic = test,
+    stat.name = names(test),
+    method = method,
+    method.short = statistics,
+    fisher = use.fisher
+  ))
 }

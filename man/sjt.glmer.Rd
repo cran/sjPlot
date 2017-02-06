@@ -163,7 +163,9 @@ office applications, it might be helpful not to add this separator column
 when modifying the table layout.}
 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
+see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+\code{\link{sjt.frq}}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
@@ -214,6 +216,12 @@ Computation of p-values (if necessary) is based on normal-distribution
          \item between-group-variance: tau-zero-zero
          \item random-slope-intercept-correlation: rho-zero-one
          }
+      Standard errors for generalized linear (mixed) models are \emph{not} 
+      the regular standard errors on the untransformed scale, as shown in the
+      \code{summary()}-method. Rather, \code{sjt.glmer()} uses adjustments 
+      according to the delta method for approximating standard errors of 
+      transformed regression parameters (see \code{\link[sjstats]{se}}).
+      \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{
@@ -257,4 +265,3 @@ sjt.glmer(fit1, fit2, pred.labels = "")}
 
 
 }
-

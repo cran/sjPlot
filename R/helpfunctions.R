@@ -17,7 +17,7 @@ get_dot_args <- function(x) {
   # get ...-argument, and check if it was "level"
   ci.lvl <- x[["level"]]
   if (is.null(ci.lvl)) ci.lvl <- .95
-  
+
   list(eb.width = eb.width,
        ci.alpha = ci.alpha,
        ci.lvl = ci.lvl)
@@ -254,7 +254,7 @@ create.frq.df <- function(x,
     mydat <- suppressMessages(dplyr::full_join(dat, dat2))
     # replace NA with 0, for proper percentages, i.e.
     # missing values don't appear (zero counts)
-    suppressMessages(sjmisc::replace_na(mydat$frq) <- 0)
+    mydat$frq <- suppressMessages(sjmisc::replace_na(mydat$frq, value = 0))
   } else {
     # if we have no labels, do simple frq table
     mydat <- data.frame(table(x, useNA = "always"))
@@ -282,15 +282,15 @@ create.frq.df <- function(x,
   # Order categories ascending or descending
   # --------------------------------------------------------
   if (!is.null(order.frq) && (order.frq == "asc" || order.frq == "desc")) {
-    ord <- order(mydat$frq[1:valid.vals], decreasing = (order.frq == "desc"))
+    ord <- order(mydat$frq[seq_len(valid.vals)], decreasing = (order.frq == "desc"))
     mydat <- mydat[c(ord, valid.vals + 1), ]
     labels <- labels[ord]
   }
   # raw percentages
   mydat$raw.prc <- mydat$frq / sum(mydat$frq)
   # compute valud and cumulative percentages
-  mydat$valid.prc <- c(mydat$frq[1:valid.vals] / length(stats::na.omit(x)), NA)
-  mydat$cum.prc <- c(cumsum(mydat$valid.prc[1:valid.vals]), NA)
+  mydat$valid.prc <- c(mydat$frq[seq_len(valid.vals)] / length(stats::na.omit(x)), NA)
+  mydat$cum.prc <- c(cumsum(mydat$valid.prc[seq_len(valid.vals)]), NA)
   # proper rounding
   mydat$raw.prc <- 100 * round(mydat$raw.prc, round.prz + 2)
   mydat$cum.prc <- 100 * round(mydat$cum.prc, round.prz + 2)
@@ -308,7 +308,7 @@ create.frq.df <- function(x,
     mydat$label[is.na(mydat$label)] <- "NA"
     mydat$label[mydat$label == "<NA>"] <- "NA"
   }
-  suppressMessages(sjmisc::replace_na(mydat$val) <- max(sjmisc::to_value(mydat$val), na.rm = T) + 1)
+  mydat$val <- suppressMessages(sjmisc::replace_na(mydat$val, value = max(sjmisc::to_value(mydat$val), na.rm = T) + 1))
   # save original order
   mydat$order <- sjmisc::to_value(mydat$val, keep.labels = F)
   # sort for x-axis
@@ -362,40 +362,65 @@ create.xtab.df <- function(x,
                                                 exclude = NULL,
                                                 na.action = stats::na.pass)), 0)
   }
+  
   # create proportional tables, cell values
+  ori.cell.values <- 100 * prop.table(mydat)
   proptab.cell <- round(100 * prop.table(mydat), round.prz)
+  
   # create proportional tables, row percentages, including total row
-  proptab.row <- rbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 1), round.prz))),
-                       colSums(proptab.cell))
+  proptab.row <- rbind(
+    as.data.frame(as.matrix(round(100 * prop.table(mydat, 1), round.prz))),
+    round(colSums(ori.cell.values), round.prz)
+  )
+  
   rownames(proptab.row)[nrow(proptab.row)] <- "total"
   proptab.row <- as.data.frame(apply(proptab.row, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
+  
   # create proportional tables, column  percentages, including total row
-  proptab.col <- cbind(as.data.frame(as.matrix(round(100 * prop.table(mydat, 2), round.prz))),
-                       rowSums(proptab.cell))
+  proptab.col <- cbind(
+    as.data.frame(as.matrix(round(100 * prop.table(mydat, 2), round.prz))),
+    round(rowSums(ori.cell.values), round.prz)
+  )
+  
   colnames(proptab.col)[ncol(proptab.col)] <- "total"
   proptab.col <- as.data.frame(apply(proptab.col, c(1, 2), function(x) if (is.na(x)) x <- 0 else x))
+  
   # add total row and column to cell percentages afterwards
-  proptab.cell <- rbind(as.data.frame(as.matrix(proptab.cell)), colSums(proptab.cell))
-  proptab.cell <- cbind(as.data.frame(as.matrix(proptab.cell)), rowSums(proptab.cell))
+  proptab.cell <- rbind(
+    as.data.frame(as.matrix(proptab.cell)), 
+    round(colSums(ori.cell.values), round.prz)
+  )
+  
+  proptab.cell <- cbind(
+    as.data.frame(as.matrix(proptab.cell)),
+    rowSums(proptab.cell)
+  )
+  
   # due to roundings, total might differ from 100%, so clean this here
   proptab.cell[nrow(proptab.cell), ncol(proptab.cell)] <- 100
   colnames(proptab.cell)[ncol(proptab.cell)] <- "total"
   rownames(proptab.cell)[nrow(proptab.cell)] <- "total"
+  
   # convert to data frame
   mydat <- data.frame(mydat)
   colnames(mydat)[2] <- "Var2"
+  
   # spread variables back, so we have a table again
   mydat <- tidyr::spread(mydat, Var2, Freq)
+  
   # rename column names
   colnames(mydat)[1] <- "label"
   colnames(mydat)[is.na(colnames(mydat))] <- "NA"
   colnames(mydat)[colnames(mydat) == "<NA>"] <- "NA"
+  
   # label must be character
   mydat$label <- as.character(mydat$label)
   mydat$label[is.na(mydat$label)] <- "NA"
+  
   # save labels to extra vector
   labels.cnt <- mydat$label
   labels.grp <- colnames(mydat)[-1]
+  
   # return result
   invisible(structure(list(mydat = mydat,
                            proptab.cell = proptab.cell,
@@ -547,7 +572,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
     else
       fmodel <- stats::model.frame(fit)
     # retrieve all factors from model
-    for (grp.cnt in 1:ncol(fmodel)) {
+    for (grp.cnt in seq_len(ncol(fmodel))) {
       # get variable
       fit.var <- fmodel[, grp.cnt]
       # is factor? and has more than two levels?
@@ -590,7 +615,7 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
       # take care, while loop!
       any.found <- FALSE
       # if yes, go through all grouping row indices
-      for (i in 1:length(group.pred.rows)) {
+      for (i in seq_len(length(group.pred.rows))) {
         # if yes, check if removed row was before
         # grouped row indes
         if (length(rem_rows) > 0 && rem_rows[1] <= group.pred.rows[i]) {
@@ -648,43 +673,46 @@ retrieveModelLabels <- function(models, group.pred) {
       # get model frame
       m_f <- stats::model.frame(fit)
     }
-    # iterate coefficients (1 is intercept or response)
-    for (i in 2:ncol(m_f)) {
-      # check bounds
-      if (i <= length(coef_names)) {
-        # get predictor
-        pvar <- m_f[, i]
-        # check if we have a variable label
-        lab <- sjmisc::get_label(pvar, def.value = colnames(m_f)[i])
-        # get model coefficients' names
-        coef_name <- coef_names[i]
-        # is predictor a factor?
-        # if yes, we have this variable multiple
-        # times, so manually set value labels
-        if (is.factor(pvar)) {
-          # get amount of levels
-          pvar.len <- nlevels(pvar)
-          # get value labels, if any
-          pvar.lab <- sjmisc::get_labels(pvar)
-          # have any labels, and have we same amount of labels
-          # as factor levels?
-          if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
-            # create labels
-            if (group.pred && pvar.len > 2) {
-              # if predictor grouping is enabled, don't use variable labels again
-              labels.to.add <- pvar.lab[2:pvar.len]
+    # for NULL-models, we just have one column in model frame
+    if (ncol(m_f) > 1) {
+      # iterate coefficients (1 is intercept or response)
+      for (i in 2:ncol(m_f)) {
+        # check bounds
+        if (i <= length(coef_names)) {
+          # get predictor
+          pvar <- m_f[, i]
+          # check if we have a variable label
+          lab <- sjmisc::get_label(pvar, def.value = colnames(m_f)[i])
+          # get model coefficients' names
+          coef_name <- coef_names[i]
+          # is predictor a factor?
+          # if yes, we have this variable multiple
+          # times, so manually set value labels
+          if (is.factor(pvar)) {
+            # get amount of levels
+            pvar.len <- nlevels(pvar)
+            # get value labels, if any
+            pvar.lab <- sjmisc::get_labels(pvar)
+            # have any labels, and have we same amount of labels
+            # as factor levels?
+            if (!is.null(pvar.lab) && length(pvar.lab) == pvar.len) {
+              # create labels
+              if (group.pred && pvar.len > 2) {
+                # if predictor grouping is enabled, don't use variable labels again
+                labels.to.add <- pvar.lab[2:pvar.len]
+              } else {
+                # else, if we have not grouped predictors, we have no headin
+                # with variable label, hence, factor levels may not be intuitiv.
+                # thus, add variable label so values have a meaning
+                labels.to.add <- sprintf("%s (%s)", lab, pvar.lab[2:pvar.len])
+              }
+              fit.labels <- c(fit.labels, labels.to.add)
             } else {
-              # else, if we have not grouped predictors, we have no headin
-              # with variable label, hence, factor levels may not be intuitiv.
-              # thus, add variable label so values have a meaning
-              labels.to.add <- sprintf("%s (%s)", lab, pvar.lab[2:pvar.len])
+              fit.labels <- c(fit.labels, coef_name)
             }
-            fit.labels <- c(fit.labels, labels.to.add)
           } else {
-            fit.labels <- c(fit.labels, coef_name)
+            if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
           }
-        } else {
-          if (!any(fit.labels == lab)) fit.labels <- c(fit.labels, lab)
         }
       }
     }
@@ -740,12 +768,8 @@ varimaxrota <- function(data, factors) {
   ladungen <- data$rotation %*% diag(data$sdev)
   # Zur Durchführung der VARIMAX-Rotation erzeugen wir eine Matrix
   # mit den Faktorladungen der ausgewählten Faktoren (Anzahl = Parameter "factors")
-  ladb <- c()
-  for (i in 1:factors) {
-    ladb <- cbind(ladb, ladungen[, i])
-  }
   # Varimax Rotation durchführen
-  varib <- stats::varimax(ladb)
+  varib <- stats::varimax(ladungen[, seq_len(factors)])
   return(varib)
 }
 

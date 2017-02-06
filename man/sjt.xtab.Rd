@@ -7,13 +7,14 @@
 sjt.xtab(var.row, var.col, weight.by = NULL, title = NULL,
   var.labels = NULL, value.labels = NULL, wrap.labels = 20,
   show.obs = TRUE, show.cell.prc = FALSE, show.row.prc = FALSE,
-  show.col.prc = FALSE, show.exp = FALSE, show.summary = TRUE,
-  show.legend = FALSE, show.na = FALSE, string.total = "Total",
+  show.col.prc = FALSE, show.exp = FALSE, show.legend = FALSE,
+  show.na = FALSE, show.summary = TRUE, statistics = c("auto", "cramer",
+  "phi", "spearman", "kendall", "pearson"), string.total = "Total",
   digits = 1, tdcol.n = "black", tdcol.expected = "#339999",
   tdcol.cell = "#993333", tdcol.row = "#333399", tdcol.col = "#339933",
   emph.total = FALSE, emph.color = "#f8f8f8", prc.sign = "&nbsp;&#37;",
   hundret = "100.0", CSS = NULL, encoding = NULL, file = NULL,
-  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE, ...)
 }
 \arguments{
 \item{var.row}{variable that should be displayed in the table rows.}
@@ -46,15 +47,19 @@ labels are displayed in one line and when a line break is inserted.}
 
 \item{show.exp}{logical, if \code{TRUE}, expected values are also shown}
 
-\item{show.summary}{logical, if \code{TRUE}, a summary row with 
-chi-squared statistics, degrees of freedom and Cramer's V or Phi
-coefficient and p-value for the chi-squared statistics.}
-
 \item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
 function, a legend is added to the plot.}
 
 \item{show.na}{logical, if \code{TRUE}, \code{\link{NA}}'s (missing values)
 are added to the output.}
+
+\item{show.summary}{logical, if \code{TRUE}, a summary row with 
+chi-squared statistics, degrees of freedom and Cramer's V or Phi
+coefficient and p-value for the chi-squared statistics.}
+
+\item{statistics}{Name of measure of association that should be computed. May
+be one of \code{"auto"}, \code{"cramer"}, \code{"phi"}, \code{"spearman"},
+\code{"kendall"} or \code{"pearson"}. See 'Details'.}
 
 \item{string.total}{label for the total column / row header}
 
@@ -84,7 +89,9 @@ the percentage value.}
 may lead to non-exact results). Default is \code{"100.0"}.}
 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
+see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+\code{\link{sjt.frq}}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
@@ -106,6 +113,9 @@ value.}
 \item{remove.spaces}{logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
 may look less pretty, but it may help when exporting html-tables to office tools.}
+
+\item{...}{Other arguments, currently passed down to the test statistics functions
+\code{chisq.test()} or \code{fisher.test()}.}
 }
 \value{
 Invisibly returns
@@ -121,10 +131,18 @@ Invisibly returns
 Shows contingency tables as HTML file in browser or viewer pane, or saves them as file.
 }
 \details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
-\note{
-See 'Notes' in \code{\link{sjt.frq}}.
+The p-value for Cramer's V and the Phi coefficient are based
+         on \code{chisq.test()}. If any expected value of a table cell is
+         smaller than 5, or smaller than 10 and the df is 1, then \code{fisher.test()}
+         is used to compute the p-value. The test statistic is calculated
+         with \code{cramer()} resp. \code{phi()}.
+         \cr \cr
+         Both test statistic and p-value for Spearman's rho, Kendall's tau
+         and Pearson's r are calculated with \code{cor.test()}.
+         \cr \cr
+         When \code{statistics = "auto"}, only Cramer's V or Phi are calculated,
+         based on the dimension of the table (i.e. if the table has more than
+         two rows or columns, Cramer's V is calculated, else Phi).
 }
 \examples{
 # prepare sample data set
@@ -158,4 +176,3 @@ sjt.xtab(efc$e16sex, efc$e42dep,
            \item \code{\link{sjp.xtab}}
          }
 }
-

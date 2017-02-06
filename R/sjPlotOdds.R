@@ -37,6 +37,7 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est", "ci.low", "ci.h
 #' @inheritParams sjp.aov1
 #' @inheritParams sjp.glmer
 #' @inheritParams sjp.int
+#' @inheritParams sjp.gpt
 #' 
 #' @return (Insisibily) returns, depending on the plot type
 #'          \itemize{
@@ -178,21 +179,66 @@ sjp.glm <- function(fit,
   
   # check plot-type -----
   if (type == "slope") {
-    return(invisible(sjp.glm.slope(fit, title, geom.size, geom.colors, remove.estimates, vars,
-                                   ylim = axis.lim, show.ci, facet.grid, show.scatter,
-                                   point.alpha, prnt.plot)))
+    return(invisible(
+      sjp.glm.slope(
+        fit,
+        title,
+        geom.size,
+        geom.colors,
+        remove.estimates,
+        vars,
+        ylim = axis.lim,
+        show.ci,
+        facet.grid,
+        show.scatter,
+        point.alpha,
+        prnt.plot
+      )
+    ))
   }
+  
   if (type == "eff") {
-    return(invisible(sjp.glm.eff(fit, title, axis.title, geom.size, remove.estimates, vars,
-                                 show.ci, ylim = axis.lim, facet.grid, fun = "glm", 
-                                 prnt.plot, ...)))
+    return(invisible(
+      sjp.glm.eff(
+        fit,
+        title,
+        axis.title,
+        geom.size,
+        remove.estimates,
+        vars,
+        show.ci,
+        ylim = axis.lim,
+        facet.grid,
+        fun = "glm",
+        prnt.plot,
+        ...
+      )
+    ))
   }
+  
   if (type == "pred") {
-    return(invisible(sjp.glm.predy(fit, vars, t.title = title, l.title = legend.title,
-                                   a.title = axis.title,
-                                   geom.colors, show.ci, jitter.ci, geom.size, ylim = axis.lim,
-                                   facet.grid, type = "fe", show.scatter, point.alpha, 
-                                   point.color, show.loess = F, prnt.plot, ...)))
+    return(invisible(
+      sjp.glm.predy(
+        fit,
+        vars,
+        t.title = title,
+        l.title = legend.title,
+        a.title = axis.title,
+        geom.colors,
+        show.ci,
+        jitter.ci,
+        geom.size,
+        ylim = axis.lim,
+        facet.grid,
+        type = "fe",
+        show.scatter,
+        point.alpha,
+        point.color,
+        show.loess = F,
+        prnt.plot,
+        ...
+      )
+    ))
   }
   if (type == "ma") {
     return(invisible(sjp.glm.ma(fit)))
@@ -252,7 +298,7 @@ sjp.glm <- function(fit,
   if (any(class(fit) == "logistf")) {
     pv <- fit$prob
   } else {
-    pv <- stats::coef(summary(fit))[,4]
+    pv <- stats::coef(summary(fit))[, 4]
   }
   # retrieve odds ratios
   ov <- model_coef
@@ -330,7 +376,7 @@ sjp.glm <- function(fit,
     # remember old rownames
     keepnames <- row.names(odds)[-remrows]
     # remove rows
-    odds <- dplyr::slice(odds, c(1:nrow(odds))[-remrows])
+    odds <- dplyr::slice(odds, seq_len(nrow(odds))[-remrows])
     # set back rownames
     row.names(odds) <- keepnames
     # remove labels?
@@ -379,20 +425,31 @@ sjp.glm <- function(fit,
   if (show.summary) {
     psr <- sjstats::r2(fit)
     modsum <- as.character(as.expression(
-      substitute("(Intercept)" == ic * "," ~~ italic(R)[CS]^2 == r2cs * "," ~~ italic(R)[N]^2 == r2n * "," ~~ -2 * lambda == la * "," ~~ chi^2 == c2 * "," ~~ "AIC" == aic,
-                 list(ic = sprintf("%.2f", exp(stats::coef(fit)[1])),
-                      r2cs = sprintf("%.3f", psr$CoxSnell),
-                      r2n = sprintf("%.3f", psr$Nagelkerke),
-                      la = sprintf("%.2f", -2 * stats::logLik(fit)),
-                      c2 = sprintf("%.2f", Chisquare.glm(fit)),
-                      aic = sprintf("%.2f", fit$aic)))))
-    cat(sprintf("Intercept = %.2f\nR2[cs] = %.3f\nR2[n] = %.3f\nLambda = %.2f\nChi2 = %.2f\nAIC = %.2f\n",
-                exp(stats::coef(fit)[1]),
-                psr$CoxSnell,
-                psr$Nagelkerke,
-                -2 * stats::logLik(fit),
-                Chisquare.glm(fit),
-                fit$aic))
+      substitute(
+        "(Intercept)" == ic * "," ~  ~ italic(R)[CS] ^ 2 == r2cs * "," ~  ~ italic(R)[N] ^
+          2 == r2n * "," ~  ~ -2 * lambda == la * "," ~  ~ chi ^ 2 == c2 * "," ~
+          ~ "AIC" == aic,
+        list(
+          ic = sprintf("%.2f", exp(stats::coef(fit)[1])),
+          r2cs = sprintf("%.3f", psr$CoxSnell),
+          r2n = sprintf("%.3f", psr$Nagelkerke),
+          la = sprintf("%.2f", -2 * stats::logLik(fit)),
+          c2 = sprintf("%.2f", Chisquare.glm(fit)),
+          aic = sprintf("%.2f", fit$aic)
+        )
+      )
+    ))
+    cat(
+      sprintf(
+        "Intercept = %.2f\nR2[cs] = %.3f\nR2[n] = %.3f\nLambda = %.2f\nChi2 = %.2f\nAIC = %.2f\n",
+        exp(stats::coef(fit)[1]),
+        psr$CoxSnell,
+        psr$Nagelkerke,
+        -2 * stats::logLik(fit),
+        Chisquare.glm(fit),
+        fit$aic
+      )
+    )
   } else {
     modsum <- NULL
   }
@@ -454,16 +511,20 @@ sjp.glm <- function(fit,
     # proportional distance of the grid bars, we can apply the
     # exponential-function on the tick marks
     plotHeader <- plotHeader +
-      scale_y_continuous(trans = "log10",
-                         limits = c(lower_lim, upper_lim),
-                         breaks = base_breaks(upper_lim),
-                         labels = prettyNum)
+      scale_y_continuous(
+        trans = "log10",
+        limits = c(lower_lim, upper_lim),
+        breaks = base_breaks(upper_lim),
+        labels = prettyNum
+      )
   } else {
     plotHeader <- plotHeader +
       # logarithmic scale for odds
-      scale_y_log10(limits = c(lower_lim, upper_lim),
-                    breaks = ticks,
-                    labels = ticks)
+      scale_y_log10(
+        limits = c(lower_lim, upper_lim),
+        breaks = ticks,
+        labels = ticks
+      )
   }
   
   # flip coordinates?
@@ -477,13 +538,17 @@ sjp.glm <- function(fit,
   
   # set proper column names
   odds <- tibble::rownames_to_column(odds)
-  colnames(odds) <- c("term", "estimate", "conf.low", "conf.high", 
-                      "p.string", "p.value", "xpos")
+  colnames(odds) <-
+    c("term",
+      "estimate",
+      "conf.low",
+      "conf.high",
+      "p.string",
+      "p.value",
+      "xpos")
   
   # return results -----
-  invisible(structure(class = c("sjPlot", "sjpglm"),
-                      list(plot = plotHeader,
-                           data = odds)))
+  invisible(structure(class = c("sjPlot", "sjpglm"), list(plot = plotHeader, data = odds)))
 }
 
 
@@ -960,6 +1025,8 @@ sjp.glm.predy <- function(fit,
   # check if we have a categorical variable with value
   # labels at the x-axis.
   axis_labels <- sjmisc::get_labels(mydf[[1]], include.non.labelled = T, drop.unused = TRUE)
+  # check if we have bw-figure
+  bw.figure <- !is.null(geom.colors) && geom.colors[1] == "bw"
   # ----------------------------
   # with or w/o grouping factor?
   # ----------------------------
@@ -993,8 +1060,8 @@ sjp.glm.predy <- function(fit,
     # set colors
     geom.colors <- col_check2(geom.colors, length(legend.labels))
     # init plot
-    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp", fill = "grp")) +
-      labs(x = x.title, y = y.title, title = t.title, colour = l.title, fill = NULL)
+    mp <- ggplot(mydf, aes_string(x = "x", y = "y", colour = "grp", fill = "grp", linetype = "grp")) +
+      labs(x = x.title, y = y.title, title = t.title, colour = l.title, fill = NULL, linetype = l.title)
   }
   # check correct labels
   if (!is.null(axis_labels) && length(axis_labels) != length(stats::na.omit(unique(mydf$x))))
@@ -1101,24 +1168,25 @@ sjp.glm.predy <- function(fit,
     # plot line and data points. we don't need smoothing for discrete levels
     if (jitter.ci) {
       mp <- mp + 
-        geom_line(aes_string(x = "x", y = "y", colour = "grp"), 
+        geom_line(aes_string(x = "x", y = "y", colour = "grp", linetype = "grp"), 
                   data = datpoint, 
                   size = geom.size,
                   position = position_dodge(.2)) +
-        geom_point(aes_string(x = "x", y = "y", colour = "grp"), 
+        geom_point(aes_string(x = "x", y = "y", colour = "grp", linetype = "grp"), 
                    data = datpoint,
                    shape = 16,
                    position = position_dodge(.2))
     } else {
       mp <- mp + 
-        geom_line(aes_string(x = "x", y = "y", colour = "grp"), data = datpoint, size = geom.size) +
-        geom_point(aes_string(x = "x", y = "y", colour = "grp"), data = datpoint, shape = 16)
+        geom_line(aes_string(x = "x", y = "y", colour = "grp", linetype = "grp"), data = datpoint, size = geom.size) +
+        geom_point(aes_string(x = "x", y = "y", colour = "grp", linetype = "grp"), data = datpoint, shape = 16)
     }
   } else {
     if (fit.m == "lm") {
       mp <- mp +
         stat_smooth(method = fit.m, 
                     se = show.ci,
+                    fullrange = T,
                     level = dot.args[["ci.lvl"]],
                     size = geom.size,
                     alpha = dot.args[["ci.alpha"]])
@@ -1129,6 +1197,7 @@ sjp.glm.predy <- function(fit,
           stat_smooth(method = "glm.nb",
                       se = show.ci,
                       level = dot.args[["ci.lvl"]],
+                      fullrange = T,
                       size = geom.size,
                       alpha = dot.args[["ci.alpha"]])
       } else {
@@ -1136,6 +1205,7 @@ sjp.glm.predy <- function(fit,
           stat_smooth(method = fit.m, 
                       method.args = list(family = fitfam$family), 
                       se = show.ci,
+                      fullrange = T,
                       level = dot.args[["ci.lvl"]],
                       size = geom.size,
                       alpha = dot.args[["ci.alpha"]])
@@ -1147,6 +1217,7 @@ sjp.glm.predy <- function(fit,
   # ---------------------------------------------------------
   if (show.loess) mp <- mp + stat_smooth(method = "loess",
                                          se = F,
+                                         fullrange = T,
                                          size = geom.size,
                                          colour = "darkred",
                                          alpha = dot.args[["ci.alpha"]])
@@ -1163,39 +1234,48 @@ sjp.glm.predy <- function(fit,
   } else {
     mp <- mp + ylim(ylim)    
   }
+  
+  # check if we have coloured plot or b/w figure with different linetypes
+  if (bw.figure) 
+    ltypes <- seq_len(6)[seq_len(length(geom.colors))]
+  else
+    ltypes <- rep(1, times = length(geom.colors))
+  
   # ---------------------------------------------------------
   # facet grid, if we have grouping variable
   # ---------------------------------------------------------
+  mp <- mp +
+    scale_colour_manual(values = geom.colors, labels = legend.labels) +
+    scale_linetype_manual(values = ltypes, labels = legend.labels) +
+    scale_fill_manual(values = geom.colors)
+
   if (length(vars) == 3) {
-    mp <- mp + 
-      facet_wrap(~facet, ncol = round(sqrt(length(unique(mydf$facet))))) +
-      scale_colour_manual(values = geom.colors, labels = legend.labels) +
-      scale_fill_manual(values = geom.colors) +
-      guides(fill = FALSE)
+    mp <- mp +  facet_wrap(~facet, ncol = round(sqrt(length(unique(mydf$facet)))))
+
+    # add legend depending on b/w figure    
+    if (bw.figure)
+      mp <- mp + guides(fill = FALSE)
+    else
+      mp <- mp + guides(fill = FALSE, linetype = FALSE)
+    
   } else if (facet.grid && length(vars) == 2) {
-    mp <- mp + 
-      facet_wrap(~grp, ncol = round(sqrt(length(unique(mydf$grp)))), 
-                 scales = "free_x") +
-      scale_colour_manual(values = geom.colors) +
-      scale_fill_manual(values = geom.colors) +
-      guides(colour = FALSE, fill = FALSE)
+      mp <- mp + 
+        facet_wrap(~grp, ncol = round(sqrt(length(unique(mydf$grp)))), scales = "free_x") +
+        guides(colour = FALSE, fill = FALSE, linetype = FALSE)
   } else if (!is.null(legend.labels)) {
     if (length(legend.labels) == 1) {
       mp <- mp +
-        scale_colour_manual(values = geom.colors) +
-        scale_fill_manual(values = geom.colors) +
-        guides(colour = FALSE, fill = FALSE)
+        guides(colour = FALSE, fill = FALSE, linetype = FALSE)
     } else {
-      mp <- mp +
-        scale_colour_manual(values = geom.colors, labels = legend.labels) +
-        scale_fill_manual(values = geom.colors) +
-        guides(fill = FALSE)
+      # add legend depending on b/w figure    
+      if (bw.figure)
+        mp <- mp + guides(fill = FALSE)
+      else
+        mp <- mp + guides(fill = FALSE, linetype = FALSE)
     }
   } else {
-    mp <- mp +
-      scale_colour_manual(values = geom.colors) +
-      scale_fill_manual(values = geom.colors) +
-      guides(colour = FALSE, fill = FALSE)
+    mp <- mp +     
+      guides(colour = FALSE, fill = FALSE, linetype = FALSE)
   }
   
   # --------------------------
@@ -1207,7 +1287,7 @@ sjp.glm.predy <- function(fit,
 }
 
 
-#' @importFrom stats update qqnorm qqline residuals anova
+#' @importFrom stats qqnorm qqline residuals anova
 #' @importFrom graphics points text abline plot
 sjp.glm.ma <- function(logreg) {
   # -----------------------------------
@@ -1221,55 +1301,11 @@ sjp.glm.ma <- function(logreg) {
   # ---------------------------------
   # copy current model
   model <- logreg
-  # get AIC-Value
-  aic <- logreg$aic
-  # maximum loops
-  maxloops <- 5
-  maxcnt <- maxloops
-  # remember how many cases have been removed
-  removedcases <- 0
-  outlier <- c()
-  loop <- TRUE
-  # start loop
-  while (isTRUE(loop)) {
-    # get outliers of model
-    # ol <- car::outlierTest(model)
-    # retrieve variable numbers of outliers
-    # vars <- as.numeric(attr(ol$p, "names"))
-    vars <- as.numeric(names(which(car::outlierTest(model, cutoff = Inf, n.max = Inf)$bonf.p < 1)))    # update model by removing outliers
-    if (sjmisc::is_empty(vars)) {
-      loop <- FALSE
-    } else {
-      dummymodel <- stats::update(model, subset = -c(vars))
-      # retrieve new AIC-value
-      dummyaic <- dummymodel$aic
-      # decrease maximum loops
-      maxcnt <- maxcnt - 1
-      # check whether AIC-value of updated model is larger
-      # than previous AIC-value or if we have already all loop-steps done,
-      # stop loop
-      if (dummyaic >= aic || maxcnt < 1) {
-        loop <- FALSE
-      } else {
-        # else copy new model, which is the better one (according to AIC-value)
-        model <- dummymodel
-        # and get new AIC-value
-        aic <- dummyaic
-        # count removed cases
-        removedcases <- removedcases + length(vars)
-        # add outliers to final return value
-        outlier <- c(outlier, vars)
-      }
-    }
-  }
   # ---------------------------------
-  # print steps from original to updated model
+  # remove outliers, only non-mixed models
   # ---------------------------------
-  message(sprintf(("Removed %i cases during %i step(s).\nAIC-value of original model: %.2f\nAIC-value of updated model:  %.2f\n"),
-                  removedcases,
-                  maxloops - (maxcnt + 1),
-                  logreg$aic,
-                  model$aic))
+  outlier <- sjstats::outliers(logreg)
+  print(outlier$result)
   # ------------------------------------------------------
   # Overdispersion
   # Sometimes we can get a deviance that is much larger than expected
@@ -1360,5 +1396,5 @@ sjp.glm.ma <- function(logreg) {
   # return updated model
   invisible(structure(list(class = "sjp.glm.ma",
                            model = model,
-                           outlier = outlier)))
+                           outlier = outlier$removed.obs)))
 }

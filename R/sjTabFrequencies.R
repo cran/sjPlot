@@ -61,7 +61,9 @@
 #'          depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).
 #' @param CSS \code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.
+#'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
+#'          see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+#'          \code{\link{sjt.frq}}.
 #' @param use.viewer If \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
 #' @param no.output logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
@@ -109,7 +111,7 @@
 #'            \item \code{css.arc = 'color:blue;'} for a blue text color each 2nd row.
 #'            \item \code{css.caption = '+color:red;'} to add red font-color to the default table caption style.
 #'          }
-#'          See further examples at \href{http://www.strengejacke.de/sjPlot/sjtbasics}{sjPlot manual: sjt-basics}.
+#'          See further examples in \href{../doc/sjtbasic.html}{this package-vignette}.
 #'          
 #' @examples
 #' \dontrun{
@@ -431,7 +433,7 @@ sjt.frq <- function(data,
         sjmisc::group_var(sjmisc::to_value(data[[cnt]], keep.labels = F),
                           groupsize = "auto", as.num = TRUE, groupcount = auto.group)
       # set labels
-      data[[cnt]] <- sjmisc::set_labels(data[[cnt]], value.labels[[cnt]])
+      data[[cnt]] <- sjmisc::set_labels(data[[cnt]], labels = value.labels[[cnt]])
     }
     # -----------------------------------------------
     # prepare data: create frequencies and weight them,

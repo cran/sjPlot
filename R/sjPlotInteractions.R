@@ -3,7 +3,7 @@
 #'
 #' @references \itemize{
 #'              \item Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
-#'              \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82. \doi{10.1093/pan/mpi014}
+#'              \item Brambor T, Clark WR and Golder M (2006) Understanding Interaction Models: Improving Empirical Analyses. Political Analysis 14: 63-82. \href{https://academic.oup.com/pan/article/14/1/63/1501303/Understanding-Interaction-Models-Improving}{download}
 #'              \item Esarey J, Sumner JL (2015) Marginal Effects in Interaction Models: Determining and Controlling the False Positive Rate. \href{http://jee3.web.rice.edu/interaction-overconfidence.pdf}{download}
 #'              \item Fox J (2003) Effect displays in R for generalised linear models. Journal of Statistical Software 8:15, 1–27, \href{http://www.jstatsoft.org/v08/i15/}{<http://www.jstatsoft.org/v08/i15/>}
 #'              \item Hayes AF (2012) PROCESS: A versatile computational tool for observed variable mediation, moderation, and conditional process modeling [White paper] \href{http://imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/SobelTest?action=AttachFile&do=get&target=process.pdf}{download}
@@ -242,7 +242,7 @@
 #' # name factor levels and dependent variable
 #' levels(mydf$sex) <- c("female", "male")
 #' levels(mydf$education) <- c("low", "mid", "high")
-#' mydf$burden <- set_label(mydf$burden, "care burden")
+#' mydf$burden <- set_label(mydf$burden, lab = "care burden")
 #' # fit "dummy" model
 #' fit <- lm(burden ~ .*., data = mydf)
 #' summary(fit)
@@ -1062,14 +1062,26 @@ sjp.eff.int <- function(fit,
       # combine lists
       if (is.null(int.term)) {
         # re-compute effects
-        eff.tmp <- effects::allEffects(fit, xlevels = xl,  KR = p.kr,
-                                       confidence.level = dot.args[["ci.lvl"]], ...)
+        eff.tmp <- effects::allEffects(
+          fit,
+          xlevels = xl,
+          KR = p.kr,
+          confidence.level = dot.args[["ci.lvl"]],
+          ...
+        )
         # reset data frame
         intdf <- data.frame(eff.tmp[[intpos[i]]])
       } else {
         # re-compute effects
-        eff.tmp <- effects::effect(int.term, fit, xlevels = xl, KR = p.kr,
-                                   confidence.level = dot.args[["ci.lvl"]], ...)
+        eff.tmp <-
+          effects::effect(
+            int.term,
+            fit,
+            xlevels = xl,
+            KR = p.kr,
+            confidence.level = dot.args[["ci.lvl"]],
+            ...
+          )
         # reset data frame
         intdf <- data.frame(eff.tmp)
       }
@@ -1106,8 +1118,8 @@ sjp.eff.int <- function(fit,
     # make sure x is numeric
     intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
     # get name of response, for axis title
-    yaxisname <- sjmisc::get_label(stats::model.frame(fit)[[response.name]], 
-                                   def.value = response.name)
+    yaxisname <-
+      sjmisc::get_label(stats::model.frame(fit)[[response.name]], def.value = response.name)
     # -----------------------------------------------------------
     # check if we have linear regression
     # -----------------------------------------------------------
@@ -1286,7 +1298,7 @@ sjp.eff.int <- function(fit,
     # ------------------------------------------------------------
     # start plot
     # ------------------------------------------------------------
-    baseplot <- ggplot(intdf, aes_string(x = "x", y = "y", colour = "grp"))
+    baseplot <- ggplot(intdf, aes_string(x = "x", y = "y", colour = "grp", linetype = "grp"))
     # ------------------------------------------------------------
     # confidence interval?
     # ------------------------------------------------------------
@@ -1301,7 +1313,7 @@ sjp.eff.int <- function(fit,
         # -------------------------------------------------
         if (jitter.ci) {
           baseplot <- baseplot +
-            geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high", colour = "grp"),
+            geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high", colour = "grp", linetype = "grp"),
                           width = dot.args[["eb.width"]], show.legend = FALSE, 
                           position = position_dodge(.2)) +
             geom_point(position = position_dodge(.2), shape = 16) +
@@ -1311,7 +1323,7 @@ sjp.eff.int <- function(fit,
           upperLim.x <- upperLim.x + .2
         } else {
           baseplot <- baseplot +
-            geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high", colour = "grp"),
+            geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high", colour = "grp", linetype = "grp"),
                           width = dot.args[["eb.width"]], show.legend = FALSE) +
             geom_point(shape = 16) +
             geom_line(size = geom.size)

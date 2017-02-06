@@ -45,7 +45,14 @@
 #'            }
 #'            for further use.
 #'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
+#' @note If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors 
+#'       for generalized linear (mixed) models are \emph{not} on the untransformed 
+#'       scale, as shown in the \code{summary()}-method. Rather, \code{sjt.glm()} 
+#'       uses adjustments according to the delta method for approximating standard 
+#'       errors of transformed regression parameters (see \code{\link[sjstats]{se}}).
+#'       If \code{exp.coef = FALSE} and log-Odds Ratios are reported, the standard
+#'       errors are untransformed.
+#'       \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
 #'
 #' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
@@ -160,10 +167,11 @@
 #' # print models with different predictors
 #' sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 #'
-#' @importFrom dplyr full_join slice
+#' @importFrom dplyr full_join slice mutate
 #' @importFrom stats nobs AIC confint coef logLik family deviance
-#' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof
+#' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof se
 #' @importFrom tibble lst
+#' @importFrom broom tidy
 #' @export
 sjt.glm <- function(...,
                     pred.labels = NULL,
@@ -307,8 +315,24 @@ sjt.glm <- function(...,
       fit.df <- sjstats::robust(fit, conf.int = T, exponentiate = F) %>% 
         dplyr::select_("-statistic")
     } else {
-      fit.df <- broom::tidy(fit, effects = "fixed", conf.int = T) %>% 
-        dplyr::select_("-statistic")
+      # get tidy output
+      fit.df <- broom::tidy(fit, effects = "fixed", conf.int = T)
+      
+      # check if coefficients should be exponentiated - if yes,
+      # also retrieve adjusted standard errors
+      if (exp.coef) {
+        fit.df <- fit.df %>% 
+          # remove non-transformed standard error
+          dplyr::select_("-statistic", "-std.error") %>% 
+          # and add adjusted standard errors
+          dplyr::mutate(std.error = sjstats::se(fit)[["std.error"]])
+        
+        # reorder df
+        fit.df <- fit.df[, c(1:2, 6, 3:5)]
+      } else {
+        # just remove test statistics
+        fit.df <- dplyr::select_(fit.df, "-statistic")
+      }
     }
     # -------------------------------------
     # write data to data frame. we need names of
@@ -1099,6 +1123,12 @@ sjt.glm <- function(...,
 #'          \item between-group-variance: tau-zero-zero
 #'          \item random-slope-intercept-correlation: rho-zero-one
 #'          }
+#'       Standard errors for generalized linear (mixed) models are \emph{not} 
+#'       the regular standard errors on the untransformed scale, as shown in the
+#'       \code{summary()}-method. Rather, \code{sjt.glmer()} uses adjustments 
+#'       according to the delta method for approximating standard errors of 
+#'       transformed regression parameters (see \code{\link[sjstats]{se}}).
+#'       \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
 #'
 #' @details See 'Details' in \code{\link{sjt.frq}}.
 #'

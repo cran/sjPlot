@@ -176,7 +176,9 @@ office applications, it might be helpful not to add this separator column
 when modifying the table layout.}
 
 \item{CSS}{\code{\link{list}}-object with user-defined style-sheet-definitions, according to the 
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. See 'Details'.}
+\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
+see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+\code{\link{sjt.frq}}.}
 
 \item{encoding}{string, indicating the charset encoding used for variable and 
 value labels. Default is \code{NULL}, so encoding will be auto-detected 
@@ -218,7 +220,14 @@ Summarizes (multiple) fitted generalized linear models (odds ratios, ci, p-value
 See 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
-See 'Notes' in \code{\link{sjt.frq}}.
+If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors 
+      for generalized linear (mixed) models are \emph{not} on the untransformed 
+      scale, as shown in the \code{summary()}-method. Rather, \code{sjt.glm()} 
+      uses adjustments according to the delta method for approximating standard 
+      errors of transformed regression parameters (see \code{\link[sjstats]{se}}).
+      If \code{exp.coef = FALSE} and log-Odds Ratios are reported, the standard
+      errors are untransformed.
+      \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 # prepare dummy variables for binary logistic regression
@@ -332,4 +341,3 @@ fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data = efc)
 sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 
 }
-
