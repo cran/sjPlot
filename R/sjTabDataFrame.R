@@ -220,7 +220,12 @@ sjt.df <- function(mydf,
                         tag.lasttablerow, css.lasttablerow, tag.firsttablerow, css.firsttablerow,
                         tag.leftalign, css.leftalign, tag.centertalign, css.centeralign,
                         tag.firsttablecol, css.firsttablecol, tag.comment, css.comment)
-  toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n%s\n</head>\n<body>\n", encoding, page.style)
+  
+  # first, save table header
+  toWrite <- table.header <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n", encoding)
+  
+  # then also set page-CSS-stylesheet
+  toWrite <- sprintf("%s%s\n</head>\n<body>\n", toWrite, page.style)
   # -------------------------------------
   # get row and column count of data frame
   # -------------------------------------
@@ -346,16 +351,24 @@ sjt.df <- function(mydf,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  out.html.table(no.output, file, knitr, toWrite, use.viewer)
+  #out.html.table(no.output, file, knitr, toWrite, use.viewer)
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = "sjtdf",
-                      list(data = mydf,
-                           page.style = page.style,
-                           page.content = page.content,
-                           output.complete = toWrite,
-                           knitr = knitr)))
+  
+  structure(
+    class = c("sjTable", "sjtdf"),
+    list(
+      page.style = page.style,
+      page.content = page.content,
+      output.complete = toWrite,
+      header = table.header,
+      knitr = knitr,
+      file = file,
+      show = !no.output,
+      use.viewer = use.viewer
+    )
+  )
 }
 
 

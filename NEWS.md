@@ -1,3 +1,30 @@
+# sjPlot 2.3.1
+
+## General
+
+* All `sjt`-functions can now be directly integrated into knitr-code-chunks, because sjPlot exports a knitr-print-method (see `vignette("sjtbasic", "sjPlot")`).
+* `sjtab()` now also works within knitr-documents (see `vignette("sjtbasic", "sjPlot")`).
+* Updated Namespace for functions that moved from package **sjstats** to **sjmisc**.
+
+## Changes to functions
+
+* Changed defaults for `save_plot()`.
+* `save_plot()` now also supports _svg_-format.
+* For effect-plots (`type = "eff"`), the `axis.title`-argument can now be used to change the title of y-axes.
+* For `sjp.lm()`, `sjp.glm()`, `sjp.lmer()` and `sjp.glmer()`, if color palette has more values than needed, it is silently shortend to the required length.
+* When plotting mixed models, argument `geom.colors` now also applies to plot-type `type = "ri.slope"`.
+* Default correlation-method for `sjt.corr()` and `sjp.corr()` is now `pearson`.
+* Argument `emph.p` for printing tables of regression models now defaults to `FALSE`.
+
+## Bug fixes
+
+* Fixed bug in `sjt.frq()` for variables with many missing values and labelled values that did not occur on that variable.
+* Argument `value.labels` had no effect for `sjt.frq()`.
+* Automatic label detection in `sjt.grpmean()` sometimes not worked for factors without variable labels.
+* `sjp.glm()` used _Odds Ratios_ as default title for y-axis when plotting marginal effects. Fixed, now y-axis is correctly labelled.
+* `sjt.glm()` used "Odds Ratios" as default column heading for the estimates, even for poisson or other models. Now the string for column headers is selected based on the first model input of the function.
+* Solved issue with warning in prediction-plots (`type = "pred"`) for categorical variables on the x-axis.
+
 # sjPlot 2.3.0
 
 ## General

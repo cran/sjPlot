@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-02-06" />
+<meta name="date" content="2017-03-04" />
 
 <title>Summary of Linear Regression Models as HTML Table</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Summary of Linear Regression Models as HTML Table</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-02-06</em></h4>
+<h4 class="date"><em>2017-03-04</em></h4>
 
 
 
@@ -153,7 +153,7 @@ p
 77.95 – 102.18
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -165,7 +165,7 @@ p
 6.67 – 10.24
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -182,7 +182,7 @@ carer’ age
 -0.36 – -0.08
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.002</b>
+.002
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -211,7 +211,7 @@ average number of hours of care per week
 -0.31 – -0.24
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -223,7 +223,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -281,7 +281,7 @@ carer’s level of education
 0.03 – 0.86
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 </tr>
 <tr>
@@ -322,8 +322,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <div id="custom-labels" class="section level3">
 <h3>Custom labels</h3>
 <p>You can specify the ‘model’ label via <code>depvar.labels</code> parameter:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2,
-       <span class="dt">depvar.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Barthel-Index&quot;</span>, <span class="st">&quot;Negative Impact&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, <span class="dt">depvar.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Barthel-Index&quot;</span>, <span class="st">&quot;Negative Impact&quot;</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -384,7 +383,7 @@ p
 77.95 – 102.18
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -396,7 +395,7 @@ p
 6.67 – 10.24
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -413,7 +412,7 @@ carer’ age
 -0.36 – -0.08
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.002</b>
+.002
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -442,7 +441,7 @@ average number of hours of care per week
 -0.31 – -0.24
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -454,7 +453,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -512,7 +511,7 @@ carer’s level of education
 0.03 – 0.86
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 </tr>
 <tr>
@@ -554,14 +553,18 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <div id="more-custom-labels" class="section level3">
 <h3>More custom labels</h3>
 <p>Here is an example how to change the other labels. Note that <code>show.header</code> makes the two labels on top and top left corner appear in the table.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, <span class="dt">show.header =</span> <span class="ot">TRUE</span>,
-       <span class="dt">string.est =</span> <span class="st">&quot;Estimate&quot;</span>,
-       <span class="dt">string.ci =</span> <span class="st">&quot;Conf. Int.&quot;</span>,
-       <span class="dt">string.p =</span> <span class="st">&quot;p-value&quot;</span>,
-       <span class="dt">string.dv =</span> <span class="st">&quot;Response&quot;</span>,
-       <span class="dt">string.pred =</span> <span class="st">&quot;Coefficients&quot;</span>,
-       <span class="dt">string.interc =</span> <span class="st">&quot;Konstante&quot;</span>,
-       <span class="dt">depvar.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Barthel-Index&quot;</span>, <span class="st">&quot;Negative Impact&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(
+  fit1,
+  fit2,
+  <span class="dt">show.header =</span> <span class="ot">TRUE</span>,
+  <span class="dt">string.est =</span> <span class="st">&quot;Estimate&quot;</span>,
+  <span class="dt">string.ci =</span> <span class="st">&quot;Conf. Int.&quot;</span>,
+  <span class="dt">string.p =</span> <span class="st">&quot;p-value&quot;</span>,
+  <span class="dt">string.dv =</span> <span class="st">&quot;Response&quot;</span>,
+  <span class="dt">string.pred =</span> <span class="st">&quot;Coefficients&quot;</span>,
+  <span class="dt">string.interc =</span> <span class="st">&quot;Konstante&quot;</span>,
+  <span class="dt">depvar.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Barthel-Index&quot;</span>, <span class="st">&quot;Negative Impact&quot;</span>)
+)</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <tr>
 <td style="padding:0.2cm; border-top:double;" rowspan="2">
@@ -627,7 +630,7 @@ Konstante
 77.95 – 102.18
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -639,7 +642,7 @@ Konstante
 6.67 – 10.24
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -656,7 +659,7 @@ carer’ age
 -0.36 – -0.08
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.002</b>
+.002
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -685,7 +688,7 @@ average number of hours of care per week
 -0.31 – -0.24
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -697,7 +700,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -755,7 +758,7 @@ carer’s level of education
 0.03 – 0.86
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 </tr>
 <tr>
@@ -798,10 +801,13 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <div id="changing-summary-style-and-content" class="section level2">
 <h2>Changing summary style and content</h2>
 <p>You can change the table style with specific parameters, e.g. to include CI into the same table cell as the estimates, print asterisks instead of numeric p-values etc.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2,
-       <span class="dt">separate.ci.col =</span> <span class="ot">FALSE</span>, <span class="co"># ci in same cell as estimates</span>
-       <span class="dt">show.std =</span> <span class="ot">TRUE</span>,         <span class="co"># also show standardized beta values</span>
-       <span class="dt">p.numeric =</span> <span class="ot">FALSE</span>)       <span class="co"># &quot;*&quot; instead of numeric values</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(
+  fit1,
+  fit2,
+  <span class="dt">separate.ci.col =</span> <span class="ot">FALSE</span>, <span class="co"># ci in same cell as estimates</span>
+  <span class="dt">show.std =</span> <span class="ot">TRUE</span>,         <span class="co"># also show standardized beta values</span>
+  <span class="dt">p.numeric =</span> <span class="ot">FALSE</span>        <span class="co"># &quot;*&quot; instead of numeric values</span>
+)       </code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -1004,9 +1010,7 @@ Notes
 <div id="custom-variable-labels" class="section level2">
 <h2>Custom variable labels</h2>
 <p>In the above example, the original variable labels are long and not so pretty. You can change variable labels either with <code>sjmisc::set_label()</code>, which will affect all future plots and tables, or pass own labels via <code>pred.labels</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, 
-       <span class="dt">pred.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Carer's Age&quot;</span>, <span class="st">&quot;Hours of Care&quot;</span>,
-                       <span class="st">&quot;Carer's Sex&quot;</span>, <span class="st">&quot;Educational Status&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, <span class="dt">pred.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Carer's Age&quot;</span>, <span class="st">&quot;Hours of Care&quot;</span>, <span class="st">&quot;Carer's Sex&quot;</span>, <span class="st">&quot;Educational Status&quot;</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -1067,7 +1071,7 @@ p
 77.95 – 102.18
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -1079,7 +1083,7 @@ p
 6.67 – 10.24
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1096,7 +1100,7 @@ Carer’s Age
 -0.36 – -0.08
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.002</b>
+.002
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1125,7 +1129,7 @@ Hours of Care
 -0.31 – -0.24
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1137,7 +1141,7 @@ Hours of Care
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1195,7 +1199,7 @@ Educational Status
 0.03 – 0.86
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 </tr>
 <tr>
@@ -1315,7 +1319,7 @@ p
 7.82<br>(6.00 – 9.65)
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -1324,7 +1328,7 @@ p
 8.46<br>(6.67 – 10.24)
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -1333,7 +1337,7 @@ p
 6.23<br>(4.76 – 7.69)
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1347,7 +1351,7 @@ carer’ age
 0.04<br>(0.02 – 0.06)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1388,7 +1392,7 @@ carer’s level of education
 0.44<br>(0.03 – 0.86)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1411,7 +1415,7 @@ carer’s gender
 0.69<br>(0.07 – 1.31)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.028</b>
+.028
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1448,7 +1452,7 @@ average number of hours of care per week
 0.02<br>(0.01 – 0.02)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -1483,7 +1487,7 @@ elder’s dependency
 1.50<br>(1.23 – 1.77)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1511,7 +1515,7 @@ Services for elderly
 0.21<br>(0.01 – 0.41)
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.038</b>
+.038
 </td>
 </tr>
 <tr>
@@ -1611,8 +1615,7 @@ AIC
 <div id="more-space-bewteen-model-columns" class="section level2">
 <h2>More space bewteen model columns</h2>
 <p>Especially when fitting and summarizing some more models, it might help to increase the distance between the columns that separate the models. This can be done by tweaking the <code>css.separatorcol</code> style-sheet:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, 
-       <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.separatorcol =</span> <span class="st">'padding-right:1.5em; padding-left:1.5em;'</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.separatorcol =</span> <span class="st">'padding-right:1.5em; padding-left:1.5em;'</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -1691,7 +1694,7 @@ p
 6.00 – 9.65
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em; border-top:1px solid; ">
  
@@ -1703,7 +1706,7 @@ p
 6.67 – 10.24
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em; border-top:1px solid; ">
  
@@ -1715,7 +1718,7 @@ p
 4.76 – 7.69
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1732,7 +1735,7 @@ carer’ age
 0.02 – 0.06
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em;">
  
@@ -1785,7 +1788,7 @@ carer’s level of education
 0.03 – 0.86
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.034</b>
+.034
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em;">
  
@@ -1814,7 +1817,7 @@ carer’s gender
 0.07 – 1.31
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.028</b>
+.028
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em;">
  
@@ -1863,7 +1866,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-right:1.5em; padding-left:1.5em;">
  
@@ -1910,7 +1913,7 @@ elder’s dependency
 1.23 – 1.77
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -1947,7 +1950,7 @@ Services for elderly
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.038</b>
+.038
 </td>
 </tr>
 <tr>
@@ -2073,7 +2076,7 @@ p
 88.37 – 105.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -2085,7 +2088,7 @@ p
 5.97 – 9.55
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2131,7 +2134,7 @@ average number of hours of care per week
 -0.10 – -0.04
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2143,7 +2146,7 @@ average number of hours of care per week
 0.00 – 0.01
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.015</b>
+.015
 </td>
 </tr>
 <tr>
@@ -2257,7 +2260,7 @@ slightly dependent
 -12.86 – -2.83
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.002</b>
+.002
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2269,7 +2272,7 @@ slightly dependent
 0.09 – 2.13
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.033</b>
+.033
 </td>
 </tr>
 <tr>
@@ -2286,7 +2289,7 @@ moderately dependent
 -24.42 – -14.57
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2298,7 +2301,7 @@ moderately dependent
 1.37 – 3.37
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2315,7 +2318,7 @@ severely dependent
 -62.12 – -51.63
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2327,7 +2330,7 @@ severely dependent
 2.86 – 4.99
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2467,7 +2470,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -2479,7 +2482,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -2491,7 +2494,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2508,7 +2511,7 @@ carer’ age
 0.02 – 0.06
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2602,7 +2605,7 @@ Education (high level of education)
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2631,7 +2634,7 @@ carer’s gender
 0.09 – 1.32
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.025</b>
+.025
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2680,7 +2683,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -2727,7 +2730,7 @@ Dependency (slightly dependent)
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -2764,7 +2767,7 @@ Dependency (moderately dependent)
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2801,7 +2804,7 @@ Dependency (severely dependent)
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -2838,7 +2841,7 @@ Services for elderly
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.042</b>
+.042
 </td>
 </tr>
 <tr>
@@ -2892,8 +2895,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <div id="example-2-removing-the-intercept" class="section level3">
 <h3>Example 2: Removing the intercept</h3>
 <p>Note that currently the intercept cannot be removed from the model output. However, you can “fake” a removed intercept by setting the font size of the first row (with intercept) to zero via <code>CSS = list(css.topcontentborder = &quot;+font-size: 0px;&quot;)</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>,
-       <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.topcontentborder =</span> <span class="st">&quot;+font-size: 0px;&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>, <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.topcontentborder =</span> <span class="st">&quot;+font-size: 0px;&quot;</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -2972,7 +2974,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid;font-size: 0px; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid;font-size: 0px; ">
  
@@ -2984,7 +2986,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid;font-size: 0px; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid;font-size: 0px; ">
  
@@ -2996,7 +2998,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid;font-size: 0px; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3013,7 +3015,7 @@ carer’ age
 0.02 – 0.06
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3107,7 +3109,7 @@ Education (high level of education)
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3136,7 +3138,7 @@ carer’s gender
 0.09 – 1.32
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.025</b>
+.025
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3185,7 +3187,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3232,7 +3234,7 @@ Dependency (slightly dependent)
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -3269,7 +3271,7 @@ Dependency (moderately dependent)
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3306,7 +3308,7 @@ Dependency (severely dependent)
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3343,7 +3345,7 @@ Services for elderly
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.042</b>
+.042
 </td>
 </tr>
 <tr>
@@ -3396,8 +3398,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 </div>
 <div id="example-3-remove-first-coefficient-after-intercept" class="section level3">
 <h3>Example 3: Remove first coefficient (after intercept)</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>,
-       <span class="dt">remove.estimates =</span> <span class="dv">2</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>, <span class="dt">remove.estimates =</span> <span class="dv">2</span>)</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -3476,7 +3477,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -3488,7 +3489,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -3500,7 +3501,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3570,7 +3571,7 @@ Education (high level of education)
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3599,7 +3600,7 @@ carer’s gender
 0.09 – 1.32
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.025</b>
+.025
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3648,7 +3649,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -3695,7 +3696,7 @@ Dependency (slightly dependent)
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -3732,7 +3733,7 @@ Dependency (moderately dependent)
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3769,7 +3770,7 @@ Dependency (severely dependent)
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -3806,7 +3807,7 @@ Services for elderly
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.042</b>
+.042
 </td>
 </tr>
 <tr>
@@ -3859,8 +3860,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 </div>
 <div id="example-4-remove-age-and-sex" class="section level3">
 <h3>Example 4: Remove age and sex</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>,
-       <span class="dt">remove.estimates =</span> <span class="kw">c</span>(<span class="st">&quot;c160age&quot;</span>, <span class="st">&quot;c161sex&quot;</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>, <span class="dt">remove.estimates =</span> <span class="kw">c</span>(<span class="st">&quot;c160age&quot;</span>, <span class="st">&quot;c161sex&quot;</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -3939,7 +3939,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -3951,7 +3951,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -3963,7 +3963,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4033,7 +4033,7 @@ Education (high level of education)
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -4072,7 +4072,7 @@ average number of hours of care per week
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -4119,7 +4119,7 @@ Dependency (slightly dependent)
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -4156,7 +4156,7 @@ Dependency (moderately dependent)
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4193,7 +4193,7 @@ Dependency (severely dependent)
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4230,7 +4230,7 @@ Services for elderly
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.042</b>
+.042
 </td>
 </tr>
 <tr>
@@ -4283,8 +4283,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 </div>
 <div id="example-5-remove-many-esimates" class="section level3">
 <h3>Example 5: Remove many esimates</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>,
-       <span class="dt">remove.estimates =</span> <span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">10</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, <span class="dt">group.pred =</span> <span class="ot">FALSE</span>, <span class="dt">remove.estimates =</span> <span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">10</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
 <td style="padding:0.2cm; border-top:double;">
  
@@ -4363,7 +4362,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -4375,7 +4374,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -4387,7 +4386,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4457,7 +4456,7 @@ Education (high level of education)
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -4506,7 +4505,7 @@ Dependency (slightly dependent)
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -4543,7 +4542,7 @@ Dependency (moderately dependent)
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4580,7 +4579,7 @@ Dependency (severely dependent)
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4633,9 +4632,9 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 </div>
 <div id="example-6-custom-predictor-labels" class="section level3">
 <h3>Example 6: Custom predictor labels</h3>
-<p>In most cases you need to define your own labels when removing estimates, especially when you have grouped categorical predictors, because automatic label detection is quite tricky in such situations. If you provide own labels, please note that grouped predictors’ headings (the variable name of the grouped, categorical variable) are still automatically set by the <code>sjt.lm</code> function (variable labels are used, so use <code>set_label</code> for those categorical predictors). All data rows in the table, i.e. for each coefficient appearing in the model, you need to specify a label string.</p>
+<p>In most cases you need to define your own labels when removing estimates, especially when you have grouped categorical predictors, because automatic label detection is quite tricky in such situations. If you provide own labels, please note that grouped predictors’ headings (the variable name of the grouped, categorical variable) are still automatically set by the <code>sjt.lm()</code> function (variable labels are used, so use <code>set_label()</code> for those categorical predictors). All data rows in the table, i.e. for each coefficient appearing in the model, you need to specify a label string.</p>
 <p>In the next example, we have seven table rows with data (excluding intercept): mid and hi education (categories of the variable Education), Hours of Care, slight, moderate and severe dependency (categories of the variable Dependency) and Service Usage. These ‘rows’ need to be labelled.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3,
        <span class="dt">pred.labels =</span> <span class="kw">c</span>(<span class="st">&quot;mid education&quot;</span>, <span class="st">&quot;hi education&quot;</span>, <span class="st">&quot;Hours of Care&quot;</span>, 
                        <span class="st">&quot;slight dependency&quot;</span>, <span class="st">&quot;moderate dependency&quot;</span>, 
                        <span class="st">&quot;severe dependency&quot;</span>, <span class="st">&quot;Service Usage&quot;</span>),
@@ -4718,7 +4717,7 @@ p
 6.72 – 10.08
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -4730,7 +4729,7 @@ p
 7.53 – 10.83
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em; border-top:1px solid; ">
  
@@ -4742,7 +4741,7 @@ p
 6.99 – 9.97
 </td>
 <td style="padding:0.2cm; text-align:center; border-top:1px solid; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4817,7 +4816,7 @@ hi education
 0.09 – 1.74
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.030</b>
+.030
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -4856,7 +4855,7 @@ Hours of Care
 0.01 – 0.02
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 <td style="padding-left:0.5em; padding-right:0.5em;">
  
@@ -4908,7 +4907,7 @@ slight dependency
 0.16 – 2.20
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.024</b>
+.024
 </td>
 </tr>
 <tr>
@@ -4945,7 +4944,7 @@ moderate dependency
 1.53 – 3.52
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -4982,7 +4981,7 @@ severe dependency
 3.31 – 5.33
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>&lt;.001</b>
+&lt;.001
 </td>
 </tr>
 <tr>
@@ -5019,7 +5018,7 @@ Service Usage
 0.01 – 0.41
 </td>
 <td style="padding:0.2cm; text-align:center; ">
-<b>.042</b>
+.042
 </td>
 </tr>
 <tr>

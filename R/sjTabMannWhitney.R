@@ -5,7 +5,7 @@
 #'                from the Mann-Whitney-test are obtained by the \code{\link[sjstats]{mwu}}
 #'                function from the \pkg{sjstats}-package.
 #'
-#' @param x results of a Mann-Whitney-U test, provided by \code{\link[sjstats]{mwu}}. See 'Examples'.
+#' @param x Results of a Mann-Whitney-U test, provided by \code{\link[sjstats]{mwu}}. See 'Examples'.
 #'
 #' @inheritParams sjt.frq
 #' @inheritParams sjt.df
@@ -26,10 +26,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' library(sjmisc)
+#' library(sjstats)
 #' data(efc)
 #' sjt.mwu(mwu(efc$e17age, efc$e42dep))}
-#'
+
 #' @export
 sjt.mwu <- function(x,
                     title = NULL,
@@ -43,7 +43,7 @@ sjt.mwu <- function(x,
   # --------------------------------------------------------
   # check correct class
   # --------------------------------------------------------
-  if (class(x) != "mwu") {
+  if (!inherits(x, "mwu")) {
     stop("`x` must be of class `mwu`, as returned by the `mwu()`-function of the sjstats-package.", call. = F)
   }
   # --------------------------------------------------------
@@ -76,11 +76,21 @@ sjt.mwu <- function(x,
   # -------------------------------------
   # check if html-content should be printed
   # -------------------------------------
-  out.html.table(no.output, file, html$knitr, html$output.complete, use.viewer)
-  invisible(list(class = c("sjTable", "sjtmwu"),
-                 df = x$tab.df,
-                 page.style = html$page.style,
-                 page.content = html$page.content,
-                 knitr = html$knitr,
-                 output.complete = html$output.complete))
+  #out.html.table(no.output, file, html$knitr, html$output.complete, use.viewer)
+  structure(
+    class = c("sjTable", "sjtmwu"),
+    list(
+      page.style = html$page.style,
+      #page.content.list = page.content.list,
+      page.content = html$page.content,
+      output.complete = html$output.complete,
+      knitr = html$knitr,
+      header = html$header,
+      file = file,
+      show = !no.output,
+      use.viewer = use.viewer,
+      df = x$tab.df
+    )
+  )
+
 }

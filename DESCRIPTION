@@ -2,9 +2,12 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.3.0
-Date: 2017-02-07
-Author: Daniel Lüdecke <d.luedecke@uke.de>
+Version: 2.3.1
+Date: 2017-03-04
+Authors@R: c(
+    person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre")),
+    person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb")
+          )
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
     visualization. Results of various statistical analyses (that are commonly used
@@ -14,18 +17,20 @@ Description: Collection of plotting and table output functions for data
     plots, Likert scales, effects plots of regression models (including interaction
     terms) and much more. This package supports labelled data.
 License: GPL-3
-Depends: R (>= 3.3), graphics, grDevices, methods, stats, utils
+Depends: R (>= 3.2), graphics, grDevices, methods, stats, utils
 Imports: broom (>= 0.4.1), dplyr (>= 0.5.0), effects, ggplot2 (>=
-        2.2.1), lme4 (>= 1.1-12), MASS, merTools (>= 0.3.0), modelr,
-        nlme, psych, purrr, scales, sjmisc (>= 2.2.1), sjstats (>=
-        0.8.0), tibble (>= 1.2.0), tidyr (>= 0.6.0)
+        2.2.1), knitr, lme4 (>= 1.1-12), MASS, merTools (>= 0.3.0),
+        modelr, nlme, psych, purrr, scales, sjmisc (>= 2.3.0), sjstats
+        (>= 0.8.0), tibble (>= 1.2.0), tidyr (>= 0.6.0)
 Suggests: AICcmodavg, arm, car, cluster, gridExtra, ggrepel, lmerTest,
-        lmtest, lsmeans, knitr
+        lmtest, lsmeans
 URL: https://github.com/sjPlot/devel
 BugReports: https://github.com/sjPlot/devel/issues
-RoxygenNote: 6.0.0
+RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2017-02-06 09:50:23 UTC; Standardbenutzer
+Packaged: 2017-03-04 16:21:02 UTC; danielludecke
+Author: Daniel Lüdecke [aut, cre],
+  Carsten Schwemmer [ctb]
 Repository: CRAN
-Date/Publication: 2017-02-06 11:09:12
+Date/Publication: 2017-03-05 08:47:25

@@ -6,13 +6,13 @@
 \usage{
 sjp.corr(data, title = NULL, axis.labels = NULL, sort.corr = TRUE,
   decimals = 3, na.deletion = c("listwise", "pairwise"),
-  corr.method = c("spearman", "pearson", "kendall"), geom.colors = "RdBu",
+  corr.method = c("pearson", "spearman", "kendall"), geom.colors = "RdBu",
   wrap.title = 50, wrap.labels = 20, show.legend = FALSE,
   legend.title = NULL, show.values = TRUE, show.p = TRUE,
   p.numeric = FALSE, prnt.plot = TRUE)
 }
 \arguments{
-\item{data}{matrix with correlation coefficients as returned by the 
+\item{data}{Matrix with correlation coefficients as returned by the
 \code{\link{cor}}-function, or a \code{data.frame} of variables where
 correlations between columns should be computed.}
 
@@ -24,20 +24,20 @@ to define titles for each sub-plot or facet.}
 \item{axis.labels}{character vector with labels used as axis labels. Optional
 argument, since in most cases, axis labels are set automatically.}
 
-\item{sort.corr}{logical, if \code{TRUE} (default), the axis labels are sorted
+\item{sort.corr}{Logical, if \code{TRUE} (default), the axis labels are sorted
 according to the correlation strength. If \code{FALSE}, axis labels
 appear in order of how variables were included in the cor-computation or
 data frame.}
 
-\item{decimals}{indicates how many decimal values after comma are printed when
+\item{decimals}{Indicates how many decimal values after comma are printed when
 the values labels are shown. Default is 3. Only applies when
 \code{show.values = TRUE}.}
 
-\item{na.deletion}{indicates how missing values are treated. May be either
+\item{na.deletion}{Indicates how missing values are treated. May be either
 \code{"listwise"} (default) or \code{"pairwise"}. May be
 abbreviated.}
 
-\item{corr.method}{indicates the correlation computation method. May be one of
+\item{corr.method}{Indicates the correlation computation method. May be one of
 \code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
 May be abbreviated.}
 
@@ -46,7 +46,7 @@ May be abbreviated.}
 \item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}
 
-\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis 
+\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis
 labels are displayed in one line and when a line break is inserted.}
 
 \item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
@@ -56,10 +56,10 @@ function, a legend is added to the plot.}
 
 \item{show.values}{logical, whether values should be plotted or not.}
 
-\item{show.p}{logical, adds significance levels to values, or value and 
+\item{show.p}{Logical, adds significance levels to values, or value and
 variable labels.}
 
-\item{p.numeric}{logical, if \code{TRUE}, the p-values are printed 
+\item{p.numeric}{Logical, if \code{TRUE}, the p-values are printed
 as numbers. If \code{FALSE} (default), asterisks are used.}
 
 \item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
@@ -74,21 +74,21 @@ want to plot any graphs. In either case, the ggplot-object will be returned as v
 Plot correlation matrix as ellipses or tiles.
 }
 \details{
-Required argument is either a \code{\link{data.frame}} or a matrix with correlation coefficients 
+Required argument is either a \code{\link{data.frame}} or a matrix with correlation coefficients
            as returned by the \code{\link{cor}}-function. In case of ellipses, the
            ellipses size indicates the strength of the correlation. Furthermore,
            blue and red colors indicate positive or negative correlations, where
            stronger correlations are darker.
 }
 \note{
-If \code{data} is a matrix with correlation coefficients as returned by 
+If \code{data} is a matrix with correlation coefficients as returned by
       the \code{\link{cor}}-function, p-values can't be computed.
       Thus, \code{show.p} and \code{p.numeric}
       only have an effect if \code{data} is a \code{\link{data.frame}}.
 }
 \examples{
 # create data frame with 5 random variables
-mydf <- data.frame(cbind(runif(10), runif(10), runif(10), 
+mydf <- data.frame(cbind(runif(10), runif(10), runif(10),
                          runif(10), runif(10)))
 
 # plot correlation matrix

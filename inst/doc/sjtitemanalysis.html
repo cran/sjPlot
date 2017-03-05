@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-02-06" />
+<meta name="date" content="2017-03-04" />
 
 <title>Item Analysis of a Scale or an Index</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Item Analysis of a Scale or an Index</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-02-06</em></h4>
+<h4 class="date"><em>2017-03-04</em></h4>
 
 
 
@@ -733,7 +733,7 @@ Component 1
 Component 2
 </td>
 <td style="padding:0.2cm; text-align:center;">
--0.372<br><span style="font-style:italic;">(&lt;.001)</span>
+-0.318<br><span style="font-style:italic;">(&lt;.001)</span>
 </td>
 <td style="padding:0.2cm; text-align:center;">
 α=0.449
@@ -741,15 +741,14 @@ Component 2
 </tr>
 <tr>
 <td colspan="3" style="border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;">
-Computed correlation used spearman-method with listwise-deletion.
+Computed correlation used pearson-method with listwise-deletion.
 </td>
 </tr>
 </table>
 </div>
 <div id="adding-further-statistics" class="section level2">
 <h2>Adding further statistics</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.itemanalysis</span>(mydf, factor.groups, 
-                 <span class="dt">show.shapiro =</span> <span class="ot">TRUE</span>, <span class="dt">show.kurtosis =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.itemanalysis</span>(mydf, factor.groups, <span class="dt">show.shapiro =</span> <span class="ot">TRUE</span>, <span class="dt">show.kurtosis =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
@@ -1156,7 +1155,7 @@ Component 1
 Component 2
 </td>
 <td style="padding:0.2cm; text-align:center;">
--0.372<br><span style="font-style:italic;">(&lt;.001)</span>
+-0.318<br><span style="font-style:italic;">(&lt;.001)</span>
 </td>
 <td style="padding:0.2cm; text-align:center;">
 α=0.449
@@ -1164,7 +1163,7 @@ Component 2
 </tr>
 <tr>
 <td colspan="3" style="border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;">
-Computed correlation used spearman-method with listwise-deletion.
+Computed correlation used pearson-method with listwise-deletion.
 </td>
 </tr>
 </table>

@@ -5,28 +5,28 @@
 #'                as HTML table, or saves them as file. The fitted models may have different predictors,
 #'                e.g. when comparing different stepwise fitted models.
 #'
-#' @param ... one or more fitted generalized linear (mixed) models.
-#' @param exp.coef logical, if \code{TRUE} (default), regression coefficients and
+#' @param ... One or more fitted generalized linear (mixed) models.
+#' @param exp.coef Logical, if \code{TRUE} (default), regression coefficients and
 #'          confidence intervals are exponentiated. Use \code{FALSE} for
 #'          non-exponentiated coefficients (log-odds) as provided by
 #'          the \code{\link{summary}} function.
-#' @param show.r2 logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
+#' @param show.r2 Logical, if \code{TRUE} (default), the pseudo R2 values for each model are printed
 #'          in the model summary. R2cs is the Cox-Snell-pseudo R-squared value, R2n is Nagelkerke's
 #'          pseudo R-squared value and \code{D} is Tjur's Coefficient of Discrimination
 #'          (see \code{\link[sjstats]{cod}}).
-#' @param show.loglik logical, if \code{TRUE}, the Log-Likelihood for each model is printed
+#' @param show.loglik Logical, if \code{TRUE}, the Log-Likelihood for each model is printed
 #'          in the model summary. Default is \code{FALSE}.
-#' @param show.chi2 logical, if \code{TRUE}, the p-value of the chi-squared value for each
+#' @param show.chi2 Logical, if \code{TRUE}, the p-value of the chi-squared value for each
 #'          model's residual deviance against the null deviance is printed
 #'          in the model summary. Default is \code{FALSE}. A well-fitting model
 #'          with predictors should significantly differ from the null-model
 #'          (without predictors), thus, a p-value less than 0.05 indicates a
 #'          good model-fit.
-#' @param show.hoslem logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
+#' @param show.hoslem Logical, if \code{TRUE}, a Hosmer-Lemeshow-Goodness-of-fit-test is
 #'          performed. A well-fitting model shows no significant difference between
 #'          the model and the observed data, i.e. the reported p-values should be
 #'          greater than 0.05.
-#' @param show.family logical, if \code{TRUE}, the family object and link function for each fitted model
+#' @param show.family Logical, if \code{TRUE}, the family object and link function for each fitted model
 #'          are printed. Can be used in case you want to compare models with different link functions
 #'          and same predictors and response, to decide which model fits best. See \code{\link{family}}
 #'          for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{show.aic}) to get a
@@ -45,10 +45,10 @@
 #'            }
 #'            for further use.
 #'
-#' @note If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors 
-#'       for generalized linear (mixed) models are \emph{not} on the untransformed 
-#'       scale, as shown in the \code{summary()}-method. Rather, \code{sjt.glm()} 
-#'       uses adjustments according to the delta method for approximating standard 
+#' @note If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors
+#'       for generalized linear (mixed) models are \emph{not} on the untransformed
+#'       scale, as shown in the \code{summary()}-method. Rather, \code{sjt.glm()}
+#'       uses adjustments according to the delta method for approximating standard
 #'       errors of transformed regression parameters (see \code{\link[sjstats]{se}}).
 #'       If \code{exp.coef = FALSE} and log-Odds Ratios are reported, the standard
 #'       errors are untransformed.
@@ -119,7 +119,8 @@
 #'             data = efc, family = poisson(link = "log"))
 #'
 #' # compare models
-#' sjt.glm(fit1, fit2, fit3, show.aic = TRUE, show.family = TRUE)
+#' sjt.glm(fit1, fit2, fit3, string.est = "Estimate",
+#'         show.aic = TRUE, show.family = TRUE)
 #'
 #' # --------------------------------------------
 #' # Change style of p-values and CI-appearance
@@ -167,7 +168,7 @@
 #' # print models with different predictors
 #' sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
 #'
-#' @importFrom dplyr full_join slice mutate
+#' @importFrom dplyr full_join slice mutate if_else
 #' @importFrom stats nobs AIC confint coef logLik family deviance
 #' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof se
 #' @importFrom tibble lst
@@ -180,7 +181,7 @@ sjt.glm <- function(...,
                     group.pred = TRUE,
                     exp.coef = TRUE,
                     p.numeric = TRUE,
-                    emph.p = TRUE,
+                    emph.p = FALSE,
                     p.zero = FALSE,
                     robust = FALSE,
                     separate.ci.col = TRUE,
@@ -203,7 +204,7 @@ sjt.glm <- function(...,
                     string.dv = "Dependent Variables",
                     string.interc = "(Intercept)",
                     string.obs = "Observations",
-                    string.est = "OR",
+                    string.est = NULL,
                     string.ci = "CI",
                     string.se = "std. Error",
                     string.p = "p",
@@ -312,21 +313,21 @@ sjt.glm <- function(...,
     # get tidy model summary
     # -------------------------------------
     if (robust) {
-      fit.df <- sjstats::robust(fit, conf.int = T, exponentiate = F) %>% 
+      fit.df <- sjstats::robust(fit, conf.int = T, exponentiate = F) %>%
         dplyr::select_("-statistic")
     } else {
       # get tidy output
       fit.df <- broom::tidy(fit, effects = "fixed", conf.int = T)
-      
+
       # check if coefficients should be exponentiated - if yes,
       # also retrieve adjusted standard errors
       if (exp.coef) {
-        fit.df <- fit.df %>% 
+        fit.df <- fit.df %>%
           # remove non-transformed standard error
-          dplyr::select_("-statistic", "-std.error") %>% 
+          dplyr::select_("-statistic", "-std.error") %>%
           # and add adjusted standard errors
           dplyr::mutate(std.error = sjstats::se(fit)[["std.error"]])
-        
+
         # reorder df
         fit.df <- fit.df[, c(1:2, 6, 3:5)]
       } else {
@@ -443,6 +444,40 @@ sjt.glm <- function(...,
     # select rows
     joined.df <- dplyr::slice(joined.df, keep.estimates)
   }
+
+
+  # select correct column heading, depending on model family and link function
+  if (is.null(string.est)) {
+    # get family
+    fitfam <- get_glm_family(input_list[[1]])
+    # check if we have a binomial model
+    if (fitfam$is_bin) {
+      # here we gor for logistic regression
+      # estimate is "Odds Ratio"
+      if (fitfam$is_logit) {
+        string.est <-
+          dplyr::if_else(isTRUE(exp.coef),
+                         true = "Odds Ratio",
+                         false = "Log-Odds",
+                         missing = "Estimate")
+      } else {
+        # estimate is "Risk Ratio"
+        string.est <-
+          dplyr::if_else(isTRUE(exp.coef),
+                         true = "Risk Ratio",
+                         false = "Log-Risk",
+                         missing = "Estimate")
+      }
+    } else if (fitfam$is_pois) {
+      string.est <- dplyr::if_else(isTRUE(exp.coef),
+                                   true = "IRR",
+                                   false = "Log-Mean",
+                                   missing = "Estimate")
+    } else {
+      string.est <- "Estimate"
+    }
+  }
+
   # -------------------------------------
   # if confidence interval should be omitted,
   # don't use separate column for CI!
@@ -1076,7 +1111,7 @@ sjt.glm <- function(...,
   # -------------------------------------
   # check if html-content should be outputted
   # -------------------------------------
-  out.html.table(no.output, file, knitr, toWrite, use.viewer)
+  #out.html.table(no.output, file, knitr, toWrite, use.viewer)
   # -------------------------------------
   # replace &nbsp; (former NA), created by join, with empty string
   # -------------------------------------
@@ -1084,13 +1119,18 @@ sjt.glm <- function(...,
   # -------------------------------------
   # return results
   # -------------------------------------
-  invisible(structure(class = c("sjTable", "sjtglm"),
+ structure(class = c("sjTable", "sjtglm"),
                       list(page.style = get_table_css_styles(cell.spacing, cell.gpr.indent,
                                                              p.numeric, show.header, CSS),
                            page.content = page.content,
+                           #page.content.list = page.content.list,
                            output.complete = toWrite,
                            knitr = knitr,
-                           data = joined.df)))
+                           file = file,
+                           header = NULL,
+                           show = !no.output,
+                           use.viewer = use.viewer,
+                           data = joined.df))
 }
 
 
@@ -1123,10 +1163,10 @@ sjt.glm <- function(...,
 #'          \item between-group-variance: tau-zero-zero
 #'          \item random-slope-intercept-correlation: rho-zero-one
 #'          }
-#'       Standard errors for generalized linear (mixed) models are \emph{not} 
+#'       Standard errors for generalized linear (mixed) models are \emph{not}
 #'       the regular standard errors on the untransformed scale, as shown in the
-#'       \code{summary()}-method. Rather, \code{sjt.glmer()} uses adjustments 
-#'       according to the delta method for approximating standard errors of 
+#'       \code{summary()}-method. Rather, \code{sjt.glmer()} uses adjustments
+#'       according to the delta method for approximating standard errors of
 #'       transformed regression parameters (see \code{\link[sjstats]{se}}).
 #'       \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
 #'
@@ -1181,7 +1221,7 @@ sjt.glmer <- function(...,
                       group.pred = FALSE,
                       exp.coef = TRUE,
                       p.numeric = TRUE,
-                      emph.p = TRUE,
+                      emph.p = FALSE,
                       p.zero = FALSE,
                       separate.ci.col = TRUE,
                       newline.ci = TRUE,
@@ -1202,7 +1242,7 @@ sjt.glmer <- function(...,
                       string.dv = "Dependent Variables",
                       string.interc = "(Intercept)",
                       string.obs = "Observations",
-                      string.est = "OR",
+                      string.est = NULL,
                       string.ci = "CI",
                       string.se = "std. Error",
                       string.p = "p",
@@ -1231,7 +1271,7 @@ sjt.glmer <- function(...,
                  string.ci = string.ci, string.se = string.se, string.p = string.p,
                  digits.est = digits.est, digits.p = digits.p, digits.ci = digits.ci,
                  digits.se = digits.se, digits.summary = digits.summary, exp.coef = exp.coef,
-                 p.numeric = p.numeric, emph.p = emph.p, p.zero = p.zero, robust = FALSE, 
+                 p.numeric = p.numeric, emph.p = emph.p, p.zero = p.zero, robust = FALSE,
                  show.ci = show.ci, show.se = show.se,
                  ci.hyphen = ci.hyphen, separate.ci.col = separate.ci.col, newline.ci = newline.ci,
                  group.pred = group.pred, show.col.header = show.col.header, show.r2 = show.r2, show.icc = show.icc,

@@ -1,123 +1,123 @@
 #' @title Set global theme options for sjp-functions
 #' @name sjp.setTheme
-#' 
+#'
 #' @description Set global theme options for sjp-functions.
-#' 
-#' @param base base theme where theme is built on. By default, all 
+#'
+#' @param base base theme where theme is built on. By default, all
 #'          metrics from \code{theme_gray()} are used. See 'Details'.
 #' @param theme.font base font family for the plot.
 #' @param title.size size of plot title. Default is 1.3.
-#' @param title.color color of plot title. Default is \code{"black"}.
+#' @param title.color Color of plot title. Default is \code{"black"}.
 #' @param title.align alignment of plot title. Must be one of \code{"left"} (default),
 #'          \code{"center"} or \code{"right"}. You may use initial letter only.
 #' @param title.vjust numeric, vertical adjustment for plot title.
 #' @param geom.outline.size size of bar outlines. Default is 0.1. Use
 #'          size of \code{0} to remove geom outline.
-#' @param geom.outline.color color of geom outline. Only applies, if \code{geom.outline.size}
+#' @param geom.outline.color Color of geom outline. Only applies, if \code{geom.outline.size}
 #'          is larger than 0.
 #' @param geom.boxoutline.size size of outlines and median bar especially for boxplots.
 #'          Default is 0.5. Use size of \code{0} to remove boxplot outline.
-#' @param geom.boxoutline.color color of outlines and median bar especially for boxplots.
+#' @param geom.boxoutline.color Color of outlines and median bar especially for boxplots.
 #'          Only applies, if \code{geom.boxoutline.size} is larger than 0.
 #' @param geom.alpha specifies the transparancy (alpha value) of geoms
 #' @param geom.linetype linetype of line geoms. Default is \code{1} (solid line).
 #' @param geom.errorbar.size size (thickness) of error bars. Default is \code{0.8}
 #' @param geom.errorbar.linetype linetype of error bars. Default is \code{1} (solid line).
-#' @param geom.label.color color of geom's value and annotation labels
+#' @param geom.label.color Color of geom's value and annotation labels
 #' @param geom.label.size size of geom's value and annotation labels
 #' @param geom.label.alpha alpha level of geom's value and annotation labels
 #' @param geom.label.angle angle of geom's value and annotation labels
-#' @param axis.title.color color of x- and y-axis title labels
+#' @param axis.title.color Color of x- and y-axis title labels
 #' @param axis.title.size size of x- and y-axis title labels
 #' @param axis.title.x.vjust numeric, vertical adjustment of x-axis-title.
 #' @param axis.title.y.vjust numeric, vertical adjustment of y-axis-title.
 #' @param axis.angle.x angle for x-axis labels
 #' @param axis.angle.y angle for y-axis labels
 #' @param axis.angle angle for x- and y-axis labels. If set, overrides both \code{axis.angle.x} and \code{axis.angle.y}
-#' @param axis.textcolor.x color for x-axis labels. If not specified, a default dark gray
+#' @param axis.textcolor.x Color for x-axis labels. If not specified, a default dark gray
 #'          color palette will be used for the labels.
-#' @param axis.textcolor.y color for y-axis labels. If not specified, a default dark gray
+#' @param axis.textcolor.y Color for y-axis labels. If not specified, a default dark gray
 #'          color palette will be used for the labels.
-#' @param axis.textcolor color for both x- and y-axis labels. 
+#' @param axis.textcolor Color for both x- and y-axis labels.
 #'          If set, overrides both \code{axis.textcolor.x} and \code{axis.textcolor.y}
-#' @param axis.linecolor.x color of x-axis border
-#' @param axis.linecolor.y color of y-axis border
-#' @param axis.linecolor color for both x- and y-axis borders. 
+#' @param axis.linecolor.x Color of x-axis border
+#' @param axis.linecolor.y Color of y-axis border
+#' @param axis.linecolor Color for both x- and y-axis borders.
 #'          If set, overrides both \code{axis.linecolor.x} and \code{axis.linecolor.y}.
 #' @param axis.line.size size (thickness) of axis lines. Only affected, if \code{axis.linecolor}
 #'          is set.
 #' @param axis.textsize.x size of x-axis labels
 #' @param axis.textsize.y size of y-axis labels
-#' @param axis.textsize size for both x- and y-axis labels. 
+#' @param axis.textsize size for both x- and y-axis labels.
 #'          If set, overrides both \code{axis.textsize.x} and \code{axis.textsize.y}.
-#' @param axis.ticksize.x size of tick marks at x-axis.        
-#' @param axis.ticksize.y size of tick marks at y-axis.        
+#' @param axis.ticksize.x size of tick marks at x-axis.
+#' @param axis.ticksize.y size of tick marks at y-axis.
 #' @param axis.tickslen length of axis tick marks
-#' @param axis.tickscol color of axis tick marks
+#' @param axis.tickscol Color of axis tick marks
 #' @param axis.ticksmar margin between axis labels and tick marks
-#' @param panel.bordercol color of whole diagram border (panel border)
-#' @param panel.backcol color of the diagram's background
-#' @param panel.col color of both diagram's border and background.
+#' @param panel.bordercol Color of whole diagram border (panel border)
+#' @param panel.backcol Color of the diagram's background
+#' @param panel.col Color of both diagram's border and background.
 #'          If set, overrides both \code{panel.bordercol} and \code{panel.backcol}.
-#' @param panel.major.gridcol color of the major grid lines of the diagram background
-#' @param panel.minor.gridcol color of the minor grid lines of the diagram background
-#' @param panel.gridcol color for both minor and major grid lines of the diagram background.
+#' @param panel.major.gridcol Color of the major grid lines of the diagram background
+#' @param panel.minor.gridcol Color of the minor grid lines of the diagram background
+#' @param panel.gridcol Color for both minor and major grid lines of the diagram background.
 #'          If set, overrides both \code{panel.major.gridcol} and \code{panel.minor.gridcol}.
-#' @param panel.gridcol.x see \code{panel.gridcol}.
-#' @param panel.gridcol.y see \code{panel.gridcol}.
+#' @param panel.gridcol.x See \code{panel.gridcol}.
+#' @param panel.gridcol.y See \code{panel.gridcol}.
 #' @param panel.major.linetype line type for major grid lines
 #' @param panel.minor.linetype line type for minor grid lines
-#' @param plot.margins numeric vector of length 4, indicating the top, right, 
+#' @param plot.margins numeric vector of length 4, indicating the top, right,
 #'          bottom and left margin of the plot region.
-#' @param plot.backcol color of the plot's background
-#' @param plot.bordercol color of whole plot's border (panel border)
-#' @param plot.col color of both plot's region border and background.
+#' @param plot.backcol Color of the plot's background
+#' @param plot.bordercol Color of whole plot's border (panel border)
+#' @param plot.col Color of both plot's region border and background.
 #'          If set, overrides both \code{plot.backcol} and \code{plot.bordercol}.
 #' @param legend.pos position of the legend, if a legend is drawn.
 #'          \describe{
 #'            \item{\emph{legend outside plot}}{
-#'              Use \code{"bottom"}, \code{"top"}, \code{"left"} or \code{"right"} 
-#'              to position the legend above, below, on the left or right side 
+#'              Use \code{"bottom"}, \code{"top"}, \code{"left"} or \code{"right"}
+#'              to position the legend above, below, on the left or right side
 #'              of the diagram. Right positioning is default.
 #'            }
 #'            \item{\emph{legend inside plot}}{
 #'              If \code{legend.inside = TRUE}, legend can be placed inside
-#'              plot. Use \code{"top left"}, \code{"top right"}, \code{"bottom left"} 
-#'              and \code{"bottom right"} to position legend in any of these corners, 
-#'              or a two-element numeric vector with values from 0-1. See also 
+#'              plot. Use \code{"top left"}, \code{"top right"}, \code{"bottom left"}
+#'              and \code{"bottom right"} to position legend in any of these corners,
+#'              or a two-element numeric vector with values from 0-1. See also
 #'              \code{legend.inside}.
 #'            }
 #'          }
-#' @param legend.just justification of legend, relative to its position (\code{"center"} or 
+#' @param legend.just justification of legend, relative to its position (\code{"center"} or
 #'          two-element numeric vector with values from 0-1. By default (outside legend),
 #'          justification is centered. If legend is inside and justification not specified,
 #'          legend justification is set according to legend position.
 #' @param legend.inside logical, use \code{TRUE} to put legend inside the plotting area. See \code{legend.pos}.
-#' @param legend.size text size of the legend. Default is 1. Relative size, so 
+#' @param legend.size text size of the legend. Default is 1. Relative size, so
 #'          recommended values are from 0.3 to 2.5
-#' @param legend.color color of the legend labels
+#' @param legend.color Color of the legend labels
 #' @param legend.title.size text size of the legend title
-#' @param legend.title.color color of the legend title
+#' @param legend.title.color Color of the legend title
 #' @param legend.title.face font face of the legend title. By default, \code{"bold"} face is used.
-#' @param legend.bordercol color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
+#' @param legend.bordercol Color of the legend's border. Default is \code{"white"}, so no visible border is drawn.
 #' @param legend.backgroundcol fill color of the legend's background. Default is \code{"white"}, so no visible background is drawn.
 #' @param legend.item.size size of legend's item (legend key), in centimetres.
-#' @param legend.item.bordercol color of the legend's item-border. Default is \code{"white"}.
+#' @param legend.item.bordercol Color of the legend's item-border. Default is \code{"white"}.
 #' @param legend.item.backcol fill color of the legend's item-background. Default is \code{"grey90"}.
-#' 
+#'
 #' @return The customized theme object, or \code{NULL}, if a ggplot-theme was used.
-#' 
+#'
 #' @details The \code{base} argument is intended to select a ggplot-theme
-#'            as base for further modifications (which can be triggered 
+#'            as base for further modifications (which can be triggered
 #'            via the various function arguments).
-#' 
+#'
 #' @seealso \href{http://www.strengejacke.de/sjPlot/custplot/}{sjPlot manual: customize plot appearance}
-#' 
+#'
 #' @references \itemize{
 #'              \item \href{http://zevross.com/blog/2014/08/04/beautiful-plotting-in-r-a-ggplot2-cheatsheet-3/}{Beautiful plotting in R: A ggplot2 cheatsheet}
 #'              \item \href{http://minimaxir.com/2015/02/ggplot-tutorial/}{An Introduction on How to Make Beautiful Charts With R and ggplot2}
 #'             }
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' library(sjmisc)
@@ -125,30 +125,30 @@
 #' # set sjPlot-defaults, a slightly modification
 #' # of the ggplot base theme
 #' sjp.setTheme()
-#' 
+#'
 #' # legends of all plots inside
-#' sjp.setTheme(legend.pos = "top left", 
+#' sjp.setTheme(legend.pos = "top left",
 #'              legend.inside = TRUE)
 #' sjp.xtab(efc$e42dep, efc$e16sex)
-#' 
+#'
 #' # Use classic-theme. you may need to
 #' # load the ggplot2-library.
 #' library(ggplot2)
 #' sjp.setTheme(base = theme_classic())
 #' sjp.frq(efc$e42dep)
-#' 
+#'
 #' # adjust value labels
 #' sjp.setTheme(geom.label.size = 3.5, geom.label.color = "#3366cc",
 #'              geom.label.angle = 90)
 #' # hjust-aes needs adjustment for this
 #' update_geom_defaults('text', list(hjust = -0.1))
 #' sjp.xtab(efc$e42dep, efc$e16sex, vjust = "center", hjust = "center")
-#' 
+#'
 #' # Create own theme based on classic-theme
 #' sjp.setTheme(base = theme_classic(), axis.linecolor = "grey50",
 #'              axis.textcolor = "#6699cc")
 #' sjp.frq(efc$e42dep)}
-#' 
+#'
 #' @import ggplot2
 #' @importFrom scales brewer_pal grey_pal
 #' @importFrom dplyr case_when
@@ -235,40 +235,40 @@ sjp.setTheme <- function(# base theme
                          legend.item.backcol = "grey90",
                          legend.item.bordercol = "white") {
   sjtheme <- NULL
-  # ----------------------------------------  
+  # ----------------------------------------
   # set defaults for geom label colors
-  # ----------------------------------------  
+  # ----------------------------------------
   if (is.null(geom.label.color)) {
     geom.label.color <- "black"
   }
-  # ----------------------------------------  
+  # ----------------------------------------
   # set defaults for axis text angle
-  # ----------------------------------------  
+  # ----------------------------------------
   if (!is.null(axis.angle)) {
-    axis.angle.x <- axis.angle.y <- axis.angle 
+    axis.angle.x <- axis.angle.y <- axis.angle
   } else {
     axis.angle <- axis.angle.x
   }
   # ----------------------------------------
   # set defaults for axis text color
-  # ----------------------------------------  
+  # ----------------------------------------
   if (!is.null(axis.textcolor)) {
     axis.textcolor.x <- axis.textcolor.y <- axis.textcolor
   } else {
-    if (is.null(axis.textcolor.x)) 
-      axis.textcolor <- axis.textcolor.y 
-    else 
+    if (is.null(axis.textcolor.x))
+      axis.textcolor <- axis.textcolor.y
+    else
       axis.textcolor <- axis.textcolor.x
   }
   # ----------------------------------------
   # set defaults for axis line color
-  # ----------------------------------------  
+  # ----------------------------------------
   if (!is.null(axis.linecolor)) {
     axis.linecolor.x <- axis.linecolor.y <- axis.linecolor
   } else {
-    if (is.null(axis.linecolor.x)) 
-      axis.linecolor <- axis.linecolor.y 
-    else 
+    if (is.null(axis.linecolor.x))
+      axis.linecolor <- axis.linecolor.y
+    else
       axis.linecolor <- axis.linecolor.x
   }
   # ----------------------------------------
@@ -277,9 +277,9 @@ sjp.setTheme <- function(# base theme
   if (!is.null(axis.textsize)) {
     axis.textsize.x <- axis.textsize.y <- axis.textsize
   } else {
-    if (is.null(axis.textsize.x)) 
-      axis.textsize <- axis.textsize.y 
-    else 
+    if (is.null(axis.textsize.x))
+      axis.textsize <- axis.textsize.y
+    else
       axis.textsize <- axis.textsize.x
   }
   # ----------------------------------------
@@ -288,9 +288,9 @@ sjp.setTheme <- function(# base theme
   if (!is.null(panel.gridcol)) {
     panel.major.gridcol <- panel.minor.gridcol <- panel.gridcol
   } else {
-    if (is.null(panel.major.gridcol)) 
-      panel.gridcol <- panel.minor.gridcol 
-    else 
+    if (is.null(panel.major.gridcol))
+      panel.gridcol <- panel.minor.gridcol
+    else
       panel.gridcol <- panel.major.gridcol
   }
   # ----------------------------------------
@@ -299,9 +299,9 @@ sjp.setTheme <- function(# base theme
   if (!is.null(panel.col)) {
     panel.backcol <- panel.bordercol <- panel.col
   } else {
-    if (is.null(panel.backcol)) 
-      panel.col <- panel.bordercol 
-    else 
+    if (is.null(panel.backcol))
+      panel.col <- panel.bordercol
+    else
       panel.col <- panel.backcol
   }
   # ----------------------------------------
@@ -320,9 +320,9 @@ sjp.setTheme <- function(# base theme
   if (!is.null(plot.col)) {
     plot.backcol <- plot.bordercol <- plot.col
   } else {
-    if (is.null(plot.backcol)) 
-      plot.col <- plot.bordercol 
-    else 
+    if (is.null(plot.backcol))
+      plot.col <- plot.bordercol
+    else
       plot.col <- plot.backcol
   }
   # ----------------------------------------
@@ -357,8 +357,8 @@ sjp.setTheme <- function(# base theme
       # ----------------------------------------
       theme(plot.title = element_text(size = rel(title.size),  colour = title.color, hjust = title.align),
             axis.text = element_text(angle = axis.angle, size = rel(axis.textsize), colour = axis.textcolor),
-            axis.text.x = element_text(angle = axis.angle.x, size = rel(axis.textsize.x), colour = axis.textcolor.x), 
-            axis.text.y = element_text(angle = axis.angle.y, size = rel(axis.textsize.y), colour = axis.textcolor.y), 
+            axis.text.x = element_text(angle = axis.angle.x, size = rel(axis.textsize.x), colour = axis.textcolor.x),
+            axis.text.y = element_text(angle = axis.angle.y, size = rel(axis.textsize.y), colour = axis.textcolor.y),
             axis.title = element_text(size = rel(axis.title.size), colour = axis.title.color),
             legend.position = legend.pos,
             legend.justification = legend.just,
@@ -488,7 +488,7 @@ sjp.setTheme <- function(# base theme
   } else {
     warning("Either `theme` or `base` must be supplied as ggplot-theme-object to set global theme options for sjPlot.", call. = F)
   }
-  
+
   # ----------------------------------------
   # set defaults for geoms
   # ----------------------------------------
@@ -529,25 +529,25 @@ sj.theme_geoms <- function(geom.alpha,
   updateGeoms <- function(geoms, parameters) {
     for (geom in geoms) update_geom_defaults(geom, parameters)
   }
-  
+
   # Geoms that only require a default colour.
-  updateGeoms(c('abline', 
-                'point', 
-                'density', 
-                'errorbar', 
-                'errorbarh', 
-                'hline', 
-                'line', 
-                'area', 
-                'tile', 
-                'dotplot', 
+  updateGeoms(c('abline',
+                'point',
+                'density',
+                'errorbar',
+                'errorbarh',
+                'hline',
+                'line',
+                'area',
+                'tile',
+                'dotplot',
                 'bar'), list(alpha = geom.alpha))
-  
-  update_geom_defaults('text', list(size = geom.label.size, 
+
+  update_geom_defaults('text', list(size = geom.label.size,
                                     colour = geom.label.color,
                                     alpha = geom.label.alpha,
                                     angle = geom.label.angle))
-  
+
   # Special geoms.
   update_geom_defaults('boxplot', list(size = geom.boxoutline.size, colour = geom.boxoutline.color, alpha = geom.alpha))
   update_geom_defaults('bar', list(colour = geom.outline.color, size = geom.outline.size))
@@ -556,10 +556,10 @@ sj.theme_geoms <- function(geom.alpha,
 }
 
 
-sj.setGeomColors <- function(plot, 
-                             geom.colors, 
-                             pal.len, 
-                             show.legend = TRUE, 
+sj.setGeomColors <- function(plot,
+                             geom.colors,
+                             pal.len,
+                             show.legend = TRUE,
                              labels = NULL,
                              reverse.colors = FALSE) {
   # ---------------------------------------------------------
@@ -568,19 +568,19 @@ sj.setGeomColors <- function(plot,
   if (!is.null(geom.colors) && geom.colors == "themr") {
     return(plot)
   }
-  
+
   # ---------------------------------------------------------
   # dummy function for setting legend labels and geom-colors
   # ---------------------------------------------------------
   usenormalscale <- function(plot, geom.colors, labels, bw.figure, ltypes) {
     if (!show.legend) {
-      plot <- plot + 
+      plot <- plot +
         scale_fill_manual(values = geom.colors, guide = FALSE) +
         scale_colour_manual(values = geom.colors, guide = FALSE) +
-        scale_linetype_manual(values = ltypes, guide = FALSE) + 
+        scale_linetype_manual(values = ltypes, guide = FALSE) +
         guides(fill = FALSE, colour = FALSE, text = FALSE, linetype = FALSE)
     } else {
-      plot <- plot + 
+      plot <- plot +
         scale_fill_manual(values = geom.colors, labels = labels) +
         scale_colour_manual(values = geom.colors, labels = labels) +
         scale_linetype_manual(values = ltypes)
@@ -599,13 +599,13 @@ sj.setGeomColors <- function(plot,
   # ---------------------------------------------------------
   uselegendscale <- function(plot, labels, bw.figure, ltypes) {
     if (!show.legend) {
-      plot <- plot + 
+      plot <- plot +
         scale_fill_discrete(guide = FALSE) +
         scale_colour_discrete(guide = FALSE) +
-        scale_linetype_manual(values = ltypes, guide = FALSE) + 
+        scale_linetype_manual(values = ltypes, guide = FALSE) +
         guides(fill = FALSE, colour = FALSE, text = FALSE, linetype = FALSE)
     } else {
-      plot <- plot + 
+      plot <- plot +
         scale_fill_discrete(labels = labels) +
         scale_colour_discrete(labels = labels) +
         scale_linetype_manual(values = ltypes)
@@ -621,12 +621,12 @@ sj.setGeomColors <- function(plot,
 
   # check if we have coloured plot or b/w figure with different linetypes
   bw.figure <- !is.null(geom.colors) && geom.colors[1] == "bw"
-  
-  if (bw.figure) 
-    ltypes <- seq_len(6)[seq_len(pal.len)]
+
+  if (bw.figure)
+    ltypes <- seq_len(pal.len)
   else
     ltypes <- rep(1, times = pal.len)
-  
+
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
@@ -652,7 +652,7 @@ sj.setGeomColors <- function(plot,
       geom.colors <- geom.colors[1:pal.len]
       if (reverse.colors) geom.colors <- rev(geom.colors)
     }
-    
+
     if (length(geom.colors) < pal.len) {
       warning("Too less colors provided for plot. Using default color palette.")
       plot <- uselegendscale(plot, labels, bw.figure, ltypes)
@@ -668,75 +668,75 @@ sj.setGeomColors <- function(plot,
 
 #' @title Save ggplot-figure for print publication
 #' @name save_plot
-#' 
+#'
 #' @description Convenient function to save the last ggplot-figure in
 #'                high quality for publication.
-#' 
+#'
 #' @param filename the name of the output file; filename must end with one
-#'          of the following acceptes file types: ".png", ".jpg" or ".tif".
+#'          of the following acceptes file types: ".png", ".jpg", ".svg" or ".tif".
 #' @param fig the plot that should be saved. By default, the last plot is saved.
 #' @param width the width of the figure, in centimetres
 #' @param height the height of the figure, in centimetres
-#' @param dpi resolution in dpi (dots per inch)
+#' @param dpi resolution in dpi (dots per inch). Ignored for vector formats, such as ".svg".
 #' @param label.size fontsize of value labels inside plot area
 #' @param axis.textsize fontsize of axis labels
 #' @param axis.titlesize fontsize of axis titles
 #' @param legend.textsize fontsize of legend labels
 #' @param legend.titlesize fontsize of legend title
-#' 
+#' @param legend.itemsize size of legend's item (legend key), in centimetres.
+#'
 #' @inheritParams sjp.setTheme
 #' @inheritParams set_theme
-#' 
+#'
 #' @note This is a convenient function with some default settings that should
 #'         come close to most of the needs for fontsize and scaling in figures
 #'         when saving them for printing or publishing. It uses cairographics
 #'         anti-aliasing (see \code{\link[grDevices]{png}}).
-#' 
+#'
 #' @import ggplot2
-#' @importFrom grDevices png jpeg tiff dev.off
-#' 
+#' @importFrom grDevices png jpeg tiff dev.off cm svg
 #' @export
 save_plot <- function(filename,
                       fig = ggplot2::last_plot(),
                       width = 12,
                       height = 9,
                       dpi = 300,
-                      theme = "forestw",
+                      theme = ggplot2::theme_get(),
                       label.size = 2.4,
                       axis.textsize = .8,
                       axis.titlesize = .75,
-                      legend.textsize = .5,
-                      legend.titlesize = .6) {
+                      legend.textsize = .6,
+                      legend.titlesize = .65,
+                      legend.itemsize = .5) {
   # -------------------------
   # get file extension
   # -------------------------
-  ext <- tolower(substring(filename, 
-                           regexpr("\\.[^\\.]*$", filename) + 1, 
+  ext <- tolower(substring(filename,
+                           regexpr("\\.[^\\.]*$", filename) + 1,
                            nchar(filename)))
   # -------------------------
   # valid file ytpe?
   # -------------------------
-  if (!ext %in% c("png", "jpg", "tif")) {
-    stop("filetype must be one of `.png`, `.jpg` or `.tif`.", call. = F)
+  if (!ext %in% c("png", "jpg", "tif", "svg")) {
+    stop("filetype must be one of `.png`, `.jpg`, '.svg' or `.tif`.", call. = F)
   }
   # -------------------------
   # set printable theme, adjust font sizes.
   # this is the most critical point...
   # -------------------------
-  # catch old theme
-  curtheme = ggplot2::theme_get()
-  set_theme(theme)
-  sjp.setTheme(geom.label.color = "black",
-               axis.title.color = "black",
-               axis.textcolor = "black",
-               legend.title.color = "black",
-               legend.color = "black",
-               geom.label.size = label.size,
-               axis.textsize = axis.textsize,
-               axis.title.size = axis.titlesize,
-               legend.size = legend.textsize,
-               legend.title.size = legend.titlesize,
-               legend.item.size = .35)
+  sjp.setTheme(base = theme,
+    geom.label.color = "black",
+    axis.title.color = "black",
+    axis.textcolor = "black",
+    legend.title.color = "black",
+    legend.color = "black",
+    geom.label.size = label.size,
+    axis.textsize = axis.textsize,
+    axis.title.size = axis.titlesize,
+    legend.size = legend.textsize,
+    legend.title.size = legend.titlesize,
+    legend.item.size = legend.itemsize
+  )
   # -------------------------
   # prapare save
   # -------------------------
@@ -761,11 +761,13 @@ save_plot <- function(filename,
                     units = "cm",
                     res = dpi,
                     type = "cairo")
-  
+  else if (ext == 'svg')
+    grDevices::svg(filename = filename,
+                   width = width / grDevices::cm(1),
+                   height = height / grDevices::cm(1))
+
   # print plot to device
-  print(fig)
+  graphics::plot(fig)
   # close device
-  grDevices::dev.off()  
-  # set back theme
-  ggplot2::theme_set(curtheme)
+  grDevices::dev.off()
 }

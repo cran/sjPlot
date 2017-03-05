@@ -2,9 +2,10 @@
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 ## ---- message=FALSE, warning=FALSE---------------------------------------
-# load package
+# load packages
 library(sjPlot)
 library(sjmisc)
+library(dplyr)
 # load sample data set.
 data(efc)
 
@@ -15,33 +16,36 @@ data(efc)
 #    encoding <- "UTF-8"
 #  else
 #    encoding <- "Windows-1252"
+#  
 #  sjt.frq(efc$e15relat, encoding = encoding)
 
-## ----echo=FALSE, results='hide'------------------------------------------
-rinline <- function(code){
-  html <- '<code class="r">CODE</code>'
-  sub("CODE", code, html, fixed = TRUE)
-}
+## ------------------------------------------------------------------------
+sjt.frq(efc$e42dep)
 
-## ----eval=FALSE----------------------------------------------------------
-#  sjt.frq(efc$e42dep)
+## ------------------------------------------------------------------------
+efc %>% 
+  group_by(e16sex, c172code) %>% 
+  select(e16sex, c172code, e42dep) %>% 
+  sjtab()
 
 ## ----eval=TRUE, warning=FALSE--------------------------------------------
 cat(sjt.frq(efc$e42dep, no.output = TRUE)$page.style)
 
 ## ----eval=TRUE, warning=FALSE--------------------------------------------
 cat(sjt.frq(efc$e42dep, no.output = TRUE)$page.content.list[[1]])
-# not that other sjt-functions don't return a content-list, but
+# not that other sjt-functions don't return a page.content-list, but
 # just '$page.content'...
 
-## ----eval=FALSE----------------------------------------------------------
-#  sjt.frq(efc$e42dep,
-#          CSS = list(css.centeralign = 'text-align: left;',
-#                     css.caption = 'font-weight: normal; font-style: italic;',
-#                     css.firsttablecol = 'font-weight: bold;',
-#                     css.lasttablerow = 'border-top: 1px solid; border-bottom: none;',
-#                     css.summary = 'color: blue;'))
+## ------------------------------------------------------------------------
+sjt.frq(
+  efc$e42dep, 
+  CSS = list(css.centeralign = 'text-align: left;', 
+             css.caption = 'font-weight: normal; font-style: italic;', 
+             css.firsttablecol = 'font-weight: bold;', 
+             css.lasttablerow = 'border-top: 1px solid; border-bottom: none;', 
+             css.summary = 'color: blue;')
+)
 
-## ----eval=FALSE----------------------------------------------------------
-#  sjt.frq(efc$e42dep, CSS = list(css.summary = '+color: blue;'))
+## ------------------------------------------------------------------------
+sjt.frq(efc$e42dep, CSS = list(css.summary = '+color: blue;'))
 

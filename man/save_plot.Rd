@@ -5,12 +5,13 @@
 \title{Save ggplot-figure for print publication}
 \usage{
 save_plot(filename, fig = ggplot2::last_plot(), width = 12, height = 9,
-  dpi = 300, theme = "forestw", label.size = 2.4, axis.textsize = 0.8,
-  axis.titlesize = 0.75, legend.textsize = 0.5, legend.titlesize = 0.6)
+  dpi = 300, theme = ggplot2::theme_get(), label.size = 2.4,
+  axis.textsize = 0.8, axis.titlesize = 0.75, legend.textsize = 0.6,
+  legend.titlesize = 0.65, legend.itemsize = 0.5)
 }
 \arguments{
 \item{filename}{the name of the output file; filename must end with one
-of the following acceptes file types: ".png", ".jpg" or ".tif".}
+of the following acceptes file types: ".png", ".jpg", ".svg" or ".tif".}
 
 \item{fig}{the plot that should be saved. By default, the last plot is saved.}
 
@@ -18,7 +19,7 @@ of the following acceptes file types: ".png", ".jpg" or ".tif".}
 
 \item{height}{the height of the figure, in centimetres}
 
-\item{dpi}{resolution in dpi (dots per inch)}
+\item{dpi}{resolution in dpi (dots per inch). Ignored for vector formats, such as ".svg".}
 
 \item{theme}{Name of a pre-set theme. May be one of:
 \describe{
@@ -39,6 +40,8 @@ of the following acceptes file types: ".png", ".jpg" or ".tif".}
 \item{legend.textsize}{fontsize of legend labels}
 
 \item{legend.titlesize}{fontsize of legend title}
+
+\item{legend.itemsize}{size of legend's item (legend key), in centimetres.}
 }
 \description{
 Convenient function to save the last ggplot-figure in
