@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-03-04" />
+<meta name="date" content="2017-08-04" />
 
 <title>Summary of Linear Mixed Regression Models as HTML Table</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Summary of Linear Mixed Regression Models as HTML Table</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-03-04</em></h4>
+<h4 class="date"><em>2017-08-04</em></h4>
 
 
 
@@ -78,6 +78,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load required packages</span>
 <span class="kw">library</span>(sjPlot)
 <span class="kw">library</span>(sjmisc)
+<span class="kw">library</span>(sjlabelled)
 <span class="kw">library</span>(lme4)</code></pre></div>
 <div id="linear-mixed-models-summaries-as-html-table" class="section level2">
 <h2>Linear mixed models summaries as HTML table</h2>
@@ -86,26 +87,26 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load sample data</span>
 <span class="kw">data</span>(efc)
 <span class="co"># prepare grouping variables</span>
-efc$grp =<span class="st"> </span><span class="kw">as.factor</span>(efc$e15relat)
-<span class="kw">levels</span>(<span class="dt">x =</span> efc$grp) &lt;-<span class="st"> </span><span class="kw">get_labels</span>(efc$e15relat)
-efc$care.level &lt;-<span class="st"> </span><span class="kw">rec</span>(efc$n4pstu, <span class="dt">recodes =</span> <span class="st">&quot;0=0;1=1;2=2;3:4=4&quot;</span>, <span class="dt">val.labels =</span> <span class="kw">c</span>(<span class="st">&quot;none&quot;</span>, <span class="st">&quot;I&quot;</span>, <span class="st">&quot;II&quot;</span>, <span class="st">&quot;III&quot;</span>))
+efc<span class="op">$</span>grp =<span class="st"> </span><span class="kw">as.factor</span>(efc<span class="op">$</span>e15relat)
+<span class="kw">levels</span>(<span class="dt">x =</span> efc<span class="op">$</span>grp) &lt;-<span class="st"> </span><span class="kw">get_labels</span>(efc<span class="op">$</span>e15relat)
+efc<span class="op">$</span>care.level &lt;-<span class="st"> </span><span class="kw">rec</span>(efc<span class="op">$</span>n4pstu, <span class="dt">rec =</span> <span class="st">&quot;0=0;1=1;2=2;3:4=4&quot;</span>, <span class="dt">val.labels =</span> <span class="kw">c</span>(<span class="st">&quot;none&quot;</span>, <span class="st">&quot;I&quot;</span>, <span class="st">&quot;II&quot;</span>, <span class="st">&quot;III&quot;</span>))
 
 <span class="co"># data frame for fitted model</span>
 mydf &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
-  <span class="dt">neg_c_7 =</span> efc$neg_c_7,
-  <span class="dt">sex =</span> <span class="kw">to_factor</span>(efc$c161sex),
-  <span class="dt">c12hour =</span> efc$c12hour,
-  <span class="dt">barthel =</span> efc$barthtot,
-  <span class="dt">education =</span> <span class="kw">to_factor</span>(efc$c172code),
-  <span class="dt">grp =</span> efc$grp,
-  <span class="dt">carelevel =</span> <span class="kw">to_factor</span>(efc$care.level)
+  <span class="dt">neg_c_7 =</span> efc<span class="op">$</span>neg_c_<span class="dv">7</span>,
+  <span class="dt">sex =</span> <span class="kw">to_factor</span>(efc<span class="op">$</span>c161sex),
+  <span class="dt">c12hour =</span> efc<span class="op">$</span>c12hour,
+  <span class="dt">barthel =</span> efc<span class="op">$</span>barthtot,
+  <span class="dt">education =</span> <span class="kw">to_factor</span>(efc<span class="op">$</span>c172code),
+  <span class="dt">grp =</span> efc<span class="op">$</span>grp,
+  <span class="dt">carelevel =</span> <span class="kw">to_factor</span>(efc<span class="op">$</span>care.level)
   )
 
 <span class="co"># fit sample models</span>
-fit1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_7 ~<span class="st"> </span>sex +<span class="st"> </span>c12hour +<span class="st"> </span>barthel +<span class="st"> </span>(<span class="dv">1</span> |<span class="st"> </span>grp), <span class="dt">data =</span> mydf)
-fit2 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_7 ~<span class="st"> </span>sex +<span class="st"> </span>c12hour +<span class="st"> </span>education +<span class="st"> </span>barthel +<span class="st"> </span>(<span class="dv">1</span> |<span class="st"> </span>grp), <span class="dt">data =</span> mydf)
-fit3 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_7 ~<span class="st"> </span>sex +<span class="st"> </span>c12hour +<span class="st"> </span>education +<span class="st"> </span>barthel +
-<span class="st">              </span>(<span class="dv">1</span> |<span class="st"> </span>grp) +<span class="st"> </span>(<span class="dv">1</span> |<span class="st"> </span>carelevel), <span class="dt">data =</span> mydf)</code></pre></div>
+fit1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>sex <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>barthel <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>grp), <span class="dt">data =</span> mydf)
+fit2 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>sex <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>education <span class="op">+</span><span class="st"> </span>barthel <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>grp), <span class="dt">data =</span> mydf)
+fit3 &lt;-<span class="st"> </span><span class="kw">lmer</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>sex <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>education <span class="op">+</span><span class="st"> </span>barthel <span class="op">+</span>
+<span class="st">              </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>grp) <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>carelevel), <span class="dt">data =</span> mydf)</code></pre></div>
 <p>The simplest way of producing the table output is by passing the fitted models as parameter. By default, estimates (<em>B</em>), confidence intervals (<em>CI</em>) and p-values (<em>p</em>) are reported. The models are named <em>Model 1</em> and <em>Model 2</em>.</p>
 <p>The resulting table is divided into three parts:</p>
 <ol style="list-style-type: decimal">
@@ -3823,7 +3824,7 @@ carer’s level of education (intermediate level of education)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3862,7 +3863,7 @@ carer’s level of education (high level of education)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4157,7 +4158,7 @@ carer’s level of education (intermediate level of education)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4196,7 +4197,7 @@ carer’s level of education (high level of education)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4333,7 +4334,7 @@ R<sup>2</sup> / Ω<sub>0</sub><sup>2</sup>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

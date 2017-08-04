@@ -4,6 +4,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "png", fig.width = 
 ## ---- results='hide'-----------------------------------------------------
 library(sjPlot)
 library(sjmisc)
+library(sjlabelled)
 data(efc)
 # set basic theme options
 set_theme("forest",

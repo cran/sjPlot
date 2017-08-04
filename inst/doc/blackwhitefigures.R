@@ -4,6 +4,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "png", fig.width = 
 ## ------------------------------------------------------------------------
 library(sjPlot)
 library(sjmisc)
+library(sjlabelled)
 library(ggplot2)
 theme_set(theme_bw())
 data(efc)

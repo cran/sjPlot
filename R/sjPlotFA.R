@@ -1,8 +1,8 @@
-#' @title Plot PCA results
-#' @name sjp.pca
+#' @title Plot FA results
+#' @name sjp.fa
 #'
-#' @description Performs a principle component analysis on a data frame or matrix (with
-#'                varimax or oblimin rotation) and plots the factor solution as ellipses or tiles. \cr \cr
+#' @description Performes a maximum likelihood factor analysis on a data frame or matrix
+#'                and plots the factor solution as ellipses or tiles. \cr
 #'                In case a data frame is used as argument, the cronbach's alpha value for
 #'                each factor scale will be calculated, i.e. all variables with the highest
 #'                loading for a factor are taken for the reliability test. The result is
@@ -12,16 +12,24 @@
 #'            \item \href{http://www.strengejacke.de/sjPlot/sjp.pca/}{sjPlot manual: sjp.pca}
 #'            \item \code{\link{sjt.pca}}
 #'            }
-#'
-#' @param plot.eigen If \code{TRUE}, a plot showing the Eigenvalues according to the
-#'          Kaiser criteria is plotted to determine the number of factors.
-#' @param type Plot type resp. geom type. May be one of following: \code{"circle"} or \code{"tile"}
-#'          circular or tiled geoms, or \code{"bar"} for a bar plot. You may use initial letter only
-#'          for this argument.
+#' @param data A data frame that should be used to compute a FA, or a \code{\link[psych]{fa}} object.
+#' @param rotation Rotation of the factor loadings. May be \code{"varimax"} for orthogonal rotation
+#'          or \code{"promax"} for oblique transformation (default). Requires the \code{"GPArotation"} package.
+#' @param nmbr.fctr Number of factors used for calculating the rotation. By
+#'          default, this value is \code{NULL} and the amount of factors is
+#'          calculated according to a parallel analysis.
+#' @param method the factoring method to be used. \code{"ml"} will do a maximum likelihood factor analysis (default).
+#'         \code{"minres"} will do a minimum residual (OLS),
+#'         \code{"wls"} will do a weighted least squares (WLS) solution,
+#'         \code{"gls"} does a generalized weighted least squares (GLS),
+#'         \code{"pa"} will do the principal factor solution,
+#'         \code{"minchi"} will minimize the sample size weighted chi square
+#'         when treating pairwise correlations with different number of
+#'         subjects per pair. \code{"minrank"} will do a minimum rank factor analysis.
 #'
 #' @return (Invisibly) returns a \code{\link{structure}} with
 #'          \itemize{
-#'            \item the rotated factor loading matrix (\code{varim})
+#'            \item the rotated factor loading matrix (\code{rotate})
 #'            \item the column indices of removed variables (for more details see next list item) (\code{removed.colindex})
 #'            \item an updated data frame containing all factors that have a clear loading on a specific scale in case \code{data} was a data frame (See argument \code{fctr.load.tlrn} for more details) (\code{removed.df})
 #'            \item the \code{factor.index}, i.e. the column index of each variable with the highest factor loading for each factor,
@@ -29,46 +37,41 @@
 #'            \item the data frame that was used for setting up the ggplot-object (\code{df}).
 #'            }
 #'
+#' @inheritParams sjp.pca
+#' @inheritParams sjt.pca
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.glmer
-#' @inheritParams sjt.pca
+#'
+#' @note This method for factor analysis relies on the functions
+#'       \code{\link[psych]{fa}} and \code{\link[psych]{fa.parallel}}
+#'       from the psych package.
 #'
 #' @examples
 #' library(sjmisc)
+#' library(GPArotation)
 #' data(efc)
 #' # recveive first item of COPE-index scale
 #' start <- which(colnames(efc) == "c82cop1")
 #' # recveive last item of COPE-index scale
 #' end <- which(colnames(efc) == "c90cop9")
 #'
-#' # manually compute PCA
-#' pca <- prcomp(
-#'   na.omit(efc[, start:end]),
-#'   retx = TRUE,
-#'   center = TRUE,
-#'   scale. = TRUE
-#' )
-#' # plot results from PCA as circles, including Eigenvalue-diagnostic.
-#' # note that this plot does not compute the Cronbach's Alpha
-#' sjp.pca(pca, plot.eigen = TRUE, type = "circle", geom.size = 10)
-#'
-#' # use data frame as argument, let sjp.pca() compute PCA
-#' sjp.pca(efc[, start:end])
-#' sjp.pca(efc[, start:end], type = "tile")
-#'
+#' # use data frame as argument, let sjp.fa() compute FA
+#' sjp.fa(efc[, start:end])
+#' sjp.fa(efc[, start:end], type = "tile")
 #'
 #' @import ggplot2
 #' @importFrom tidyr gather
 #' @importFrom scales brewer_pal grey_pal
 #' @importFrom stats na.omit prcomp
 #' @importFrom sjstats cronb
-#' @importFrom psych principal
+#' @importFrom psych fa fa.parallel
+#' @importFrom grDevices dev.off
 #' @export
-sjp.pca <- function(data,
-                    rotation = c("varimax", "oblimin"),
+sjp.fa <- function(data,
+                    rotation = c("promax", "varimax"),
+                    method = c("ml", "minres", "wls", "gls", "pa", "minchi", "minrank"),
                     nmbr.fctr = NULL,
                     fctr.load.tlrn = 0.1,
-                    plot.eigen = FALSE,
                     digits = 2,
                     title = NULL,
                     axis.labels = NULL,
@@ -85,6 +88,7 @@ sjp.pca <- function(data,
   # --------------------------------------------------------
   type <- match.arg(type)
   rotation <- match.arg(rotation)
+  method <- match.arg(method)
   # --------------------------------------------------------
   # try to automatically set labels is not passed as argument
   # --------------------------------------------------------
@@ -103,62 +107,34 @@ sjp.pca <- function(data,
   # check if user has passed a data frame
   # or a pca object
   # ----------------------------
-  if (inherits(data, "prcomp")) {
-    pcadata <- data
+  if (inherits(data, "fa")) {
+    fadata <- data
     dataframeparam <- FALSE
   } else if (is.data.frame(data)) {
-    pcadata <- stats::prcomp(stats::na.omit(data), retx = TRUE, center = TRUE, scale. = TRUE)
+
+    if (is.null(nmbr.fctr)) {
+      nr_factors <- psych::fa.parallel(data, fa = 'fa', fm = method)$nfact
+      grDevices::dev.off()
+      fadata <- psych::fa(data, nfactors = nr_factors, fm = method, rotate = rotation)
+    }
+     else {
+
+    fadata <- psych::fa(data, nfactors = nmbr.fctr, fm = method, rotate = rotation)
+
+     }
     dataframeparam <- TRUE
   }
-  # ----------------------------
-  # calculate eigenvalues
-  # ----------------------------
-  pcadata.eigenval <- pcadata$sdev ^ 2
-  # ----------------------------
-  # retrieve best amount of factors according
-  # to Kaiser-critearia, i.e. factors with eigen value > 1
-  # ----------------------------
-  pcadata.kaiser <- which(pcadata.eigenval < 1)[1] - 1
-  # ----------------------------
-  # plot eigenvalues
-  # ----------------------------
-  if (plot.eigen) {
-    # create data frame with eigen values
-    mydat <- as.data.frame(cbind(xpos = seq_len(length(pcadata.eigenval)), eigen = pcadata.eigenval))
-    # plot eigenvalues as line curve
-    eigenplot <-
-      # indicate eigen vlaues > 1
-      ggplot(mydat, aes(x = xpos, y = eigen, colour = eigen > 1)) +
-        geom_line() + geom_point() +
-        geom_hline(yintercept = 1, linetype = 2, colour = "grey50") +
-        # print best number of factors according to eigen value
-        annotate("text", label = sprintf("Factors: %i", pcadata.kaiser),
-                 x = Inf, y = Inf, vjust = "top", hjust = "top") +
-        scale_x_continuous(breaks = seq(1, nrow(mydat), by = 2)) +
-        labs(title = NULL, y = "Eigenvalue", x = "Number of factors")
-    plot(eigenplot)
-    # print statistics
-    message("--------------------------------------------")
-    print(summary(pcadata))
-    message("Eigenvalues:")
-    print(pcadata.eigenval)
-    message("--------------------------------------------")
-  }
-  # --------------------------------------------------------
-  # varimax rotation, retrieve factor loadings
-  # --------------------------------------------------------
-  # check for predefined number of factors
-  if (!is.null(nmbr.fctr) && is.numeric(nmbr.fctr)) pcadata.kaiser <- nmbr.fctr
 
-  # rotate matrix
-  if (rotation == "varimax")
-    pcadata.rotate <- varimaxrota(pcadata, pcadata.kaiser)
-  else if (rotation == "oblimin")
-    pcadata.rotate <- psych::principal(r = data, nfactors = pcadata.kaiser, rotate = "oblimin")
+
 
   # create data frame with factor loadings
-  df <- as.data.frame(pcadata.rotate$loadings[, seq_len(ncol(pcadata.rotate$loadings))])
-  # df <- as.data.frame(pcadata.varim$rotmat[, 1:pcadata.kaiser])
+  loadings <- fadata$loadings[]
+  names <- rownames(fadata$loadings)
+
+
+  df <- as.data.frame(loadings, row.names = names)
+
+
   # ----------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -191,8 +167,8 @@ sjp.pca <- function(data,
       # check difference between both
       if (abs(maxload - max2load) < fctr.load.tlrn) {
         # if difference is below the tolerance,
-        # remeber row-ID so we can remove that items
-        # for further PCA with updated data frame
+        # remember row-ID so we can remove that items
+        # for further FA with updated data frame
         removers <- c(removers, i)
       }
     }
@@ -261,7 +237,7 @@ sjp.pca <- function(data,
   # convert to long data
   df <- tidyr::gather(df, "xpos", "value", seq_len(ncol(df)), factor_key = TRUE)
   # we need new columns for y-positions and point sizes
-  df <- cbind(df, ypos = seq_len(nrow(pcadata.rotate$loadings)), psize = exp(abs(df$value)) * geom.size)
+  df <- cbind(df, ypos = seq_len(nrow(loadings)), psize = exp(abs(df$value)) * geom.size)
   if (!show.values) {
     valueLabels <- ""
   } else {
@@ -293,12 +269,12 @@ sjp.pca <- function(data,
   }
   heatmap <- heatmap + geo +
     # --------------------------------------------------------
-    # fill gradient colour from distinct color brewer palette.
-    # negative correlations are dark red, positive corr. are dark blue,
-    # and they become lighter the closer they are to a correlation
-    # coefficient of zero
-    # --------------------------------------------------------
-    scale_fill_gradientn(colours = geom.colors, limits = c(-1, 1)) +
+  # fill gradient colour from distinct color brewer palette.
+  # negative correlations are dark red, positive corr. are dark blue,
+  # and they become lighter the closer they are to a correlation
+  # coefficient of zero
+  # --------------------------------------------------------
+  scale_fill_gradientn(colours = geom.colors, limits = c(-1, 1)) +
     labs(title = title, x = NULL, y = NULL, fill = NULL) +
     guides(fill = FALSE)
   # --------------------------------------------------------
@@ -334,7 +310,7 @@ sjp.pca <- function(data,
   # if we have a data frame, all factors which do not clearly
   # load on a specific dimension (see patameter "fctr.load.tlrn")
   # will be removed and the updated data frame will be returned.
-  # the user may calculate another PCA with the updated data frame
+  # the user may calculate another FA with the updated data frame
   # in order to get more clearly factor loadings
   # --------------------------------------------------------
   remdf <- NULL
@@ -350,8 +326,8 @@ sjp.pca <- function(data,
   # --------------------------------------------------------
   # return structure with various results
   # --------------------------------------------------------
-  invisible(structure(class = "sjcpca",
-                      list(varim = pcadata.rotate,
+  invisible(structure(class = "sjpfa",
+                      list(rotation = rotation,
                            removed.colindex = removableItems,
                            removed.df = remdf,
                            factor.index = factorindex,

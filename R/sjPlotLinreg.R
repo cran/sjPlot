@@ -69,20 +69,19 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #'                  between model's predictors.}
 #'            }
 #'
-#' @param fit Fitted linear regression model (of class \code{\link{lm}}, \code{\link[nlme]{gls}} or \code{plm}).
 #' @param type Type of plot. Use one of following:
 #'          \describe{
-#'            \item{\code{"lm"}}{(default) for forest-plot like plot of estimates. If the fitted model only contains one predictor, intercept and slope are plotted.}
-#'            \item{\code{"std"}}{for forest-plot like plot of standardized beta values. If the fitted model only contains one predictor, intercept and slope are plotted.}
-#'            \item{\code{"std2"}}{for forest-plot like plot of standardized beta values, however, standardization is done by dividing by two sd (see 'Details'). If the fitted model only contains one predictor, intercept and slope are plotted.}
+#'            \item{\code{"lm"}}{(default) for forest-plot of estimates. If the fitted model only contains one predictor, slope-line is plotted.}
+#'            \item{\code{"pred"}}{to plot predicted values (marginal effects) for specific model terms. See 'Details'.}
+#'            \item{\code{"eff"}}{to plot marginal effects of all terms in \code{fit}. Note that interaction terms are excluded from this plot.}
+#'            \item{\code{"std"}}{for forest-plot of standardized beta values.}
+#'            \item{\code{"std2"}}{for forest-plot of standardized beta values, however, standardization is done by dividing by two sd (see 'Details').}
 #'            \item{\code{"slope"}}{to plot regression lines for each single predictor of the fitted model, against the response (linear relationship between each model term and response).}
 #'            \item{\code{"resid"}}{to plot regression lines for each single predictor of the fitted model, against the residuals (linear relationship between each model term and residuals). May be used for model diagnostics.}
-#'            \item{\code{"pred"}}{to plot predicted values for the response, related to specific predictors. See 'Details'.}
-#'            \item{\code{"eff"}}{to plot marginal effects of all terms in \code{fit}. Note that interaction terms are excluded from this plot; use \code{\link{sjp.int}} to plot effects of interaction terms.}
-#'            \item{\code{"poly"}}{to plot predicted values (marginal effects) of polynomial terms in \code{fit}. Use \code{poly.term} to specify the polynomial term in the fitted model (see 'Examples').}
-#'            \item{\code{"ma"}}{to check model assumptions. Note that only three arguments are relevant for this option \code{fit} and \code{complete.dgns}. All other arguments are ignored.}
+#'            \item{\code{"ma"}}{to check model assumptions.}
 #'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 #'          }
+#' @param fit Fitted linear regression model (of class \code{\link{lm}}, \code{\link[nlme]{gls}} or \code{plm}).
 #' @param sort.est Logical, determines whether estimates should be sorted according to their values.
 #'          If \code{group.estimates} is \emph{not} \code{NULL}, estimates are sorted
 #'          according to their group assignment.
@@ -105,7 +104,8 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' @param show.summary Logical, if \code{TRUE}, a summary with model statistics
 #'          is added to the plot.
 #' @param show.ci Logical, if \code{TRUE}, depending on \code{type}, a confidence
-#'          interval or region is added to the plot.
+#'          interval or region is added to the plot. For frequency plots, the
+#'          confidence interval for the relative frequencies are shown.
 #' @param show.scatter Logical, if \code{TRUE} (default), adds a scatter plot of
 #'          data points to the plot. Only applies for slope-type or predictions plots.
 #'          For most plot types, dots are jittered to avoid overplotting, hence the
@@ -618,7 +618,7 @@ sjp.reglin <- function(fit,
   # column the data for each predictor is.
   # -----------------------------------------------------------
   model_data <- stats::model.frame(fit)
-  depvar.label <- sjmisc::get_label(model_data[[1]], def.value = sjstats::resp_var(fit))
+  depvar.label <- sjlabelled::get_label(model_data[[1]], def.value = sjstats::resp_var(fit))
   resp <- sjstats::resp_val(fit)
   predvars <- sjstats::pred_vars(fit)
 
@@ -695,7 +695,7 @@ sjp.reglin <- function(fit,
     # -----------------------------------------------------------
     reglinplot <- reglinplot +
       labs(title = title,
-           x = sjmisc::get_label(model_data[[p_v]], def.value = p_v),
+           x = sjlabelled::get_label(model_data[[p_v]], def.value = p_v),
            y = response)
     # -----------------------------------------------------------
     # y-axis limit
@@ -756,37 +756,6 @@ col_check <- function(geom.colors, show.loess) {
       else
         geom.colors <- c("#1f78b4", "#e41a1c", "#404040")
     }
-  }
-  return(geom.colors)
-}
-
-
-col_check2 <- function(geom.colors, collen) {
-  # --------------------------------------------
-  # check color argument
-  # --------------------------------------------
-  # check for corrct color argument
-  if (!is.null(geom.colors)) {
-    # check for color brewer palette
-    if (is.brewer.pal(geom.colors[1])) {
-      geom.colors <- scales::brewer_pal(palette = geom.colors[1])(collen)
-    } else if (geom.colors[1] == "gs") {
-      geom.colors <- scales::grey_pal()(collen)
-      # do we have correct amount of colours?
-    } else if (geom.colors[1] == "bw") {
-      geom.colors <- rep("black", times = collen)
-      # do we have correct amount of colours?
-    } else if (length(geom.colors) > collen) {
-      # shorten palette
-      geom.colors <- geom.colors[1:collen]
-    } else if (length(geom.colors) < collen) {
-      # warn user abount wrong color palette
-      warning(sprintf("Insufficient length of color palette provided. %i color values needed.", collen), call. = F)
-      # set default palette
-      geom.colors <- scales::brewer_pal(palette = "Set1")(collen)
-    }
-  } else {
-    geom.colors <- scales::brewer_pal(palette = "Set1")(collen)
   }
   return(geom.colors)
 }
@@ -1008,8 +977,8 @@ sjp.lm1 <- function(fit,
   if (useResiduals)
     response <- "residuals"
   else
-    response <- sjmisc::get_label(mf[[1]], def.value = cn[1])
-  xval <- sjmisc::get_label(mf[[2]], def.value = cn[2])
+    response <- sjlabelled::get_label(mf[[1]], def.value = cn[1])
+  xval <- sjlabelled::get_label(mf[[2]], def.value = cn[2])
   # -----------------------------------------------------------
   # create dummy-data frame with response and predictor
   # as data columns, used for the ggplot
@@ -1115,7 +1084,7 @@ sjp.lm.poly <- function(fit,
   cn <- colnames(mf)
   xl <- NULL
   # get variable label for response
-  resp.name <- sjmisc::get_label(mf[[1]], def.value = cn[1])
+  resp.name <- sjlabelled::get_label(mf[[1]], def.value = cn[1])
   # -------------------------------------
   # argument check: poly.term required and
   # polynomial must be found in model

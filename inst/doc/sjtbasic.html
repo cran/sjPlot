@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-03-04" />
+<meta name="date" content="2017-08-04" />
 
 <title>Basics of the sjt Table Functions</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Basics of the sjt Table Functions</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-03-04</em></h4>
+<h4 class="date"><em>2017-08-04</em></h4>
 
 
 
@@ -102,18 +102,18 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>In some cases, you may have to specify a character encoding in order to get proper labels in the HTML tables. If you face problems with correctly displaying labels, use the <code>encoding</code> parameter to change the character encoding. This value dependes on your region where you live. Following example, which works for western European countries, is the default behaviour of all <code>sjt</code>-functions:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># don't need to do this, because all sjt-functions</span>
 <span class="co"># use this code as default encoding-detection</span>
-if (.Platform$OS.type ==<span class="st"> &quot;unix&quot;</span>) 
+<span class="cf">if</span> (.Platform<span class="op">$</span>OS.type <span class="op">==</span><span class="st"> &quot;unix&quot;</span>) 
   encoding &lt;-<span class="st"> &quot;UTF-8&quot;</span> 
-else 
+<span class="cf">else</span> 
   encoding &lt;-<span class="st"> &quot;Windows-1252&quot;</span>
 
-<span class="kw">sjt.frq</span>(efc$e15relat, <span class="dt">encoding =</span> encoding)</code></pre></div>
+<span class="kw">sjt.frq</span>(efc<span class="op">$</span>e15relat, <span class="dt">encoding =</span> encoding)</code></pre></div>
 <p>This example first detects your operating system and then chooses the associated character encoding, which is used in the HTML file. If this does not work for you, you have to use the <code>encoding</code> parameter.</p>
 </div>
 <div id="knitr-integration-of-html-tables" class="section level2">
 <h2>Knitr integration of HTML tables</h2>
 <p><strong>sjPlot</strong> provides a print-method for HTML-tables to use in knitr-documents, so you can use the <code>sjt</code>-functions inside code chunks in knitr-rmarkdown files. The HTML-table will be printed to the knitr-document ‘as is’:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc$e42dep)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep)</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 elder’s dependency
@@ -225,9 +225,9 @@ total N=908 · valid N=901 · x̄=2.94 · σ=0.94
 </tr>
 </table>
 <p>This also works for table-outputs from <code>sjtab()</code>. For instance, you can easily create multiple tables from grouped data frames.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">efc %&gt;%<span class="st"> </span>
-<span class="st">  </span><span class="kw">group_by</span>(e16sex, c172code) %&gt;%<span class="st"> </span>
-<span class="st">  </span><span class="kw">select</span>(e16sex, c172code, e42dep) %&gt;%<span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">efc <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(e16sex, c172code) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">select</span>(e16sex, c172code, e42dep) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">sjtab</span>()</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
@@ -916,7 +916,7 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
 <div id="retrieving-customizable-styles" class="section level3">
 <h3>Retrieving customizable styles</h3>
 <p>Each <code>sjt</code> function invisibly returns several values. The return value <code>page.style</code> contains the style information for the HTML table. You can print this style sheet to console using the base R <code>cat()</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc$e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)$page.style)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)<span class="op">$</span>page.style)
 <span class="co">#&gt; &lt;style&gt;</span>
 <span class="co">#&gt; table { border-collapse:collapse; border:none; }</span>
 <span class="co">#&gt; .thead { border-top:double; text-align:center; font-style:italic; font-weight:normal; padding-left:0.2cm; padding-right:0.2cm; }</span>
@@ -934,7 +934,7 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
 <span class="co">#&gt; .firsttablecol {  }</span>
 <span class="co">#&gt; &lt;/style&gt;</span></code></pre></div>
 <p>The HTML code is obtained by using the <code>page.content</code> return value. Since the <code>sjt.frq()</code> function allows to plot multiple tables at once, this function returns a list of HTML tables as <code>page.content.list</code>. The following code prints the HTML code of the table to the R console:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc$e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)$page.content.list[[<span class="dv">1</span>]])
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)<span class="op">$</span>page.content.list[[<span class="dv">1</span>]])
 <span class="co"># not that other sjt-functions don't return a page.content-list, but</span>
 <span class="co"># just '$page.content'...</span></code></pre></div>
 <p>Now you can see which table elements are associated with which CSS class attributes. If you compare the <code>page.style</code> with the related <code>page.content</code>, you see that not all style attributes are used:</p>
@@ -956,7 +956,7 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
 </ol>
 <p>Example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(
-  efc$e42dep, 
+  efc<span class="op">$</span>e42dep, 
   <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.centeralign =</span> <span class="st">'text-align: left;'</span>, 
              <span class="dt">css.caption =</span> <span class="st">'font-weight: normal; font-style: italic;'</span>, 
              <span class="dt">css.firsttablecol =</span> <span class="st">'font-weight: bold;'</span>, 
@@ -1074,7 +1074,7 @@ total N=908 · valid N=901 · x̄=2.94 · σ=0.94
 </tr>
 </table>
 <p>In the above example, the summary-table row lost the original style and just became blue. If you want to keep the original style and just <em>add</em> additional style information, use the plus-sign (<code>+</code>) as initial character for the parameter attributes. In the following example, the summary row keeps its original style and is additionally printed in blue:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc$e42dep, <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.summary =</span> <span class="st">'+color: blue;'</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep, <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.summary =</span> <span class="st">'+color: blue;'</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 elder’s dependency
@@ -1195,7 +1195,7 @@ total N=908 · valid N=901 · x̄=2.94 · σ=0.94
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

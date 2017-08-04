@@ -1,5 +1,5 @@
-sjPlot - Data Visualization for Statistics in Social Science
-------------------------------------------------------------------------------
+# sjPlot - Data Visualization for Statistics in Social Science <img src="man/figures/logo.png" align="right" />
+
 Collection of plotting and table output functions for data visualization. Results of various statistical analyses (that are commonly used in social sciences) can be visualized using this package, including simple and cross tabulated frequencies, histograms, box plots, (generalized) linear models, mixed effects models, PCA and correlation matrices, cluster analyses, scatter plots, Likert scales, effects plots of interaction terms in regression models, constructing index or score variables and much more.
 
 
@@ -11,15 +11,12 @@ To install the latest development snapshot (see latest changes below), type foll
 
 ```r
 library(devtools)
-devtools::install_github("sjPlot/devel")
+devtools::install_github("strengejacke/sjPlot")
 ```
 
-Please note that the latest development snapshot most likely depends on the latest builds of the [sjmisc-package](https://github.com/sjPlot/sjmisc) and [sjstats-package](https://github.com/sjPlot/sjstats), so you probably want to install these as well:
+Please note the package dependencies when installing from GitHub. The GitHub version of this package may depend on latest GitHub versions of my other packages, so you may need to install those first, if you encounter any problems. Here's the order for installing packages from GitHub:
 
-```r
-devtools::install_github("sjPlot/sjmisc")
-devtools::install_github("sjPlot/sjstats")
-```
+[sjlabelled](https://github.com/strengejacke/sjlabelled) &rarr; [sjmisc](https://github.com/strengejacke/sjmisc) &rarr; [sjstats](https://github.com/strengejacke/sjstats) &rarr; [ggeffects](https://github.com/strengejacke/ggeffects) &rarr; [sjPlot](https://github.com/strengejacke/sjPlot)
 
 ### Officiale, stable release
 

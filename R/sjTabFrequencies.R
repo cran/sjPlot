@@ -157,7 +157,8 @@
 #'
 #' @importFrom psych describe
 #' @importFrom stats na.omit weighted.mean
-#' @importFrom sjmisc get_note group_str
+#' @importFrom sjmisc group_str
+#' @importFrom sjlabelled get_note set_labels
 #' @export
 sjt.frq <- function(data,
                     weight.by = NULL,
@@ -272,12 +273,13 @@ sjt.frq <- function(data,
 
   # check if string vectors should be removed
   if (ignore.strings) {
-    # check if we have data frame with several variables
-    if (is.data.frame(data)) {
-      # remove string variables
-      data <- data[, !sapply(data, is.character)]
-    } else if (is.character(data)) {
-      stop("`data` is a single string vector, where string vectors should be removed. No data to compute frequency table left. See argument `ignore.strings` for details.", call. = FALSE)
+
+    # # remove string variables from data frame
+    if (is.data.frame(data))
+      data <- data[, !sapply(data, is.character), drop = FALSE]
+
+    if (sjmisc::is_empty(data) || is.character(data)) {
+      stop("`data` only contains string vectors, where string vectors should be removed. No data to compute frequency table left. See argument `ignore.strings` for details.", call. = FALSE)
     }
   }
 
@@ -310,11 +312,11 @@ sjt.frq <- function(data,
     # check if we have data frame with several variables
     if (is.data.frame(data)) {
       # retrieve variable name attribute
-      title <- sjmisc::get_label(data, def.value = colnames(data))
+      title <- sjlabelled::get_label(data, def.value = colnames(data))
     # we have a single variable only
     } else {
       # retrieve variable name attribute
-      title <- sjmisc::get_label(data, def.value = deparse(substitute(data)))
+      title <- sjlabelled::get_label(data, def.value = deparse(substitute(data)))
     }
   }
 
@@ -326,12 +328,12 @@ sjt.frq <- function(data,
     # if yes, iterate each variable
     for (i in seq_len(ncol(data))) {
       # retrieve note attribute
-      note.labels <- c(note.labels, sjmisc::get_note(data[[i]]))
+      note.labels <- c(note.labels, sjlabelled::get_note(data[[i]]))
     }
     # we have a single variable only
   } else {
     # retrieve note attribute
-    note.labels <- c(note.labels, sjmisc::get_note(data))
+    note.labels <- c(note.labels, sjlabelled::get_note(data))
   }
 
   # make data frame of single variable, so we have
@@ -372,6 +374,16 @@ sjt.frq <- function(data,
 
   # start iterating all variables
   for (cnt in seq_len(nvar)) {
+    # check if we have a string-vector
+    if (is.character(data[[cnt]])) {
+      # convert string to numeric
+      orivar <- varia <- as.numeric(as.factor(data[[cnt]]))
+      # here we have numeric or factor variables
+    } else {
+      # convert to numeric
+      orivar <- varia <- sjmisc::to_value(data[[cnt]], keep.labels = F)
+    }
+
     # check for length of unique values and skip if too long
     if (!is.null(auto.group) &&
         !is.character(data[[cnt]]) &&
@@ -400,17 +412,7 @@ sjt.frq <- function(data,
         )
 
       # set labels
-      data[[cnt]] <- sjmisc::set_labels(data[[cnt]], labels = val.lab)
-    }
-
-    # check if we have a string-vector
-    if (is.character(data[[cnt]])) {
-      # convert string to numeric
-      orivar <- varia <- as.numeric(as.factor(data[[cnt]]))
-      # here we have numeric or factor variables
-    } else {
-      # convert to numeric
-      orivar <- varia <- sjmisc::to_value(data[[cnt]], keep.labels = F)
+      data[[cnt]] <- sjlabelled::set_labels(data[[cnt]], labels = val.lab)
     }
 
     # retrieve summary

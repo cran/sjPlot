@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-03-04" />
+<meta name="date" content="2017-08-04" />
 
 <title>Summary of Linear Regression Models as HTML Table</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Summary of Linear Regression Models as HTML Table</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-03-04</em></h4>
+<h4 class="date"><em>2017-08-04</em></h4>
 
 
 
@@ -78,6 +78,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load package</span>
 <span class="kw">library</span>(sjPlot)
 <span class="kw">library</span>(sjmisc)
+<span class="kw">library</span>(sjlabelled)
+
 <span class="co"># sample data</span>
 <span class="kw">data</span>(efc)</code></pre></div>
 <div id="linear-model-summaries-as-html-table" class="section level2">
@@ -85,9 +87,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>The <code>sjt.lm()</code> function prints summaries of linear models (fitted with the <code>lm()</code> function) as nicely formatted html-tables.</p>
 <p>Before starting, sample data is loaded and sample models are fitted:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># fit first model</span>
-fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot ~<span class="st"> </span>c160age +<span class="st"> </span>c12hour +<span class="st"> </span>c161sex +<span class="st"> </span>c172code, <span class="dt">data =</span> efc)
+fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, <span class="dt">data =</span> efc)
 <span class="co"># fit second model </span>
-fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c12hour +<span class="st"> </span>c161sex +<span class="st"> </span>c172code, <span class="dt">data =</span> efc)
+fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, <span class="dt">data =</span> efc)
 <span class="co"># Note that both models share the same predictors and only differ </span>
 <span class="co"># in their dependent variable. See examples of stepwise models </span>
 <span class="co"># later...</span></code></pre></div>
@@ -1243,11 +1245,11 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <p>In some cases, for instance stepwise regressions, you have different predictors on the same response. The proper grouping of predictors, resp. rows, is done automatically.</p>
 <p>First, let’s fit some example models.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># fit first model</span>
-fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>c161sex, <span class="dt">data =</span> efc)
+fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex, <span class="dt">data =</span> efc)
 <span class="co"># fit second model</span>
-fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>c161sex +<span class="st"> </span>c12hour, <span class="dt">data =</span> efc)
+fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c12hour, <span class="dt">data =</span> efc)
 <span class="co"># fit second model</span>
-fit3 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>e42dep +<span class="st"> </span>tot_sc_e, <span class="dt">data =</span> efc)</code></pre></div>
+fit3 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>e42dep <span class="op">+</span><span class="st"> </span>tot_sc_e, <span class="dt">data =</span> efc)</code></pre></div>
 <p>Note that printing tables with fitted models, which have different predictors do not automatically detect variable labels (maybe this will be implemented in a future package version).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2, fit3, 
        <span class="dt">separate.ci.col =</span> <span class="ot">FALSE</span>,
@@ -2007,13 +2009,13 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <p>By default, automatic grouping is activated. To disable this feature, use <code>group.pred = FALSE</code> as parameter.</p>
 <p>To demonstrate this feature, we first convert two predictors to factors (what they actually are, indeed). To do this, we use the <code>sjmisc::to_factor()</code> function, which converts numerical variables into factors, however, does not remove the variable and value label attributes.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># make education categorical</span>
-efc$c172code &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc$c172code)
+efc<span class="op">$</span>c172code &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc<span class="op">$</span>c172code)
 <span class="co"># make dependency categorical</span>
-efc$e42dep &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc$e42dep)
+efc<span class="op">$</span>e42dep &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc<span class="op">$</span>e42dep)
 <span class="co"># fit first model again (with c172code as factor)</span>
-fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot ~<span class="st"> </span>c160age +<span class="st"> </span>c12hour +<span class="st"> </span>c172code +<span class="st"> </span>c161sex +<span class="st"> </span>e42dep, <span class="dt">data =</span> efc)
+fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e42dep, <span class="dt">data =</span> efc)
 <span class="co"># fit second model again (with c172code as factor)</span>
-fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c12hour +<span class="st"> </span>c172code +<span class="st"> </span>c161sex +<span class="st"> </span>e42dep, <span class="dt">data =</span> efc)</code></pre></div>
+fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e42dep, <span class="dt">data =</span> efc)</code></pre></div>
 <p>Now we can print the table.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.lm</span>(fit1, fit2)</code></pre></div>
 <table style="border-collapse:collapse; border:none;border-bottom:double;">
@@ -2376,18 +2378,18 @@ R<sup>2</sup> / adj. R<sup>2</sup>
 <p><em>Note that automatic grouping of categorical predictors (argument</em> <code>group.pred</code><em>) does not yet work properly when removing estimates!</em> See also Example 6 for further details.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(efc)
 <span class="co"># make education categorical</span>
-efc$c172code &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc$c172code)
+efc<span class="op">$</span>c172code &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc<span class="op">$</span>c172code)
 <span class="co"># make education categorical</span>
-efc$e42dep &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc$e42dep)
+efc<span class="op">$</span>e42dep &lt;-<span class="st"> </span><span class="kw">to_factor</span>(efc<span class="op">$</span>e42dep)
 <span class="co"># make prettier variable labels</span>
-<span class="kw">set_label</span>(efc$c172code) &lt;-<span class="st"> &quot;Education&quot;</span>
-<span class="kw">set_label</span>(efc$e42dep) &lt;-<span class="st"> &quot;Dependency&quot;</span>
+<span class="kw">set_label</span>(efc<span class="op">$</span>c172code) &lt;-<span class="st"> &quot;Education&quot;</span>
+<span class="kw">set_label</span>(efc<span class="op">$</span>e42dep) &lt;-<span class="st"> &quot;Dependency&quot;</span>
 <span class="co"># fit first model</span>
-fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>c161sex, <span class="dt">data =</span> efc)
+fit1 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex, <span class="dt">data =</span> efc)
 <span class="co"># fit second model</span>
-fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>c161sex +<span class="st"> </span>c12hour, <span class="dt">data =</span> efc)
+fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c12hour, <span class="dt">data =</span> efc)
 <span class="co"># fit third model</span>
-fit3 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_7 ~<span class="st"> </span>c160age +<span class="st"> </span>c172code +<span class="st"> </span>e42dep +<span class="st"> </span>tot_sc_e, <span class="dt">data =</span> efc)</code></pre></div>
+fit3 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c172code <span class="op">+</span><span class="st"> </span>e42dep <span class="op">+</span><span class="st"> </span>tot_sc_e, <span class="dt">data =</span> efc)</code></pre></div>
 <div id="example-1-complete-table-output" class="section level3">
 <h3>Example 1: Complete table output</h3>
 <p>Here you have the complete table output. This helps you identify the row index numbers. Especially when you have multiple models with different predictors, the estimate’s position in the last model may differ from this estimate’s position in the table output.</p>
@@ -3620,7 +3622,7 @@ carer’s gender
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3635,7 +3637,7 @@ average number of hours of care per week
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3657,7 +3659,7 @@ average number of hours of care per week
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3672,7 +3674,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3682,7 +3684,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3709,7 +3711,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3719,7 +3721,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3746,7 +3748,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3756,7 +3758,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3783,7 +3785,7 @@ Services for elderly
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -3793,7 +3795,7 @@ Services for elderly
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4058,7 +4060,7 @@ average number of hours of care per week
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4080,7 +4082,7 @@ average number of hours of care per week
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4095,7 +4097,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4105,7 +4107,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4132,7 +4134,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4142,7 +4144,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4169,7 +4171,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4179,7 +4181,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4206,7 +4208,7 @@ Services for elderly
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4216,7 +4218,7 @@ Services for elderly
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4481,7 +4483,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4491,7 +4493,7 @@ Dependency (slightly dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4518,7 +4520,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4528,7 +4530,7 @@ Dependency (moderately dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4555,7 +4557,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4565,7 +4567,7 @@ Dependency (severely dependent)
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4841,7 +4843,7 @@ Hours of Care
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4863,7 +4865,7 @@ Hours of Care
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4883,7 +4885,7 @@ slight dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4893,7 +4895,7 @@ slight dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4920,7 +4922,7 @@ moderate dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4930,7 +4932,7 @@ moderate dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4957,7 +4959,7 @@ severe dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4967,7 +4969,7 @@ severe dependency
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -4994,7 +4996,7 @@ Service Usage
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -5004,7 +5006,7 @@ Service Usage
 <td style="padding:0.2cm; text-align:center; ">
 </td>
 <td style="padding:0.2cm; text-align:center; ">
- 
+ – 
 </td>
 <td style="padding:0.2cm; text-align:center; ">
 </td>
@@ -5078,7 +5080,7 @@ R<sup>2</sup> / adj. R<sup>2</sup>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

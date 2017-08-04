@@ -27,7 +27,7 @@ sjt.lmer(..., pred.labels = NULL, depvar.labels = NULL,
 \item{pred.labels}{Character vector with labels of predictor variables.
 If not \code{NULL}, \code{pred.labels} will be used in the first
 table column with the predictors' names. If \code{NULL}, variable
-labels are set based on label attributes (see \code{\link[sjmisc]{get_label}}).
+labels are set based on label attributes (see \code{\link[sjlabelled]{get_label}}).
 If \code{pred.labels = ""}, column names (vector names) are used
 as predictor labels. See 'Examples'.}
 
@@ -253,7 +253,7 @@ data(efc)
 efc$grp = as.factor(efc$e15relat)
 levels(x = efc$grp) <- get_labels(efc$e15relat)
 efc$care.level <- sjmisc::rec(efc$n4pstu,
-                              recodes = "0=0;1=1;2=2;3:4=3",
+                              rec = "0=0;1=1;2=2;3:4=3",
                               as.num = FALSE)
 levels(x = efc$care.level) <- c("none", "I", "II", "III")
 

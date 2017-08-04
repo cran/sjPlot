@@ -72,8 +72,7 @@
 #' # linear to cubic fit
 #' sjp.poly(efc$c160age, efc$quol_5, 1:4, show.scatter = FALSE)
 #'
-#' library(sjmisc)
-#' data(efc)
+#'
 #' # fit sample model
 #' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
 #' # inspect relationship between predictors and response
@@ -93,7 +92,7 @@
 #'
 #' @import ggplot2
 #' @importFrom scales grey_pal brewer_pal
-#' @importFrom stats lm glm binomial predict
+#' @importFrom stats lm glm binomial predict poly
 #' @export
 sjp.poly <- function(x,
                      poly.term,
@@ -155,8 +154,8 @@ sjp.poly <- function(x,
   # --------------------------------------------
   # retrieve labels
   # --------------------------------------------
-  if (is.null(axis.title)) axis.title <- sjmisc::get_label(poly.term, def.value = defv)
-  axisTitle.y <- sjmisc::get_label(resp, def.value = "Response")
+  if (is.null(axis.title)) axis.title <- sjlabelled::get_label(poly.term, def.value = defv)
+  axisTitle.y <- sjlabelled::get_label(resp, def.value = "Response")
   # --------------------------------------------
   # init data frame
   # --------------------------------------------
@@ -176,9 +175,9 @@ sjp.poly <- function(x,
     mydat <- stats::na.omit(data.frame(x = poly.term, y = resp))
     # fit model with polynomials
     if (fun == "lm")
-      fit <- stats::lm(mydat$y ~ poly(mydat$x, i, raw = TRUE))
+      fit <- stats::lm(mydat$y ~ stats::poly(mydat$x, i, raw = TRUE))
     else
-      fit <- stats::glm(mydat$y ~ poly(mydat$x, i, raw = TRUE), family = stats::family(x))
+      fit <- stats::glm(mydat$y ~ stats::poly(mydat$x, i, raw = TRUE), family = stats::family(x))
     # check whether we have an integer poly.degree
     # or a float value
     poly.digit <- ifelse(i %% 1 == 0, 0, 1)

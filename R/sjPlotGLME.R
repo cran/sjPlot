@@ -182,6 +182,7 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' @examples
 #' library(lme4)
 #' library(sjmisc)
+#' library(sjlabelled)
 #' # create binary response
 #' sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "median")
 #' # fit model
@@ -194,6 +195,7 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' # sort by predictor Days
 #' sjp.glmer(fit, sort.est = "Days")
 #'
+#' \dontrun{
 #' data(efc)
 #' # create binary response
 #' efc$hi_qol <- dicho(efc$quol_5)
@@ -207,12 +209,6 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'                    c12hour = efc$c12hour,
 #'                    neg_c_7 = efc$neg_c_7,
 #'                    grp = efc$grp)
-#' # fit glmer
-#' fit <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + (1|grp),
-#'              data = mydf, family = binomial("logit"))
-#'
-#' # plot and sort fixed effects
-#' sjp.glmer(fit, type = "fe", sort.est = TRUE)
 #'
 #' # fit glmer, with categorical predictor with more than 2 levels
 #' fit <- glmer(hi_qol ~ sex + education + c12hour + neg_c_7 + (1|grp),
@@ -226,24 +222,13 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' # in integrated plots, emphasizing groups 1 and 4
 #' sjp.glmer(fit, type = "ri.slope", emph.grp = c(1, 4), facet.grid = FALSE)
 #'
-#' # plot probability curve (predicted probabilities)
-#' # of fixed effect, only for coefficient "neg_c_7"
-#' sjp.glmer(fit, type = "fe.slope", vars = "neg_c_7")
-#'
 #' # plot predicted probabilities for response,
-#' # related to model predictor, conditioned on random effects
-#' sjp.glmer(fit, type = "pred", vars = "neg_c_7")
-#'
-#' # plot predicted probabilities for response,
-#' # related to model predictor, grouped
-#' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex"))
-#'
 #' # non faceted, with ci
 #' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "education"),
 #'           show.ci = TRUE, facet.grid = FALSE)
 #'
 #' # predictions by gender and education
-#' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex", "education"))
+#' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex", "education"))}
 #'
 #' @import ggplot2
 #' @importFrom dplyr slice sample_n
@@ -478,6 +463,7 @@ sjp.glmer <- function(fit,
 #' sjp.lmer(fit, facet.grid = FALSE, sort.est = "sort.all")
 #'
 #' library(sjmisc)
+#' library(sjlabelled)
 #' data(efc)
 #' # prepare group variable
 #' efc$grp = as.factor(efc$e15relat)
@@ -491,15 +477,8 @@ sjp.glmer <- function(fit,
 #' # fit lmer
 #' fit <- lmer(neg_c_7 ~ sex + c12hour + barthel + (1|grp), data = mydf)
 #'
-#' # plot fixed effects
-#' sjp.lmer(fit, type = "fe")
-#'
 #  # plot and sort standardized fixed effects
 #' sjp.lmer(fit, type = "fe.std", sort.est = TRUE)
-#'
-#' # plot fixed effects slopes for each random intercept,
-#' # but only for coefficient "c12hour"
-#' sjp.lmer(fit, type = "ri.slope", vars = "c12hour")
 #'
 #' # highlight specific grouping levels, in this case we compare
 #' # spouses, children and children-in-law
@@ -1937,13 +1916,13 @@ sjp.lme.rsri <- function(fit,
       # axis-x title
       # ------------------------------
       if (is.null(axis.title))
-        p_axisTitle.x <- sjmisc::get_label(m_f[[rnd.slope.name]], def.value = rnd.slope.name)
+        p_axisTitle.x <- sjlabelled::get_label(m_f[[rnd.slope.name]], def.value = rnd.slope.name)
       else
         p_axisTitle.x <- axis.title
       # ------------------------------
       # prepare base response title
       # ------------------------------
-      p_axisTitle.y <- sjmisc::get_label(m_f[[1]], def.value = colnames(m_f)[1])
+      p_axisTitle.y <- sjlabelled::get_label(m_f[[1]], def.value = colnames(m_f)[1])
       # ------------------------------
       # prepare base plot
       # ------------------------------
@@ -2216,10 +2195,10 @@ sjp.glm.eff <- function(fit,
 
       # set y-axis-title
       axis.title <- paste(sprintf("Predicted %s for", ysc),
-                           sjmisc::get_label(resp, def.value = resp.col))
+                          sjlabelled::get_label(resp, def.value = resp.col))
 
     } else {
-      axis.title <- sjmisc::get_label(resp, def.value = resp.col)
+      axis.title <- sjlabelled::get_label(resp, def.value = resp.col)
     }
   }
   # ------------------------
@@ -2298,7 +2277,7 @@ sjp.glm.eff <- function(fit,
       # get possible labels
       # -------------------------
       if (t %in% colnames(fitfram))
-        tmp_lab <- sjmisc::get_labels(fitfram[[t]])
+        tmp_lab <- sjlabelled::get_labels(fitfram[[t]])
       else
         tmp_lab <- NULL
       # -------------------------
@@ -2320,7 +2299,7 @@ sjp.glm.eff <- function(fit,
       # tmp <- tmp[order(tmp$x), ]
       tmp$x <- sort(tmp$x)
       # get possible variable labels
-      tmp$var.label <- sjmisc::get_label(fitfram[[t]], def.value = t)
+      tmp$var.label <- sjlabelled::get_label(fitfram[[t]], def.value = t)
       # do we already have data?
       if (nrow(mydat) > 0)
         mydat <- rbind(mydat, tmp)

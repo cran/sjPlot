@@ -5,6 +5,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "png", fig.width = 
 # load packages
 library(sjPlot)
 library(sjmisc)
+library(sjlabelled)
+
 # load sample data set.
 data(efc)
 set_theme(theme = "forest", 

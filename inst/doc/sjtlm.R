@@ -5,6 +5,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", warning = FALSE, message 
 # load package
 library(sjPlot)
 library(sjmisc)
+library(sjlabelled)
+
 # sample data
 data(efc)
 

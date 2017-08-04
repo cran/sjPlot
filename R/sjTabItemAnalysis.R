@@ -94,6 +94,7 @@
 #' @examples
 #' # Data from the EUROFAMCARE sample dataset
 #' library(sjmisc)
+#' library(sjlabelled)
 #' data(efc)
 #'
 #' # retrieve variable and value labels
@@ -148,7 +149,7 @@ sjt.itemanalysis <- function(df,
   # -----------------------------------
   # auto-detect variable labels
   # -----------------------------------
-  varlabels <- sjmisc::get_label(df, def.value = colnames(df))
+  varlabels <- sjlabelled::get_label(df, def.value = colnames(df))
   colnames(df) <- varlabels
   # -----------------------------------
   # check whether we have (factor) groups

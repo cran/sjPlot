@@ -113,7 +113,8 @@ function call is interrupted and no plot printed.}
 variable labels.}
 
 \item{show.ci}{Logical, if \code{TRUE}, depending on \code{type}, a confidence
-interval or region is added to the plot.}
+interval or region is added to the plot. For frequency plots, the
+confidence interval for the relative frequencies are shown.}
 
 \item{show.legend}{logical, if \code{TRUE}, and depending on plot type and
 function, a legend is added to the plot.}
@@ -222,6 +223,7 @@ sjp.glm(fitOR)
 # the EUROFAMCARE sample dataset
 # -------------------------------
 library(sjmisc)
+library(sjlabelled)
 data(efc)
 # create binary response
 y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)

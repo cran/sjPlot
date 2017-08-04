@@ -12,10 +12,10 @@
 #'            \item \href{http://www.strengejacke.de/sjPlot/view_spss/}{sjPlot manual: inspecting (SPSS imported) data frames}
 #'          }
 #'
-#' @param x A (labelled) data frame, imported by \code{\link[sjmisc]{read_spss}},
-#'          \code{\link[sjmisc]{read_sas}} or \code{\link[sjmisc]{read_stata}} function,
-#'          or any similar labelled data frame (see \code{\link[sjmisc]{set_label}}
-#'          and \code{\link[sjmisc]{set_labels}}).
+#' @param x A (labelled) data frame, imported by \code{\link[sjlabelled]{read_spss}},
+#'          \code{\link[sjlabelled]{read_sas}} or \code{\link[sjlabelled]{read_stata}} function,
+#'          or any similar labelled data frame (see \code{\link[sjlabelled]{set_label}}
+#'          and \code{\link[sjlabelled]{set_labels}}).
 #' @param show.id Logical, if \code{TRUE} (default), the variable ID is shown in the first column.
 #' @param show.values Logical, if \code{TRUE} (default), the variable values are shown as additional column.
 #' @param show.labels Logical, if \code{TRUE} (default), the value labels are shown as additional column.
@@ -70,7 +70,8 @@
 #'                    css.arc = "color:blue;"))}
 #'
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom sjmisc is_even get_values
+#' @importFrom sjmisc is_even
+#' @importFrom sjlabelled get_values
 #' @export
 view_df <- function(x,
                     weight.by = NULL,
@@ -101,8 +102,8 @@ view_df <- function(x,
   if (!is.data.frame(x)) stop("Parameter needs to be a data frame!", call. = FALSE)
 
   # retrieve value and variable labels
-  df.var <- sjmisc::get_label(x)
-  df.val <- sjmisc::get_labels(x)
+  df.var <- sjlabelled::get_label(x)
+  df.val <- sjlabelled::get_labels(x)
 
   # get row count and ID's
   colcnt <- ncol(x)
@@ -181,8 +182,8 @@ view_df <- function(x,
              sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
 
     # name, and note
-    if (!is.null(sjmisc::get_note(x[[index]])))
-      td.title.tag <- sprintf(" title=\"%s\"", sjmisc::get_note(x[[index]]))
+    if (!is.null(sjlabelled::get_note(x[[index]])))
+      td.title.tag <- sprintf(" title=\"%s\"", sjlabelled::get_note(x[[index]]))
     else
       td.title.tag <- ""
 
@@ -235,7 +236,7 @@ view_df <- function(x,
       # do we have valid index?
       if (index <= ncol(x)) {
         # if yes, get variable values
-        vals <- sjmisc::get_values(x[[index]])
+        vals <- sjlabelled::get_values(x[[index]])
         # check if we have any values...
         if (!is.null(vals)) {
           # if we have values, put all values into a string
@@ -261,6 +262,11 @@ view_df <- function(x,
         # the code here corresponds to the above code
         # for variable values
         vals <- df.val[[index]]
+
+        # sort character vectors
+        if (is.character(x[[index]]) && !is.null(vals) && !sjmisc::is_empty(vals))
+          vals <- sort(vals)
+
         # check if we have any values...
         if (!is.null(vals)) {
           # if yes, add all to a string

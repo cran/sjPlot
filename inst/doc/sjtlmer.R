@@ -5,6 +5,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE)
 # load required packages
 library(sjPlot)
 library(sjmisc)
+library(sjlabelled)
 library(lme4)
 
 ## ---- results='hide'-----------------------------------------------------
@@ -13,7 +14,7 @@ data(efc)
 # prepare grouping variables
 efc$grp = as.factor(efc$e15relat)
 levels(x = efc$grp) <- get_labels(efc$e15relat)
-efc$care.level <- rec(efc$n4pstu, recodes = "0=0;1=1;2=2;3:4=4", val.labels = c("none", "I", "II", "III"))
+efc$care.level <- rec(efc$n4pstu, rec = "0=0;1=1;2=2;3:4=4", val.labels = c("none", "I", "II", "III"))
 
 # data frame for fitted model
 mydf <- data.frame(

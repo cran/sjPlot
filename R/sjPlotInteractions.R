@@ -46,7 +46,6 @@
 #'          \describe{
 #'            \item{\code{type = "eff"}}{(default) plots the overall moderation effect on the response value. See 'Details'.}
 #'            \item{\code{type = "cond"}}{plots the mere \emph{change} of the moderating effect on the response value (conditional effect). See 'Details'.}
-#'            \item{\code{type = "emm"}}{plots the estimated marginal means (least square means). If this type is chosen, not all function arguments are applicable. See 'Details'.}
 #'          }
 #' @param int.term Name of interaction term of \code{fit} (as character), which should be plotted
 #'          when using \code{type = "eff"}. By default, this argument will be ignored
@@ -90,8 +89,6 @@
 #' @param axis.title Default title used for the x-axis. Should be a character vector
 #'          of same length as interaction plots to be plotted. Default value is \code{NULL},
 #'          which means that each plot's x-axis uses the predictor's name as title.
-#' @param axis.labels Character vector with value labels of the interaction, used
-#'          to label the x-axis. Only applies to \code{type = "emm"}.
 #' @param legend.title Title of the plot's legend. A character vector of same length as
 #'          amount of interaction plots to be plotted (i.e. one vector element for each
 #'          plot's legend title).
@@ -132,13 +129,6 @@
 #'              \code{type = "eff"} for effect displays similar to the \code{\link[effects]{effect}}-function
 #'              from the \pkg{effects}-package.
 #'            }
-#'            \item{\code{type = "emm"}}{plots the estimated marginal means of repeated measures designs,
-#'              like two-way repeated measures AN(C)OVA. In detail, this type plots estimated marginal means
-#'              (also called \emph{least square means} or \emph{marginal means}) of (significant) interaction terms.
-#'              The fitted models may be linear (mixed effects)
-#'              models of class \code{\link{lm}} or \code{\link[lme4]{merMod}}. This function may be used, for example,
-#'              to plot differences in interventions between control and treatment groups over multiple time points.
-#'            }
 #'          }
 #'          The argument \code{int.term} only applies to \code{type = "eff"} and can be used
 #'          to select a specific interaction term of the model that should be plotted. The function
@@ -151,8 +141,7 @@
 #' @note Note that beside interaction terms, also the single predictors of each interaction (main effects)
 #'        must be included in the fitted model as well. Thus, \code{lm(dep ~ pred1 * pred2)} will work,
 #'        but \code{lm(dep ~ pred1:pred2)} won't! \cr \cr
-#'        For \code{type = "emm"}, all interaction terms have to be factors.
-#'        Furthermore, for \code{type = "eff"}, predictors of interactions that are introduced first into the model
+#'        For \code{type = "eff"}, predictors of interactions that are introduced first into the model
 #'        are used as grouping variable, while the latter predictor is printed along the x-axis
 #'        (i.e. lm(y~a+b+a:b) means that "a" is used as grouping variable and "b" is plotted along the x-axis).
 #'
@@ -175,6 +164,7 @@
 #'
 #' # load sample data set
 #' library(sjmisc)
+#' library(sjlabelled)
 #' data(efc)
 #' # create data frame with variables that should be included
 #' # in the model
@@ -210,8 +200,6 @@
 #' # Predictors for negative impact of care.
 #' # Data from the EUROFAMCARE sample dataset
 #' # -------------------------------
-#' library(sjmisc)
-#' data(efc)
 #' # create binary response
 #' y <- ifelse(efc$neg_c_7 < median(stats::na.omit(efc$neg_c_7)), 0, 1)
 #' # create data frame for fitted model
@@ -225,9 +213,6 @@
 #' sjp.int(fit, type = "cond", legend.labels = get_labels(efc$c161sex), plevel = 0.1)
 #'
 #' \dontrun{
-#' # -------------------------------
-#' # Plot estimated marginal means
-#' # -------------------------------
 #' # load sample data set
 #' library(sjmisc)
 #' data(efc)
@@ -235,7 +220,8 @@
 #' # in the model
 #' mydf <- data.frame(burden = efc$neg_c_7,
 #'                    sex = efc$c161sex,
-#'                    education = efc$c172code)
+#'                    education = efc$c172code,
+#'                    barthel = efc$barthtot)
 #' # convert gender predictor to factor
 #' mydf$sex <- factor(mydf$sex)
 #' mydf$education <- factor(mydf$education)
@@ -245,22 +231,6 @@
 #' mydf$burden <- set_label(mydf$burden, lab = "care burden")
 #' # fit "dummy" model
 #' fit <- lm(burden ~ .*., data = mydf)
-#' summary(fit)
-#'
-#' # plot marginal means of interactions, no interaction found
-#' sjp.int(fit, type = "emm")
-#' # plot marginal means of interactions, including those with p-value up to 1
-#' sjp.int(fit, type = "emm", plevel = 1)
-#' # swap predictors
-#' sjp.int(fit, type = "emm", plevel = 1, swap.pred = TRUE)
-#'
-#' # -------------------------------
-#' # Plot effects
-#' # -------------------------------
-#' # add continuous variable
-#' mydf$barthel <- efc$barthtot
-#' # re-fit model with continuous variable
-#' fit <- lm(burden ~ .*., data = mydf)
 #'
 #' # plot effects
 #' sjp.int(fit, type = "eff", show.ci = TRUE)
@@ -269,12 +239,12 @@
 #' sjp.int(fit, type = "eff", int.plot.index = 3, show.ci = TRUE, facet.grid = TRUE)}
 #'
 #' @import ggplot2
-#' @importFrom stats family quantile
+#' @importFrom stats family quantile sd
 #' @importFrom sjmisc is_num_fac
 #' @importFrom effects allEffects effect
 #' @export
 sjp.int <- function(fit,
-                    type = c("eff", "cond", "emm"),
+                    type = c("eff", "cond"),
                     int.term = NULL,
                     int.plot.index = NULL,
                     mdrt.values = c("minmax", "meansd", "zeromax", "quart", "all"),
@@ -283,7 +253,6 @@ sjp.int <- function(fit,
                     diff = FALSE,
                     title = NULL,
                     axis.title = NULL,
-                    axis.labels = NULL,
                     legend.title = NULL,
                     legend.labels = NULL,
                     wrap.title = 50,
@@ -374,16 +343,6 @@ sjp.int <- function(fit,
   # --------------------------------------------------------
   binom_fam <- fitfam$is_bin
   # --------------------------------------------------------
-  # plot estimated marginal means?
-  # --------------------------------------------------------
-  if (type == "emm") {
-    return(sjp.emm(fit, swap.pred, plevel, title, geom.colors, geom.size,
-                   axis.title, axis.labels, legend.title, legend.labels,
-                   show.values, digits, show.ci, p.kr, wrap.title,
-                   wrap.legend.title, wrap.legend.labels, y.offset, ylim,
-                   grid.breaks, facet.grid, prnt.plot, ...))
-  }
-  # --------------------------------------------------------
   # list labels
   # --------------------------------------------------------
   if (!is.null(legend.labels) && !is.list(legend.labels)) legend.labels <- list(legend.labels)
@@ -456,7 +415,7 @@ sjp.int <- function(fit,
     interactionterms <- unlist(strsplit(intnames[cnt], ":"))
     labx <- c()
     # Label on y-axis is name of dependent variable
-    laby <- paste0("Change in ", sjmisc::get_label(modfram[[git[["depvar.label"]]]],
+    laby <- paste0("Change in ", sjlabelled::get_label(modfram[[git[["depvar.label"]]]],
                                                    def.value = git[["depvar.label"]]))
     # -----------------------------------------------------------
     # find estimates (beta values) for each single predictor of
@@ -502,7 +461,7 @@ sjp.int <- function(fit,
     # calculate regression line
     # -----------------------------------------------------------
     if (useFirstPredOnY) {
-      labx <- sjmisc::get_label(modfram[[interactionterms[1]]],
+      labx <- sjlabelled::get_label(modfram[[interactionterms[1]]],
                                 def.value = interactionterms[1])
       predy <- interactionterms[2]
       # -----------------------------------------------------------
@@ -515,7 +474,7 @@ sjp.int <- function(fit,
       # -----------------------------------------------------------
       b.pred <- b1
     } else {
-      labx <- sjmisc::get_label(modfram[[interactionterms[2]]],
+      labx <- sjlabelled::get_label(modfram[[interactionterms[2]]],
                                 def.value = interactionterms[2])
       predy <- interactionterms[1]
       # -----------------------------------------------------------
@@ -545,8 +504,8 @@ sjp.int <- function(fit,
       ymax <- max(mod.value, na.rm = T)
     } else if (mdrt.values == "meansd") {
       mw <- mean(mod.value, na.rm = T)
-      ymin <- mw - sd(mod.value, na.rm = T)
-      ymax <- mw + sd(mod.value, na.rm = T)
+      ymin <- mw - stats::sd(mod.value, na.rm = T)
+      ymax <- mw + stats::sd(mod.value, na.rm = T)
     } else if (mdrt.values == "zeromax") {
       mw <- NA
       ymin <- 0
@@ -694,7 +653,7 @@ sjp.int <- function(fit,
       # find moderator variable in data
       # ---------------------------------
       if (!is.null(modfound)) {
-        lLabels <- sjmisc::get_labels(modfound, attr.only = F)
+        lLabels <- sjlabelled::get_labels(modfound, attr.only = F)
       } else {
         lLabels <- NULL
       }
@@ -732,7 +691,7 @@ sjp.int <- function(fit,
     # legend titles
     # -----------------------------------------------------------
     if (is.null(legend.title)) {
-      lTitle <- sjmisc::get_label(modfound, def.value = predy)
+      lTitle <- sjlabelled::get_label(modfound, def.value = predy)
     } else {
       # copy plot counter
       l_nr <- cnt
@@ -971,7 +930,7 @@ sjp.eff.int <- function(fit,
     moderator.name <- colnames(intdf)[ifelse(isTRUE(swap.pred), 2, 1)]
     response.name <- dummy.eff$response
     # prepare axis titles
-    labx <- sjmisc::get_label(stats::model.frame(fit)[[pred_x.name]], def.value = pred_x.name)
+    labx <- sjlabelled::get_label(stats::model.frame(fit)[[pred_x.name]], def.value = pred_x.name)
     # check whether x-axis-predictor is a factor or not
     x_is_factor <- is.factor(intdf[[pred_x.name]]) || (length(unique(na.omit(intdf[[pred_x.name]]))) < 3)
     mod_is_factor <- is.factor(intdf[[moderator.name]])
@@ -1112,14 +1071,14 @@ sjp.eff.int <- function(fit,
       if (!sjmisc::is_num_fac(intdf$x)) {
         x_labels <- levels(intdf$x)
       } else {
-        x_labels <- sjmisc::get_labels(stats::model.frame(fit)[[pred_x.name]], attr.only = F)
+        x_labels <- sjlabelled::get_labels(stats::model.frame(fit)[[pred_x.name]], attr.only = F)
       }
     }
     # make sure x is numeric
     intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
     # get name of response, for axis title
     yaxisname <-
-      sjmisc::get_label(stats::model.frame(fit)[[response.name]], def.value = response.name)
+      sjlabelled::get_label(stats::model.frame(fit)[[response.name]], def.value = response.name)
     # -----------------------------------------------------------
     # check if we have linear regression
     # -----------------------------------------------------------
@@ -1239,7 +1198,7 @@ sjp.eff.int <- function(fit,
     if (is.null(legend.labels)) {
       # try to get labels, but only for factors
       if (mod_is_factor) {
-        lLabels <- sjmisc::get_labels(stats::model.frame(fit)[[moderator.name]],
+        lLabels <- sjlabelled::get_labels(stats::model.frame(fit)[[moderator.name]],
                                       attr.only = F)
       }
       # if we still have no labels, get values from group
@@ -1262,7 +1221,7 @@ sjp.eff.int <- function(fit,
     # legend titles
     # -----------------------------------------------------------
     if (is.null(legend.title)) {
-      lTitle <- sjmisc::get_label(stats::model.frame(fit)[[moderator.name]],
+      lTitle <- sjlabelled::get_label(stats::model.frame(fit)[[moderator.name]],
                                   def.value = moderator.name)
     } else {
       # copy plot counter
