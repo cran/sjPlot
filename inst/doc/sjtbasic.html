@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-08-04" />
+<meta name="date" content="2017-08-23" />
 
 <title>Basics of the sjt Table Functions</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Basics of the sjt Table Functions</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-08-04</em></h4>
+<h4 class="date"><em>2017-08-23</em></h4>
 
 
 
@@ -918,6 +918,7 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
 <p>Each <code>sjt</code> function invisibly returns several values. The return value <code>page.style</code> contains the style information for the HTML table. You can print this style sheet to console using the base R <code>cat()</code> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)<span class="op">$</span>page.style)
 <span class="co">#&gt; &lt;style&gt;</span>
+<span class="co">#&gt; html, body { background-color: white; }</span>
 <span class="co">#&gt; table { border-collapse:collapse; border:none; }</span>
 <span class="co">#&gt; .thead { border-top:double; text-align:center; font-style:italic; font-weight:normal; padding-left:0.2cm; padding-right:0.2cm; }</span>
 <span class="co">#&gt; .tdata { padding:0.2cm; }</span>
