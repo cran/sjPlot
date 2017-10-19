@@ -269,6 +269,10 @@ sjp.glmer <- function(fit,
                       y.offset = .1,
                       prnt.plot = TRUE,
                       ...) {
+
+  if (stats::runif(1) < .2)
+    message("`sjp.glmer()` will become deprecated in the future. Please use `plot_model()` instead.")
+
   # -------------------------------------
   # check for deprecated argument values
   # -------------------------------------
@@ -442,7 +446,7 @@ sjp.glmer <- function(fit,
 #'         the \pkg{pbkrtest}-package. If \pkg{pbkrtest} is not available or
 #'         \code{p.kr = FALSE}, computation of p-values is based
 #'         on normal-distribution assumption, treating the t-statistics as Wald
-#'         z-statistics. See 'Details' in \code{\link[sjstats]{get_model_pval}}.
+#'         z-statistics. See 'Details' in \code{\link[sjstats]{p_value}}.
 #'
 #' @examples
 #' # fit model
@@ -528,7 +532,7 @@ sjp.glmer <- function(fit,
 #'          facet.grid = FALSE, show.ci = FALSE)}
 #'
 #' @import ggplot2
-#' @importFrom sjstats se std_beta get_model_pval
+#' @importFrom sjstats se std_beta p_value
 #' @importFrom dplyr sample_n slice
 #' @export
 sjp.lmer <- function(fit,
@@ -570,6 +574,10 @@ sjp.lmer <- function(fit,
                      y.offset = .1,
                      prnt.plot = TRUE,
                      ...) {
+
+  if (stats::runif(1) < .2)
+    message("`sjp.lmer()` will become deprecated in the future. Please use `plot_model()` instead.")
+
   # -------------------------------------
   # check for deprecated argument values
   # -------------------------------------
@@ -877,12 +885,6 @@ sjp.lme4  <- function(fit,
                                    type = "fe", show.scatter, point.alpha,
                                    point.color, show.loess = F, prnt.plot, ...)))
   }
-  # ------------------------
-  # check if suggested package is available
-  # ------------------------
-  if (!requireNamespace("arm", quietly = TRUE)) {
-    stop("Package `arm` needed for this function to work. Please install it.", call. = FALSE)
-  }
   # ---------------------------------------
   # check geom size
   # ---------------------------------------
@@ -1057,7 +1059,7 @@ sjp.lme4  <- function(fit,
       # ----------------------------
       # retrieve sigificance level of independent variables (p-values)
       # ----------------------------
-      pv <- sjstats::get_model_pval(fit, p.kr)[["p.value"]]
+      pv <- sjstats::p_value(fit, p.kr)[["p.value"]]
       # ----------------------------
       # retrieve odds ratios resp.
       # betas or standardized betas
@@ -2124,13 +2126,6 @@ sjp.glm.eff <- function(fit,
                         fun,
                         prnt.plot,
                         ...) {
-  # ------------------------
-  # check if suggested package is available
-  # ------------------------
-  if (!requireNamespace("effects", quietly = TRUE)) {
-    stop("Package `effects` needed for this function to work. Please install it.", call. = FALSE)
-  }
-
   # additional arguments for 'effects()'-function?
   add.args <- lapply(match.call(expand.dots = F)$`...`, function(x) x)
   # check whether we have a "transformation" argument
@@ -2462,7 +2457,6 @@ sjp.glm.eff <- function(fit,
 #' @importFrom graphics plot
 sjp.glmer.ma <- function(fit) {
   m_f <- stats::model.frame(fit)
-  set_theme("scatterw")
   gp <- ggplot(data.frame(x = stats::predict(fit),
                           y = stats::residuals(fit),
                           grp = as.factor(lme4::getME(fit, "y"))),

@@ -98,29 +98,6 @@ get_lm_data <- function(fit) {
 }
 
 
-get_glm_family <- function(fit) {
-  c.f <- class(fit)
-  # ------------------------
-  # do we have glm? if so, get link family. make exceptions
-  # for specific models that don't have family function
-  # ------------------------
-  if (any(c.f %in% c("lme", "plm"))) {
-    fitfam <- ""
-    logit_link <- FALSE
-  } else {
-    fitfam <- stats::family(fit)$family
-    logit_link <- stats::family(fit)$link == "logit"
-  }
-  # --------------------------------------------------------
-  # create logical for family
-  # --------------------------------------------------------
-  binom_fam <- fitfam %in% c("binomial", "quasibinomial")
-  poisson_fam <- fitfam %in% c("poisson", "quasipoisson") ||
-    sjmisc::str_contains(fitfam, "negative binomial", ignore.case = T)
-  return(list(is_bin = binom_fam, is_pois = poisson_fam, is_logit = logit_link))
-}
-
-
 # add annotations with table summary
 # here we print out total N of cases, chi-square and significance of the table
 print.table.summary <- function(baseplot,
@@ -456,21 +433,6 @@ get.encoding <- function(encoding, data = NULL) {
 }
 
 
-# check whether a color value is indicating
-# a color brewer palette
-is.brewer.pal <- function(pal) {
-  bp.seq <- c("BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu",
-              "YlGn", "YlGnBu", "YlOrBr", "YlOrRd", "Blues", "Greens", "Greys",
-              "Oranges", "Purples", "Reds")
-  bp.div <- c("BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu",
-              "RdYlGn", "Spectral")
-  bp.qul <- c("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
-              "Set2", "Set3")
-  bp <- c(bp.seq, bp.div, bp.qul)
-  return(any(bp == pal))
-}
-
-
 # Calculate statistics of cross tabs
 #' @importFrom stats chisq.test fisher.test xtabs
 crosstabsum <- function(x, grp, weight.by) {
@@ -649,11 +611,6 @@ retrieveModelGroupIndices <- function(models, rem_rows = NULL) {
 }
 
 
-is_merMod <- function(fit) {
-  return(inherits(fit, c("lmerMod", "glmerMod", "nlmerMod", "merModLmerTest")))
-}
-
-
 # automatically retrieve predictor labels
 # of fitted (g)lm
 #' @importFrom stats formula terms
@@ -771,7 +728,7 @@ varimaxrota <- function(data, factors) {
   # mit den Faktorladungen der ausgewählten Faktoren (Anzahl = Parameter "factors")
   # Varimax Rotation durchführen
   varib <- stats::varimax(ladungen[, seq_len(factors)])
-  return(varib)
+  varib
 }
 
 
@@ -785,8 +742,9 @@ unlistlabels <- function(lab) {
 }
 
 
+#' @importFrom sjstats model_frame
 get_model_response_label <- function(fit) {
-  m_f <- stats::model.frame(fit)
+  m_f <- sjstats::model_frame(fit)
   unname(sjlabelled::get_label(m_f[[1]], def.value = colnames(m_f)[1]))
 }
 
@@ -868,15 +826,4 @@ sju.rmspc <- function(html.table) {
   cleaned <- gsub("    <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
   cleaned <- gsub("  <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
   return(cleaned)
-}
-
-
-get_p_stars <- function(pval) {
-  dplyr::case_when(
-    is.na(pval) ~ "",
-    pval < 0.001 ~ "***",
-    pval < 0.01 ~ "**",
-    pval < 0.05 ~ "*",
-    TRUE ~ ""
-  )
 }

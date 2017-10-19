@@ -59,7 +59,7 @@ Must be a vector of same length as the input vector. Default is
 
 \item{rev.order}{Logical, if \code{TRUE}, order of categories (groups) is reversed.}
 
-\item{show.values}{logical, whether values should be plotted or not.}
+\item{show.values}{Logical, whether values should be plotted or not.}
 
 \item{show.n}{logical, if \code{TRUE}, adds total number of cases for each
 group or category to the labels.}
@@ -171,7 +171,7 @@ sjp.xtab(x, grp, margin = "row", bar.pos = "stack",
 library(sjmisc)
 library(sjlabelled)
 data(efc)
-sjp.setTheme(geom.label.angle = 90)
+set_theme(geom.label.angle = 90)
 sjp.xtab(efc$e42dep, efc$e16sex, vjust = "center", hjust = "bottom")
 
 # grouped bars with EUROFAMCARE sample dataset

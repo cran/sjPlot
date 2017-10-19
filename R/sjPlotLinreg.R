@@ -256,7 +256,7 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' @importFrom sjmisc is_empty
 #' @importFrom tibble as_tibble
 #' @importFrom nlme getData getResponse getCovariateFormula
-#' @importFrom sjstats get_model_pval std_beta
+#' @importFrom sjstats p_value std_beta
 #' @export
 sjp.lm <- function(fit,
                    type = "lm",
@@ -296,6 +296,10 @@ sjp.lm <- function(fit,
                    complete.dgns = FALSE,
                    prnt.plot = TRUE,
                    ...) {
+
+  if (stats::runif(1) < .2)
+    message("`sjp.lm()` will become deprecated in the future. Please use `plot_model()` instead.")
+
   # -----------------------------------------------------------
   # remember length of predictor variables
   # -----------------------------------------------------------
@@ -396,7 +400,7 @@ sjp.lm <- function(fit,
   # print beta- and p-values in bar charts
   # ----------------------------
   # retrieve sigificance level of independent variables (p-values)
-  pv <- sjstats::get_model_pval(fit, p.kr = F)[["p.value"]][-1]
+  pv <- sjstats::p_value(fit, p.kr = F)[["p.value"]][-1]
   # -------------------------------------------------
   # for better readability, convert p-values to asterisks
   # with:
@@ -1061,6 +1065,7 @@ sjp.lm1 <- function(fit,
 }
 
 
+#' @importFrom effects effect
 sjp.lm.poly <- function(fit,
                         poly.term,
                         geom.colors,
@@ -1070,12 +1075,6 @@ sjp.lm.poly <- function(fit,
                         prnt.plot) {
   # check size argument
   if (is.null(geom.size)) geom.size <- .8
-  # ------------------------
-  # check if suggested package is available
-  # ------------------------
-  if (!requireNamespace("effects", quietly = TRUE)) {
-    stop("Package `effects` needed for this function to work. Please install it.", call. = FALSE)
-  }
   # -------------------------------------
   # retrieve model matrix
   # -------------------------------------

@@ -7,11 +7,13 @@ library(sjmisc)
 library(sjlabelled)
 data(efc)
 # set basic theme options
-set_theme("forest",
-          axis.title.size = .85, 
-          axis.textsize = .85, 
-          legend.size = .8, 
-          geom.label.size = 3.5)
+set_theme(
+  base = theme_sjplot(),
+  axis.title.size = .85, 
+  axis.textsize = .85, 
+  legend.size = .8, 
+  geom.label.size = 3.5
+)
 
 ## ----results='hide'------------------------------------------------------
 # create binary response
@@ -58,15 +60,6 @@ sjp.glm(fit, type = "slope", facet.grid = FALSE, show.ci = TRUE, vars = "barthel
 ## ------------------------------------------------------------------------
 # the binary outcome
 sjp.glm(fit, type = "eff")
-
-## ----echo=FALSE, results='hide'------------------------------------------
-# set basic theme options
-set_theme("forestw",
-          axis.title.size = .65, 
-          axis.textsize = .7, 
-          legend.size = .6, 
-          geom.label.size = 3,
-          title.size = .7)
 
 ## ------------------------------------------------------------------------
 # get list of all plots

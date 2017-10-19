@@ -274,6 +274,10 @@ sjp.int <- function(fit,
                     facet.grid = FALSE,
                     prnt.plot = TRUE,
                     ...) {
+
+  if (stats::runif(1) < .2)
+    message("`sjp.int()` will become deprecated in the future. Please use `plot_model()` instead.")
+
   # -----------------------------------------------------------
   # match arguments
   # -----------------------------------------------------------
@@ -818,6 +822,7 @@ sjp.int <- function(fit,
 
 #' @importFrom stats na.omit model.frame
 #' @importFrom dplyr if_else
+#' @importFrom effects effect allEffects
 sjp.eff.int <- function(fit,
                         int.term = NULL,
                         int.plot.index = NULL,
@@ -1374,18 +1379,6 @@ sjp.eff.int <- function(fit,
 }
 
 
-#' @importFrom stats quantile
-mv_check <- function(mdrt.values, x) {
-  mvc <- length(unique(as.vector(stats::quantile(x, na.rm = T))))
-  if (mdrt.values == "quart" && mvc < 3) {
-    # tell user that quart won't work
-    message("Could not compute quartiles, too small range of moderator variable. Defaulting `mdrt.values` to `minmax`.")
-    mdrt.values <- "minmax"
-  }
-  return(mdrt.values)
-}
-
-
 # get all (significant) interaction terms from model
 # the function "getInteractionTerms" checks if a fitted
 # model contains any interaction terms that are significant
@@ -1461,7 +1454,7 @@ getInteractionTerms <- function(fit, fun, plevel, p.kr) {
     # -----------------------------------------------------------
     # retrieve p-values, without intercept
     # -----------------------------------------------------------
-    pval <- sjstats::get_model_pval(fit, p.kr)[["p.value"]][-1]
+    pval <- sjstats::p_value(fit, p.kr)[["p.value"]][-1]
     # -----------------------------------------------------------
     # retrieve estimates, without intercept
     # -----------------------------------------------------------

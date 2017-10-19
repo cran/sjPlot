@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.3.3
-Date: 2017-08-23
+Version: 2.4.0
+Date: 2017-10-19
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb")
@@ -18,21 +18,22 @@ Description: Collection of plotting and table output functions for data
     models (including interaction terms) and much more. This package supports
     labelled data.
 License: GPL-3
-Depends: R (>= 3.2), graphics, grDevices, methods, stats, utils
-Imports: broom (>= 0.4.2), dplyr (>= 0.7.1), effects, forcats,
-        ggeffects (>= 0.2.1), ggplot2 (>= 2.2.1), knitr, lme4 (>=
-        1.1-12), MASS, merTools (>= 0.3.0), modelr, nlme, psych, purrr,
-        rlang, scales, sjlabelled (>= 1.0.1), sjmisc (>= 2.6.1),
-        sjstats (>= 0.11.0), tibble (>= 1.3.3), tidyr (>= 0.7.0)
-Suggests: AICcmodavg, arm, car, cluster, GPArotation, gridExtra,
-        ggrepel, lmerTest, lmtest
+Depends: R (>= 3.2), graphics, grDevices, stats, utils
+Imports: arm, broom (>= 0.4.2), dplyr (>= 0.7.1), effects, forcats,
+        ggeffects (>= 0.2.2), glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4
+        (>= 1.1-12), magrittr, MASS, merTools (>= 0.3.0), modelr, nlme,
+        prediction, psych, purrr, rlang, scales, sjlabelled (>= 1.0.4),
+        sjmisc (>= 2.6.1), sjstats (>= 0.12.0), tidyselect, tibble (>=
+        1.3.3), tidyr (>= 0.7.0)
+Suggests: AICcmodavg, car, cluster, GPArotation, gridExtra, ggrepel,
+        ggridges, lmerTest, lmtest, rstanarm, survey, wesanderson
 URL: https://github.com/strengejacke/sjPlot
 BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2017-08-23 08:00:46 UTC; Daniel
+Packaged: 2017-10-19 09:24:19 UTC; Daniel
 Author: Daniel Lüdecke [aut, cre],
   Carsten Schwemmer [ctb]
 Repository: CRAN
-Date/Publication: 2017-08-23 08:16:47 UTC
+Date/Publication: 2017-10-19 09:40:38 UTC

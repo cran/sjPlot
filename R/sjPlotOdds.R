@@ -160,6 +160,10 @@ sjp.glm <- function(fit,
                     facet.grid = TRUE,
                     prnt.plot = TRUE,
                     ...) {
+
+  if (stats::runif(1) < .2)
+    message("`sjp.glm()` will become deprecated in the future. Please use `plot_model()` instead.")
+
   # check args -----
   if (type == "pc" || type == "prob") type <- "slope"
 
@@ -1361,7 +1365,6 @@ sjp.glm.ma <- function(logreg) {
   # ------------------------------------------------------
   # Residual plot two
   # ------------------------------------------------------
-  set_theme("scatterw")
   gp <- ggplot(data.frame(x = stats::predict(logreg),
                           y = stats::residuals(logreg),
                           grp = stats::model.frame(logreg)[[1]]),

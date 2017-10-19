@@ -13,6 +13,7 @@ sjp.grpfrq(efc$e42dep, efc$c172code, geom.colors = "gs")
 ## ------------------------------------------------------------------------
 # create binrary response
 y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
+
 # create data frame for fitting model
 df <- data.frame(
   y = to_factor(y),
@@ -21,10 +22,23 @@ df <- data.frame(
   barthel = efc$barthtot,
   education = to_factor(efc$c172code)
 )
+
 # set variable label for response
 set_label(df$y) <- "High Negative Impact"
+
 # fit model
 fit <- glm(y ~., data = df, family = binomial(link = "logit"))
-# print predicted propbabilities
-sjp.glm(fit, type = "pred", vars = c("barthel", "sex","dep"), geom.colors = "bw")
+
+# plot marginal effects
+plot_model(
+  fit, 
+  type = "pred", 
+  terms = c("barthel", "sex","dep"), 
+  colors = "bw",
+  ci.lvl = NA
+)
+
+## ------------------------------------------------------------------------
+# plot coefficients
+plot_model(fit, colors = "black")
 

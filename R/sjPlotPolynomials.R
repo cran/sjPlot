@@ -124,16 +124,14 @@ sjp.poly <- function(x,
   # --------------------------------------------
   # parameter check: fitted model or variables?
   # --------------------------------------------
+  if (!is.vector(x) && !is.numeric(x) && !is.factor(x)) mf <- sjstats::model_frame(x)
+
   if (is_merMod(x)) {
     # retrieve response vector
     resp <- lme4::getME(x, "y")
-    # get model frame
-    mf <- stats::model.frame(x)
     # retrieve polynomial term
     poly.term <- mf[[poly.term]]
   } else if (inherits(x, c("lm", "glm"))) {
-    # get model frame
-    mf <- stats::model.frame(x)
     # retrieve response vector
     resp <- mf[[1]]
     # retrieve polynomial term
@@ -145,7 +143,7 @@ sjp.poly <- function(x,
   # check for glm or lm
   # --------------------------------------------
   if (is.null(fun)) {
-    if (any(class(x) == "glmerMod") || any(class(x) == "glm")) {
+    if (inherits(x, c("glmerMod", "glm"))) {
       fun <- "glm"
     } else {
       fun <- "lm"

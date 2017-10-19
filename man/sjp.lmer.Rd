@@ -122,7 +122,7 @@ color palette code (see 'Details' in \code{\link{sjp.grpfrq}}). Else, if
 \code{group.estimates} is specified, \code{geom.colors} must be a vector
 of same length as groups. See 'Examples'.}
 
-\item{show.values}{logical, whether values should be plotted or not.}
+\item{show.values}{Logical, whether values should be plotted or not.}
 
 \item{show.p}{Logical, adds significance levels to values, or value and
 variable labels.}
@@ -291,7 +291,7 @@ Computation of p-values (if necessary and if \code{p.kr = TRUE}) are based
         the \pkg{pbkrtest}-package. If \pkg{pbkrtest} is not available or
         \code{p.kr = FALSE}, computation of p-values is based
         on normal-distribution assumption, treating the t-statistics as Wald
-        z-statistics. See 'Details' in \code{\link[sjstats]{get_model_pval}}.
+        z-statistics. See 'Details' in \code{\link[sjstats]{p_value}}.
 }
 \examples{
 # fit model

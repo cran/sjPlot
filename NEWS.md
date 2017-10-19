@@ -1,3 +1,29 @@
+# sjPlot 2.4.0
+
+## General
+
+* The old `set_theme()` was removed. Instead, there are some new predifined themes available (see `?"sjPlot-themes"`). The former `sjp.setThemes()` was renamed to `set_theme()` instead.
+
+## New functions
+
+* `plot_model()` as replacement for `sjp.lm()`, `sjp.glm()`, `sjp.lmer()`, `sjp.glmer()` and `sjp.int()` (which will become deprecated in the future, and will later be removed).
+* `get_model_data()` to get the data from plot-objects created with `plot_model()`.
+* `font_size()`, `label_angle()` and `legend_style()` as convenient ways to tweak common ggplot-theme-elements.
+
+## Changes to functions
+
+* `view_df()` now better handles string variables and gets a `show.string.values`-argument to omit the output of values from string variables.
+* `view_df()` gets a `max.len`-argument to truncate output for variables with many values.
+* `view_df()` displays more information on non-labelled, numeric variables.
+* `sjp.pca()` and `sjt.pca()` now give more informative error messages when just one component is extracted.
+
+## Bug fixes
+
+* Fixed bug with `rm.terms`-argument in `plot_models()`.
+* In rare situations, `view_df()` did not work for string variables with missing values.
+* Fixed issue with wrong footnote text when saving the output of `sjt.pca()` as file.
+* `sjp.xtab()` did not work when `show.n` and `show.prc` were set to `FALSE`, but `show.values` was `TRUE`.
+
 # sjPlot 2.3.3
 
 ## General
