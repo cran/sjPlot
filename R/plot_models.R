@@ -74,6 +74,7 @@
 #' @import ggplot2
 #' @importFrom purrr map map_df map2
 #' @importFrom dplyr slice bind_rows filter
+#' @importFrom tidyselect ends_with
 #' @importFrom broom tidy
 #' @importFrom forcats fct_rev
 #' @importFrom sjstats std_beta p_value
@@ -116,14 +117,21 @@ plot_models <- function(...,
   if (length(input_list) == 1 && class(input_list[[1]]) == "list")
     input_list <- purrr::map(input_list[[1]], ~ .x)
 
-  # check whether estimates should be exponentiated or not
+
+  # get info on model family
+  fam.info <- get_glm_family(input_list[[1]])
+
+
+  # check whether estimates should be transformed or not
+
   if (missing(transform)) {
-    if (inherits(input_list[[1]], c("glm", "glmerMod", "glmmTMB")))
-      tf <- "exp"
-    else
+    if (fam.info$is_linear)
       tf <- NULL
+    else
+      tf <- "exp"
   } else
     tf <- transform
+
 
   # check for standardization, only applies to linear models
   if (!any(inherits(input_list[[1]], c("lm", "lmerMod", "lme"), which = TRUE) == 1))
@@ -150,11 +158,16 @@ plot_models <- function(...,
     # need to check whether intercept should be removed or not
 
     fl <- purrr::map(
-      input_list, ~ tidy_model(.x, ci.lvl, tf = transform, type = "est", bpe = "line", ...)
+      input_list, ~ tidy_model(.x, ci.lvl, tf = transform, type = "est", bpe = "line", se = FALSE, facets = TRUE, ...)
     )
 
     # remove intercept from output
-    if (!show.intercept) fl <- purrr::map(fl, ~ dplyr::slice(.x, -1))
+    if (!show.intercept) {
+      fl <- purrr::map(fl, function(x) {
+        rm.i <- tidyselect::ends_with("(Intercept)", vars = x$term)
+        dplyr::slice(x, !! -rm.i)
+      })
+    }
 
   }
 
@@ -237,8 +250,8 @@ plot_models <- function(...,
 
   # based on current ggplot theme, highlights vertical default line
 
-  yintercept = ifelse(isTRUE(tf == "exp"), 1, 0)
-  layer_vertical_line <- geom_intercep_line(yintercept, axis.scaling, vline.color)
+  yintercept <- if (isTRUE(tf == "exp")) 1 else 0
+  layer_vertical_line <- geom_intercept_line(yintercept, axis.scaling, vline.color)
 
 
   # set up base plot
@@ -330,17 +343,4 @@ plot_models <- function(...,
     )
 
   p
-}
-
-
-#' @rdname plot_models
-#' @export
-sjp.lmm <- function(...) {
-  .Deprecated(new = "plot_models")
-}
-
-#' @rdname plot_models
-#' @export
-sjp.glmm <- function(...) {
-  .Deprecated(new = "plot_models")
 }

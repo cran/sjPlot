@@ -6,10 +6,9 @@
 \usage{
 sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
   scale = FALSE, min.valid.rowmean = 2, altr.row.col = TRUE,
-  sort.col = NULL, sort.asc = TRUE, show.shapiro = FALSE,
-  show.kurtosis = FALSE, show.corr.matrix = TRUE, CSS = NULL,
-  encoding = NULL, file = NULL, use.viewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+  sort.column = NULL, show.shapiro = FALSE, show.kurtosis = FALSE,
+  show.corr.matrix = TRUE, CSS = NULL, encoding = NULL, file = NULL,
+  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
 }
 \arguments{
 \item{df}{A data frame with items.}
@@ -36,14 +35,11 @@ technically, row). See \code{mean_n} for details.}
 \item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
 background color.}
 
-\item{sort.col}{indicates a column, either by column name or by column index number,
-that should be sorted. Default order is ascending, which can be changed with
-\code{sort.asc} argument. Default is \code{NULL}, hence the data frame
-is printed with no specific order. See 'Examples'.}
-
-\item{sort.asc}{logical, if \code{TRUE} (default) and \code{sort.col} is not \code{NULL},
-data frame is ordered according to the specified column in an ascending order.
-Use \code{FALSE} to apply descending order. See 'Examples'.}
+\item{sort.column}{Numeric vector, indicating the index of the column
+that should sorted. by default, the column is sorted in ascending order.
+Use negative index for descending order, for instance,
+\code{sort.column = -3} would sort the third column in descending order.
+Note that the first column with rownames is not counted.}
 
 \item{show.shapiro}{Logical, if \code{TRUE}, a Shapiro-Wilk normality test is computed for each item.
 See \code{\link{shapiro.test}} for details.}
@@ -89,8 +85,7 @@ may look less pretty, but it may help when exporting html-tables to office tools
 Invisibly returns
         \itemize{
          \item \code{df.list}: List of data frames with the item analysis for each sub.group (or complete, if \code{factor.groups} was \code{NULL})
-         \item \code{index.scores}: List of standardized scale / index scores of each case (mean value of all scale items for each case) for each sub-group. Note that NA's are removed from this list. Use \code{df.index.scores} if you want to append the cases' related index scores to the original data frame.
-         \item \code{df.index.scores}: A data frame with all \code{index.scores} as column variables. While \code{index.scores} don't have NA's included, this data frame's row-length equals to the originals data frame's row-length (and thus can be appended)
+         \item \code{index.scores}: A data frame with of standardized scale / index scores for each case (mean value of all scale items for each case) for each sub-group.
          \item \code{ideal.item.diff}: List of vectors that indicate the ideal item difficulty for each item in each sub-group. Item difficulty only differs when items have different levels.
          \item \code{cronbach.values}: List of Cronbach's Alpha values for the overall item scale for each sub-group.
          \item \code{knitr.list}: List of html-tables with inline-css for use with knitr for each table (sub-group)
@@ -154,14 +149,14 @@ start <- which(colnames(efc) == "c82cop1")
 end <- which(colnames(efc) == "c90cop9")
 
 # create data frame with COPE-index scale
-mydf <- data.frame(efc[, c(start:end)])
-colnames(mydf) <- varlabs[c(start:end)]
+mydf <- data.frame(efc[, start:end])
+colnames(mydf) <- varlabs[start:end]
 
 \dontrun{
 sjt.itemanalysis(mydf)
 
 # auto-detection of labels
-sjt.itemanalysis(efc[, c(start:end)])
+sjt.itemanalysis(efc[, start:end])
 
 # Compute PCA on Cope-Index, and perform a
 # item analysis for each extracted factor.

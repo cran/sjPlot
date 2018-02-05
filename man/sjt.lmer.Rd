@@ -194,7 +194,7 @@ Invisibly returns
          \itemize{
            \item the web page style sheet (\code{page.style}),
            \item the web page content (\code{page.content}),
-           \item the complete html-output (\code{output.complete}) and
+           \item the complete html-output (\code{page.complete}) and
            \item the html-table with inline-css for use with knitr (\code{knitr})
            }
            for further use.
@@ -254,7 +254,8 @@ efc$grp = as.factor(efc$e15relat)
 levels(x = efc$grp) <- get_labels(efc$e15relat)
 efc$care.level <- sjmisc::rec(efc$n4pstu,
                               rec = "0=0;1=1;2=2;3:4=3",
-                              as.num = FALSE)
+                              as.num = FALSE,
+                              append = FALSE)
 levels(x = efc$care.level) <- c("none", "I", "II", "III")
 
 # data frame for fitted model

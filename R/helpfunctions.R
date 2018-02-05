@@ -3,6 +3,10 @@ utils::globalVariables(c("Freq", "vif"))
 
 # Help-functions
 
+# is factor with char levels?
+#' @importFrom sjmisc is_num_fac
+is_labelled_factor <- function(x) is.factor(x) && !sjmisc::is_num_fac(x)
+
 
 # get additional arguments for geoms
 get_dot_args <- function(x) {
@@ -123,37 +127,6 @@ print.table.summary <- function(baseplot,
                hjust = t.hjust)
   }
   return(baseplot)
-}
-
-
-# display html-content in viewer pane
-# or write it to file
-out.html.table <- function(no.output, file, knitr, toWrite, use.viewer) {
-  if (!no.output) {
-    # -------------------------------------
-    # check if we have filename specified
-    # -------------------------------------
-    if (!is.null(file)) {
-      # write file
-      write(knitr, file = file)
-    } else {
-      # -------------------------------------
-      # else open in viewer pane
-      # -------------------------------------
-      # create and browse temporary file
-      htmlFile <- tempfile(fileext = ".html")
-      write(toWrite, file = htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (use.viewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      } else {
-        utils::browseURL(htmlFile)
-      }
-      # delete temp file
-      # unlink(htmlFile)
-    }
-  }
 }
 
 

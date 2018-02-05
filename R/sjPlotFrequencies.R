@@ -250,7 +250,8 @@ sjp.frq <- function(var.cnt,
       sjmisc::to_value(var.cnt, keep.labels = F),
       size = "auto",
       as.num = TRUE,
-      n = auto.group
+      n = auto.group,
+      append = FALSE
     )
 
     # set label attributes
@@ -348,7 +349,8 @@ sjp.frq <- function(var.cnt,
         sjmisc::group_var(
           var.cnt,
           size = "auto",
-          n = hist.grp.cnt
+          n = hist.grp.cnt,
+          append = FALSE
         )
       ) * 1.1))
     } else {
@@ -482,13 +484,19 @@ sjp.frq <- function(var.cnt,
     scalex <- scale_x_discrete(labels = "")
     if (type == "boxplot") {
       baseplot <- baseplot +
-        geom_boxplot(width = geom.size, fill = geom.colors)
+        geom_boxplot(width = geom.size, fill = geom.colors, notch = show.ci)
     } else {
       baseplot <- baseplot +
-        geom_violin(trim = trimViolin, width = geom.size, fill = geom.colors) +
-        # if we have a violin plot, add an additional boxplot inside to show
-        # more information
-        geom_boxplot(width = inner.box.width, fill = "white")
+        geom_violin(trim = trimViolin, width = geom.size, fill = geom.colors)
+      # if we have a violin plot, add an additional boxplot inside to show
+      # more information
+      if (show.ci) {
+        baseplot <- baseplot +
+          geom_boxplot(width = inner.box.width, fill = "white", notch = TRUE)
+      } else {
+        baseplot <- baseplot +
+          geom_boxplot(width = inner.box.width, fill = "white")
+      }
     }
 
     # if we have boxplots or violon plots, also add a point that indicates

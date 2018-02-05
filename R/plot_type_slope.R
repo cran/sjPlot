@@ -24,13 +24,13 @@ plot_type_slope <- function(model,
   # additional arguments?
 
   add.args <- lapply(match.call(expand.dots = F)$`...`, function(x) x)
-  if ("alpha" %in% names(add.args)) alpha <- add.args[["alpha"]]
-  if ("show.loess" %in% names(add.args)) show.loess <- add.args[["show.loess"]]
+  if ("alpha" %in% names(add.args)) alpha <- eval(add.args[["alpha"]])
+  if ("show.loess" %in% names(add.args)) show.loess <- eval(add.args[["show.loess"]])
 
 
   # set color defaults
 
-  colors <- col_check2(colors, ifelse(isTRUE(show.loess), 3, 2))
+  colors <- col_check2(colors, if (isTRUE(show.loess)) 3 else 2)
 
   if (isTRUE(show.loess)) {
     lineColor <- colors[1]

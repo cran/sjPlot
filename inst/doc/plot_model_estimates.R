@@ -71,21 +71,26 @@ plot_model(m1, rm.terms = c("sex2", "dep2", "dep3"))
 plot_model(m2, type = "std")
 
 ## ----results='hide'------------------------------------------------------
-library(rstanarm)
-data(mtcars)
-m <- stan_glm(mpg ~ wt + am + cyl + gear, data = mtcars, chains = 1)
-
-# default model
-plot_model(m)
-# same model, with mean point estimate, dot-style for point estimate
-# and different inner/outer probabilities of the HDI
-plot_model(
-  m, 
-  bpe = "mean",
-  bpe.style = "dot",
-  prob.inner = .4,
-  prob.outer = .8
-)
+if (require("rstanarm", quietly = TRUE)) {
+  # make sure we apply a nice theme
+  library(ggplot2)
+  theme_set(theme_sjplot())
+  
+  data(mtcars)
+  m <- stan_glm(mpg ~ wt + am + cyl + gear, data = mtcars, chains = 1)
+  
+  # default model
+  plot_model(m)
+  # same model, with mean point estimate, dot-style for point estimate
+  # and different inner/outer probabilities of the HDI
+  plot_model(
+    m, 
+    bpe = "mean",
+    bpe.style = "dot",
+    prob.inner = .4,
+    prob.outer = .8
+  )
+}
 
 ## ------------------------------------------------------------------------
 plot_model(

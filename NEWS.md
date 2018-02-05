@@ -1,3 +1,44 @@
+# sjPlot 2.4.1
+
+## General
+
+* Remove unnecessary imports.
+* Add back `save_plot()` function.
+* Revised and updated package vignettes.
+
+## New functions
+
+* `tab_df()` and `tab_dfs()` as (more generic) replacement for `sjt.df()`. `tab_df()` prints the content of a data frame as HTML table, while `tab_dfs()` prints a list of data frames into a HTML table. The HTML table is then displayed in the Viewer-pane of RStudio or in a web browser.
+
+## Deprecated
+
+* `sjt.grpmean()` is now deprecated. Please use `sjstats::grpmean()` with argument `out = "viewer"` instead.
+* `sjt.mwu()` is now deprecated. Please use `sjstats::mwu()` with argument `out = "viewer"` instead.
+* `sjt.df()` is now deprecated. Please use `sjmisc::descr()` with argument `out = "viewer"` or `tab_df()` instead.
+
+## Changes to functions
+
+* `plot_model()` now also supports `clm`-models from package *ordinal*, `polr`-models from package *MASS*, `multinom`-models from package *nnet* and `Zelig-relogit`-models from package *Zelig*.
+* `plot_model()` gets a `show.legend`-argument to show or hide the legend for marginal effects plots.
+* `plot_model()` gets a `se`-argument to plot (robust) standard errors instead of confidence intervals for coefficient-plots.
+* Diagnostic plots in `plot_model()` (`type = "diag"`) now also plot diagnostics of random effects from (generalized) linear mixed models.
+* The `...`-argument of `plot_model()` now also accepts the arguments `sep_in` and `sep_out`, which are passed down to `snakecase::to_any_case()` for case conversion of term labels (axis labels).
+* The `title`-argument in `plot_model()` now also works for plotting random effects (`type = "re"`).
+* `sjt.itemanalysis()` no longer returns a list of score items, but only a data frame of scores.
+* `sjp.grpfrq()` gets a `show.ci`-argument to add notches to boxplots.
+
+## Bug fixes
+
+* `view_df()` did not work with double values (with decimal points) when `show.values = TRUE`.
+* `view_df()` caused an error when a variable has completely missing values.
+* `plot_models()` did not properly remove intercepts from output for survey models, when `show.intercept = FALSE`.
+* `plot_models()` did not automatically transform axis for all applicable model types.
+* `get_model_data()` did not work for marginal effects plots.
+* Fixed a bug that was introduced during the past update in `sjt.grpmean()`, resulting in multiple table outputs and a wrong overall p-value in the summary line.
+* Model weights are now correctly taken into account for marginal effect plots in `plot_model()`.
+* `sjp.likert()` did not show correct order for factors with character levels, when a neutral category was specified and was not the last factor level.
+* Fixed issue when plotting random effects (`type = "re"`) for specific `brms`-models.
+
 # sjPlot 2.4.0
 
 ## General

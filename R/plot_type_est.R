@@ -1,7 +1,9 @@
 #' @importFrom tibble has_name
 #' @importFrom broom tidy
+#' @importFrom sjstats robust
 plot_type_est <- function(type,
                           ci.lvl,
+                          se,
                           tf,
                           model,
                           terms,
@@ -26,12 +28,15 @@ plot_type_est <- function(type,
                           value.size,
                           bpe,
                           bpe.style,
+                          facets,
                           ...) {
+
+  if (missing(facets)) facets <- TRUE
 
   # get tidy output of summary ----
 
   if (type == "est" || type == "re") {
-    dat <- tidy_model(model, ci.lvl, tf, type, bpe, ...)
+    dat <- tidy_model(model, ci.lvl, tf, type, bpe, se, facets, ...)
   } else {
     dat <- model %>%
       sjstats::std_beta(type = type, ci.lvl = ci.lvl) %>%
@@ -41,6 +46,8 @@ plot_type_est <- function(type,
     show.intercept <- FALSE
   }
 
+  # se needs to be logical from here on
+  if (!is.null(se) && !is.logical(se)) se <- TRUE
 
   # for stan-models, we can define the style of the Bayesian point estimate,
   # which may be a line or a dot.
@@ -53,6 +60,7 @@ plot_type_est <- function(type,
     model = model,
     dat = dat,
     tf = tf,
+    se = se,
     terms = terms,
     group.terms = group.terms,
     rm.terms = rm.terms,

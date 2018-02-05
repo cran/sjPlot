@@ -122,7 +122,7 @@ Invisibly returns
          \itemize{
            \item the web page style sheet (\code{page.style}),
            \item the web page content (\code{page.content}),
-           \item the complete html-output (\code{output.complete}) and
+           \item the complete html-output (\code{page.complete}) and
            \item the html-table with inline-css for use with knitr (\code{knitr})
            }
            for further use.
@@ -154,9 +154,12 @@ sjt.xtab(efc$e16sex, efc$e42dep)
 
 # print cross table with manually set
 # labels and expected values
-sjt.xtab(efc$e16sex, efc$e42dep, var.labels = c("Elder's gender",
-         "Elder's dependency"), value.labels = list(efc.labels[['e16sex']],
-         efc.labels[['e42dep']]), show.exp = TRUE)
+sjt.xtab(
+  efc$e16sex,
+  efc$e42dep,
+  var.labels = c("Elder's gender", "Elder's dependency"),
+  show.exp = TRUE
+)
 
 # print minimal cross table with labels, total col/row highlighted
 sjt.xtab(efc$e16sex, efc$e42dep, show.cell.prc = FALSE, emph.total = TRUE)

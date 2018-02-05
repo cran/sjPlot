@@ -87,7 +87,8 @@ get_estimate_axis_title <- function(fit, axis.title, type, transform = NULL) {
 
     axis.title <-  dplyr::case_when(
       !is.null(transform) && transform == "plogis" ~ "Probabilities",
-      fitfam$is_pois ~ "Incident Rate Ratios",
+      is.null(transform) && fitfam$is_bin ~ "Log-Odds",
+      fitfam$is_pois ~ "Incidence Rate Ratios",
       fitfam$is_bin && !fitfam$is_logit ~ "Risk Ratios",
       fitfam$is_bin ~ "Odds Ratios",
       TRUE ~ "Estimates"
@@ -144,7 +145,7 @@ get_glm_family <- function(fit) {
   } else {
     # "lrm"-object from pkg "rms" have no family method
     # so we construct a logistic-regression-family-object
-    if (inherits(fit, c("lrm", "polr", "logistf")))
+    if (inherits(fit, c("lrm", "polr", "logistf", "clm", "multinom", "Zelig-relogit")))
       faminfo <- stats::binomial(link = "logit")
     else
       # get family info
@@ -195,7 +196,7 @@ nulldef <- function(x, y, z = NULL) {
 }
 
 
-geom_intercep_line <- function(yintercept, axis.scaling, vline.color) {
+geom_intercept_line <- function(yintercept, axis.scaling, vline.color) {
   if (yintercept > axis.scaling$axis.lim[1] && yintercept < axis.scaling$axis.lim[2]) {
     t <- theme_get()
     color <- nulldef(vline.color, t$panel.grid.major$colour, "grey90")
@@ -206,4 +207,38 @@ geom_intercep_line <- function(yintercept, axis.scaling, vline.color) {
   } else {
     NULL
   }
+}
+
+# same as above, but no check if intercept is within boundaries or not
+geom_intercept_line2 <- function(yintercept, vline.color) {
+  t <- theme_get()
+  color <- nulldef(vline.color, t$panel.grid.major$colour, "grey90")
+  minor_size <- nulldef(t$panel.grid.minor$size, .125)
+  major_size <- nulldef(t$panel.grid.major$size, minor_size * 2)
+  size <- major_size * 2
+  geom_hline(yintercept = yintercept, color = color, size = size)
+}
+
+
+check_se_argument <- function(se, type = NULL) {
+  if (!is.null(se) && !is.logical(se) && !is.null(type) && type %in% c("std", "std2")) {
+    warning("No robust standard errors for `type = \"std\"` or `type = \"std2\"`.")
+    se <- TRUE
+  }
+
+  if (!is.null(se) && !is.logical(se)) {
+    # check for valid values, if robust standard errors are requested
+    if (!(se %in% c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"))) {
+      warning("`se` must be one of \"HC3\", \"const\", \"HC\", \"HC0\", \"HC1\", \"HC2\", \"HC4\", \"HC4m\" or \"HC5\" for robust standard errors, or `TRUE` for normal standard errors.")
+      se <- NULL
+    }
+
+    # no robust s.e. for random effetcs
+    if (type == "re") {
+      warning("No robust standard errors for `type = \"re\"`.")
+      se <- TRUE
+    }
+  }
+
+  se
 }

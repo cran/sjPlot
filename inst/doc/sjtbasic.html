@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2017-10-19" />
+<meta name="date" content="2018-02-05" />
 
 <title>Basics of the sjt Table Functions</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Basics of the sjt Table Functions</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2017-10-19</em></h4>
+<h4 class="date"><em>2018-02-05</em></h4>
 
 
 
@@ -113,7 +113,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="knitr-integration-of-html-tables" class="section level2">
 <h2>Knitr integration of HTML tables</h2>
 <p><strong>sjPlot</strong> provides a print-method for HTML-tables to use in knitr-documents, so you can use the <code>sjt</code>-functions inside code chunks in knitr-rmarkdown files. The HTML-table will be printed to the knitr-document ‘as is’:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep)
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 elder’s dependency
@@ -228,7 +229,10 @@ total N=908 · valid N=901 · x̄=2.94 · σ=0.94
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">efc <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">group_by</span>(e16sex, c172code) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">select</span>(e16sex, c172code, e42dep) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">sjtab</span>()</code></pre></div>
+<span class="st">  </span><span class="kw">sjtab</span>()
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span>
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span>
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 elder’s gender: male<br>carer’s level of education: low level of education
@@ -936,6 +940,7 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
 <span class="co">#&gt; &lt;/style&gt;</span></code></pre></div>
 <p>The HTML code is obtained by using the <code>page.content</code> return value. Since the <code>sjt.frq()</code> function allows to plot multiple tables at once, this function returns a list of HTML tables as <code>page.content.list</code>. The following code prints the HTML code of the table to the R console:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">sjt.frq</span>(efc<span class="op">$</span>e42dep, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)<span class="op">$</span>page.content.list[[<span class="dv">1</span>]])
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span>
 <span class="co"># not that other sjt-functions don't return a page.content-list, but</span>
 <span class="co"># just '$page.content'...</span></code></pre></div>
 <p>Now you can see which table elements are associated with which CSS class attributes. If you compare the <code>page.style</code> with the related <code>page.content</code>, you see that not all style attributes are used:</p>
@@ -963,7 +968,8 @@ total N=113 · valid N=113 · x̄=3.04 · σ=0.85
              <span class="dt">css.firsttablecol =</span> <span class="st">'font-weight: bold;'</span>, 
              <span class="dt">css.lasttablerow =</span> <span class="st">'border-top: 1px solid; border-bottom: none;'</span>, 
              <span class="dt">css.summary =</span> <span class="st">'color: blue;'</span>)
-)</code></pre></div>
+)
+<span class="co">#&gt; `sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = &quot;v&quot;)` instead.</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: normal; font-style: italic;">
 elder’s dependency

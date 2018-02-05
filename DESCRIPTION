@@ -2,8 +2,8 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.4.0
-Date: 2017-10-19
+Version: 2.4.1
+Date: 2018-02-05
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb")
@@ -20,20 +20,21 @@ Description: Collection of plotting and table output functions for data
 License: GPL-3
 Depends: R (>= 3.2), graphics, grDevices, stats, utils
 Imports: arm, broom (>= 0.4.2), dplyr (>= 0.7.1), effects, forcats,
-        ggeffects (>= 0.2.2), glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4
+        ggeffects (>= 0.3.1), glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4
         (>= 1.1-12), magrittr, MASS, merTools (>= 0.3.0), modelr, nlme,
-        prediction, psych, purrr, rlang, scales, sjlabelled (>= 1.0.4),
-        sjmisc (>= 2.6.1), sjstats (>= 0.12.0), tidyselect, tibble (>=
-        1.3.3), tidyr (>= 0.7.0)
+        psych, purrr, rlang, scales, sjlabelled (>= 1.0.7), sjmisc (>=
+        2.6.3), sjstats (>= 0.14.0), tidyselect, tibble (>= 1.3.3),
+        tidyr (>= 0.7.0)
 Suggests: AICcmodavg, car, cluster, GPArotation, gridExtra, ggrepel,
-        ggridges, lmerTest, lmtest, rstanarm, survey, wesanderson
+        ggridges, lmerTest, lmtest, rstanarm, survey, viridis,
+        wesanderson, Zelig
 URL: https://github.com/strengejacke/sjPlot
 BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2017-10-19 09:24:19 UTC; Daniel
+Packaged: 2018-02-05 16:45:04 UTC; Daniel
 Author: Daniel Lüdecke [aut, cre],
   Carsten Schwemmer [ctb]
 Repository: CRAN
-Date/Publication: 2017-10-19 09:40:38 UTC
+Date/Publication: 2018-02-05 16:57:18 UTC

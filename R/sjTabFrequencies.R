@@ -78,7 +78,7 @@
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item each frequency table as web page content (\code{page.content.list}),
-#'            \item the complete html-output (\code{output.complete}) and
+#'            \item the complete html-output (\code{page.complete}) and
 #'            \item the html-table with inline-css for use with knitr (\code{knitr})
 #'            }
 #'            for further use.
@@ -190,6 +190,12 @@ sjt.frq <- function(data,
                     use.viewer = TRUE,
                     no.output = FALSE,
                     remove.spaces = TRUE) {
+  if (stats::runif(1) < .4)
+    message("`sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = \"v\")` instead.")
+
+  ## TODO activate in future update
+  # .Deprecated("plot_model")
+
   # check encoding
   encoding <- get.encoding(encoding, data)
 
@@ -408,7 +414,8 @@ sjt.frq <- function(data,
           sjmisc::to_value(data[[cnt]], keep.labels = F),
           size = "auto",
           as.num = TRUE,
-          n = auto.group
+          n = auto.group,
+          append = FALSE
         )
 
       # set labels
@@ -693,12 +700,12 @@ sjt.frq <- function(data,
     list(
       page.style = page.style,
       page.content = page.content.list[[1]],
-      output.complete = toWrite,
+      page.complete = toWrite,
       knitr = knitr,
       header = table.header,
       file = file,
       show = !no.output,
-      use.viewer = use.viewer
+      viewer = use.viewer
     )
   )
 }

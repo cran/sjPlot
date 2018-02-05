@@ -7,37 +7,40 @@
 #'                type and associated value labels. The result can be
 #'                considered as "codeplan" of the data frame.
 #'
-#' @seealso \itemize{
-#'            \item \href{http://www.strengejacke.de/sjPlot/datainit/}{sjPlot manual: data initialization}
-#'            \item \href{http://www.strengejacke.de/sjPlot/view_spss/}{sjPlot manual: inspecting (SPSS imported) data frames}
-#'          }
-#'
 #' @param x A (labelled) data frame, imported by \code{\link[sjlabelled]{read_spss}},
-#'          \code{\link[sjlabelled]{read_sas}} or \code{\link[sjlabelled]{read_stata}} function,
-#'          or any similar labelled data frame (see \code{\link[sjlabelled]{set_label}}
-#'          and \code{\link[sjlabelled]{set_labels}}).
-#' @param show.id Logical, if \code{TRUE} (default), the variable ID is shown in the first column.
-#' @param show.values Logical, if \code{TRUE} (default), the variable values are shown as additional column.
+#'   \code{\link[sjlabelled]{read_sas}} or \code{\link[sjlabelled]{read_stata}} function,
+#'   or any similar labelled data frame (see \code{\link[sjlabelled]{set_label}}
+#'   and \code{\link[sjlabelled]{set_labels}}).
+#' @param show.id Logical, if \code{TRUE} (default), the variable ID is shown in
+#'   the first column.
+#' @param show.values Logical, if \code{TRUE} (default), the variable values
+#'   are shown as additional column.
 #' @param show.string.values Logical, if \code{TRUE}, elements of character vectors
-#'    are also shown. By default, these are omitted due to possibly overlengthy
-#'    tables.
-#' @param show.labels Logical, if \code{TRUE} (default), the value labels are shown as additional column.
-#' @param show.frq Logical, if \code{TRUE}, an additional column with frequencies for each variable is shown.
-#' @param show.prc Logical, if \code{TRUE}, an additional column with percentage of frequencies for each variable is shown.
+#'   are also shown. By default, these are omitted due to possibly overlengthy
+#'   tables.
+#' @param show.labels Logical, if \code{TRUE} (default), the value labels are
+#'   shown as additional column.
+#' @param show.frq Logical, if \code{TRUE}, an additional column with
+#'   frequencies for each variable is shown.
+#' @param show.prc Logical, if \code{TRUE}, an additional column with percentage
+#'   of frequencies for each variable is shown.
 #' @param show.wtd.frq Logical, if \code{TRUE}, an additional column with weighted
-#'          frequencies for each variable is shown. Weights strem from \code{weight.by}.
+#'   frequencies for each variable is shown. Weights strem from \code{weight.by}.
 #' @param show.wtd.prc Logical, if \code{TRUE}, an additional column with weighted
-#'          percentage of frequencies for each variable is shown.
-#'          Weights strem from \code{weight.by}.
-#' @param sort.by.name Logical, if \code{TRUE}, rows are sorted according to the variable
-#'          names. By default, rows (variables) are ordered according to their
-#'          order in the data frame.
+#'   percentage of frequencies for each variable is shown. Weights strem from
+#'   \code{weight.by}.
+#' @param sort.by.name Logical, if \code{TRUE}, rows are sorted according to the
+#'   variable names. By default, rows (variables) are ordered according to their
+#'   order in the data frame.
 #' @param max.len Numeric, indicates how many values and value labels per variable
-#'    are shown. Useful for variables with many different values, where the output
-#'    can be truncated.
+#'   are shown. Useful for variables with many different values, where the output
+#'   can be truncated.
+#' @param hide.progress logical, if \code{TRUE}, the progress bar that is displayed
+#'   when creating the output is hidden. Default in \code{FALSE}, hence the
+#'   bar is visible.
 #'
+#' @inheritParams tab_df
 #' @inheritParams sjt.frq
-#' @inheritParams sjt.df
 #' @inheritParams sjt.xtab
 #' @inheritParams sjp.grpfrq
 #'
@@ -45,14 +48,10 @@
 #'          \itemize{
 #'            \item the web page style sheet (\code{page.style}),
 #'            \item the web page content (\code{page.content}),
-#'            \item the complete html-output (\code{output.complete}) and
+#'            \item the complete html-output (\code{page.complete}) and
 #'            \item the html-table with inline-css for use with knitr (\code{knitr})
 #'            }
 #'            for further use.
-#'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
-#'
-#' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
 #' @examples
 #' \dontrun{
@@ -75,8 +74,9 @@
 #'                    css.arc = "color:blue;"))}
 #'
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom sjmisc is_even var_type
+#' @importFrom sjmisc is_even var_type is_float
 #' @importFrom sjlabelled get_values
+#' @importFrom purrr map_lgl
 #' @export
 view_df <- function(x,
                     weight.by = NULL,
@@ -108,16 +108,32 @@ view_df <- function(x,
   # unique handling for the data
   if (!is.data.frame(x)) stop("Parameter needs to be a data frame!", call. = FALSE)
 
+  # save name of object
+  dfname <- deparse(substitute(x))
+
+  # variables with all missings?
+  all.na <- purrr::map_lgl(x, ~ all(is.na(.x)))
+  id <- seq_len(ncol(x))
+  cnames <- colnames(x)
+
+  # do we have any "all-missing-variables"?
+  if (any(all.na)) {
+    rem.col <- seq_len(ncol(x))[all.na]
+
+    message(sprintf("Following %i variables have only missing values and are not shown:", sum(all.na)))
+    cat(paste(sprintf("%s [%i]", cnames[all.na], rem.col), collapse = ", "))
+    cat("\n")
+
+    id <- id[!all.na]
+    cnames <- cnames[!all.na]
+  }
+
   # retrieve value and variable labels
   df.var <- sjlabelled::get_label(x)
   df.val <- sjlabelled::get_labels(x)
 
-  # get row count and ID's
-  colcnt <- ncol(x)
-  id <- seq_len(colcnt)
-
   # Order data set if requested
-  if (sort.by.name) id <- id[order(colnames(x))]
+  if (sort.by.name) id <- id[order(cnames)]
 
   # init style sheet and tags used for css-definitions
   # we can use these variables for string-replacement
@@ -154,7 +170,7 @@ view_df <- function(x,
   toWrite <- sprintf("<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n%s\n</head>\n<body>\n", encoding, page.style)
 
   # table caption, data frame name
-  page.content <- sprintf("<table>\n  <caption>Data frame: %s</caption>\n", deparse(substitute(x)))
+  page.content <- sprintf("<table>\n  <caption>Data frame: %s</caption>\n", dfname)
 
   # header row
   page.content <- paste0(page.content, "  <tr>\n    ")
@@ -172,10 +188,10 @@ view_df <- function(x,
   page.content <- paste0(page.content, "\n  </tr>\n")
 
   # create progress bar
-  if (!hide.progress) pb <- utils::txtProgressBar(min = 0, max = colcnt, style = 3)
+  if (!hide.progress) pb <- utils::txtProgressBar(min = 0, max = length(id), style = 3)
 
   # subsequent rows
-  for (ccnt in seq_len(colcnt)) {
+  for (ccnt in 1:length(id)) {
     # get index number, depending on sorting
     index <- id[ccnt]
     # default row string
@@ -254,7 +270,10 @@ view_df <- function(x,
 
     if (is.numeric(x[[index]]) && !has_value_labels(x[[index]])) {
       if (show.values || show.labels) {
-        valstring <- paste0(sprintf("%i", range(x[[index]], na.rm = T)), collapse = "-")
+        if (sjmisc::is_float(x[[index]]))
+          valstring <- paste0(sprintf("%.1f", range(x[[index]], na.rm = T)), collapse = "-")
+        else
+          valstring <- paste0(sprintf("%i", range(x[[index]], na.rm = T)), collapse = "-")
 
         if (show.values && show.labels) {
           colsp <- " colspan=\"2\""
@@ -433,21 +452,18 @@ view_df <- function(x,
     page.content <- sju.rmspc(page.content)
   }
 
-  # check if html-content should be outputted
-  #out.html.table(no.output, file, knitr, toWrite, use.viewer)
-
   # return results
   structure(
     class = c("sjTable", "view_df"),
     list(
       page.style = page.style,
       page.content = page.content,
-      output.complete = toWrite,
+      page.complete = toWrite,
       header = NULL,
       knitr = knitr,
       file = file,
       show = !no.output,
-      use.viewer = use.viewer
+      viewer = use.viewer
     )
   )
 }

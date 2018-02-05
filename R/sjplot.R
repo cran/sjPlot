@@ -224,11 +224,11 @@ sjtab <- function(data, ..., fun = c("frq", "xtab", "grpmean", "stackfrq")) {
         page.style = tl$page.style,
         header = tl$header,
         page.content = final.table,
-        output.complete = final.table,
+        page.complete = final.table,
         knitr = final.knitr,
         file = eval(args[["file"]]),
-        show = ifelse(is.null(args[["no.output"]]), TRUE, !eval(args[["no.output"]])),
-        use.viewer = ifelse(is.null(args[["use.viewer"]]), TRUE, eval(args[["use.viewer"]]))
+        show = if (is.null(args[["no.output"]])) TRUE else !eval(args[["no.output"]]),
+        viewer = if (is.null(args[["use.viewer"]])) TRUE else eval(args[["use.viewer"]])
       )
     ))
   } else {

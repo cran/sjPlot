@@ -1,6 +1,6 @@
 #' @importFrom lme4 ranef
 #' @importFrom tibble rownames_to_column
-#' @importFrom purrr map map_df
+#' @importFrom purrr map map_df map2
 #' @importFrom arm se.ranef
 #' @importFrom stats qnorm
 #' @importFrom forcats fct_reorder
@@ -10,8 +10,10 @@ plot_type_ranef <- function(model,
                             dat,
                             ri.nr,
                             ci.lvl,
+                            se,
                             tf,
                             sort.est,
+                            title,
                             axis.labels,
                             axis.lim,
                             grid.breaks,
@@ -138,7 +140,10 @@ plot_type_ranef <- function(model,
 
       tmp <- data.frame(estimate = mydf.ef[[i]])
 
-      if (!is.na(ci.lvl)) {
+      if (isTRUE(se)) {
+        tmp$conf.low = mydf.ef[[i]] - se.fit[[i]]
+        tmp$conf.high = mydf.ef[[i]] + se.fit[[i]]
+      } else if (!is.na(ci.lvl)) {
         tmp$conf.low = mydf.ef[[i]] - (stats::qnorm(ci) * se.fit[[i]])
         tmp$conf.high = mydf.ef[[i]] + (stats::qnorm(ci) * se.fit[[i]])
       } else {
@@ -146,12 +151,21 @@ plot_type_ranef <- function(model,
         tmp$conf.high = NA
       }
 
+
       if (!is.null(tf)) {
-        funtrans <- match.fun(tf)
-        tmp$estimate <- funtrans(tmp$estimate)
-        tmp$conf.low <- funtrans(tmp$conf.low)
-        tmp$conf.high <- funtrans(tmp$conf.high)
+        # no transformation if standard errors should be reported
+        # instead of conf. int.
+        if (isTRUE(se)) {
+          message("If standard errors are requested, no transformation is applied to estimates.")
+          tf <- NULL
+        } else {
+          funtrans <- match.fun(tf)
+          tmp$estimate <- funtrans(tmp$estimate)
+          tmp$conf.low <- funtrans(tmp$conf.low)
+          tmp$conf.high <- funtrans(tmp$conf.high)
+        }
       }
+
 
       # set column names (variable / coefficient name)
       # as group indicator, and save axis labels and title in variable
@@ -159,7 +173,7 @@ plot_type_ranef <- function(model,
       tmp$facet <- grp.names[i]
       tmp$term <- factor(alabels)
       tmp$title <-
-        dplyr::if_else(facets, "", sprintf("Random effects of %s", grp.names[i]))
+        dplyr::if_else(facets, "Random effects", sprintf("Random effects of %s", grp.names[i]))
 
 
       # sort data frame, initial order
@@ -225,9 +239,10 @@ plot_type_ranef <- function(model,
       mydf <- list(mydf)
 
 
-    pl <- purrr::map(
+    pl <- purrr::map2(
       mydf,
-      function(x) {
+      1:length(mydf),
+      function(x, y) {
 
         # sort terms
         x$term <- forcats::fct_reorder(x$term, x$reihe)
@@ -240,13 +255,25 @@ plot_type_ranef <- function(model,
         names(labs) <- labs
 
 
+        # plot title
+
+        if (sjmisc::is_empty(title)) {
+          ptitle <- x[["title"]]
+        } else {
+          if (length(title) >= y)
+            ptitle <- title[y]
+          else
+            ptitle <- title
+        }
+
+
         # plot random effects
 
         plot_point_estimates(
           model = model,
           dat = x,
           tf = tf,
-          title = x[["title"]],
+          title = ptitle,
           axis.labels = labs,
           axis.title = NULL,
           axis.lim = axis.lim,

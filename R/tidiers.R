@@ -1,6 +1,17 @@
-## TODO provide own tidier for not-supported models
+tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, ...) {
+  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, ...)
 
-tidy_model <- function(model, ci.lvl, tf, type, bpe, ...) {
+  # get robust standard errors, if requestes, and replace former s.e.
+  if (!is.null(se) && !is.logical(se)) {
+    std.err <- sjstats::robust(model, se)
+    dat[["std.error"]] <- std.err[["std.error"]]
+  }
+
+  dat
+}
+
+
+get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, ...) {
   if (is.stan(model))
     tidy_stan_model(model, ci.lvl, tf, type, bpe, ...)
   else if (inherits(model, "lme"))
@@ -17,12 +28,19 @@ tidy_model <- function(model, ci.lvl, tf, type, bpe, ...) {
     tidy_hurdle_model(model, ci.lvl)
   else if (inherits(model, "logistf"))
     tidy_logistf_model(model, ci.lvl)
+  else if (inherits(model, "clm"))
+    tidy_clm_model(model, ci.lvl)
+  else if (inherits(model, "polr"))
+    tidy_polr_model(model, ci.lvl)
+  else if (inherits(model, "multinom"))
+    tidy_multinom_model(model, ci.lvl, facets)
   else if (inherits(model, "gam"))
     tidy_gam_model(model, ci.lvl)
+  else if (inherits(model, "Zelig-relogit"))
+    tidy_zelig_model(model, ci.lvl)
   else
     tidy_generic(model, ci.lvl)
 }
-
 
 
 #' @importFrom broom tidy
@@ -108,8 +126,8 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
   # check whether we have "prob.inner" and "prob.outer" argument
   # and if so, use these for HDI and Bayesian point estimate
 
-  if ("prob.inner" %in% names(add.args)) p.inner <- add.args[["prob.inner"]]
-  if ("prob.outer" %in% names(add.args)) p.outer <- add.args[["prob.outer"]]
+  if ("prob.inner" %in% names(add.args)) p.inner <- eval(add.args[["prob.inner"]])
+  if ("prob.outer" %in% names(add.args)) p.outer <- eval(add.args[["prob.outer"]])
 
 
   # get two HDI-intervals
@@ -135,8 +153,9 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
   if (inherits(model, "brmsfit")) {
     re.sd <- tidyselect::starts_with("sd_", vars = colnames(mod.dat))
     re.cor <- tidyselect::starts_with("cor_", vars = colnames(mod.dat))
+    lp <- tidyselect::starts_with("lp__", vars = colnames(mod.dat))
 
-    brmsfit.removers <- unique(c(re.sd, re.cor))
+    brmsfit.removers <- unique(c(re.sd, re.cor, lp))
 
     if (!sjmisc::is_empty(brmsfit.removers))
       mod.dat <- dplyr::select(mod.dat, !! -brmsfit.removers)
@@ -147,7 +166,7 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
 
   dat <- dat %>%
     tibble::add_column(
-      estimate = purrr::map_dbl(mod.dat, sjstats::typical_value, bpe),
+      estimate = purrr::map_dbl(mod.dat, ~ sjstats::typical_value(.x, fun = bpe)),
       .after = 1
     ) %>%
     tibble::add_column(p.value = 0)
@@ -412,7 +431,7 @@ tidy_hurdle_model <- function(model, ci.lvl) {
 }
 
 
-#' @importFrom stats qnorm pnorm
+#' @importFrom stats qnorm
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 tidy_logistf_model <- function(model, ci.lvl) {
@@ -443,6 +462,120 @@ tidy_logistf_model <- function(model, ci.lvl) {
 }
 
 
+#' @importFrom stats qnorm
+#' @importFrom tibble rownames_to_column
+#' @importFrom rlang .data
+#' @importFrom dplyr mutate
+tidy_clm_model <- function(model, ci.lvl) {
+
+  # compute ci, two-ways
+
+  if (!is.null(ci.lvl) && !is.na(ci.lvl))
+    ci <- 1 - ((1 - ci.lvl) / 2)
+  else
+    ci <- .975
+
+
+  # get estimates, as data frame
+
+  smry <- summary(model)
+  est <- smry$coefficients %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column(var = "term")
+
+  # proper column names
+  colnames(est) <- c("term", "estimate", "std.error", "statistic", "p.value")
+
+
+  # add conf. int.
+
+  est <- est %>%
+    dplyr::mutate(
+      conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+      conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error
+    )
+
+  # re-arrange columns
+  est[, c(1:4, 6:7, 5)]
+}
+
+
+#' @importFrom stats qnorm pnorm
+#' @importFrom tibble rownames_to_column
+#' @importFrom rlang .data
+#' @importFrom dplyr mutate
+tidy_polr_model <- function(model, ci.lvl) {
+
+  # compute ci, two-ways
+
+  if (!is.null(ci.lvl) && !is.na(ci.lvl))
+    ci <- 1 - ((1 - ci.lvl) / 2)
+  else
+    ci <- .975
+
+
+  # get estimates, as data frame
+
+  smry <- summary(model)
+  est <- smry$coefficients %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column(var = "term")
+
+  # proper column names
+  colnames(est) <- c("term", "estimate", "std.error", "statistic")
+
+
+  # add conf. int. and p.value
+
+  est %>%
+    dplyr::mutate(
+      conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+      conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error,
+      p.value = 2 * stats::pnorm(abs(.data$estimate / .data$std.error), lower.tail = FALSE)
+    )
+}
+
+
+#' @importFrom stats qnorm pnorm
+#' @importFrom rlang .data
+#' @importFrom dplyr mutate
+#' @importFrom broom tidy
+#' @importFrom sjmisc var_rename
+tidy_multinom_model <- function(model, ci.lvl, facets) {
+
+  # compute ci, two-ways
+
+  if (!is.null(ci.lvl) && !is.na(ci.lvl))
+    ci <- 1 - ((1 - ci.lvl) / 2)
+  else
+    ci <- .975
+
+
+  # get estimates, as data frame
+  dat <- broom::tidy(model, conf.int = FALSE, exponentiate = FALSE)
+
+
+  # add conf. int.
+
+  dat <- dat %>%
+    dplyr::mutate(
+      conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+      conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error
+    )
+
+
+  # check whether each category should be printed in facets, or
+  # in a single graph (with dodged geoms)
+
+  if (isTRUE(facets))
+    colnames(dat)[1] <- "facet"
+  else
+    colnames(dat)[1] <- "response.level"
+
+  dat
+}
+
+
 #' @importFrom stats coef qnorm pnorm
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
@@ -470,5 +603,37 @@ tidy_gam_model <- function(model, ci.lvl) {
     conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
     conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error,
     p.value = sm$p.pv
+  )
+}
+
+
+#' @importFrom rlang .data
+#' @importFrom stats coef qnorm
+tidy_zelig_model <- function(model, ci.lvl) {
+
+  # compute ci, two-ways
+
+  if (!is.null(ci.lvl) && !is.na(ci.lvl))
+    ci <- 1 - ((1 - ci.lvl) / 2)
+  else
+    ci <- .975
+
+
+  if (!requireNamespace("Zelig"))
+    stop("Package `Zelig` required. Please install", call. = F)
+
+  # get estimates
+
+  est <- Zelig::coef(model)
+  se <- unlist(Zelig::get_se(model))
+
+  tibble::tibble(
+    term = names(est),
+    estimate = est,
+    std.error = se,
+    statistic = .data$estimate / .data$std.error,
+    conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+    conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error,
+    p.value = unname(unlist(Zelig::get_pvalue(model)))
   )
 }
