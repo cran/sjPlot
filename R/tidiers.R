@@ -1,5 +1,5 @@
-tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, ...) {
-  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, ...)
+tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, show.zeroinf, p.val, ...) {
+  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...)
 
   # get robust standard errors, if requestes, and replace former s.e.
   if (!is.null(se) && !is.logical(se)) {
@@ -11,9 +11,9 @@ tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, ...) {
 }
 
 
-get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, ...) {
+get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...) {
   if (is.stan(model))
-    tidy_stan_model(model, ci.lvl, tf, type, bpe, ...)
+    tidy_stan_model(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...)
   else if (inherits(model, "lme"))
     tidy_lme_model(model, ci.lvl)
   else if (inherits(model, "gls"))
@@ -23,12 +23,12 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, ...) {
   else if (inherits(model, "svyglm.nb"))
     tidy_svynb_model(model, ci.lvl)
   else if (inherits(model, "glmmTMB"))
-    tidy_glmmTMB_model(model, ci.lvl)
+    tidy_glmmTMB_model(model, ci.lvl, show.zeroinf)
   else if (inherits(model, c("hurdle", "zeroinfl")))
     tidy_hurdle_model(model, ci.lvl)
   else if (inherits(model, "logistf"))
     tidy_logistf_model(model, ci.lvl)
-  else if (inherits(model, "clm"))
+  else if (inherits(model, c("clm", "clmm")))
     tidy_clm_model(model, ci.lvl)
   else if (inherits(model, "polr"))
     tidy_polr_model(model, ci.lvl)
@@ -39,20 +39,81 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, ...) {
   else if (inherits(model, "Zelig-relogit"))
     tidy_zelig_model(model, ci.lvl)
   else
-    tidy_generic(model, ci.lvl)
+    tidy_generic(model, ci.lvl, facets, p.val)
 }
 
 
 #' @importFrom broom tidy
 #' @importFrom tibble has_name
 #' @importFrom sjstats p_value
-tidy_generic <- function(model, ci.lvl) {
-  # tidy the model
-  dat <- broom::tidy(model, conf.int = TRUE, conf.level = ci.lvl, effects = "fixed")
+#' @importFrom stats coef qnorm
+#' @importFrom dplyr mutate
+tidy_generic <- function(model, ci.lvl, facets, p.val) {
 
-  # see if we have p-values. if not, add them
-  if (!tibble::has_name(dat, "p.value"))
-    dat$p.value <- sjstats::p_value(model)[["p.value"]]
+  # check for multiple reponse levels
+
+  if (inherits(stats::coef(summary(model)), "listof")) {
+
+    # compute ci, two-ways
+
+    if (!is.null(ci.lvl) && !is.na(ci.lvl))
+      ci <- 1 - ((1 - ci.lvl) / 2)
+    else
+      ci <- .975
+
+    # get estimates, as data frame
+    dat <- broom::tidy(model, conf.int = FALSE, exponentiate = FALSE)
+
+
+    # add conf. int.
+
+    dat <- dat %>%
+      dplyr::mutate(
+        conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+        conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error
+      )
+
+    # check whether each category should be printed in facets, or
+    # in a single graph (with dodged geoms)
+
+    if (isTRUE(facets))
+      colnames(dat)[1] <- "facet"
+    else
+      colnames(dat)[1] <- "response.level"
+
+  } else {
+
+    # tidy the model
+    dat <- broom::tidy(model, conf.int = TRUE, conf.level = ci.lvl, effects = "fixed")
+
+    if (is_merMod(model) && !is.null(p.val) && p.val == "kr") {
+      pv <- tryCatch(
+        suppressMessages(sjstats::p_value(model, p.kr = TRUE)),
+        error = function(x) { NULL }
+      )
+
+      if (is.null(pv)) {
+        dat$p.value <- NA
+      } else {
+        dat$p.value <- pv$p.value
+        dat$std.error <- attr(pv, "se.kr", exact = TRUE)
+        dat$statistic <- attr(pv, "t.kr", exact = TRUE)
+        dat$df <- round(attr(pv, "df.kr", exact = TRUE))
+      }
+
+      dat$conf.low <- dat$estimate - stats::qnorm(ci.lvl) * dat$std.error
+      dat$conf.high <- dat$estimate + stats::qnorm(ci.lvl) * dat$std.error
+
+    } else {
+
+      # see if we have p-values. if not, add them
+      if (!tibble::has_name(dat, "p.value"))
+        dat$p.value <- tryCatch(
+          sjstats::p_value(model, p.kr = FALSE)[["p.value"]],
+          error = function(x) { NA }
+        )
+    }
+  }
 
   dat
 }
@@ -105,14 +166,17 @@ tidy_cox_model <- function(model, ci.lvl) {
 }
 
 
-#' @importFrom sjstats hdi typical_value
+## TODO replace with sjstats::tidy_stan() in the future?
+
+#' @importFrom stats mad formula
+#' @importFrom sjstats hdi typical_value model_family
 #' @importFrom sjmisc var_rename add_columns is_empty
-#' @importFrom dplyr select filter slice
-#' @importFrom tibble add_column
+#' @importFrom dplyr select filter slice inner_join n_distinct
+#' @importFrom tibble add_column tibble
 #' @importFrom purrr map_dbl
 #' @importFrom rlang .data
 #' @importFrom tidyselect starts_with ends_with
-tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
+tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...) {
 
   # set defaults
 
@@ -132,8 +196,13 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
 
   # get two HDI-intervals
 
-  d1 <- sjstats::hdi(model, prob = p.outer, trans = tf, type = "all")
-  d2 <- sjstats::hdi(model, prob = p.inner, trans = tf, type = "all")
+  if (type == "re")
+    ty <- "random"
+  else
+    ty <- "fixed"
+
+  d1 <- sjstats::hdi(model, prob = p.outer, trans = tf, type = ty)
+  d2 <- sjstats::hdi(model, prob = p.inner, trans = tf, type = ty)
 
 
   # bind columns, so we have inner and outer hdi interval
@@ -154,28 +223,46 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
     re.sd <- tidyselect::starts_with("sd_", vars = colnames(mod.dat))
     re.cor <- tidyselect::starts_with("cor_", vars = colnames(mod.dat))
     lp <- tidyselect::starts_with("lp__", vars = colnames(mod.dat))
+    resp.cor <- tidyselect::starts_with("rescor__", vars = colnames(mod.dat))
+    priors <- tidyselect::starts_with("prior_", vars = colnames(mod.dat))
 
-    brmsfit.removers <- unique(c(re.sd, re.cor, lp))
+    brmsfit.removers <- unique(c(re.sd, re.cor, lp, resp.cor, priors))
 
     if (!sjmisc::is_empty(brmsfit.removers))
       mod.dat <- dplyr::select(mod.dat, !! -brmsfit.removers)
+
+    # also clean prepared data frame
+    resp.cor <- tidyselect::starts_with("rescor__", vars = dat$term)
+
+    if (!sjmisc::is_empty(resp.cor))
+      dat <- dplyr::slice(dat, !! -resp.cor)
   }
 
 
   # add bayesian point estimate
 
-  dat <- dat %>%
-    tibble::add_column(
-      estimate = purrr::map_dbl(mod.dat, ~ sjstats::typical_value(.x, fun = bpe)),
-      .after = 1
-    ) %>%
-    tibble::add_column(p.value = 0)
+  est <- purrr::map_dbl(mod.dat, ~ sjstats::typical_value(.x, fun = bpe))
 
+  dat <- tibble::tibble(
+    term = names(est),
+    estimate = est,
+    p.value = 0,
+    std.error = purrr::map_dbl(mod.dat, stats::mad)
+  ) %>%
+    dplyr::inner_join(
+      dat,
+      by = "term"
+    )
 
-  # remove sigma and lp__ row
+  # sort columns, for tab_model()
+  dat <- dat[, c(1, 2, 4:8, 3)]
+
+  # remove some of the information not needed for plotting
 
   if ("sigma" %in% dat$term) dat <- dplyr::filter(dat, .data$term != "sigma")
   if ("lp__" %in% dat$term) dat <- dplyr::filter(dat, .data$term != "lp__")
+  if ("shape" %in% dat$term) dat <- dplyr::filter(dat, .data$term != "shape")
+
 
   # remove sd_c and cor_ row
 
@@ -247,6 +334,27 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
     }
 
 
+    # fix multiple random intercepts
+
+    if (inherits(model, "brmsfit")) {
+      pattern <- "(.*)\\.(.*)"
+    } else {
+      pattern <- "(.*)\\:(.*)"
+    }
+
+    interc <- which(dat$facet == "(Intercept)")
+
+    if (!sjmisc::is_empty(interc)) {
+      interc.grps <- gsub(pattern, "\\1", dat$term[interc])
+      resp.lvl <- gsub(pattern, "\\2", dat$term[interc])
+
+      if (!sjmisc::is_empty(interc.grps) && dplyr::n_distinct(interc.grps) > 1) {
+        dat$facet[interc] <- sprintf("(Intercept: %s)", interc.grps)
+        dat$term[interc] <- resp.lvl
+      }
+    }
+
+
     # find random slopes
 
     rs1 <- grep("b\\[(.*) (.*)\\]", dat$term)
@@ -275,11 +383,79 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, ...) {
   }
 
 
+  # multivariate-response model?
+
+  if (inherits(model, "brmsfit") && !is.null(stats::formula(model)$responses)) {
+
+    # get response variables
+
+    responses <- stats::formula(model)$responses
+
+    # also clean prepared data frame
+    resp.sigma1 <- tidyselect::starts_with("sigma_", vars = dat$term)
+    resp.sigma2 <- tidyselect::starts_with("b_sigma_", vars = dat$term)
+
+    resp.sigma <- c(resp.sigma1, resp.sigma2)
+
+    if (!sjmisc::is_empty(resp.sigma))
+      dat <- dplyr::slice(dat, !! -resp.sigma)
+
+
+    # create "response-level" variable
+
+    dat <- tibble::add_column(dat, response.level = "", .before = 1)
+
+    # copy name of response into new character variable
+    # and remove response name from term name
+
+    for (i in responses) {
+      m <- tidyselect::contains(i, vars = dat$term)
+      dat$response.level[intersect(which(dat$response.level == ""), m)] <- i
+      dat$term <- gsub(sprintf("b_%s_", i), "", dat$term, fixed = TRUE)
+      dat$term <- gsub(sprintf("s_%s_", i), "", dat$term, fixed = TRUE)
+    }
+
+
+    # check whether each category should be printed in facets, or
+    # in a single graph (with dodged geoms)
+
+    if (isTRUE(facets))
+      colnames(dat)[1] <- "facet"
+    else
+      colnames(dat)[1] <- "response.level"
+  }
+
+
+  # do we have a zero-inflation model?
+
+  modfam <- sjstats::model_family(model)
+
+  if (modfam$is_zeroinf || sjmisc::str_contains(dat$term, "b_zi_", ignore.case = T)) {
+    dat$wrap.facet <- "Conditional Model"
+
+    # zero-inflated part
+    zi <- tidyselect::starts_with("b_zi_", vars = dat$term)
+
+    # check if zero-inflated part should be shown or removed
+    if (show.zeroinf) {
+      dat$wrap.facet[zi] <- "Zero-Inflated Model"
+      dat$term[zi] <- sub(pattern = "b_zi_", replacement = "b_", x = dat$term[zi], fixed = T)
+    } else {
+      if (!sjmisc::is_empty(zi)) dat <- dplyr::slice(dat, !! -zi)
+    }
+  }
+
+
   # need to transform point estimate as well
   if (!is.null(tf)) {
     funtrans <- match.fun(tf)
     dat$estimate <- funtrans(dat$estimate)
   }
+
+
+  # remove facet column if not necessary
+  if (!show.zeroinf && tibble::has_name(dat, "wrap.facet"))
+    dat <- dplyr::select(dat, -.data$wrap.facet)
 
   dat
 }
@@ -339,7 +515,7 @@ tidy_gls_model <- function(model, ci.lvl) {
 #' @importFrom sjmisc is_empty
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang .data
-tidy_glmmTMB_model <- function(model, ci.lvl) {
+tidy_glmmTMB_model <- function(model, ci.lvl, show.zeroinf) {
 
   # compute ci, two-ways
 
@@ -368,12 +544,11 @@ tidy_glmmTMB_model <- function(model, ci.lvl) {
     wrap.facet = "Conditional Model"
   )
 
-
   # save zi model
 
-  if (!sjmisc::is_empty(est[[2]])) {
+  if (!sjmisc::is_empty(est[[2]]) && show.zeroinf) {
     zi <- tibble::tibble(
-      term = names(est[[1]]),
+      term = names(est[[2]]),
       estimate = est[[2]],
       std.error = sqrt(diag(vcovs[[2]])),
       statistic = .data$estimate / .data$std.error,
@@ -386,6 +561,9 @@ tidy_glmmTMB_model <- function(model, ci.lvl) {
     cond <- dplyr::bind_rows(cond, zi)
   }
 
+
+  # remove facet column if not necessary
+  if (!show.zeroinf) cond <- dplyr::select(cond, -.data$wrap.facet)
 
   cond
 }
@@ -486,6 +664,9 @@ tidy_clm_model <- function(model, ci.lvl) {
   # proper column names
   colnames(est) <- c("term", "estimate", "std.error", "statistic", "p.value")
 
+  # mark intercepts
+  intercepts <- stats::na.omit(match(dimnames(model$Theta)[[2]], est$term))
+  est$term[intercepts] <- sprintf("(Intercept: %s)", dimnames(model$Theta)[[2]])
 
   # add conf. int.
 
@@ -524,6 +705,9 @@ tidy_polr_model <- function(model, ci.lvl) {
   # proper column names
   colnames(est) <- c("term", "estimate", "std.error", "statistic")
 
+  # mark intercepts
+  intercepts <- stats::na.omit(match(names(model$zeta), est$term))
+  est$term[intercepts] <- sprintf("(Intercept: %s)", names(model$zeta))
 
   # add conf. int. and p.value
 

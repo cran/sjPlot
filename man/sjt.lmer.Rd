@@ -137,17 +137,17 @@ May be an HTML entity. See 'Examples'.}
 \item{minus.sign}{string, indicating the minus sign for negative numbers.
 May be an HTML entity. See 'Examples'.}
 
-\item{digits.est}{Amount of decimals for estimates}
+\item{digits.est}{Amount of decimals for table values.}
 
-\item{digits.std}{Amount of decimals for standardized beta}
+\item{digits.std}{Amount of decimals for standardized beta.}
 
-\item{digits.p}{Amount of decimals for p-values}
+\item{digits.p}{Amount of decimals for p-values.}
 
-\item{digits.ci}{Amount of decimals for confidence intervals}
+\item{digits.ci}{Amount of decimals for confidence intervals.}
 
-\item{digits.se}{Amount of decimals for standard error}
+\item{digits.se}{Amount of decimals for standard error.}
 
-\item{digits.summary}{Amount of decimals for values in model summary}
+\item{digits.summary}{Amount of decimals for values in model summary.}
 
 \item{cell.spacing}{Numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
@@ -165,7 +165,7 @@ when modifying the table layout.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
 \code{\link{sjt.frq}}.}
 
 \item{encoding}{String, indicating the charset encoding used for variable and
@@ -231,75 +231,13 @@ Concerning the \code{show.std} argument, \code{show.std = "std"}
            The confidence intervals stem from \pkg{broom}'s
            \code{\link[broom]{tidy}}-function. For linear mixed models, the computation
            method is "Wald" (\code{lme4::confint.merMod(fit, method = "Wald")}).
-           \cr \cr
-           Furthermore, see 'Details' in \code{\link{sjt.frq}}.
 }
 \note{
-The variance components of the random parts (see \code{show.re.var}) are
+The variance components of the random effects (see \code{show.re.var}) are
         denoted like:
         \itemize{
          \item within-group variance: sigma-squared
          \item between-group-variance: tau-zero-zero
          \item random-slope-intercept-correlation: rho-zero-one
          }
-}
-\examples{
-\dontrun{
-library(lme4)
-library(sjmisc)
-data(efc)
-
-# prepare group variable
-efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_labels(efc$e15relat)
-efc$care.level <- sjmisc::rec(efc$n4pstu,
-                              rec = "0=0;1=1;2=2;3:4=3",
-                              as.num = FALSE,
-                              append = FALSE)
-levels(x = efc$care.level) <- c("none", "I", "II", "III")
-
-# data frame for fitted model
-mydf <- data.frame(neg_c_7 = efc$neg_c_7,
-                   sex = efc$c161sex,
-                   c12hour = efc$c12hour,
-                   barthel = efc$barthtot,
-                   education = to_factor(efc$c172code),
-                   grp = efc$grp,
-                   carelevel = efc$care.level)
-
-# fit three sample models
-fit1 <- lmer(neg_c_7 ~ sex + c12hour + barthel + (1|grp), data = mydf)
-fit2 <- lmer(neg_c_7 ~ sex + c12hour + education + barthel + (1|grp), data = mydf)
-fit3 <- lmer(neg_c_7 ~ sex + c12hour + education + barthel +
-              (1|grp) + (1|carelevel), data = mydf)
-
-# print summary table... automatic grouping does not work here,
-# barthel-index is printed as category of education (values are
-# correct, however, indentation is wrong)
-sjt.lmer(fit1, fit2, ci.hyphen = " to ", group.pred = TRUE)
-
-# either change order of models
-sjt.lmer(fit2, fit1, group.pred = TRUE)
-# or turn off automatic grouping of categorical predictors
-sjt.lmer(fit1, fit2, group.pred = FALSE)
-
-# print table, using vector names as labels
-sjt.lmer(fit1, fit2, fit3, pred.labels = "")
-
-# show other statistics
-sjt.lmer(fit1, fit2, show.aic = TRUE, show.ci = FALSE,
-         show.se = TRUE, p.numeric = FALSE)
-
-sjt.lmer(fit1, fit2, fit3, show.aic = TRUE,
-         separate.ci.col = FALSE, newline.ci = FALSE)
-
-# user defined predictor labels
-sjt.lmer(fit1, fit2, fit3, pred.labels = c("Elder's gender (female)",
-         "Hours of care per week", "Barthel Index", "Educational level (mid)",
-         "Educational level (high)"))}
-
-}
-\seealso{
-\href{http://strengejacke.de/sjPlot/sjt.lmer/}{sjPlot manual: sjt.lmer}
-           and \code{\link{sjt.lm}} for further examples.
 }

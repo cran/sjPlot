@@ -2,6 +2,7 @@
 #' @importFrom forcats fct_reorder fct_rev
 #' @importFrom tidyselect contains
 #' @importFrom rlang .data
+#' @importFrom sjmisc remove_var
 plot_model_estimates <- function(model,
                                  dat,
                                  tf,
@@ -24,18 +25,22 @@ plot_model_estimates <- function(model,
                                  geom.size,
                                  line.size,
                                  bpe.style,
+                                 bpe.color,
                                  term.order,
                                  vline.color,
                                  value.size,
+                                 facets,
                                  ...) {
 
   # remove intercept(s) from output
 
   if (!show.intercept) {
-    ints1 <- tidyselect::contains("(Intercept)", vars = dat$term)
+    ints1 <- tidyselect::contains("(Intercept", vars = dat$term)
     ints2 <- tidyselect::contains("b_Intercept", vars = dat$term)
+    ints3 <- tidyselect::contains("b_zi_Intercept", vars = dat$term)
+    ints4 <- which(dat$term %in% "Intercept")
 
-    ints <- c(ints1, ints2)
+    ints <- c(ints1, ints2, ints3, ints4)
 
     if (!sjmisc::is_empty(ints))
       dat <- dplyr::slice(dat, !! -ints)
@@ -79,12 +84,14 @@ plot_model_estimates <- function(model,
 
   # remove further estimates
 
+  terms <- parse_terms(terms)
   filter.remove <- dat$term %in% terms
   if (!is.null(terms)) dat <- dplyr::filter(dat, !! filter.remove)
 
 
   # or select further estimates
 
+  rm.terms <- parse_terms(rm.terms)
   filter.remove <- !(dat$term %in% rm.terms)
   if (!is.null(rm.terms)) dat <- dplyr::filter(dat, !! filter.remove)
 
@@ -150,24 +157,99 @@ plot_model_estimates <- function(model,
   if (is.null(geom.colors)) geom.colors <- dplyr::if_else(is.null(group.terms), "grey30", "Set1")
 
 
-  plot_point_estimates(
-    model = model,
-    dat = dat,
-    tf = tf,
-    title = title,
-    axis.labels = axis.labels,
-    axis.title = axis.title,
-    axis.lim = axis.lim,
-    grid.breaks = grid.breaks,
-    show.values = show.values,
-    value.offset = value.offset,
-    geom.size = geom.size,
-    line.size = line.size,
-    geom.colors = geom.colors,
-    bpe.style = bpe.style,
-    vline.color = vline.color,
-    value.size = value.size,
-    ...
-  )
+  # for brms multilevel with multiple random intercepts, we need
+  # special handling
+
+  if (is.stan(model) && stan.has.multiranef(dat)) {
+    # split data, create data frame for each random intercept
+    dat <- purrr::map(split(dat, f = dat$facet), ~ sjmisc::remove_var(.x, "facet"))
+
+    # random intercept names are default titles
+    ri.titles <- names(dat)
+
+    # create plots
+    purrr::map2(
+      dat,
+      1:length(dat),
+      function(x, y) {
+
+        # now we need a named vector, in order
+        # to match labels and term order at axis
+
+        labs <- as.character(x$term)
+        names(labs) <- labs
+
+        # sort terms
+
+        if (!is.null(sort.est)) {
+          reihe <- order(x$estimate)
+        } else {
+          reihe <- 1:nrow(x)
+        }
+        x$reihe <- order(reihe)
+
+        x$term <- forcats::fct_reorder(x$term, x$reihe)
+
+        # plot title
+
+        if (sjmisc::is_empty(title)) {
+          ptitle <- ri.titles[y]
+        } else {
+          if (length(title) >= y)
+            ptitle <- title[y]
+          else
+            ptitle <- title
+        }
+
+
+        # plot random effects
+
+        plot_point_estimates(
+          model = model,
+          dat = x,
+          tf = tf,
+          title = ptitle,
+          axis.labels = labs,
+          axis.title = NULL,
+          axis.lim = axis.lim,
+          grid.breaks = grid.breaks,
+          show.values = show.values,
+          value.offset = value.offset,
+          geom.size = geom.size,
+          line.size = line.size,
+          geom.colors = geom.colors,
+          vline.color = vline.color,
+          value.size = value.size,
+          facets = facets,
+          bpe.style = bpe.style,
+          bpe.color = bpe.color,
+          ...
+        )
+      }
+    )
+
+  } else {
+    plot_point_estimates(
+      model = model,
+      dat = dat,
+      tf = tf,
+      title = title,
+      axis.labels = axis.labels,
+      axis.title = axis.title,
+      axis.lim = axis.lim,
+      grid.breaks = grid.breaks,
+      show.values = show.values,
+      value.offset = value.offset,
+      geom.size = geom.size,
+      line.size = line.size,
+      geom.colors = geom.colors,
+      bpe.style = bpe.style,
+      bpe.color = bpe.color,
+      vline.color = vline.color,
+      value.size = value.size,
+      facets = facets,
+      ...
+    )
+  }
 }
 

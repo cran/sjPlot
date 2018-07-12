@@ -1,6 +1,7 @@
 #' @importFrom tibble has_name
 #' @importFrom dplyr n_distinct if_else
-#' @importFrom sjmisc to_value is_empty
+#' @importFrom sjmisc is_empty
+#' @importFrom sjlabelled as_numeric
 #' @importFrom sjstats resp_var
 plot_point_estimates <- function(model,
                                  dat,
@@ -16,8 +17,10 @@ plot_point_estimates <- function(model,
                                  line.size,
                                  geom.colors,
                                  bpe.style,
+                                 bpe.color,
                                  vline.color,
                                  value.size,
+                                 facets,
                                  ...) {
 
   # some defaults...
@@ -36,7 +39,7 @@ plot_point_estimates <- function(model,
 
   # need some additional data, for stan-geoms
 
-  dat$xpos <- sjmisc::to_value(dat$term, start.at = 1)
+  dat$xpos <- sjlabelled::as_numeric(dat$term, start.at = 1)
   dat$xmin <- dat$xpos - (geom.size * size.inner)
   dat$xmax <- dat$xpos + (geom.size * size.inner)
 
@@ -50,7 +53,7 @@ plot_point_estimates <- function(model,
 
   # axis limits and tick breaks for y-axis
 
-  axis.scaling <- get_axis_limits_and_ticks(
+  axis.scaling <- axis_limits_and_ticks(
     axis.lim = axis.lim,
     min.val = min(dat$conf.low),
     max.val = max(dat$conf.high),
@@ -81,16 +84,30 @@ plot_point_estimates <- function(model,
     # special setup for rstan-models
     p <- p +
       layer_vertical_line +
-      geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high"), size = line.size, width = width) +
-      geom_rect(aes_string(ymin = "conf.low50", ymax = "conf.high50", xmin = "xmin", xmax = "xmax"), colour = "white", size = .5)
+      geom_errorbar(aes_string(ymin = "conf.low", ymax = "conf.high"), size = line.size, width = width)
+
+    # only add inner region if requested
+    if (size.inner > 0) {
+      p <- p +
+        geom_rect(aes_string(ymin = "conf.low50", ymax = "conf.high50", xmin = "xmin", xmax = "xmax"), colour = "white", size = .5)
+    }
 
     # define style for Bayesian point estimate
-    if (bpe.style == "line")
+    if (bpe.style == "line") {
+      if (is.null(bpe.color)) {
+        p <- p +
+          geom_segment(aes_string(x = "xmin", xend = "xmax", y = "estimate", yend = "estimate"), size = geom.size * .9)
+      } else {
+        p <- p +
+          geom_segment(aes_string(x = "xmin", xend = "xmax", y = "estimate", yend = "estimate"), colour = bpe.color, size = geom.size * .9)
+      }
+    } else if (is.null(bpe.color)) {
+        p <- p +
+          geom_point(aes_string(y = "estimate"), fill = "white", size = geom.size * 1.2)
+    } else {
       p <- p +
-        geom_segment(aes_string(x = "xmin", xend = "xmax", y = "estimate", yend = "estimate"), colour = "white", size = geom.size * .9)
-    else
-      p <- p +
-        geom_point(aes_string(y = "estimate"), fill = "white", colour = "white", size = geom.size * 1.2)
+        geom_point(aes_string(y = "estimate"), fill = "white", colour = bpe.color, size = geom.size * 1.2)
+    }
 
   } else {
 

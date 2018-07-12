@@ -25,8 +25,6 @@
 #'                of the data frame that belong to a certain factor (see return value of function \code{\link{sjt.pca}}
 #'                as example for retrieving factor groups for a scale and see examples for more details).
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjt.itemanalysis/}{sjPlot manual: sjt.itemanalysis}
-#'
 #' @param df A data frame with items.
 #' @param factor.groups If not \code{NULL}, \code{df} will be splitted into sub-groups,
 #'          where the item analysis is carried out for each of these groups. Must be a vector of same
@@ -276,7 +274,7 @@ sjt.itemanalysis <- function(df,
       "Mean inter-item-correlation=%.3f &middot; Cronbach's &alpha;=%.3f", .x, .y
     ))
 
-  if (is.null(CSS)) CSS <- list(firsttablecol = "text-align: left;")
+  if (is.null(CSS)) CSS <- list(css.firsttablecol = '+text-align:left;')
 
   # get html-table from data frame
   html <- tab_dfs(

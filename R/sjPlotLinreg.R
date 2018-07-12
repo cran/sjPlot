@@ -5,10 +5,6 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #' @title Plot estimates, predictions or effects of linear models
 #' @name sjp.lm
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.lm}{sjPlot manual: sjp.lm} for
-#'            more details and examples of this function; use \code{\link{sjp.poly}}
-#'            to see which polynomial degree fits best for possible polynomial terms.
-#'
 #' @description Depending on the \code{type}, this function plots coefficients (estimates)
 #'                of linear regressions (including panel models fitted with the \code{plm}-function
 #'                from the \pkg{plm}-package and generalized least squares models fitted with
@@ -77,7 +73,6 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #'            \item{\code{"std"}}{for forest-plot of standardized beta values.}
 #'            \item{\code{"std2"}}{for forest-plot of standardized beta values, however, standardization is done by dividing by two sd (see 'Details').}
 #'            \item{\code{"resid"}}{to plot regression lines for each single predictor of the fitted model, against the residuals (linear relationship between each model term and residuals). May be used for model diagnostics.}
-#'            \item{\code{"ma"}}{to check model assumptions.}
 #'            \item{\code{"vif"}}{to plot Variance Inflation Factors.}
 #'          }
 #' @param fit Fitted linear regression model (of class \code{\link{lm}}, \code{\link[nlme]{gls}} or \code{plm}).
@@ -131,122 +126,6 @@ utils::globalVariables(c("fit", "vars", "stdbeta", "x", "ydiff", "y", "grp", ".s
 #'           ggplot-object (\code{df}). For \code{type = "ma"}, an updated model
 #'           with removed outliers is returned.
 #'
-#' @examples
-#' # --------------------------------------------------
-#' # plotting estimates of linear models as forest plot
-#' # --------------------------------------------------
-#' # fit linear model
-#' fit <- lm(airquality$Ozone ~ airquality$Wind + airquality$Temp + airquality$Solar.R)
-#'
-#' # plot estimates with CI
-#' sjp.lm(fit, grid.breaks = 2)
-#'
-#' # plot estimates with CI
-#' # and with narrower tick marks
-#' # (because "grid.breaks" was not specified)
-#' sjp.lm(fit)
-#'
-#' # ---------------------------------------------------
-#' # plotting regression line of linear model (done
-#' # automatically if fitted model has only 1 predictor)
-#' # ---------------------------------------------------
-#' library(sjmisc)
-#' data(efc)
-#' # fit model
-#' fit <- lm(neg_c_7 ~ quol_5, data=efc)
-#' # plot regression line with label strings
-#' sjp.lm(fit, resp.label = "Burden of care",
-#'        axis.labels = "Quality of life", show.loess = TRUE)
-#'
-#' # --------------------------------------------------
-#' # plotting regression lines of each single predictor
-#' # of a fitted model
-#' # --------------------------------------------------
-#' library(sjmisc)
-#' data(efc)
-#' # fit model
-#' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data=efc)
-#'
-#' # reression line and scatter plot
-#' sjp.lm(fit, type = "slope")
-#'
-#' # reression line w/o scatter plot
-#' sjp.lm(fit, type = "slope", show.scatter = FALSE)
-#'
-#' # --------------------------
-#' # plotting model assumptions
-#' # --------------------------
-#' sjp.lm(fit, type = "ma")
-#'
-#' \dontrun{
-#' # --------------------------
-#' # grouping estimates
-#' # --------------------------
-#' library(sjmisc)
-#' data(efc)
-#' fit <- lm(barthtot ~ c160age + e17age + c12hour + e16sex + c161sex + c172code,
-#'           data = efc)
-#'
-#' # order estimates according to coefficient's order
-#' sjp.lm(fit, group.estimates = c(1, 1, 2, 3, 3, 4),
-#'        geom.colors = c("green", "red", "blue", "grey"), sort.est = FALSE)
-#'
-#' fit <- lm(barthtot ~ c160age + c12hour + e17age+ c161sex + c172code + e16sex,
-#'           data = efc)
-#'
-#' # force order of estimates according to group assignment
-#' sjp.lm(fit, group.estimates = c(1, 2, 1, 3, 4, 3),
-#'        geom.colors = c("green", "red", "blue", "grey"), sort.est = TRUE)
-#'
-#' # --------------------------
-#' # predicted values for response
-#' # --------------------------
-#' library(sjmisc)
-#' data(efc)
-#' efc$education <- to_label(to_factor(efc$c172code))
-#' efc$gender <- to_label(to_factor(efc$c161sex))
-#' fit <- lm(barthtot ~ c160age + c12hour + e17age + gender + education,
-#'           data = efc)
-#'
-#' sjp.lm(fit, type = "pred", vars = "c160age")
-#'
-#' # with loess
-#' sjp.lm(fit, type = "pred", vars = "e17age", show.loess = TRUE)
-#'
-#' # grouped
-#' sjp.lm(fit, type = "pred", vars = c("c12hour", "education"))
-#'
-#' # grouped, non-facet
-#' sjp.lm(fit, type = "pred", vars = c("c12hour", "education"),
-#'        facet.grid = FALSE)
-#'
-#' # two groupings
-#' sjp.lm(fit, type = "pred", vars = c("c12hour", "gender", "education"))
-#'
-#' # --------------------------
-#' # plotting polynomial terms
-#' # --------------------------
-#' library(sjmisc)
-#' data(efc)
-#' # fit sample model
-#' fit <- lm(tot_sc_e ~ c12hour + e17age + e42dep, data = efc)
-#' # "e17age" does not seem to be linear correlated to response
-#' # try to find appropiate polynomial. Grey line (loess smoothed)
-#' # indicates best fit. Looks like x^3 has a good fit.
-#' # (not checked for significance yet).
-#' sjp.poly(fit, "e17age", 2:4, show.scatter = FALSE)
-#' # fit new model
-#' fit <- lm(tot_sc_e ~ c12hour + e42dep +
-#'           e17age + I(e17age^2) + I(e17age^3),
-#'           data = efc)
-#' # plot marginal effects of polynomial term
-#' sjp.lm(fit, type = "poly", poly.term = "e17age")
-#'
-#' library(splines)
-#' # fit new model with "splines"-package, "bs"
-#' fit <- lm(tot_sc_e ~ c12hour + e42dep + bs(e17age, 3), data = efc)
-#' # plot marginal effects of polynomial term, same call as above
-#' sjp.lm(fit, type = "poly", poly.term = "e17age")}
 #'
 #' @import ggplot2
 #' @importFrom stats model.matrix confint coef residuals sd
@@ -296,11 +175,7 @@ sjp.lm <- function(fit,
                    prnt.plot = TRUE,
                    ...) {
 
-  if (stats::runif(1) < .35)
-    message("`sjp.lm()` will become deprecated in the future. Please use `plot_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("plot_model")
 
   if (type == "pc" || type == "prob" || type == "slope") {
     message("This plot type has been removed, as it was misleading. Use `plot_model` with `type = \"pred\"` to plot marginal effects, or with `type = \"slope\"` for model diagnostisc.")
@@ -368,9 +243,6 @@ sjp.lm <- function(fit,
     return(invisible(sjp.glm.eff(fit, title, axis.title, geom.size, remove.estimates, vars,
                                  show.ci, ylim = axis.lim, facet.grid,
                                  fun = "lm", prnt.plot, ...)))
-  }
-  if (type == "ma") {
-    return(invisible(sjp.lm.ma(fit, complete.dgns)))
   }
   if (type == "vif") {
     return(invisible(sjp.vif(fit)))
@@ -769,159 +641,6 @@ col_check <- function(geom.colors, show.loess) {
     }
   }
   return(geom.colors)
-}
-
-
-#' @importFrom stats fitted rstudent residuals sd median AIC
-#' @importFrom sjstats outliers
-sjp.lm.ma <- function(linreg, complete.dgns = FALSE) {
-  # ------------------------
-  # prepare plot list
-  # ------------------------
-  plot.list <- list()
-  # ------------------------
-  # check if suggested package is available
-  # ------------------------
-  if (!requireNamespace("car", quietly = TRUE)) {
-    stop("Package `car` needed for this function to work. Please install it.", call. = F)
-  }
-  if (!requireNamespace("lmtest", quietly = TRUE)) {
-    stop("Package `lmtest` needed for this function to work. Please install it.", call. = FALSE)
-  }
-  # copy current model
-  model <- linreg
-  # ---------------------------------
-  # remove outliers, only non-mixed models
-  # ---------------------------------
-  outlier <- sjstats::outliers(linreg)
-  print(outlier$result)
-  # ---------------------------------
-  # show VIF-Values
-  # ---------------------------------
-  ggplot2::theme_set(ggplot2::theme_bw())
-  sjp.vif(linreg)
-  # ---------------------------------
-  # Print non-normality of residuals and outliers both of original and updated model
-  # dots should be plotted along the line, this the dots should follow a linear direction
-  # ---------------------------------
-  # qq-plot of studentized residuals for base model
-  # mixed model model?
-  if (inherits(linreg, c("lme", "lmerMod"))) {
-    res_ <- sort(stats::residuals(linreg), na.last = NA)
-    y_lab <- "Residuals"
-  } else {
-    # else, normal model
-    res_ <- sort(stats::rstudent(linreg), na.last = NA)
-    y_lab <- "Studentized Residuals"
-  }
-  fitted_ <- sort(stats::fitted(linreg), na.last = NA)
-  # create data frame
-  mydf <- na.omit(data.frame(x = fitted_, y = res_))
-  # plot it
-  p1 <- ggplot(mydf, aes_string(x = "x", y = "y")) +
-           geom_point() +
-           scale_colour_manual(values = c("#0033cc", "#993300")) +
-           stat_smooth(method = "lm", se = FALSE) +
-           labs(title = "Non-normality of residuals and outliers",
-                subtitle = "Dots should be plotted along the line",
-                y = y_lab, x = "Theoretical quantiles (predicted values)")
-  # save plots
-  plot.list[[length(plot.list) + 1]] <- p1
-  # print plot
-  suppressWarnings(graphics::plot(p1))
-  # ---------------------------------
-  # Print non-normality of residuals both of original and updated model
-  # Distribution should look like normal curve
-  # ---------------------------------
-  gghist <- function(fit) {
-    return(ggplot(fit, aes(x = .resid)) +
-             geom_histogram(aes(y = ..density..), binwidth = 0.2, fill = "grey60", colour = "grey30") +
-             geom_density(aes(y = ..density..), fill = "#4080cc", alpha = 0.2) +
-             stat_function(fun = dnorm,
-                           args = list(mean = mean(unname(stats::residuals(fit)), na.rm = TRUE),
-                                       sd = stats::sd(unname(stats::residuals(fit)), na.rm = TRUE)),
-                           colour = "FireBrick",
-                           size = 0.8) +
-             labs(x = "Residuals",
-                  y = "Density",
-                  title = "Non-normality of residuals",
-                  subtitle = "Distribution should look like normal curve"))
-  }
-  # residuals histrogram for base model
-  p1 <- gghist(linreg)
-  # save plot
-  plot.list[[length(plot.list) + 1]] <- p1
-  # print plot
-  graphics::plot(p1)
-  # ---------------------------------
-  # Non-constant residuals
-  # ---------------------------------
-  # Frage: Können hohe Werte auf der X-Achse genauso gut hervorgesagt
-  # werden wie niedrige Werte auf der X-Achse? Das Muster muss sich ähneln
-  # über den Verlauf der X-Achse
-  #
-  # The linearity assumption is supported to the extent that the amount
-  # of points scattered above and below the line is equal.
-  #
-  # A linear trend would mean that the error of the model (the difference between observed and fitted values)
-  # is in some way systematic. If, for instance, lower fitted values have residuals that are more towards the 0 line.
-  # Higher fitted values are consistently more off, so the model is more wrong with larger values. So, ideally what
-  # you want is something that is akin towards a horizontal line. In such case, the data is somehow not homogenous
-  # maybe because one part of the data is more variable than another. If that is the case, you might need to transform
-  # the data in order to make it meet the assumptions that are necessary for linear models.
-  ggsced <- function(fit) {
-    return(ggplot(fit, aes(x = .fitted, y = .resid)) +
-             geom_hline(yintercept = 0, alpha = 0.7) +
-             geom_point() +
-             geom_smooth(method = "loess", se = FALSE) +
-             labs(x = "Fitted values",
-                  y = "Residuals",
-                  title = "Homoscedasticity (constant variance of residuals)",
-                  subtitle = "Amount and distance of points scattered above/below line is equal or randomly spread"))
-  }
-  # homoscedascity for base model
-  p1 <- ggsced(linreg)
-  # save plot
-  plot.list[[length(plot.list) + 1]] <- p1
-  # print plot
-  graphics::plot(p1)
-  # ---------------------------------
-  # summarize old and new model
-  # ---------------------------------
-  if (inherits(linreg, "lm") && complete.dgns) {
-    # ---------------------------------
-    # Plot residuals against predictors
-    # ---------------------------------
-    p1 <- sjp.reglin(linreg,
-                     title = "Relationship of residuals against predictors",
-                     subtitle = "If scatterplots show a pattern, relationship may be nonlinear and model needs to be modified accordingly",
-                     wrap.title = 60, useResiduals = T, alpha = .15)$plot.list
-    # save plot
-    plot.list <- c(plot.list, p1)
-    # ---------------------------------
-    # Non-linearity
-    # ---------------------------------
-    graphics::plot(car::crPlots(linreg))
-    # ---------------------------------
-    # non-independence of residuals
-    # ---------------------------------
-    print(car::durbinWatsonTest(linreg))
-    # ---------------------------------
-    # Print leverage plots
-    # ---------------------------------
-    graphics::plot(car::leveragePlots(linreg))
-    # ---------------------------------
-    # Non-constant residuals
-    # ---------------------------------
-    print(car::ncvTest(linreg))
-    print(lmtest::bptest(linreg))
-    print(car::spreadLevelPlot(linreg))
-  }
-  # return updated model
-  invisible(structure(list(class = "sjp.lm.ma",
-                           model = model,
-                           plot.list = plot.list,
-                           outlier = outlier$removed.obs)))
 }
 
 

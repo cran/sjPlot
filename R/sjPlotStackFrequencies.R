@@ -1,11 +1,6 @@
 #' @title Plot stacked proportional bars
 #' @name sjp.stackfrq
 #'
-#' @seealso \itemize{
-#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.stackfrq/}{sjPlot manual: sjp.stackfrq}
-#'              \item \code{\link{sjt.stackfrq}}
-#'              }
-#'
 #' @description Plot items (variables) of a scale as stacked proportional bars. This
 #'                function is useful when several items with identical scale/categoroies
 #'                should be plotted to compare the distribution of answers.
@@ -199,7 +194,7 @@ sjp.stackfrq <- function(items,
     names(df) <- c("var", "prc")
     # need to be numeric, so percentage values (see below) are
     # correctly assigned, i.e. missing categories are considered
-    df$var <- sjmisc::to_value(df$var, keep.labels = F) + diff # if categories start with zero, fix this here
+    df$var <- sjlabelled::as_numeric(df$var, keep.labels = F) + diff # if categories start with zero, fix this here
     # Create a vector of zeros
     prc <- rep(0, countlen)
     # Replace the values in prc for those indices which equal df$var

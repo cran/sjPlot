@@ -4,11 +4,6 @@ utils::globalVariables(c("prc","ges", "n", "Count", "Group", "line.break"))
 #' @title Plot contingency tables
 #' @name sjp.xtab
 #'
-#' @seealso \itemize{
-#'              \item \href{http://www.strengejacke.de/sjPlot/sjp.xtab}{sjPlot manual: sjp.xtab}
-#'              \item \code{\link{sjt.xtab}}
-#'              }
-#'
 #' @description Plot proportional crosstables (contingency tables) of two variables as ggplot diagram.
 #'
 #' @param x A vector of values (variable) describing the bars which make up the plot.
@@ -422,7 +417,7 @@ sjp.xtab <- function(x,
   # check if we have lines
   } else if (type == "line") {
     # for lines, numeric scale
-    mydf$xpos <- sjmisc::to_value(mydf$xpos, keep.labels = F)
+    mydf$xpos <- sjlabelled::as_numeric(mydf$xpos, keep.labels = F)
     line.stat <- ifelse(isTRUE(smooth.lines), "smooth", "identity")
     geob <- geom_line(aes_string(colour = "group"), size = geom.size,  stat = line.stat)
   }

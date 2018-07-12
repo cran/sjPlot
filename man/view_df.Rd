@@ -18,8 +18,8 @@ view_df(x, weight.by = NULL, altr.row.col = TRUE, show.id = TRUE,
 or any similar labelled data frame (see \code{\link[sjlabelled]{set_label}}
 and \code{\link[sjlabelled]{set_labels}}).}
 
-\item{weight.by}{Vector of weights that will be applied to weight all cases.
-Must be a vector of same length as the input vector. Default is
+\item{weight.by}{Name of variable in \code{x} that indicated the vector of
+weights that will be applied to weight all  observations. Default is
 \code{NULL}, so no weights are used.}
 
 \item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
@@ -74,7 +74,7 @@ bar is visible.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
 \code{\link{sjt.frq}}.}
 
 \item{encoding}{Character vector, indicating the charset encoding used

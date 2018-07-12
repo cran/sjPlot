@@ -77,7 +77,7 @@
 #' @importFrom tidyselect ends_with
 #' @importFrom broom tidy
 #' @importFrom forcats fct_rev
-#' @importFrom sjstats std_beta p_value
+#' @importFrom sjstats std_beta p_value model_family
 #' @importFrom sjlabelled get_dv_labels get_term_labels
 #' @importFrom rlang .data
 #' @importFrom sjmisc word_wrap var_rename
@@ -109,7 +109,9 @@ plot_models <- function(...,
                         ci.lvl = .95,
                         vline.color = NULL,
                         digits = 2,
-                        grid = FALSE) {
+                        grid = FALSE,
+                        auto.label = TRUE,
+                        prefix.labels = c("none", "varname", "label")) {
   # retrieve list of fitted models
   input_list <- tibble::lst(...)
 
@@ -119,7 +121,7 @@ plot_models <- function(...,
 
 
   # get info on model family
-  fam.info <- get_glm_family(input_list[[1]])
+  fam.info <- sjstats::model_family(input_list[[1]])
 
 
   # check whether estimates should be transformed or not
@@ -158,7 +160,19 @@ plot_models <- function(...,
     # need to check whether intercept should be removed or not
 
     fl <- purrr::map(
-      input_list, ~ tidy_model(.x, ci.lvl, tf = transform, type = "est", bpe = "line", se = FALSE, facets = TRUE, ...)
+      input_list,
+      ~ tidy_model(
+        .x,
+        ci.lvl,
+        tf = transform,
+        type = "est",
+        bpe = "line",
+        se = FALSE,
+        facets = TRUE,
+        show.zeroinf = FALSE,
+        p.val = "wald",
+        ...
+      )
     )
 
     # remove intercept from output
@@ -203,6 +217,7 @@ plot_models <- function(...,
 
   # remove further estimates
 
+  rm.terms <- parse_terms(rm.terms)
   rems <- !(ff$term %in% rm.terms)
   if (!is.null(rm.terms)) ff <- dplyr::filter(ff, !! rems)
 
@@ -237,7 +252,7 @@ plot_models <- function(...,
 
   # axis limits and tick breaks for y-axis
 
-  axis.scaling <- get_axis_limits_and_ticks(
+  axis.scaling <- axis_limits_and_ticks(
     axis.lim = axis.lim,
     min.val = min(ff$conf.low),
     max.val = max(ff$conf.high),
@@ -296,7 +311,8 @@ plot_models <- function(...,
 
 
   # check axis labels
-  if (is.null(axis.labels)) axis.labels <- sjlabelled::get_term_labels(input_list)
+  if (is.null(axis.labels) && isTRUE(auto.label))
+    axis.labels <- sjlabelled::get_term_labels(input_list, prefix = prefix.labels)
 
   # set axis labels
   p <- p + scale_x_discrete(labels = sjmisc::word_wrap(axis.labels, wrap = wrap.labels))
@@ -336,7 +352,7 @@ plot_models <- function(...,
   p <-
     p + labs(
       x = NULL,
-      y = sjmisc::word_wrap(get_estimate_axis_title(input_list[[1]], axis.title, type = "est"), wrap = wrap.title),
+      y = sjmisc::word_wrap(estimate_axis_title(input_list[[1]], axis.title, type = "est"), wrap = wrap.title),
       title = sjmisc::word_wrap(title, wrap = wrap.title),
       colour = sjmisc::word_wrap(legend.title, wrap = wrap.legend.title),
       shape = sjmisc::word_wrap(legend.pval.title, wrap = wrap.legend.title)

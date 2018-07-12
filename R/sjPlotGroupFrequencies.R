@@ -5,8 +5,6 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #' @title Plot grouped or stacked frequencies
 #' @name sjp.grpfrq
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.grpfrq/}{sjPlot manual: sjp.grpfrq}
-#'
 #' @description Plot grouped or stacked frequencies of variables as bar/dot,
 #'                box or violin plots, or line plot.
 #'
@@ -136,7 +134,7 @@ utils::globalVariables(c(".", "label", "prz", "frq", "ypos", "wb", "ia", "mw", "
 #'          \itemize{
 #'            \item If not specified, a default color brewer palette will be used, which is suitable for the plot style (i.e. diverging for likert scales, qualitative for grouped bars etc.).
 #'            \item If \code{"gs"}, a greyscale will be used.
-#'            \item If \code{"bw"}, and plot-type is a line-plot (like \code{sjp.int()} or \code{sjp.glm(type = "pred")}), the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+#'            \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
 #'            \item If \code{geom.colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
 #'            \item Else specify own color values or names as vector (e.g. \code{geom.colors = c("#f00000", "#00ff00")}).
 #'          }
@@ -397,12 +395,12 @@ sjp.grpfrq <- function(var.cnt,
   if (!is.null(title) && title == "") title <- NULL
 
   # variables may not be factors
-  if (anyNA(as.numeric(na.omit(var.cnt))))
+  if (anyNA(as.numeric(stats::na.omit(var.cnt))))
     var.cnt <- sjmisc::to_value(var.cnt, keep.labels = F)
   else
     var.cnt <- as.numeric(var.cnt)
 
-  if (anyNA(as.numeric(na.omit(var.grp))))
+  if (anyNA(as.numeric(stats::na.omit(var.grp))))
     var.grp <- sjmisc::to_value(var.grp, keep.labels = F)
   else
     var.grp <- as.numeric(var.grp)
@@ -448,6 +446,11 @@ sjp.grpfrq <- function(var.cnt,
         ia = iav,
         wb = w
       )))
+
+    if (!is.null(axis.labels) &&
+        length(axis.labels) > dplyr::n_distinct(mydf$group, na.rm = TRUE)) {
+      axis.labels <- axis.labels[na.omit(unique(mydf$group))]
+    }
 
     mydf$ia <- as.factor(mydf$ia)
     mydf$group <- as.factor(mydf$group)
@@ -854,8 +857,8 @@ sjp.grpfrq <- function(var.cnt,
   if (facet.grid) {
     baseplot <- baseplot +
       # set font size for axes.
-      theme(strip.text = element_text(face = "bold", size = rel(1.2))) +
-      facet_wrap(~group)
+      # theme(strip.text = element_text(face = "bold", size = rel(1.1))) +
+      facet_wrap(~group, scales = "free")
   }
 
   # set geom colors

@@ -1,19 +1,14 @@
-# display html-content in viewer pane or write it to file
 #' @importFrom utils browseURL
 #' @export
 print.sjTable <- function(x, ...) {
   if (x$show) {
-    # -------------------------------------
     # check if we have filename specified
-    # -------------------------------------
     if (!is.null(x$file)) {
       # write file
       write(x$knitr, file = x$file)
     } else {
-      # -------------------------------------
+      x$page.complete <- replace_umlauts(x$page.complete)
       # else open in viewer pane
-      # -------------------------------------
-      # create and browse temporary file
       htmlFile <- tempfile(fileext = ".html")
       write(x$page.complete, file = htmlFile)
       # check whether we have RStudio Viewer
@@ -23,8 +18,6 @@ print.sjTable <- function(x, ...) {
       } else {
         utils::browseURL(htmlFile)
       }
-      # delete temp file
-      # unlink(htmlFile)
     }
   }
 }
@@ -33,7 +26,88 @@ print.sjTable <- function(x, ...) {
 #' @importFrom knitr knit_print asis_output
 #' @export
 knit_print.sjTable <-  function(input, ...) {
-  knitr::asis_output(input$knitr)
+  x <- input$knitr
+  x <- replace_umlauts(x)
+  knitr::asis_output(x)
+  # knitr::asis_output(input$knitr)
+}
+
+
+replace_umlauts <- function(x) {
+  x <- gsub("\u00E4", "&auml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00F6", "&ouml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00FC", "&uuml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00C4", "&Auml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00D6", "&Ouml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00DC", "&Uuml;", x, fixed = TRUE, useBytes = FALSE)
+  x <- gsub("\u00DF", "&szlig;", x, fixed = TRUE, useBytes = FALSE)
+  # x <- gsub("ä", "&auml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("ö", "&ouml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("ü", "&uuml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("Ä", "&Auml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("Ö", "&Ouml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("Ü", "&Uuml;", x, fixed = TRUE, useBytes = TRUE)
+  # x <- gsub("ß", "&szlig;", x, fixed = TRUE, useBytes = TRUE)
+
+  x
+}
+
+
+# knitr method for grpmean() ----
+
+#' @export
+knit_print.sjt_grpmean <-  function(input, ...) {
+  knitr::asis_output(pgrpmean(input, ...)$knitr)
+}
+
+#' @export
+knit_print.sjt_grpmeans <-  function(input, ...) {
+  knitr::asis_output(pgrpmeans(input, ...)$knitr)
+}
+
+
+# knitr method method for reliab_test() ----
+
+#' @export
+knit_print.sjt_reliab <-  function(input, ...) {
+  knitr::asis_output(preliab(input, ...)$knitr)
+}
+
+
+# knitr method method for descr() ----
+
+#' @export
+knit_print.sjt_descr <-  function(input, ...) {
+  knitr::asis_output(pdescr(input, ...)$knitr)
+}
+
+#' @export
+knit_print.sjt_grpdescr <-  function(input, ...) {
+  knitr::asis_output(pgdescr(input, ...)$knitr)
+}
+
+
+# knitr method method for equi_test() ----
+
+#' @export
+knit_print.sjt_descr <-  function(input, ...) {
+  knitr::asis_output(pequi_test(input, ...)$knitr)
+}
+
+
+# knitr method for frq() ----
+
+#' @export
+knit_print.sjt_frq <-  function(input, ...) {
+  knitr::asis_output(pfrq(input, ...)$knitr)
+}
+
+
+# knitr method for mwu() ----
+
+#' @export
+knit_print.sjt_mwu <-  function(input, ...) {
+  knitr::asis_output(pmwu(input, ...)$knitr)
 }
 
 
@@ -41,6 +115,62 @@ knit_print.sjTable <-  function(input, ...) {
 
 #' @export
 print.sjt_grpmean <- function(x, ...) {
+  print(pgrpmean(x, ...), ...)
+}
+
+#' @export
+print.sjt_grpmeans <- function(x, ...) {
+  print(pgrpmeans(x, ...), ...)
+}
+
+
+# HTMl table method for reliab_test() ----
+
+#' @export
+print.sjt_reliab <- function(x, ...) {
+  print(preliab(x, ...), ...)
+}
+
+
+# HTMl table method for equi_test() ----
+
+#' @export
+print.sjt_equi_test <- function(x, ...) {
+  print(pequi_test(x, ...), ...)
+}
+
+
+# HTMl table method for descr() ----
+
+#' @export
+print.sjt_descr <- function(x, ...) {
+  print(pdescr(x, ...), ...)
+}
+
+#' @export
+print.sjt_grpdescr <- function(x, ...) {
+  print(pgdescr(x, ...), ...)
+}
+
+
+# HTMl table method for frq() ----
+
+#' @export
+print.sjt_frq <- function(x, ...) {
+  print(pfrq(x, ...), ...)
+}
+
+
+# HTMl table method for mwu() ----
+
+#' @export
+print.sjt_mwu <- function(x, ...) {
+  print(pmwu(x, ...), ...)
+}
+
+
+
+pgrpmean <- function(x, ...) {
   title <- sprintf(
     "Mean for %s by %s",
     attr(x, "dv.label", exact = TRUE),
@@ -55,7 +185,7 @@ print.sjt_grpmean <- function(x, ...) {
     attr(x, "p.value", exact = TRUE)
   )
 
-  tab <- tab_df(
+  tab_df(
     x = x,
     title = title,
     footnote = footnote,
@@ -73,36 +203,30 @@ print.sjt_grpmean <- function(x, ...) {
     use.viewer = attr(x, "print", exact = TRUE) == "viewer",
     ...
   )
-
-  print(tab, ...)
 }
 
 
-# HTMl table method for grouped grpmean() ----
-
 #' @importFrom purrr map_chr
-#' @export
-print.sjt_grpmeans <- function(x, ...) {
-
+pgrpmeans <- function(x, ...) {
   uv <- attr(x, "print", exact = TRUE) == "viewer"
 
   titles <- purrr::map_chr(x, ~ sprintf(
-      "Mean for %s by %s<br><span class=\"subtitle\">grouped by %s</span>",
-      attr(.x, "dv.label", exact = TRUE),
-      attr(.x, "grp.label", exact = TRUE),
-      gsub(pattern = "\n", replacement = "<br>", attr(.x, "group", exact = TRUE), fixed = T)
-    ))
+    "Mean for %s by %s<br><span class=\"subtitle\">grouped by %s</span>",
+    attr(.x, "dv.label", exact = TRUE),
+    attr(.x, "grp.label", exact = TRUE),
+    gsub(pattern = "\n", replacement = "<br>", attr(.x, "group", exact = TRUE), fixed = T)
+  ))
 
   footnotes <- purrr::map_chr(x, ~ sprintf(
-      "Anova: R<sup>2</sup>=%.3f; adj.R<sup>2</sup>=%.3f; F=%.3f; p=%.3f",
-      attr(.x, "r2", exact = TRUE),
-      attr(.x, "adj.r2", exact = TRUE),
-      attr(.x, "fstat", exact = TRUE),
-      attr(.x, "p.value", exact = TRUE)
-    ))
+    "Anova: R<sup>2</sup>=%.3f; adj.R<sup>2</sup>=%.3f; F=%.3f; p=%.3f",
+    attr(.x, "r2", exact = TRUE),
+    attr(.x, "adj.r2", exact = TRUE),
+    attr(.x, "fstat", exact = TRUE),
+    attr(.x, "p.value", exact = TRUE)
+  ))
 
 
-  tabs <- tab_dfs(
+  tab_dfs(
     x = x,
     titles = titles,
     footnotes = footnotes,
@@ -120,23 +244,68 @@ print.sjt_grpmeans <- function(x, ...) {
     use.viewer = uv,
     ...
   )
-
-  print(tabs, ...)
 }
 
 
-# HTMl table method for reliab_test() ----
+pequi_test <- function(x, ...) {
+  chead <- c(
+    "Term",
+    "H<sub>0</sub>",
+    "% in ROPE",
+    "HDI (95%)"
+  )
 
-#' @export
-print.sjt_reliab <- function(x, ...) {
+  x$inside.rope <- sprintf("%.1f%%", x$inside.rope)
+  x$hdi <- sprintf("%.2f &ndash; %.2f", x$hdi.low, x$hdi.high)
 
+  x <- dplyr::select(x, c(1:3, 6))
+
+  footnote <- sprintf(
+    "Effect Size: %.2f &middot; ROPE: %.2f &ndash; %.2f &middot; Samples: %i",
+    attr(x, "eff_size", exact = TRUE),
+    attr(x, "rope", exact = TRUE)[1],
+    attr(x, "rope", exact = TRUE)[2],
+    attr(x, "nsamples", exact = TRUE)
+  )
+
+  if (isTRUE(attr(x, "critical"))) {
+    footnote <- paste0(
+      footnote,
+      "<br>(*) number of effective samples may be insufficient for this parameter"
+    )
+  }
+
+
+  tab_df(
+    x = x,
+    title = "Test for Practical Equivalence of Model Parameters",
+    footnote = footnote,
+    col.header = chead,
+    show.type = FALSE,
+    show.rownames = FALSE,
+    show.footnote = TRUE,
+    alternate.rows = FALSE,
+    encoding = "UTF-8",
+    CSS = list(
+      css.firsttablecol = '+text-align:left;',
+      css.lasttablerow = 'border-bottom: 1px solid;',
+      css.col3 = '+text-align:right;'
+    ),
+    file = NULL,
+    use.viewer = attr(x, "print", exact = TRUE) == "viewer",
+    ...
+  )
+}
+
+
+preliab <- function(x, ...) {
   chead <- c(
     "Variable",
     "&alpha; if deleted",
     "Item Discrimination"
   )
 
-  tab <- tab_df(
+  tab_df(
     x = x,
     title = "Reliability Test",
     footnote = NULL,
@@ -154,19 +323,13 @@ print.sjt_reliab <- function(x, ...) {
     use.viewer = attr(x, "print", exact = TRUE) == "viewer",
     ...
   )
-
-  print(tab, ...)
 }
 
-
-# HTMl table method for descr() ----
 
 #' @importFrom purrr map_if
 #' @importFrom tibble as_tibble
 #' @importFrom sjmisc is_float
-#' @export
-print.sjt_descr <- function(x, ...) {
-
+pdescr <- function(x, ...) {
   digits <- 2
 
   # do we have digits argument?
@@ -186,11 +349,8 @@ print.sjt_descr <- function(x, ...) {
     "SE",
     "Median",
     "Trimmed Mean",
-    "Min",
-    "Max",
     "Range",
-    "Skewness",
-    "Kurtosis"
+    "Skewness"
   )
 
 
@@ -198,7 +358,7 @@ print.sjt_descr <- function(x, ...) {
     purrr::map_if(sjmisc::is_float, ~ round(.x, digits)) %>%
     tibble::as_tibble()
 
-  tab <- tab_df(
+  tab_df(
     x = x,
     title = "Basic descriptive statistics",
     footnote = NULL,
@@ -210,23 +370,22 @@ print.sjt_descr <- function(x, ...) {
     encoding = "UTF-8",
     CSS = list(
       css.firsttablecol = '+text-align:left;',
-      css.lasttablerow = 'border-bottom: 1px solid;'
+      css.lasttablerow = 'border-bottom: 1px solid;',
+      css.centeralign = 'text-align:right;',
+      css.col2 = '+text-align:left;',
+      css.col3 = '+text-align:left;'
     ),
     file = NULL,
     use.viewer = uv,
     ...
   )
-
-  print(tab, ...)
 }
 
 
-#' @importFrom purrr map_if
+#' @importFrom purrr map_if map_chr map
 #' @importFrom tibble as_tibble
 #' @importFrom sjmisc is_float
-#' @export
-print.sjt_grpdescr <- function(x, ...) {
-
+pgdescr <- function(x, ...) {
   titles <- purrr::map_chr(x, ~ sprintf(
     "Basic descriptives<br><span class=\"subtitle\"><em>grouped by</em> %s</span>",
     gsub(pattern = "\n", replacement = "<br>", attr(.x, "group", exact = TRUE), fixed = T)
@@ -251,13 +410,9 @@ print.sjt_grpdescr <- function(x, ...) {
     "SE",
     "Median",
     "Trimmed Mean",
-    "Min",
-    "Max",
     "Range",
-    "Skewness",
-    "Kurtosis"
+    "Skewness"
   )
-
 
   x <- x %>%
     purrr::map(~ purrr::map_if(
@@ -266,7 +421,7 @@ print.sjt_grpdescr <- function(x, ...) {
       ~ round(.x, digits)
     ) %>% tibble::as_tibble())
 
-  tab <- tab_dfs(
+  tab_dfs(
     x = x,
     titles = titles,
     footnotes = NULL,
@@ -278,26 +433,21 @@ print.sjt_grpdescr <- function(x, ...) {
     encoding = "UTF-8",
     CSS = list(
       css.firsttablecol = '+text-align:left;',
-      css.lasttablerow = 'border-bottom: 1px solid;'
+      css.lasttablerow = 'border-bottom: 1px solid;',
+      css.col3 = '+text-align:left;'
     ),
     file = NULL,
     use.viewer = uv,
     ...
   )
-
-  print(tab, ...)
 }
 
 
 #' @importFrom purrr map_if map_chr map
 #' @importFrom tibble as_tibble
-#' @importFrom sjmisc is_float
 #' @importFrom dplyr n_distinct select
-#' @export
-print.sjt_frq <- function(x, ...) {
-
+pfrq <- function(x, ...) {
   uv <- attr(x, "print", exact = TRUE) == "viewer"
-
 
   titles <- purrr::map_chr(x, function(i) {
 
@@ -307,7 +457,7 @@ print.sjt_frq <- function(x, ...) {
     lab <- attr(i, "label", exact = T)
     vt <- attr(i, "vartype", exact = T)
 
-    if (!is.null(lab)) ret <- sprintf("%s <span style=\"font-weight: normal; font-style: italic\">&lt;%s&gt</span>", lab, vt)
+    if (!is.null(lab)) ret <- sprintf("%s <span style=\"font-weight: normal; font-style: italic\">&lt;%s&gt;</span>", lab, vt)
 
     # get grouping title label
     grp <- attr(i, "group", exact = T)
@@ -320,12 +470,12 @@ print.sjt_frq <- function(x, ...) {
 
 
   footnotes <- purrr::map_chr(x, ~ sprintf(
-      "total N=%i &middot; valid N=%i &middot; x&#772=%.2f &middot; &sigma;=%.2f\n",
-      sum(.x$frq, na.rm = TRUE),
-      sum(.x$frq[1:(nrow(.x) - 1)], na.rm = TRUE),
-      attr(.x, "mean", exact = T),
-      attr(.x, "sd", exact = T)
-    )
+    "total N=%i &middot; valid N=%i &middot; x&#772;=%.2f &middot; &sigma;=%.2f\n",
+    sum(.x$frq, na.rm = TRUE),
+    sum(.x$frq[1:(nrow(.x) - 1)], na.rm = TRUE),
+    attr(.x, "mean", exact = T),
+    attr(.x, "sd", exact = T)
+  )
   )
 
 
@@ -336,7 +486,7 @@ print.sjt_frq <- function(x, ...) {
   })
 
 
-  tab <- tab_dfs(
+  tab_dfs(
     x = x,
     titles = titles,
     footnotes = footnotes,
@@ -359,15 +509,11 @@ print.sjt_frq <- function(x, ...) {
     use.viewer = uv,
     ...
   )
-
-  print(tab, ...)
 }
 
 
 #' @importFrom stats na.omit kruskal.test
-#' @export
-print.sjt_mwu <- function(x, ...) {
-
+pmwu <- function(x, ...) {
   fn <- NULL
 
   chead <- c(
@@ -405,7 +551,7 @@ print.sjt_mwu <- function(x, ...) {
   }
 
 
-  tab <- tab_df(
+  tab_df(
     x = x$tab.df,
     title = "Mann-Whitney U-Test",
     footnote = fn,
@@ -422,6 +568,4 @@ print.sjt_mwu <- function(x, ...) {
     use.viewer = attr(x, "print", exact = TRUE) == "viewer",
     ...
   )
-
-  print(tab, ...)
 }

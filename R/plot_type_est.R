@@ -28,7 +28,9 @@ plot_type_est <- function(type,
                           value.size,
                           bpe,
                           bpe.style,
+                          bpe.color,
                           facets,
+                          show.zeroinf,
                           ...) {
 
   if (missing(facets)) facets <- TRUE
@@ -36,7 +38,7 @@ plot_type_est <- function(type,
   # get tidy output of summary ----
 
   if (type == "est" || type == "re") {
-    dat <- tidy_model(model, ci.lvl, tf, type, bpe, se, facets, ...)
+    dat <- tidy_model(model, ci.lvl, tf, type, bpe, se, facets, show.zeroinf, p.val = "wald", ...)
   } else {
     dat <- model %>%
       sjstats::std_beta(type = type, ci.lvl = ci.lvl) %>%
@@ -45,6 +47,40 @@ plot_type_est <- function(type,
 
     show.intercept <- FALSE
   }
+
+  # fix brms coefficient names
+
+  if (inherits(model, "brmsfit")) {
+    dat$term <- gsub("^b_", "", dat$term)
+  }
+
+
+  # check if facet groups need to be replaced with title
+
+  if (length(title) > 1) {
+
+    tnames <- names(title)
+
+    if (tibble::has_name(dat, "facet") && !is.null(tnames)) {
+      if (all(tnames %in% dat$facet)) {
+        for (i in tnames) {
+          dat$facet[which(dat$facet == i)] <- title[i]
+        }
+        title <- ""
+      }
+    }
+
+    if (tibble::has_name(dat, "response.level") && !is.null(tnames)) {
+      if (all(tnames %in% dat$response.level)) {
+        for (i in tnames) {
+          dat$response.level[which(dat$response.level == i)] <- title[i]
+        }
+        title <- ""
+      }
+    }
+
+  }
+
 
   # se needs to be logical from here on
   if (!is.null(se) && !is.logical(se)) se <- TRUE
@@ -79,9 +115,11 @@ plot_type_est <- function(type,
     geom.size = geom.size,
     line.size = line.size,
     bpe.style = bpe.style,
+    bpe.color = bpe.color,
     term.order = order.terms,
     vline.color = vline.color,
     value.size = value.size,
+    facets = facets,
     ...
   )
 }

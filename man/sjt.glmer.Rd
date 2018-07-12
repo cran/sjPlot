@@ -138,15 +138,15 @@ Default is \code{"Intercept"}.}
 \item{ci.hyphen}{Character vector, indicating the hyphen for confidence interval range.
 May be an HTML entity. See 'Examples'.}
 
-\item{digits.est}{Amount of decimals for estimates}
+\item{digits.est}{Amount of decimals for table values.}
 
-\item{digits.p}{Amount of decimals for p-values}
+\item{digits.p}{Amount of decimals for p-values.}
 
-\item{digits.ci}{Amount of decimals for confidence intervals}
+\item{digits.ci}{Amount of decimals for confidence intervals.}
 
-\item{digits.se}{Amount of decimals for standard error}
+\item{digits.se}{Amount of decimals for standard error.}
 
-\item{digits.summary}{Amount of decimals for values in model summary}
+\item{digits.summary}{Amount of decimals for values in model summary.}
 
 \item{cell.spacing}{Numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
@@ -164,7 +164,7 @@ when modifying the table layout.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
 \code{\link{sjt.frq}}.}
 
 \item{encoding}{String, indicating the charset encoding used for variable and
@@ -203,14 +203,11 @@ Summarizes (multiple) fitted generalized linear mixed models (odds ratios, ci, p
                as HTML table, or saves them as file. The fitted models may have different predictors,
                e.g. when comparing different stepwise fitted models.
 }
-\details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
 \note{
 Computation of p-values (if necessary) is based on normal-distribution
         assumption, treating the t-statistics as Wald z-statistics.
         \cr \cr
-        The variance components of the random parts (see \code{show.re.var}) are
+        The variance components of the random effects (see \code{show.re.var}) are
         denoted like:
         \itemize{
          \item between-group-variance: tau-zero-zero
@@ -221,47 +218,4 @@ Computation of p-values (if necessary) is based on normal-distribution
       \code{summary()}-method. Rather, \code{sjt.glmer()} uses adjustments
       according to the delta method for approximating standard errors of
       transformed regression parameters (see \code{\link[sjstats]{se}}).
-      \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
-}
-\examples{
-\dontrun{
-library(lme4)
-library(sjmisc)
-data(efc)
-
-# create binary response
-efc$hi_qol <- dicho(efc$quol_5)
-# prepare group variable
-efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_labels(efc$e15relat)
-# data frame for fitted model
-mydf <- data.frame(hi_qol = to_factor(efc$hi_qol),
-                   sex = to_factor(efc$c161sex),
-                   c12hour = efc$c12hour,
-                   neg_c_7 = efc$neg_c_7,
-                   education = to_factor(efc$c172code),
-                   grp = efc$grp)
-
-# fit glmer
-fit1 <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + (1|grp),
-              data = mydf, family = binomial("logit"))
-fit2 <- glmer(hi_qol ~ sex + c12hour + neg_c_7 + education + (1|grp),
-              data = mydf, family = binomial("logit"))
-
-# print summary table
-sjt.glmer(fit1, fit2, ci.hyphen = " to ")
-
-# print summary table, using different table layout
-sjt.glmer(fit1, fit2, show.aic = TRUE, show.ci = FALSE,
-          show.se = TRUE, p.numeric = FALSE)
-
-# print summary table
-sjt.glmer(fit1, fit2, pred.labels = c("Elder's gender (female)",
-            "Hours of care per week", "Negative Impact",
-            "Educational level (mid)", "Educational level (high)"))
-
-# use vector names as predictor labels
-sjt.glmer(fit1, fit2, pred.labels = "")}
-
-
 }

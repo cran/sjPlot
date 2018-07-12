@@ -7,6 +7,20 @@ magrittr::`%>%`
 is.stan <- function(x) inherits(x, c("stanreg", "stanfit", "brmsfit"))
 
 
+#' @importFrom sjmisc is_empty
+#' @importFrom tidyselect starts_with
+#' @importFrom tibble has_name
+#' @importFrom dplyr n_distinct
+stan.has.multiranef <- function(x) {
+  if (tibble::has_name(x, "facet")) {
+    ri <- tidyselect::starts_with("(Intercept", vars = x$facet)
+    if (!sjmisc::is_empty(ri)) {
+      return(dplyr::n_distinct(x$facet[ri]) > 1)
+    }
+  }
+  FALSE
+}
+
 has_value_labels <- function(x) {
   !(is.null(attr(x, "labels", exact = T)) && is.null(attr(x, "value.labels", exact = T)))
 }
@@ -15,7 +29,7 @@ has_value_labels <- function(x) {
 #' @importFrom grDevices axisTicks
 #' @importFrom dplyr if_else
 #' @importFrom sjmisc is_empty
-get_axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, exponentiate, min.est, max.est) {
+axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, exponentiate, min.est, max.est) {
 
   # factor to multiply the axis limits. for exponentiated scales,
   # these need to be large enough to find appropriate pretty numbers
@@ -52,8 +66,17 @@ get_axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, e
   if (is.null(grid.breaks)) {
     if (exponentiate) {
 
+      # make sure we have nice x-positions for breaks
+      lower_lim <- round(lower_lim, 2)
+      upper_lim <- round(upper_lim, 2)
+
+      # for *very* small values, lower_lim might be zero, so
+      # correct value here. else we have Inf as limit
+      if (lower_lim == 0) lower_lim <- min.val * fac.ll / 10
+
       # use pretty distances for log-scale
-      ticks <- grDevices::axisTicks(log10(c(lower_lim, upper_lim)), log = TRUE)
+      ls <- log10(c(lower_lim, upper_lim))
+      ticks <- grDevices::axisTicks(c(floor(ls[1]), ceiling(ls[2])), log = TRUE)
 
       # truncate ticks to highest value below lower lim and
       # lowest value above upper lim
@@ -64,11 +87,14 @@ get_axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, e
       ul <- which(ticks > upper_lim)
       if (!sjmisc::is_empty(ul) && length(ul) > 1) ticks <- ticks[1:ul[1]]
 
-      } else {
-      ticks <- pretty(c(lower_lim, upper_lim))
+    } else {
+      ticks <- pretty(c(floor(lower_lim), ceiling(upper_lim)))
     }
   } else {
-    ticks <- seq(lower_lim, upper_lim, by = grid.breaks)
+    if (length(grid.breaks) == 1)
+      ticks <- seq(floor(lower_lim), ceiling(upper_lim), by = grid.breaks)
+    else
+      ticks <- grid.breaks
   }
 
   # save proper axis limits
@@ -76,19 +102,28 @@ get_axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, e
 }
 
 
-get_estimate_axis_title <- function(fit, axis.title, type, transform = NULL) {
+#' @importFrom sjstats model_family
+#' @importFrom dplyr case_when
+estimate_axis_title <- function(fit, axis.title, type, transform = NULL, multi.resp = NULL) {
 
   # no automatic title for effect-plots
   if (type %in% c("eff", "pred", "int")) return(axis.title)
 
   # check default label and fit family
   if (is.null(axis.title)) {
-    fitfam <- get_glm_family(fit)
+
+    if (!is.null(multi.resp))
+      fitfam <- sjstats::model_family(fit, multi.resp = TRUE)[[multi.resp]]
+    else
+      fitfam <- sjstats::model_family(fit)
 
     axis.title <-  dplyr::case_when(
       !is.null(transform) && transform == "plogis" ~ "Probabilities",
       is.null(transform) && fitfam$is_bin ~ "Log-Odds",
+      is.null(transform) && fitfam$is_ordinal ~ "Log-Odds",
+      is.null(transform) && fitfam$is_pois ~ "Log-Mean",
       fitfam$is_pois ~ "Incidence Rate Ratios",
+      fitfam$is_ordinal ~ "Odds Ratios",
       fitfam$is_bin && !fitfam$is_logit ~ "Risk Ratios",
       fitfam$is_bin ~ "Odds Ratios",
       TRUE ~ "Estimates"
@@ -116,72 +151,14 @@ is_merMod <- function(fit) {
 }
 
 
-#' @importFrom sjmisc str_contains
-#' @importFrom stats family
-get_glm_family <- function(fit) {
-  # do we have glm? if so, get link family. make exceptions
-  # for specific models that don't have family function
-  if (inherits(fit, c("lme", "plm", "gls", "truncreg"))) {
-    fitfam <- "gaussian"
-    logit_link <- FALSE
-    link.fun <- "identity"
-  } else if (inherits(fit, c("vgam", "vglm"))) {
-    faminfo <- fit@family
-    fitfam <- faminfo@vfamily
-    logit_link <- sjmisc::str_contains(faminfo@blurb, "logit")
-    link.fun <- faminfo@blurb[3]
-  } else if (inherits(fit, c("zeroinfl", "hurdle"))) {
-    fitfam <- "negative binomial"
-    logit_link <- FALSE
-    link.fun <- NULL
-  } else if (inherits(fit, "betareg")) {
-    fitfam <- "beta"
-    logit_link <- fit$link$mean$name == "logit"
-    link.fun <- fit$link$mean$linkfun
-  } else if (inherits(fit, "coxph")) {
-    fitfam <- "survival"
-    logit_link <- TRUE
-    link.fun <- NULL
-  } else {
-    # "lrm"-object from pkg "rms" have no family method
-    # so we construct a logistic-regression-family-object
-    if (inherits(fit, c("lrm", "polr", "logistf", "clm", "multinom", "Zelig-relogit")))
-      faminfo <- stats::binomial(link = "logit")
-    else
-      # get family info
-      faminfo <- stats::family(fit)
-
-    fitfam <- faminfo$family
-    logit_link <- faminfo$link == "logit"
-    link.fun <- faminfo$link
-  }
-
-  # create logical for family
-  binom_fam <-
-    fitfam %in% c("binomial", "quasibinomial", "binomialff") |
-    sjmisc::str_contains(fitfam, "binomial", ignore.case = TRUE)
-
-  poisson_fam <-
-    fitfam %in% c("poisson", "quasipoisson") |
-    sjmisc::str_contains(fitfam, "poisson", ignore.case = TRUE)
-
-  neg_bin_fam <-
-    sjmisc::str_contains(fitfam, "negative binomial", ignore.case = T) |
-    sjmisc::str_contains(fitfam, "nbinom", ignore.case = TRUE) |
-    sjmisc::str_contains(fitfam, "neg_binomial", ignore.case = TRUE)
-
-  linear_model <- !binom_fam & !poisson_fam & !neg_bin_fam & !logit_link
+is_brms_mixed <- function(fit) {
+  inherits(fit, "brmsfit") && !sjmisc::is_empty(fit$ranef)
+}
 
 
-  list(
-    is_bin = binom_fam & !neg_bin_fam,
-    is_pois = poisson_fam | neg_bin_fam,
-    is_negbin = neg_bin_fam,
-    is_logit = logit_link,
-    is_linear = linear_model,
-    link.fun = link.fun,
-    family = fitfam
-  )
+# short checker so we know if we need more summary statistics like ICC
+is_mixed_model <- function(fit) {
+  is_merMod(fit) | is_brms_mixed(fit) | inherits(fit, "glmmTMB")
 }
 
 
@@ -199,10 +176,11 @@ nulldef <- function(x, y, z = NULL) {
 geom_intercept_line <- function(yintercept, axis.scaling, vline.color) {
   if (yintercept > axis.scaling$axis.lim[1] && yintercept < axis.scaling$axis.lim[2]) {
     t <- theme_get()
+    if (is.null(t$panel.grid.major)) t$panel.grid.major <- t$panel.grid
     color <- nulldef(vline.color, t$panel.grid.major$colour, "grey90")
     minor_size <- nulldef(t$panel.grid.minor$size, .125)
-    major_size <- nulldef(t$panel.grid.major$size, minor_size * 2)
-    size <- major_size * 2
+    major_size <- nulldef(t$panel.grid.major$size, minor_size * 1.5)
+    size <- major_size * 1.5
     geom_hline(yintercept = yintercept, color = color, size = size)
   } else {
     NULL
@@ -212,10 +190,11 @@ geom_intercept_line <- function(yintercept, axis.scaling, vline.color) {
 # same as above, but no check if intercept is within boundaries or not
 geom_intercept_line2 <- function(yintercept, vline.color) {
   t <- theme_get()
+  if (is.null(t$panel.grid.major)) t$panel.grid.major <- t$panel.grid
   color <- nulldef(vline.color, t$panel.grid.major$colour, "grey90")
   minor_size <- nulldef(t$panel.grid.minor$size, .125)
-  major_size <- nulldef(t$panel.grid.major$size, minor_size * 2)
-  size <- major_size * 2
+  major_size <- nulldef(t$panel.grid.major$size, minor_size * 1.5)
+  size <- major_size * 1.5
   geom_hline(yintercept = yintercept, color = color, size = size)
 }
 
@@ -241,4 +220,112 @@ check_se_argument <- function(se, type = NULL) {
   }
 
   se
+}
+
+
+list.depth <- function(this, thisdepth = 0) {
+  # http://stackoverflow.com/a/13433689/1270695
+  if (!is.list(this)) {
+    return(thisdepth)
+  } else {
+    return(max(unlist(lapply(this, list.depth, thisdepth = thisdepth + 1))))
+  }
+}
+
+
+#' @importFrom purrr map flatten_chr
+#' @importFrom sjmisc is_empty trim
+parse_terms <- function(x) {
+  if (sjmisc::is_empty(x)) return(x)
+
+  # get variable with suffix
+  vars.pos <-
+    which(as.vector(regexpr(
+      pattern = " ([^\\]]*)\\]",
+      text = x,
+      perl = T
+    )) != -1)
+
+  # is empty?
+  if (sjmisc::is_empty(vars.pos)) return(x)
+
+  # get variable names. needed later to set as
+  # names attributes
+  vars.names <- clear_terms(x)[vars.pos]
+
+  # get levels inside brackets
+  tmp <- unlist(regmatches(
+    x,
+    gregexpr(
+      pattern = " ([^\\]]*)\\]",
+      text = x,
+      perl = T
+    )
+  ))
+
+  # remove brackets
+  tmp <- gsub("(\\[*)(\\]*)", "", tmp)
+
+  # see if we have multiple values, split at comma
+  tmp <- sjmisc::trim(strsplit(tmp, ",", fixed = T))
+
+  parsed.terms <- seq_len(length(tmp)) %>%
+    purrr::map(~ sprintf("%s%s", vars.names[.x], tmp[[.x]])) %>%
+    purrr::flatten_chr()
+
+  c(x[-vars.pos], parsed.terms)
+}
+
+
+#' @importFrom sjmisc trim
+clear_terms <- function(x) {
+  # get positions of variable names and see if we have
+  # a suffix for certain values
+  cleaned.pos <- regexpr(pattern = "\\s", x)
+
+  # position "-1" means we only had variable name, no suffix
+  replacers <- which(cleaned.pos == -1)
+  # replace -1 with number of chars
+  cleaned.pos[replacers] <- nchar(x)[replacers]
+
+  # get variable names only
+  sjmisc::trim(substr(x, 0, cleaned.pos))
+}
+
+
+#' @importFrom purrr map_lgl
+#' @importFrom sjmisc is_empty
+is_empty_list <- function(x) {
+  all(purrr::map_lgl(x, sjmisc::is_empty))
+}
+
+
+model_deviance <- function(x) {
+  tryCatch(
+    m_deviance(x),
+    error = function(x) { NULL }
+  )
+}
+
+
+#' @importFrom stats AIC
+model_aic <- function(x) {
+  tryCatch(
+    stats::AIC(x),
+    error = function(x) { NULL }
+  )
+}
+
+
+#' @importFrom lme4 getME
+#' @importFrom stats deviance
+m_deviance <- function(x) {
+  if (is_merMod(x)) {
+    d <- lme4::getME(x, "devcomp")$cmp["dev"]
+    if (is.na(d)) d <- stats::deviance(x, REML = FALSE)
+  } else {
+    d <- stats::deviance(x)
+  }
+
+  d
 }

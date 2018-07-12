@@ -5,8 +5,6 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #' @title Plot estimates, predictions or effects of generalized linear mixed effects models
 #' @name sjp.glmer
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.glmer/}{sjPlot manual: sjp.glmer}
-#'
 #' @description By default, this function plots estimates (odds, risk or incidents
 #'                ratios, i.e. exponentiated coefficients, depending on family and
 #'                link function)
@@ -24,11 +22,10 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'            \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
 #'            \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
 #'            \item{\code{"ri.slope"}}{to plot probability or incidents curves (predicted probabilities or incidents) of random intercept variances for all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
-#'            \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random parts of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
+#'            \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random effects of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
 #'            \item{\code{"eff"}}{to plot marginal effects of predicted probabilities or incidents for each fixed term, where remaining co-variates are set to the mean. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
 #'            \item{\code{"pred"}}{to plot predicted probabilities or incidents for the response, related to specific model predictors and conditioned on random effects. See 'Details'.}
 #'            \item{\code{"pred.fe"}}{to plot predicted probabilities or incidents for the response, related to specific model predictors, only for fixed effects. See 'Details'.}
-#'            \item{\code{"ma"}}{to check model assumptions. Note that only argument \code{fit} applies to this plot type. All other arguments are ignored.}
 #'          }
 #' @param vars Numeric vector with column indices of selected variables or a character vector with
 #'          variable names of selected variables from the fitted model, which should be used to plot
@@ -178,57 +175,6 @@ utils::globalVariables(c("estimate", "nQQ", "ci", "fixef", "fade", "conf.low", "
 #'            one or two model predictors. See 'Examples'.}
 #'          }
 #'
-#' @examples
-#' library(lme4)
-#' library(sjmisc)
-#' library(sjlabelled)
-#' # create binary response
-#' sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "median")
-#' # fit model
-#' fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
-#'              data = sleepstudy, family = binomial("logit"))
-#'
-#' # simple plot
-#' sjp.glmer(fit)
-#'
-#' # sort by predictor Days
-#' sjp.glmer(fit, sort.est = "Days")
-#'
-#' \dontrun{
-#' data(efc)
-#' # create binary response
-#' efc$hi_qol <- dicho(efc$quol_5)
-#' # prepare group variable
-#' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_labels(efc$e15relat)
-#' # data frame for fitted model
-#' mydf <- data.frame(hi_qol = to_factor(efc$hi_qol),
-#'                    sex = to_factor(efc$c161sex),
-#'                    education = to_factor(efc$c172code),
-#'                    c12hour = efc$c12hour,
-#'                    neg_c_7 = efc$neg_c_7,
-#'                    grp = efc$grp)
-#'
-#' # fit glmer, with categorical predictor with more than 2 levels
-#' fit <- glmer(hi_qol ~ sex + education + c12hour + neg_c_7 + (1|grp),
-#'              data = mydf, family = binomial("logit"))
-#'
-#' # plot and sort fixed effects, axis labels automatically retrieved
-#' sjp.glmer(fit, type = "fe", sort.est = TRUE)
-#'
-#' # plot probability curves (predicted probabilities)
-#' # for each covariate, grouped by random intercepts
-#' # in integrated plots, emphasizing groups 1 and 4
-#' sjp.glmer(fit, type = "ri.slope", emph.grp = c(1, 4), facet.grid = FALSE)
-#'
-#' # plot predicted probabilities for response,
-#' # non faceted, with ci
-#' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "education"),
-#'           show.ci = TRUE, facet.grid = FALSE)
-#'
-#' # predictions by gender and education
-#' sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex", "education"))}
-#'
 #' @import ggplot2
 #' @importFrom dplyr slice sample_n
 #' @importFrom lme4 fixef ranef confint.merMod getME
@@ -270,11 +216,7 @@ sjp.glmer <- function(fit,
                       prnt.plot = TRUE,
                       ...) {
 
-  if (stats::runif(1) < .35)
-    message("`sjp.glmer()` will become deprecated in the future. Please use `plot_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("plot_model")
 
   # -------------------------------------
   # check for deprecated argument values
@@ -333,8 +275,6 @@ sjp.glmer <- function(fit,
 #' @title Plot estimates, predictions or effects of linear mixed effects models
 #' @name sjp.lmer
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.lmer/}{sjPlot manual: sjp.lmer}
-#'
 #' @description By default, this function plots estimates (coefficients) with confidence
 #'                intervalls of either fixed effects or random effects of linear mixed
 #'                effects models (that have been fitted with the \code{\link[lme4]{lmer}}-function
@@ -369,7 +309,7 @@ sjp.glmer <- function(fit,
 #'            set to zero, but adjusted for. This plot type differs from \code{type = "ri.slope"}
 #'            only in the adjusted y-axis-scale}
 #'            \item{\code{type = "rs.ri"}}{plots regression lines for the random
-#'            parts of the model, i.e. all random slopes for each random intercept.
+#'            effects of the model, i.e. all random slopes for each random intercept.
 #'            As the random intercepts describe the deviation from the global intercept,
 #'            the regression lines are computed as global intercept + random intercept +
 #'            random slope. In case of overplotting,
@@ -408,7 +348,7 @@ sjp.glmer <- function(fit,
 #'            \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
 #'            \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
 #'            \item{\code{"ri.slope"}}{for fixed effects slopes depending on the random intercept.}
-#'            \item{\code{"rs.ri"}}{for fitted regression lines indicating the random slope-intercept pairs. Use this to visualize the random parts of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
+#'            \item{\code{"rs.ri"}}{for fitted regression lines indicating the random slope-intercept pairs. Use this to visualize the random effects of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
 #'            \item{\code{"coef"}}{for joint (sum of) random and fixed effects coefficients for each explanatory variable for each level of each grouping factor as forest plot.}
 #'            \item{\code{"pred"}}{to plot predicted values for the response, related to specific model predictors and conditioned on random effects. See 'Details'.}
 #'            \item{\code{"pred.fe"}}{to plot predicted values for the response, related to specific model predictors and conditioned on fixed effects only. See 'Details'.}
@@ -450,89 +390,6 @@ sjp.glmer <- function(fit,
 #'         \code{p.kr = FALSE}, computation of p-values is based
 #'         on normal-distribution assumption, treating the t-statistics as Wald
 #'         z-statistics. See 'Details' in \code{\link[sjstats]{p_value}}.
-#'
-#' @examples
-#' # fit model
-#' library(lme4)
-#' fit <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
-#'
-#' # simple plot
-#' sjp.lmer(fit)
-#'
-#' # plot fixed effects
-#' sjp.lmer(fit, type = "fe")
-#'
-#' # sort by predictor Days
-#' sjp.lmer(fit, sort.est = "Days")
-#'
-#' # plot each predictor as own plot
-#' # sort each plot
-#' sjp.lmer(fit, facet.grid = FALSE, sort.est = "sort.all")
-#'
-#' library(sjmisc)
-#' library(sjlabelled)
-#' data(efc)
-#' # prepare group variable
-#' efc$grp = as.factor(efc$e15relat)
-#' levels(x = efc$grp) <- get_labels(efc$e15relat)
-#' # data frame for fitted model
-#' mydf <- data.frame(neg_c_7 = as.numeric(efc$neg_c_7),
-#'                    sex = as.factor(efc$c161sex),
-#'                    c12hour = as.numeric(efc$c12hour),
-#'                    barthel = as.numeric(efc$barthtot),
-#'                    grp = efc$grp)
-#' # fit lmer
-#' fit <- lmer(neg_c_7 ~ sex + c12hour + barthel + (1|grp), data = mydf)
-#'
-#  # plot and sort standardized fixed effects
-#' sjp.lmer(fit, type = "fe.std", sort.est = TRUE)
-#'
-#' # highlight specific grouping levels, in this case we compare
-#' # spouses, children and children-in-law
-#' sjp.lmer(fit, type = "ri.slope", emph.grp = c(1, 2, 4), vars = "c12hour")
-#'
-#' \dontrun{
-#' # plotting polynomial terms
-#' # check linear relation between predictors and response
-#' sjp.lmer(fit, type = "fe.slope", show.loess = TRUE)
-#'
-#' # "barthel" does not seem to be linear correlated to response
-#' # try to find appropiate polynomial. Grey line (loess smoothed)
-#' # indicates best fit. Looks like x^4 has the best fit,
-#' # however, x^2 seems to be suitable according to p-values.
-#' sjp.poly(fit, "barthel", 2:4, show.scatter = FALSE)
-#'
-#' # fit new model
-#' fit <- lmer(neg_c_7 ~ sex + c12hour + barthel +
-#'             I(barthel^2) + (1|grp), data = mydf)
-#'
-#' # plot marginal effects of polynomial term
-#' sjp.lmer(fit, type = "poly", poly.term = "barthel")
-#'
-#' # lme4 complaints about scale of polynomial term, so
-#' # try centering this predictor
-#' mydf$barthel_s <- sjmisc::std(mydf$barthel)
-#'
-#' # re-fit model
-#' fit_s <- lmer(neg_c_7 ~ sex + c12hour + barthel_s +
-#'               I(barthel_s^2) + (1|grp), data = mydf)
-#'
-#' # plot marginal effects of centered, scaled polynomial term
-#' sjp.lmer(fit_s, type = "poly", poly.term = "barthel_s")
-#'
-#' # scaling also improved p-values
-#' sjt.lmer(fit, fit_s)
-#'
-#' # plotting predicted values for response
-#' # conditioned on random effects
-#' sjp.lmer(fit, type = "pred", vars = "c12hour")
-#'
-#' # grouped, for fixed effects only
-#' sjp.lmer(fit, type = "pred.fe", vars = c("c12hour", "sex"))
-#'
-#' # grouped, for fixed effects only, non-facted
-#' sjp.lmer(fit, type = "pred.fe", vars = c("c12hour", "sex"),
-#'          facet.grid = FALSE, show.ci = FALSE)}
 #'
 #' @import ggplot2
 #' @importFrom sjstats se std_beta p_value
@@ -578,11 +435,7 @@ sjp.lmer <- function(fit,
                      prnt.plot = TRUE,
                      ...) {
 
-  if (stats::runif(1) < .35)
-    message("`sjp.lmer()` will become deprecated in the future. Please use `plot_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("plot_model")
 
   # -------------------------------------
   # check for deprecated argument values
@@ -795,12 +648,7 @@ sjp.lme4  <- function(fit,
   # plot correlation matrix of fixed effects,
   # to inspect multicollinearity
   # ---------------------------------------
-  if (type == "ma") {
-    if (fun == "lm")
-      return(invisible(sjp.lm.ma(fit)))
-    else
-      return(invisible(sjp.glmer.ma(fit)))
-  } else if (type == "fe.cor") {
+  if (type == "fe.cor") {
     # ---------------------------------------
     # plot correlation matrix of fixed effects,
     # to inspect multicollinearity
@@ -1411,7 +1259,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
   # ----------------------------
   fit.df <- stats::model.frame(fit, fixed.only = TRUE)
   fitfam <- stats::family(fit)
-  faminfo <- get_glm_family(fit)
+  faminfo <- sjstats::model_family(fit)
   # --------------------------------------------------------
   # create logical for family
   # --------------------------------------------------------
@@ -1471,7 +1319,7 @@ sjp.glmer.ri.slope <- function(fit, show.ci, facet.grid, ri.nr, vars, emph.grp,
         # get color platte
         geom.colors <- suppressWarnings(col_check2(geom.colors, length(row.names(rand.ef))))
         # check if we have enough colors - if not, set to NULL
-        if (length(na.omit(geom.colors)) < length(row.names(rand.ef))) geom.colors <- NULL
+        if (length(stats::na.omit(geom.colors)) < length(row.names(rand.ef))) geom.colors <- NULL
       }
     }
     # ----------------------------
@@ -1678,7 +1526,7 @@ sjp.lmer.ri.slope <- function(fit, ri.nr, vars, emph.grp, ylim, geom.size, prnt.
         #
         if (type == "eff.ri") {
           # retrieve unique values of estimates
-          est.values <- as.vector(na.omit(unique(m_m[[fit.term.names[j]]])))
+          est.values <- as.vector(stats::na.omit(unique(m_m[[fit.term.names[j]]])))
           # retrieve all other estimates, which should be set to mean
           # we need the switch-argument for interaction terms, to find the correct
           # data in the model matrix
@@ -1817,13 +1665,13 @@ sjp.lme.rsri <- function(fit,
     if (ncol(re_tmp) < 2)
       remove_ri <- c(remove_ri, h)
   }
-  # found any random parts withou slopes? if yes, remove them from index
+  # found any random effects without slopes? if yes, remove them from index
   if (!sjmisc::is_empty(remove_ri)) {
     ri.nr <- ri.nr[-remove_ri]
   }
   # nothing found?
   if (sjmisc::is_empty(ri.nr)) {
-    warning("No random parts with random-slope-intercept parameters found.", call. = F)
+    warning("No random effects with random-slope-intercept parameters found.", call. = F)
     return(NULL)
   }
   # ---------------------------------------
@@ -2156,7 +2004,7 @@ sjp.glm.eff <- function(fit,
     fitfram <- stats::model.frame(fit, fixed.only = TRUE)
   else
     fitfram <- stats::model.frame(fit)
-  fitfam <- get_glm_family(fit)
+  fitfam <- sjstats::model_family(fit)
   # --------------------------------------------------------
   # create logical for family
   # --------------------------------------------------------

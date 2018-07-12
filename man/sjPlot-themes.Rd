@@ -9,6 +9,11 @@
 \alias{font_size}
 \alias{label_angle}
 \alias{legend_style}
+\alias{scale_color_sjplot}
+\alias{scale_fill_sjplot}
+\alias{sjplot_pal}
+\alias{show_sjplot_pals}
+\alias{css_theme}
 \title{Modify plot appearance}
 \usage{
 theme_sjplot(base_size = 12, base_family = "")
@@ -25,6 +30,18 @@ font_size(title, axis_title.x, axis_title.y, labels.x, labels.y, offset.x,
 label_angle(angle.x, angle.y, base.theme)
 
 legend_style(inside, pos, justify, base.theme)
+
+scale_color_sjplot(palette = "metro ui", discrete = TRUE, reverse = FALSE,
+  ...)
+
+scale_fill_sjplot(palette = "metro ui", discrete = TRUE, reverse = FALSE,
+  ...)
+
+sjplot_pal(palette = "metro ui", n = NULL)
+
+show_sjplot_pals()
+
+css_theme(css.theme = "regression")
 }
 \arguments{
 \item{base_size}{Base font size.}
@@ -74,9 +91,34 @@ See also \code{pos}.}
 
 \item{justify}{Justification of legend, relative to its position (\code{"center"} or
 two-element numeric vector with values from 0-1.}
+
+\item{palette}{Character name of color palette.}
+
+\item{discrete}{Logical, if \code{TRUE}, a discrete colour palette is returned.
+Else, a gradient palette is returned, where colours of the requested palette
+are interpolated using \code{\link[grDevices]{colorRampPalette}}.}
+
+\item{reverse}{Logical, if \code{TRUE}, order of returned colours is reversed.}
+
+\item{...}{Further arguments passed down to ggplot's \code{scale()}-functions.}
+
+\item{n}{Numeric, number of colors to be returned. By default, the complete
+colour palette is returned.}
+
+\item{css.theme}{Name of the CSS pre-set theme-style. Can be used for table-functions.}
 }
 \description{
-Set default theme plots or modify plot appearance.
+Set default plot themes, use pre-defined color scales or modify
+  plot or table appearance.
+}
+\details{
+When using the \code{colors} argument in function calls (e.g.
+  \code{plot_model()}) or when calling one of the predefined scale-functions
+  (e.g. \code{scale_color_sjplot()}), there are pre-defined colour palettes
+  in this package: \code{"aqua"}, \code{"warm"}, \code{"dust"}, \code{"blambus"},
+  \code{"simply"}, \code{"us"}, \code{"deep reefs"}, \code{"breakfast club"}
+  and \code{"metro ui"}. Use \code{show_sjplot_pals()} to show all available
+  colour palettes.
 }
 \examples{
 # prepare data
@@ -93,5 +135,14 @@ p + theme_sjplot()
 
 # change font-size
 p + font_size(axis_title.x = 30)
+
+# apply color theme
+p + scale_color_sjplot()
+
+# show all available colour palettes
+show_sjplot_pals()
+
+# get colour values from specific palette
+sjplot_pal(pal = "breakfast club")
 
 }

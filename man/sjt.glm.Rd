@@ -151,15 +151,15 @@ Default is \code{"Intercept"}.}
 \item{ci.hyphen}{Character vector, indicating the hyphen for confidence interval range.
 May be an HTML entity. See 'Examples'.}
 
-\item{digits.est}{Amount of decimals for estimates}
+\item{digits.est}{Amount of decimals for table values.}
 
-\item{digits.p}{Amount of decimals for p-values}
+\item{digits.p}{Amount of decimals for p-values.}
 
-\item{digits.ci}{Amount of decimals for confidence intervals}
+\item{digits.ci}{Amount of decimals for confidence intervals.}
 
-\item{digits.se}{Amount of decimals for standard error}
+\item{digits.se}{Amount of decimals for standard error.}
 
-\item{digits.summary}{Amount of decimals for values in model summary}
+\item{digits.summary}{Amount of decimals for values in model summary.}
 
 \item{cell.spacing}{Numeric, inner padding of table cells. By default, this value is 0.2 (unit is cm), which is
 suitable for viewing the table. Decrease this value (0.05 to 0.1) if you want to import the table
@@ -177,7 +177,7 @@ when modifying the table layout.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
 \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
 \code{\link{sjt.frq}}.}
 
 \item{encoding}{String, indicating the charset encoding used for variable and
@@ -216,9 +216,6 @@ Summarizes (multiple) fitted generalized linear models (odds ratios, ci, p-value
                as HTML table, or saves them as file. The fitted models may have different predictors,
                e.g. when comparing different stepwise fitted models.
 }
-\details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
 \note{
 If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors
       for generalized linear (mixed) models are \emph{not} on the untransformed
@@ -227,118 +224,4 @@ If \code{exp.coef = TRUE} and Odds Ratios are reported, standard errors
       errors of transformed regression parameters (see \code{\link[sjstats]{se}}).
       If \code{exp.coef = FALSE} and log-Odds Ratios are reported, the standard
       errors are untransformed.
-      \cr \cr Futhermore, see 'Notes' in \code{\link{sjt.frq}}.
-}
-\examples{
-# prepare dummy variables for binary logistic regression
-swiss$y1 <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
-swiss$y2 <- ifelse(swiss$Infant.Mortality < median(swiss$Infant.Mortality), 0, 1)
-swiss$y3 <- ifelse(swiss$Agriculture < median(swiss$Agriculture), 0, 1)
-
-# Now fit the models. Note that both models share the same predictors
-# and only differ in their dependent variable (y1, y2 and y3)
-fitOR1 <- glm(y1 ~ Education + Examination + Catholic, data = swiss,
-              family = binomial(link = "logit"))
-fitOR2 <- glm(y2 ~ Education + Examination + Catholic, data = swiss,
-              family = binomial(link = "logit"))
-fitOR3 <- glm(y3 ~ Education + Examination + Catholic, data = swiss,
-              family = binomial(link = "logit"))
-
-\dontrun{
-# open HTML-table in RStudio Viewer Pane or web browser
-sjt.glm(fitOR1, fitOR2,
-        depvar.labels = c("Fertility", "Infant Mortality"),
-        pred.labels = c("Education", "Examination", "Catholic"),
-        ci.hyphen = " to ")
-
-# open HTML-table in RStudio Viewer Pane or web browser,
-# integrate CI in OR column
-sjt.glm(fitOR1, fitOR2, fitOR3,
-        pred.labels = c("Education", "Examination", "Catholic"),
-        separate.ci.col = FALSE)
-
-# open HTML-table in RStudio Viewer Pane or web browser,
-# indicating p-values as numbers and printing CI in a separate column
-sjt.glm(fitOR1, fitOR2, fitOR3,
-        depvar.labels = c("Fertility", "Infant Mortality", "Agriculture"),
-        pred.labels = c("Education", "Examination", "Catholic"))
-
-# --------------------------------------------
-# User defined style sheet
-# --------------------------------------------
-sjt.glm(fitOR1, fitOR2, fitOR3,
-        depvar.labels = c("Fertility", "Infant Mortality", "Agriculture"),
-        pred.labels = c("Education", "Examination", "Catholic"),
-        show.header = TRUE,
-        CSS = list(css.table = "border: 2px solid;",
-                   css.tdata = "border: 1px solid;",
-                   css.depvarhead = "color:#003399;"))
-
-# --------------------------------------------
-# Compare models with different link functions,
-# but same predictors and response
-# --------------------------------------------
-library(sjmisc)
-# load efc sample data
-data(efc)
-# dichtomozize service usage by "service usage yes/no"
-efc$services <- sjmisc::dicho(efc$tot_sc_e, dich.by = 0, as.num = TRUE)
-# fit 3 models with different link-functions
-fit1 <- glm(services ~ neg_c_7 + c161sex + e42dep,
-            data = efc, family = binomial(link = "logit"))
-fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep,
-            data = efc, family = binomial(link = "probit"))
-fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep,
-            data = efc, family = poisson(link = "log"))
-
-# compare models
-sjt.glm(fit1, fit2, fit3, string.est = "Estimate",
-        show.aic = TRUE, show.family = TRUE)
-
-# --------------------------------------------
-# Change style of p-values and CI-appearance
-# --------------------------------------------
-# open HTML-table in RStudio Viewer Pane or web browser,
-# table indicating p-values as stars
-sjt.glm(fit1, fit2, fit3, p.numeric = FALSE,
-        show.aic = TRUE, show.family = TRUE)
-
-# open HTML-table in RStudio Viewer Pane or web browser,
-# indicating p-values as stars and integrate CI in OR column
-sjt.glm(fit1, fit2, fit3, p.numeric = FALSE, separate.ci.col = FALSE,
-        show.aic = TRUE, show.family = TRUE, show.r2 = TRUE)
-
-# ----------------------------------
-# automatic grouping of predictors
-# ----------------------------------
-library(sjmisc)
-# load efc sample data
-data(efc)
-# dichtomozize service usage by "service usage yes/no"
-efc$services <- sjmisc::dicho(efc$tot_sc_e, dich.by = 0, as.num = TRUE)
-# make dependency categorical
-efc$e42dep <- to_factor(efc$e42dep)
-# fit model with "grouped" predictor
-fit <- glm(services ~ neg_c_7 + c161sex + e42dep, data = efc)
-
-# automatic grouping of categorical predictors
-sjt.glm(fit)
-
-# ----------------------------------
-# compare models with different predictors
-# ----------------------------------
-fit2 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour, data = efc)
-fit3 <- glm(services ~ neg_c_7 + c161sex + e42dep + c12hour + c172code,
-            data = efc)
-
-# print models with different predictors
-sjt.glm(fit, fit2, fit3)
-
-efc$c172code <- to_factor(efc$c172code)
-fit2 <- glm(services ~ neg_c_7 + c161sex + c12hour, data = efc)
-fit3 <- glm(services ~ neg_c_7 + c161sex + c172code, data = efc)
-
-# print models with different predictors
-sjt.glm(fit, fit2, fit3, group.pred = FALSE)}
-
 }

@@ -12,7 +12,8 @@ plot_models(..., transform, std.est = NULL, rm.terms = NULL, title = NULL,
   spacing = 0.4, colors = "Set1", show.values = FALSE,
   show.legend = TRUE, show.intercept = FALSE, show.p = TRUE,
   p.shape = FALSE, ci.lvl = 0.95, vline.color = NULL, digits = 2,
-  grid = FALSE)
+  grid = FALSE, auto.label = TRUE, prefix.labels = c("none", "varname",
+  "label"))
 }
 \arguments{
 \item{...}{One or more regression models, including glm's or mixed models.
@@ -36,8 +37,14 @@ be used for plotting. Default is no standardization.
 \item{rm.terms}{Character vector with names that indicate which terms should
 be removed from the plot. Counterpart to \code{terms}. \code{rm.terms =
 "t_name"} would remove the term \emph{t_name}. Default is \code{NULL}, i.e.
-all terms are used. Note that this argument does not apply to
-\emph{Marginal Effects} plots.}
+all terms are used. For factors, levels that should be removed from the plot
+need to be explicitely indicated in square brackets, and match the model's
+coefficient names, e.g. \code{rm.terms = "t_name [2,3]"} would remove the terms
+\code{"t_name2"} and \code{"t_name3"} (assuming that the variable \code{t_name}
+was categorical and has at least the factor levels \code{2} and \code{3}).
+Another example for the \emph{iris} dataset would be
+\code{rm.terms = "Species [versicolor,virginica]"}. Note that the
+\code{rm.terms}-argument does not apply to \emph{Marginal Effects} plots.}
 
 \item{title}{Character vector, used as plot title. By default,
 \code{\link[sjlabelled]{get_dv_labels}} is called to retrieve the label of
@@ -48,9 +55,8 @@ to remove title.}
 in the plot's legend. If not specified, the labels of the dependent
 variables for each model are used.}
 
-\item{legend.title}{Character vector, used as title for the plot legend. Note that
-only some plot types have legends (e.g. \code{type = "pred"} or when
-grouping estimates with \code{group.estimates}).}
+\item{legend.title}{Character vector, used as legend title for plots that
+have a legend.}
 
 \item{legend.pval.title}{Character vector, used as title of the plot legend that
 indicates the p-values. Default is \code{"p-level"}. Only applies if
@@ -60,7 +66,11 @@ indicates the p-values. Default is \code{"p-level"}. Only applies if
 axis labels. By default, \code{\link[sjlabelled]{get_term_labels}} is
 called to retrieve the labels of the coefficients, which will be used as
 axis labels. Use \code{axis.labels = ""} or \code{auto.label = FALSE} to
-use the variable names as labels instead.}
+use the variable names as labels instead. If \code{axis.labels} is a named
+vector, axis labels (by default, the names of the model's coefficients)
+will be matched with the names of \code{axis.label}. This ensures that
+labels always match the related axis value, no matter in which way
+axis labels are sorted.}
 
 \item{axis.title}{Character vector of length one or two (depending on the
 plot function and type), used as title(s) for the x and y axis. If not
@@ -84,8 +94,11 @@ or axis labels are displayed in one line and when a line break is inserted.}
 \item{wrap.legend.title}{numeric, determines how many chars of the legend's title
 are displayed in one line and when a line break is inserted.}
 
-\item{grid.breaks}{Numeric; sets the distance between breaks for the axis,
-i.e. at every \code{grid.breaks}'th position a major grid is plotted.}
+\item{grid.breaks}{Numeric value or vector; if \code{grid.breaks} is a
+single value, sets the distance between breaks for the axis at every
+\code{grid.breaks}'th position, where a major grid line is plotted. If
+\code{grid.breaks} is a vector, values will be used to define the
+axis positions of the major grid lines.}
 
 \item{dot.size}{Numeric, size of the dots that indicate the point estimates.}
 
@@ -102,7 +115,7 @@ color palette. Following options are valid for the \code{colors} argument:
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item If \pkg{wesanderson} is installed, you may also specify a name of a palette from that package.
   \item If \pkg{viridis} is installed, use \code{colors = "v"} to get the viridis color palette.
-  \item There are some pre-defined color palettes in this package: \code{"aqua", "warm", "dust", "blambus", "simply", "us"}.
+  \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
 }}
 
@@ -141,6 +154,17 @@ estimates or values.}
 
 \item{grid}{Logical, if \code{TRUE}, multiple plots are plotted as grid
 layout.}
+
+\item{auto.label}{Logical, if \code{TRUE} (the default), plot-labels are
+based on value and variable labels, if the data is labelled. See
+\code{\link[sjlabelled]{get_label}} and
+\code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
+original variable names and value labels (factor levels) are used.}
+
+\item{prefix.labels}{Indicates whether the value labels of categorical variables
+should be prefixed, e.g. with the variable name or variable label. See
+argument \code{prefix} in \code{\link[sjlabelled]{get_term_labels}} for
+details.}
 }
 \value{
 A ggplot-object.

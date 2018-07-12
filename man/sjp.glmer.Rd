@@ -26,11 +26,10 @@ sjp.glmer(fit, type = "re", vars = NULL, ri.nr = NULL,
   \item{\code{"fe.cor"}}{for correlation matrix of fixed effects}
   \item{\code{"re.qq"}}{for a QQ-plot of random effects (random effects quantiles against standard normal quantiles)}
   \item{\code{"ri.slope"}}{to plot probability or incidents curves (predicted probabilities or incidents) of random intercept variances for all fixed effects coefficients. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
-  \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random parts of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
+  \item{\code{"rs.ri"}}{for fitted probability curves (predicted probabilities) indicating the random slope-intercept pairs. Use this to visualize the random effects of random slope-intercept (or repeated measure) models. When having too many groups, use \code{sample.n} argument.}
   \item{\code{"eff"}}{to plot marginal effects of predicted probabilities or incidents for each fixed term, where remaining co-variates are set to the mean. Use \code{facet.grid} to decide whether to plot each coefficient as separate plot or as integrated faceted plot. See 'Details'.}
   \item{\code{"pred"}}{to plot predicted probabilities or incidents for the response, related to specific model predictors and conditioned on random effects. See 'Details'.}
   \item{\code{"pred.fe"}}{to plot predicted probabilities or incidents for the response, related to specific model predictors, only for fixed effects. See 'Details'.}
-  \item{\code{"ma"}}{to check model assumptions. Note that only argument \code{fit} applies to this plot type. All other arguments are ignored.}
 }}
 
 \item{vars}{Numeric vector with column indices of selected variables or a character vector with
@@ -271,59 +270,4 @@ By default, this function plots estimates (odds, risk or incidents
                to compute fixed effects correlation matrices and qq-plots of
                random effects.}
        }
-}
-\examples{
-library(lme4)
-library(sjmisc)
-library(sjlabelled)
-# create binary response
-sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "median")
-# fit model
-fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
-             data = sleepstudy, family = binomial("logit"))
-
-# simple plot
-sjp.glmer(fit)
-
-# sort by predictor Days
-sjp.glmer(fit, sort.est = "Days")
-
-\dontrun{
-data(efc)
-# create binary response
-efc$hi_qol <- dicho(efc$quol_5)
-# prepare group variable
-efc$grp = as.factor(efc$e15relat)
-levels(x = efc$grp) <- get_labels(efc$e15relat)
-# data frame for fitted model
-mydf <- data.frame(hi_qol = to_factor(efc$hi_qol),
-                   sex = to_factor(efc$c161sex),
-                   education = to_factor(efc$c172code),
-                   c12hour = efc$c12hour,
-                   neg_c_7 = efc$neg_c_7,
-                   grp = efc$grp)
-
-# fit glmer, with categorical predictor with more than 2 levels
-fit <- glmer(hi_qol ~ sex + education + c12hour + neg_c_7 + (1|grp),
-             data = mydf, family = binomial("logit"))
-
-# plot and sort fixed effects, axis labels automatically retrieved
-sjp.glmer(fit, type = "fe", sort.est = TRUE)
-
-# plot probability curves (predicted probabilities)
-# for each covariate, grouped by random intercepts
-# in integrated plots, emphasizing groups 1 and 4
-sjp.glmer(fit, type = "ri.slope", emph.grp = c(1, 4), facet.grid = FALSE)
-
-# plot predicted probabilities for response,
-# non faceted, with ci
-sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "education"),
-          show.ci = TRUE, facet.grid = FALSE)
-
-# predictions by gender and education
-sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex", "education"))}
-
-}
-\seealso{
-\href{http://www.strengejacke.de/sjPlot/sjp.glmer/}{sjPlot manual: sjp.glmer}
 }

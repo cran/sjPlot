@@ -10,13 +10,15 @@ plot_model(model, type = c("est", "re", "eff", "pred", "int", "std", "std2",
   rm.terms = NULL, group.terms = NULL, order.terms = NULL,
   pred.type = c("fe", "re"), mdrt.values = c("minmax", "meansd", "zeromax",
   "quart", "all"), ri.nr = NULL, title = NULL, axis.title = NULL,
-  axis.labels = NULL, wrap.title = 50, wrap.labels = 25,
-  axis.lim = NULL, grid.breaks = NULL, ci.lvl = NULL, se = NULL,
-  colors = "Set1", show.intercept = FALSE, show.values = FALSE,
-  show.p = TRUE, show.data = FALSE, show.legend = TRUE,
-  value.offset = NULL, value.size, digits = 2, dot.size = NULL,
-  line.size = NULL, vline.color = NULL, grid, case = "parsed",
-  auto.label = TRUE, bpe = "median", bpe.style = "line", ...)
+  axis.labels = NULL, legend.title = NULL, wrap.title = 50,
+  wrap.labels = 25, axis.lim = NULL, grid.breaks = NULL, ci.lvl = NULL,
+  se = NULL, colors = "Set1", show.intercept = FALSE,
+  show.values = FALSE, show.p = TRUE, show.data = FALSE,
+  show.legend = TRUE, show.zeroinf = TRUE, value.offset = NULL,
+  value.size, jitter = NULL, digits = 2, dot.size = NULL,
+  line.size = NULL, vline.color = NULL, grid, case, auto.label = TRUE,
+  prefix.labels = c("none", "varname", "label"), bpe = "median",
+  bpe.style = "line", bpe.color = "white", ...)
 
 get_model_data(model, type = c("est", "re", "eff", "pred", "int", "std",
   "std2", "slope", "resid", "diag"), transform, terms = NULL,
@@ -75,35 +77,60 @@ models remain untransformed. Use \code{NULL} if you want the raw,
 non-transformed estimates.}
 
 \item{terms}{Character vector with the names of those terms from \code{model}
-that should be plotted. This argument depends on the plot-type: \describe{
-\item{\emph{Coefficients}}{ Select terms that should be plotted. All other
-term are removed from the output. } \item{\emph{Marginal Effects}}{ Here
-\code{terms} indicates for which terms marginal effects should be
-displayed. At least one term is required to calculate effects, maximum
-length is three terms, where the second and third term indicate the groups,
-i.e. predictions of first term are grouped by the levels of the second (and
-third) term. \code{terms} may also indicate higher order terms (e.g.
-interaction terms). Indicating levels in square brackets allows for
-selecting only specific groups. Term name and levels in brackets must be
-separated by a whitespace character, e.g. \code{terms = c("age", "education
-[1,3]")}. For more details, see \code{\link[ggeffects]{ggpredict}}. } }}
+ that should be plotted. This argument depends on the plot-type:
+ \describe{
+   \item{\emph{Coefficients}}{Select terms that should be plotted. All other
+     term are removed from the output. Note that the term names must match
+     the names of the model's coefficients. For factors, this means that
+     the variable name is suffixed with the related factor level, and each
+     category counts as one term. E.g. \code{rm.terms = "t_name [2,3]"}
+     would remove the terms \code{"t_name2"} and \code{"t_name3"} (assuming
+     that the variable \code{t_name} is categorical and has at least
+     the factor levels \code{2} and \code{3}). Another example for the
+     \emph{iris}-dataset: \code{terms = "Species"} would not work, instead
+     you would write \code{terms = "Species [versicolor,virginica]"} to
+     remove these two levels, or \code{terms = "Speciesversicolor"} if you
+     just want to remove the level \emph{versicolor} from the plot.}
+   \item{\emph{Marginal Effects}}{Here \code{terms} indicates for which
+     terms marginal effects should be displayed. At least one term is
+     required to calculate effects, maximum length is three terms, where
+     the second and third term indicate the groups, i.e. predictions of
+     first term are grouped by the levels of the second (and third) term.
+     \code{terms} may also indicate higher order terms (e.g. interaction
+     terms). Indicating levels in square brackets allows for selecting only
+     specific groups. Term name and levels in brackets must be separated by
+     a whitespace character, e.g. \code{terms = c("age", "education [1,3]")}.
+     It is also possible to specify a range of numeric values for the
+     predictions with a colon, for instance \code{terms = c("education [1,3]",
+     "age [30:50]")}. Furthermore, it is possible to specify a function name.
+     Values for predictions will then be transformed, e.g.
+     \code{terms = "income [exp]"}. This is useful when model predictors were
+     transformed for fitting the model and should be back-transformed to the
+     original scale for predictions. Finally, using \code{pretty} for numeric
+     variables (e.g. \code{terms = "age [pretty]"}) calculates a pretty range
+     of values for the term, roughly of proportional length to the term's
+     value range. For more details, see \code{\link[ggeffects]{ggpredict}}.}
+}}
 
 \item{sort.est}{Determines in which way estimates are sorted in the plot:
-\itemize{ \item If \code{NULL} (default), no sorting is done and estimates
-are sorted in the same order as they appear in the model formula. \item If
-\code{TRUE}, estimates are sorted in descending order, with highedt
-estimate at the top. \item If \code{sort.est = "sort.all"}, estimates are
-re-sorted for each coefficient (only applies if \code{type = "re"} and
-\code{grid = FALSE}), i.e. the estimates of the random effects for each
-predictor are sorted and plotted to an own plot. \item If \code{type =
-"re"}, specify a predictor's / coefficient's name to sort estimates
-according to this random effect. }}
+\itemize{
+  \item If \code{NULL} (default), no sorting is done and estimates are sorted in the same order as they appear in the model formula.
+  \item If \code{TRUE}, estimates are sorted in descending order, with highest estimate at the top.
+  \item If \code{sort.est = "sort.all"}, estimates are re-sorted for each coefficient (only applies if \code{type = "re"} and \code{grid = FALSE}), i.e. the estimates of the random effects for each predictor are sorted and plotted to an own plot.
+  \item If \code{type = "re"}, specify a predictor's / coefficient's name to sort estimates according to this random effect.
+}}
 
 \item{rm.terms}{Character vector with names that indicate which terms should
 be removed from the plot. Counterpart to \code{terms}. \code{rm.terms =
 "t_name"} would remove the term \emph{t_name}. Default is \code{NULL}, i.e.
-all terms are used. Note that this argument does not apply to
-\emph{Marginal Effects} plots.}
+all terms are used. For factors, levels that should be removed from the plot
+need to be explicitely indicated in square brackets, and match the model's
+coefficient names, e.g. \code{rm.terms = "t_name [2,3]"} would remove the terms
+\code{"t_name2"} and \code{"t_name3"} (assuming that the variable \code{t_name}
+was categorical and has at least the factor levels \code{2} and \code{3}).
+Another example for the \emph{iris} dataset would be
+\code{rm.terms = "Species [versicolor,virginica]"}. Note that the
+\code{rm.terms}-argument does not apply to \emph{Marginal Effects} plots.}
 
 \item{group.terms}{Numeric vector with group indices, to group coefficients.
 Each group of coefficients gets its own color (see 'Examples').}
@@ -115,7 +142,8 @@ should be plotted. See examples in
 \item{pred.type}{Character, only applies for \emph{Marginal Effects} plots
 with mixed effects models. Indicates whether predicted values should be
 conditioned on random effects (\code{pred.type = "re"}) or fixed effects
-only (\code{pred.type = "fe"}, the default).}
+only (\code{pred.type = "fe"}, the default). For details, see documentation
+of the \code{type}-argument in \code{\link[ggeffects]{ggpredict}}.}
 
 \item{mdrt.values}{Indicates which values of the moderator variable should be
 used when plotting interaction terms (i.e. \code{type = "int"}). \describe{
@@ -161,7 +189,14 @@ titles.}
 axis labels. By default, \code{\link[sjlabelled]{get_term_labels}} is
 called to retrieve the labels of the coefficients, which will be used as
 axis labels. Use \code{axis.labels = ""} or \code{auto.label = FALSE} to
-use the variable names as labels instead.}
+use the variable names as labels instead. If \code{axis.labels} is a named
+vector, axis labels (by default, the names of the model's coefficients)
+will be matched with the names of \code{axis.label}. This ensures that
+labels always match the related axis value, no matter in which way
+axis labels are sorted.}
+
+\item{legend.title}{Character vector, used as legend title for plots that
+have a legend.}
 
 \item{wrap.title}{Numeric, determines how many chars of the plot title are
 displayed in one line and when a line break is inserted.}
@@ -174,8 +209,11 @@ axis. Depending on plot-type, may effect either x- or y-axis. For
 \emph{Marginal Effects} plots, \code{axis.lim} may also be a list of two
 vectors of length 2, defining axis limits for both the x and y axis.}
 
-\item{grid.breaks}{Numeric; sets the distance between breaks for the axis,
-i.e. at every \code{grid.breaks}'th position a major grid is plotted.}
+\item{grid.breaks}{Numeric value or vector; if \code{grid.breaks} is a
+single value, sets the distance between breaks for the axis at every
+\code{grid.breaks}'th position, where a major grid line is plotted. If
+\code{grid.breaks} is a vector, values will be used to define the
+axis positions of the major grid lines.}
 
 \item{ci.lvl}{Numeric, the level of the confidence intervals (error bars).
 Use \code{ci.lvl = NA} to remove error bars. For \code{stanreg}-models,
@@ -190,7 +228,7 @@ such cases. See \code{prob.inner} and \code{prob.outer} under the
 \item{se}{Either a logical, and if \code{TRUE}, error bars indicate standard
 errors, not confidence intervals. Or a character vector with a specification
 of the covariance matrix to compute robust standard errors (see argument
-\code{vcov} of \code{link[sjstats]{robust}} for valid values; robust standard
+\code{vcov} of \code{\link[sjstats]{robust}} for valid values; robust standard
 errors are only supported for models that work with \code{\link[lmtest]{coeftest}}).
 \code{se} overrides \code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
 and \code{transform} will be ignored. Currently, \code{se} only applies
@@ -206,7 +244,7 @@ color palette. Following options are valid for the \code{colors} argument:
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item If \pkg{wesanderson} is installed, you may also specify a name of a palette from that package.
   \item If \pkg{viridis} is installed, use \code{colors = "v"} to get the viridis color palette.
-  \item There are some pre-defined color palettes in this package: \code{"aqua", "warm", "dust", "blambus", "simply", "us"}.
+  \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
 }}
 
@@ -226,12 +264,20 @@ raw data points.}
 \item{show.legend}{For \emph{Marginal Effects} plots, shows or hides the
 legend.}
 
+\item{show.zeroinf}{Logical, if \code{TRUE}, shows the zero-inflation part of
+hurdle- or zero-inflated models.}
+
 \item{value.offset}{Numeric, offset for text labels to adjust their position
 relative to the dots or lines.}
 
 \item{value.size}{Numeric, indicates the size of value labels. Can be used
 for all plot types where the argument \code{show.values} is applicable,
 e.g. \code{value.size = 4}.}
+
+\item{jitter}{Numeric, between 0 and 1. If \code{show.data = TRUE}, you can
+add a small amount of random variation to the location of each data point.
+\code{jitter} then indicates the width, i.e. how much of a bin's width
+will be occupied by the jittered values.}
 
 \item{digits}{Numeric, amount of digits after decimal point when rounding
 estimates or values.}
@@ -248,7 +294,12 @@ layout.}
 
 \item{case}{Desired target case. Labels will automatically converted into the
 specified character case. See \code{\link[snakecase]{to_any_case}} for more
-details on this argument.}
+details on this argument. By default, if \code{case} is not specified,
+it will be set to \code{"parsed"}, unless \code{prefix.labels} is not
+\code{"none"}. If \code{prefix.labels} is either \code{"label"} (or
+\code{"l"}) or \code{"varname"} (or \code{"v"}) and \code{case} is not
+specified, it will be set to \code{NULL} - this is a more convenient
+default when prefixing labels.}
 
 \item{auto.label}{Logical, if \code{TRUE} (the default), plot-labels are
 based on value and variable labels, if the data is labelled. See
@@ -256,10 +307,15 @@ based on value and variable labels, if the data is labelled. See
 \code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
 original variable names and value labels (factor levels) are used.}
 
+\item{prefix.labels}{Indicates whether the value labels of categorical variables
+should be prefixed, e.g. with the variable name or variable label. See
+argument \code{prefix} in \code{\link[sjlabelled]{get_term_labels}} for
+details.}
+
 \item{bpe}{For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
 \pkg{brms}-package), the Bayesian point estimate is, by default, the median
 of the posterior distribution. Use \code{bpe} to define other functions to
-calculate the Bayesion point estimate. \code{bpe} needs to be a character
+calculate the Bayesian point estimate. \code{bpe} needs to be a character
 naming the specific function, which is passed to the \code{fun}-argument in
 \code{\link[sjstats]{typical_value}}. So, \code{bpe = "mean"} would
 calculate the mean value of the posterior distribution.}
@@ -268,6 +324,10 @@ calculate the mean value of the posterior distribution.}
 \pkg{brms}-package), the Bayesian point estimate is indicated as a small,
 vertical line by default. Use \code{bpe.style = "dot"} to plot a dot
 instead of a line for the point estimate.}
+
+\item{bpe.color}{Character vector, indicating the color of the Bayesian
+point estimate. Setting \code{bpe.color = NULL} will inherit the color
+from the mapped aesthetic to match it with the geom's color.}
 
 \item{...}{Other arguments, passed down to various functions. Here is a list
 of supported arguments and their description in detail.
@@ -283,12 +343,16 @@ of supported arguments and their description in detail.
   }
   \item{\code{size.inner}}{For \strong{Stan}-models and \emph{Coefficients}
     plot-types, you can specify the width of the bar for the inner
-    probabilities. Default is \code{0.1}.
+    probabilities. Default is \code{0.1}. Setting \code{size.inner = 0}
+    removes the inner probability regions.
   }
-  \item{\code{width}, \code{alpha} and \code{scale}}{Passed down to
-    \code{geom_errorbar()} or \code{geom_density_ridges()}, for forest or
-    diagnostic plots; or passed down to \code{\link[ggeffects]{plot.ggeffects}}
-    for \emph{Marginal Effects} plots.
+  \item{\code{width}, \code{alpha}, and \code{scale}}{Passed
+    down to \code{geom_errorbar()} or \code{geom_density_ridges()}, for
+    forest or diagnostic plots.
+  }
+  \item{\code{width}, \code{alpha}, \code{dot.alpha}, \code{dodge} and \code{log.y}}{Passed
+    down to \code{\link[ggeffects]{plot.ggeffects}} for \emph{Marginal Effects}
+    plots.
   }
   \item{\code{show.loess}}{Logical, for diagnostic plot-types \code{"slope"}
     and \code{"resid"}, adds (or hides) a loess-smoothed line to the plot.
@@ -365,6 +429,10 @@ plot_model(m)
 
 # grouped coefficients
 plot_model(m, group.terms = c(1, 2, 3, 3, 3, 4, 4))
+
+# keep only selected terms in the model: pos_v_4, the
+# levels 3 and 4 of factor e42dep and levels 2 and 3 for c172code
+plot_model(m, terms = c("pos_v_4", "e42dep [3,4]", "c172code [2,3]"))
 
 # multiple plots, as returned from "diagnostic"-plot type,
 # can be arranged with 'plot_grid()'

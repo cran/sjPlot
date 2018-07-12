@@ -3,11 +3,6 @@
 #'
 #' @description Shows (multiple) frequency tables as HTML file, or saves them as file.
 #'
-#' @seealso \itemize{
-#'            \item \href{http://www.strengejacke.de/sjPlot/sjt.frq/}{sjPlot manual: sjt.frq}
-#'            \item \code{\link{sjp.frq}}
-#'          }
-#'
 #' @param data A vector or a data frame, for which frequencies should be printed
 #'          as table.
 #' @param file Destination file, if the output should be saved as file.
@@ -62,7 +57,7 @@
 #'          Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions, according to the
 #'          \href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-#'          see \href{../doc/sjtbasic.html}{this package-vignette}, or 'Details' in
+#'          see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
 #'          \code{\link{sjt.frq}}.
 #' @param use.viewer Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
 #'          \code{FALSE} or no viewer available, the HTML table is opened in a web browser.
@@ -86,33 +81,6 @@
 #' @inheritParams sjp.glmer
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.frq
-#'
-#' @note The HTML tables can either be saved as file and manually opened (use argument \code{file}) or
-#'         they can be saved as temporary files and will be displayed in the RStudio Viewer pane (if working with RStudio)
-#'         or opened with the default web browser. Displaying resp. opening a temporary file is the
-#'         default behaviour (i.e. \code{file = NULL}).
-#'
-#' @details \bold{How do I use \code{CSS}-argument?}
-#'            \cr \cr
-#'            With the \code{CSS}-argument, the visual appearance of the tables
-#'            can be modified. To get an overview of all style-sheet-classnames
-#'            that are used in this function, see return value \code{page.style} for details.
-#'            Arguments for this list have following syntax:
-#'          \enumerate{
-#'            \item the class-names with \code{"css."}-prefix as argument name and
-#'            \item each style-definition must end with a semicolon
-#'          }
-#'          You can add style information to the default styles by using a + (plus-sign) as
-#'          initial character for the argument attributes. Examples:
-#'          \itemize{
-#'            \item \code{css.table = 'border:2px solid red;'} for a solid 2-pixel table border in red.
-#'            \item \code{css.summary = 'font-weight:bold;'} for a bold fontweight in the summary row.
-#'            \item \code{css.lasttablerow = 'border-bottom: 1px dotted blue;'} for a blue dotted border of the last table row.
-#'            \item \code{css.colnames = '+color:green'} to add green color formatting to column names.
-#'            \item \code{css.arc = 'color:blue;'} for a blue text color each 2nd row.
-#'            \item \code{css.caption = '+color:red;'} to add red font-color to the default table caption style.
-#'          }
-#'          See further examples in \href{../doc/sjtbasic.html}{this package-vignette}.
 #'
 #' @examples
 #' \dontrun{
@@ -158,7 +126,7 @@
 #' @importFrom psych describe
 #' @importFrom stats na.omit weighted.mean
 #' @importFrom sjmisc group_str
-#' @importFrom sjlabelled get_note set_labels
+#' @importFrom sjlabelled set_labels
 #' @export
 sjt.frq <- function(data,
                     weight.by = NULL,
@@ -190,11 +158,8 @@ sjt.frq <- function(data,
                     use.viewer = TRUE,
                     no.output = FALSE,
                     remove.spaces = TRUE) {
-  if (stats::runif(1) < .4)
-    message("`sjt.frq()` will become deprecated in the future. Please use `sjmisc::frq(out = \"v\")` instead.")
 
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("sjmisc::frq(out = \"v\")")
 
   # check encoding
   encoding <- get.encoding(encoding, data)
@@ -334,12 +299,12 @@ sjt.frq <- function(data,
     # if yes, iterate each variable
     for (i in seq_len(ncol(data))) {
       # retrieve note attribute
-      note.labels <- c(note.labels, sjlabelled::get_note(data[[i]]))
+      note.labels <- c(note.labels, comment(data[[i]]))
     }
     # we have a single variable only
   } else {
     # retrieve note attribute
-    note.labels <- c(note.labels, sjlabelled::get_note(data))
+    note.labels <- c(note.labels, comment(data))
   }
 
   # make data frame of single variable, so we have
@@ -387,7 +352,7 @@ sjt.frq <- function(data,
       # here we have numeric or factor variables
     } else {
       # convert to numeric
-      orivar <- varia <- sjmisc::to_value(data[[cnt]], keep.labels = F)
+      orivar <- varia <- sjlabelled::as_numeric(data[[cnt]], keep.labels = F)
     }
 
     # check for length of unique values and skip if too long
@@ -403,7 +368,7 @@ sjt.frq <- function(data,
       # group labels
       val.lab <-
         sjmisc::group_labels(
-          sjmisc::to_value(data[[cnt]], keep.labels = F),
+          sjlabelled::as_numeric(data[[cnt]], keep.labels = F),
           size = "auto",
           n = auto.group
         )
@@ -411,7 +376,7 @@ sjt.frq <- function(data,
       # group variable
       data[[cnt]] <-
         sjmisc::group_var(
-          sjmisc::to_value(data[[cnt]], keep.labels = F),
+          sjlabelled::as_numeric(data[[cnt]], keep.labels = F),
           size = "auto",
           as.num = TRUE,
           n = auto.group,

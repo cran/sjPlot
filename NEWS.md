@@ -1,3 +1,54 @@
+# sjPlot 2.5.0
+
+## New functions
+
+* `tab_model()` as replacement for `sjt.lm()`, `sjt.glm()`, `sjt.lmer()` and `sjt.glmer()`. Furthermore, `tab_model()` is designed to work with the same model-objects as `plot_model()`.
+* New colour scales for ggplot-objects: `scale_fill_sjplot()` and `scale_color_sjplot()`. These provide predifined colour palettes from this package.
+* `show_sjplot_pals()` to show all predefined colour palettes provided by this package.
+* `sjplot_pal()` to return colour values of a specific palette.
+
+## Deprecated
+
+Following functions are now deprecated:
+
+* `sjp.lm()`, `sjp.glm()`, `sjp.lmer()`, `sjp.glmer()` and `sjp.int()`. Please use `plot_model()` instead.
+* `sjt.frq()`. Please use `sjmisc::frq(out = "v")` instead.
+
+## Removed / Defunct
+
+Following functions are now defunct:
+
+* `sjt.grpmean()`, `sjt.mwu()` and `sjt.df()`. The replacements are `sjstats::grpmean()`, `sjstats::mwu()` and `tab_df()` resp. `tab_dfs()`.
+
+## Changes to functions
+
+* `plot_model()` and `plot_models()` get a `prefix.labels`-argument, to prefix automatically retrieved term labels with either the related variable name or label.
+* `plot_model()` gets a `show.zeroinf`-argument to show or hide the zero-inflation-part of models in the plot.
+* `plot_model()` gets a `jitter`-argument to add some random variation to data points for those plot types that accept `show.data = TRUE`.
+* `plot_model()` gets a `legend.title`-argument to define the legend title for plots that display a legend.
+* `plot_model()` now passes more arguments in `...` down to `ggeffects::plot()` for marginal effects plots.
+* `plot_model()` now plots the zero-inflated part of the model for `brmsfit`-objects.
+* `plot_model()` now plots multivariate response models, i.e. models with multiple outcomes.
+* Diagnostic plots in `plot_model()` (`type = "diag"`) can now also be used with `brmsfit`-objects.
+* Axis limits of diagnostic plots in `plot_model()` (`type = "diag"`) for Stan-models (`brmsfit` or `stanreg` resp. `stanfit`) can now be set with the `axis.lim`-argument.
+* The `grid.breaks`-argument for `plot_model()` and `plot_models()` now also takes a vector of values to directly define the grid breaks for the plot.
+* Better default calculation for grid breaks in `plot_model()` and `plot_models()` when the `grid.breaks`-argument is of length one.
+* The `terms`-argument for `plot_model()` now also allows the specification of a range of numeric values in square brackets for marginal effects plots, e.g. `terms = "age [30:50]"` or `terms = "age [pretty]"`.
+* For coefficient-plots, the `terms`- and `rm.terms`-arguments for `plot_model()` now also allows specification of factor levels for categorical terms. Coefficients for the indicted factor levels are kept resp. removed (see `?plot_model` for details).
+* `plot_model()` now supports `clmm`-objects (package *ordinal*).
+* `plot_model(type = "diag")` now also shows random-effects QQ-plots for `glmmTMB`-models, and also plots random-effects QQ-plots for all random effects (if model has more than one random effect term).
+
+## Bug fixes
+
+* `plot_model(type = "re")` now supports standard errors and confidence intervals for `glmmTMB`-objects.
+* Fixed typo for `glmmTMB`-tidier, which may have returned wrong data for zero-inflation part of model.
+* Multiple random intercepts for multilevel models fitted with `brms` area now shown in each own facet per intercept.
+* Remove unnecessary warning in `sjp.likert()` for uneven category count when neutral category is specified.
+* `plot_model(type = "int")` could not automatically select `mdrt.values` properly for non-integer variables.
+* `sjp.grpfrq()` now correctly uses the complete space in facets when `facet.grid = TRUE`.
+* `sjp.grpfrq(type = "boxplot")` did not correctly label the x-axis when one category had no elements in a vector.
+* Problems with German umlauts when printing HTML tables were fixed.
+
 # sjPlot 2.4.1
 
 ## General
@@ -138,95 +189,3 @@
 ## Bug fixes
 
 * Plotting or table output of regression models did not work with null-models (i.e. with intercept only).
-
-# sjPlot 2.2.1
-
-## Changes to functions
-
-* `sjp.lm()` for `type = "ma"` now uses subtitles in multi-line plot-titles.
-
-## Bug fixes
-
-* Residuals in `sjp.kfold_cv()` had wrong leading sign (i.e. positive residuals were negative and vice versa).
-
-# sjPlot 2.2.0
-
-## New Functions
-
-* `sjp.kfold_cv()` to plot model fit from k-fold cross-validation.
-
-## Changes to functions
-
-* Argument `scatter.plot` was renamed to `show.scatter`.
-* Argument `var.labels` in `sjt.frq()` was renamed to `title`.
-* `sjplot()` and `sjtab()` also accept grouped data frames, to create plots or tables for all subgroups.
-* For `sjp.glm()` and `sjp.glmer()`, `type = "pred"`, `type = "slope"`, `type = "pred.fe"` and `type = "fe.slope"` can now also plot data points when `show.scatter = TRUE`. Use `point.alpha` to adjust alpha-level of data points.
-* For `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()`, `type = "pred"` and `type = "pred.fe"` now plot error bars for `show.ci = TRUE` and a discrete variable on the x-axis.
-* For `sjp.glm()` and `sjp.glmer()`, `type = "pred"` and `type = "pred.fe"` now accept three variables for the `vars`-argument, to facet grouped predictions by a third variable.
-* For `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()`, the `...`-ellipses argument now is also passed down to all errorbars- and smooth-geoms in prediction- and effect-plots, so you can now use the `width`-argument to show the small stripes at the lower/upper end of the error bars, the `alpha`-argument to define alpha-level or the `level`-argument to define the level of confidence bands.
-* `sjp.lm()`, `sjp.lmer()`, `sjp.glm()` and `sjp.glmer()` get a `point.color`-argument, do define color of point-geoms when `show.scatter = TRUE`. If not defined, point-geoms will have same group-color as lines.
-* Effect-plots (`type = "eff"`) now plot data points for discrete variables on the x-axis.
-* `sjt.lm()` and `sjt.glm()` get a `robust`-argument to compute robust standard errors and confidence intervals.
-* `sjp.resid()` now also returns a plot with the residual pattern, `$pattern`.
-* Plot and axis titles from effect-plots can now be changed with `title` or `axis.title` argument. Use a character vector of length > 1 to define (axis) titles for each plot or facet; use `""` to remove the titles.
-* Pick better defaults for `geom.size`-argument for histogram and density plots in `sjp.frq()`.
-* Improved automatic label detection for regression models for plot or table output.
-
-## Bug fixes
-
-* Restored correct order of categories in `sjp.xtab()` and `sjp.grpfrq()` for stacked bars (`position_stack()` reversed order since last ggplot2-update), so labels are now correclty positioned again.
-* Restored correct order of categories in `sjp.likert()`, so groups are now in correct order again.
-* Fixed bug in `sjt.grpmean()` for variables with unused value labels (values that were labelled, but did not appear on the vector).
-* Fixed wrong documentation for `show.summary`-argument in `sjt.xtab()`.
-* `sjt.frq()` and `sjp.frq()` showed messed up labels when a labelled vector had both `NA` values _and_ `NaN` or infinite values.
-* `sjtab()` did not create tables for `fun = "xtab"` with additional arguments.
-
-
-# sjPlot 2.1.2
-
-## General
-
-* Effect-plots from `sjp.int()`, `sjp.glm()` and `sjp.glmer()` now support the `transformation`-argument from the __effects__-package. For example, when calling `sjp.glm(fit, type = "eff", transformation = NULL)`, predictions are on their original scale (y-scale) and the title for the y-scale is changed accordingly.
-
-## Changes to functions
-
-* Restored order of categories in `sjp.stackfrq()`, which were reversed by the last ggplot2-update, where `position_stack()` now sort the stacking order to match grouping order.
-
-## Bug fixes
-
-* Fixed bug in `sjplot()` that caused figures not being plotted in certain situations.
-* Fixed bug in `sjp.lmm()`, which caused an error for plotting multiple mixed models when Intercept was hidden.
-* Fixed bug in `sjp.lmm()`, which caused an error for plotting multiple mixed models when `type = "std"` or `type = "std2"`.
-
-# sjPlot 2.1.1
-
-## General
-
-* Some fixes needed to be compatible with the latest ggplot2-update.
-
-## New functions
-
-* `sjplot`, a pipe-friendly wrapper for some of this package's plotting-functions.
-* `sjtab`, a pipe-friendly wrapper for some of this package's table-functions.
-
-
-# sjPlot 2.1.0
-
-## New functions
-
-* `sjp.resid`, an experimental function to plot and analyze residuals from linear models.
-* `plot_grid` to plot a list of ggplot-objects as arranged grid in a single plot.
-* `set_theme` to use a preset of default themes for plots from the sjp-functions.
-
-## Changes to functions
-
-* For `sjp.glmer` and `sjp.lmer`, argument `show.ci` now also applies for plotting random effects (`type = "re"`, the default), so confidence intervals may not be calculated. This may be useful in some cases where computation of standard errors for random effects caused an error.
-* Effect plots (`type = "eff"`) for `sjp.lm`, `sjp.glm`, `sjp.lmer` and `sjp.glmer` should now better handle categorical variables and their labels, including using error bars insted of regions for confidence intervals.
-* `table(*, exclude = NULL)` was changed to `table(*, useNA = "always")`, because of planned changes in upcoming R version 3.4.
-* `get_option("p_zero")` was removed, and `sjt.lm`, `sjt.glm`, `sjt.lmer` and `sjt.glmer` get a `p.zero` argument.
-* `sjp.setTheme` no longer sets default theme presets for plots; use `set_theme` instead.
-
-## Bug fixes
-
-* A bug introduced in update 2.0.2 caused an error in `sjp.lm` for `type = "std"`.
-* Effect plots (`type = "eff"`) for `sjp.lm`, `sjp.glm`, `sjp.lmer` and `sjp.glmer` did not plot all predictors, when predictor name was not exactly specified in formula, but transformed inside formula (e.g. `log(pred + 1)`).

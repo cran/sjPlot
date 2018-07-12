@@ -75,6 +75,31 @@ set_theme(base = theme_light())
 sjp.frq(efc$e42dep)
 
 ## ------------------------------------------------------------------------
+library(sjmisc)
+data(efc)
+efc <- to_factor(efc, e42dep, c172code)
+m <- lm(neg_c_7 ~ pos_v_4 + c12hour + e42dep + c172code, data = efc)
+
+# reset theme
+set_theme(base = theme_grey())
+
+# forest plot of regression model
+p <- plot_model(m)
+
+# default theme
+p
+# pre-defined theme
+p + theme_sjplot()
+
+## ------------------------------------------------------------------------
+p + 
+  theme_sjplot2() + 
+  scale_color_sjplot("simply")
+
+## ------------------------------------------------------------------------
+show_sjplot_pals()
+
+## ------------------------------------------------------------------------
 set_theme(base = theme_bw(), axis.linecolor = "darkgreen")
 sjp.frq(efc$e42dep)
 

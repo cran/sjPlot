@@ -2,10 +2,10 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.4.1
-Date: 2018-02-05
+Version: 2.5.0
+Date: 2018-07-10
 Authors@R: c(
-    person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre")),
+    person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb")
           )
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
@@ -19,22 +19,21 @@ Description: Collection of plotting and table output functions for data
     labelled data.
 License: GPL-3
 Depends: R (>= 3.2), graphics, grDevices, stats, utils
-Imports: arm, broom (>= 0.4.2), dplyr (>= 0.7.1), effects, forcats,
-        ggeffects (>= 0.3.1), glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4
-        (>= 1.1-12), magrittr, MASS, merTools (>= 0.3.0), modelr, nlme,
-        psych, purrr, rlang, scales, sjlabelled (>= 1.0.7), sjmisc (>=
-        2.6.3), sjstats (>= 0.14.0), tidyselect, tibble (>= 1.3.3),
-        tidyr (>= 0.7.0)
-Suggests: AICcmodavg, car, cluster, GPArotation, gridExtra, ggrepel,
-        ggridges, lmerTest, lmtest, rstanarm, survey, viridis,
+Imports: arm, broom (>= 0.4.5), dplyr (>= 0.7.5), effects, forcats,
+        ggeffects (>= 0.4.0), glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4
+        (>= 1.1-12), magrittr, MASS, modelr, nlme, psych, purrr, rlang,
+        scales, sjlabelled (>= 1.0.12), sjmisc (>= 2.7.3), sjstats (>=
+        0.15.0), tidyselect, tibble (>= 1.3.3), tidyr (>= 0.7.0)
+Suggests: AICcmodavg, brms, car, cluster, GPArotation, gridExtra,
+        ggrepel, ggridges, pscl, rstanarm, survey, TMB, viridis,
         wesanderson, Zelig
 URL: https://github.com/strengejacke/sjPlot
 BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-02-05 16:45:04 UTC; Daniel
-Author: Daniel Lüdecke [aut, cre],
+Packaged: 2018-07-11 05:09:18 UTC; Daniel
+Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Carsten Schwemmer [ctb]
 Repository: CRAN
-Date/Publication: 2018-02-05 16:57:18 UTC
+Date/Publication: 2018-07-12 11:10:02 UTC

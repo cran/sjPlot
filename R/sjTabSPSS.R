@@ -11,6 +11,9 @@
 #'   \code{\link[sjlabelled]{read_sas}} or \code{\link[sjlabelled]{read_stata}} function,
 #'   or any similar labelled data frame (see \code{\link[sjlabelled]{set_label}}
 #'   and \code{\link[sjlabelled]{set_labels}}).
+#' @param weight.by Name of variable in \code{x} that indicated the vector of
+#'   weights that will be applied to weight all  observations. Default is
+#'   \code{NULL}, so no weights are used.
 #' @param show.id Logical, if \code{TRUE} (default), the variable ID is shown in
 #'   the first column.
 #' @param show.values Logical, if \code{TRUE} (default), the variable values
@@ -77,6 +80,7 @@
 #' @importFrom sjmisc is_even var_type is_float
 #' @importFrom sjlabelled get_values
 #' @importFrom purrr map_lgl
+#' @importFrom rlang quo_name enquo
 #' @export
 view_df <- function(x,
                     weight.by = NULL,
@@ -106,10 +110,17 @@ view_df <- function(x,
 
   # make data frame of single variable, so we have
   # unique handling for the data
-  if (!is.data.frame(x)) stop("Parameter needs to be a data frame!", call. = FALSE)
+  if (!is.data.frame(x)) stop("`x` needs to be a data frame!", call. = FALSE)
 
   # save name of object
   dfname <- deparse(substitute(x))
+
+  if (!missing(weight.by)) {
+    weights <- rlang::quo_name(rlang::enquo(weight.by))
+    if (sjmisc::is_empty(weights) || weights == "NULL") weights <- NULL
+  } else
+    weights <- NULL
+
 
   # variables with all missings?
   all.na <- purrr::map_lgl(x, ~ all(is.na(.x)))
@@ -208,8 +219,8 @@ view_df <- function(x,
              sprintf("    <td class=\"tdata%s\">%i</td>\n", arcstring, index))
 
     # name, and note
-    if (!is.list(x[[index]]) && !is.null(sjlabelled::get_note(x[[index]])))
-      td.title.tag <- sprintf(" title=\"%s\"", sjlabelled::get_note(x[[index]]))
+    if (!is.list(x[[index]]) && !is.null(comment(x[[index]])))
+      td.title.tag <- sprintf(" title=\"%s\"", comment(x[[index]]))
     else
       td.title.tag <- ""
 
@@ -273,7 +284,7 @@ view_df <- function(x,
         if (sjmisc::is_float(x[[index]]))
           valstring <- paste0(sprintf("%.1f", range(x[[index]], na.rm = T)), collapse = "-")
         else
-          valstring <- paste0(sprintf("%i", range(x[[index]], na.rm = T)), collapse = "-")
+          valstring <- paste0(sprintf("%i", as.integer(range(x[[index]], na.rm = T))), collapse = "-")
 
         if (show.values && show.labels) {
           colsp <- " colspan=\"2\""
@@ -299,7 +310,7 @@ view_df <- function(x,
             # check if we have any values...
             if (!is.null(vals)) {
               # if we have values, put all values into a string
-              loop <- na.omit(seq_len(length(vals))[1:max.len])
+              loop <- stats::na.omit(seq_len(length(vals))[1:max.len])
               for (i in loop) {
                 valstring <- paste0(valstring, vals[i])
                 if (i < length(vals)) valstring <- paste0(valstring, "<br>")
@@ -328,7 +339,7 @@ view_df <- function(x,
             # the code here corresponds to the above code
             # for variable values
             vals <- df.val[[index]]
-            if (!is.null(vals)) vals <- na.omit(vals)
+            if (!is.null(vals)) vals <- stats::na.omit(vals)
 
             # sort character vectors
             if (is.character(x[[index]]) && !is.null(vals) && !sjmisc::is_empty(vals)) {
@@ -341,7 +352,7 @@ view_df <- function(x,
             # check if we have any values...
             if (!is.null(vals)) {
               # if yes, add all to a string
-              loop <- na.omit(seq_len(length(vals))[1:max.len])
+              loop <- stats::na.omit(seq_len(length(vals))[1:max.len])
               for (i in loop) {
                 valstring <- paste0(valstring, vals[i])
                 if (i < length(vals)) valstring <- paste0(valstring, "<br>")
@@ -378,7 +389,7 @@ view_df <- function(x,
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
       else
-        valstring <- prc.value(index, x, df.val)
+        valstring <- frq.value(index, x, df.val, as.prc = TRUE)
 
       page.content <-
         paste0(page.content,
@@ -390,11 +401,11 @@ view_df <- function(x,
     }
 
     # frequencies
-    if (show.wtd.frq && !is.null(weight.by)) {
+    if (show.wtd.frq && !is.null(weights)) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
       else
-        valstring <- frq.value(index, x, df.val, weight.by)
+        valstring <- frq.value(index, x, df.val, weights)
 
       page.content <-
         paste0(page.content,
@@ -406,11 +417,11 @@ view_df <- function(x,
     }
 
     # percentage of frequencies
-    if (show.prc && !is.null(weight.by)) {
+    if (show.wtd.prc && !is.null(weights)) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
       else
-        valstring <- prc.value(index, x, df.val, weight.by)
+        valstring <- frq.value(index, x, df.val, weights, as.prc = TRUE)
 
       page.content <-
         paste0(page.content,
@@ -469,55 +480,32 @@ view_df <- function(x,
 }
 
 
-frq.value <- function(index, x, df.val, weights = NULL) {
+#' @importFrom stats xtabs na.pass
+#' @importFrom sjmisc is_empty
+frq.value <- function(index, x, df.val, weights, as.prc = FALSE) {
   valstring <- ""
   # check if we have a valid index
   if (index <= ncol(x) && !is.null(df.val[[index]])) {
-    # do we have weights?
-    if (!is.null(weights))
-      variab <- sjstats::weight(x[[index]], weights)
-    else
-      variab <- x[[index]]
-    # create frequency table. same function as for
-    # sjt.frq and sjp.frq
-    ftab <- create.frq.df(variab, 20)$mydat$frq
-    # remove last value, which is N for NA
-    if (length(ftab) == 1 && is.na(ftab)) {
-      valstring <- "<NA>"
+    if (!missing(weights)) {
+      frqs <- as.vector(
+        round(stats::xtabs(
+          w ~ v,
+          data = data.frame(v = x[[index]], w = x[[weights]]),
+          na.action = stats::na.pass
+        ))
+      )
     } else {
-      for (i in 1:(length(ftab) - 1)) {
-        valstring <- paste0(valstring, ftab[i])
-        if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
-      }
+      frqs <- as.vector(table(x[[index]]))
     }
-  } else {
-    valstring <- ""
-  }
-  return(valstring)
-}
 
-prc.value <- function(index, x, df.val, weights = NULL) {
-  valstring <- ""
-  # check for valid indices
-  if (index <= ncol(x) && !is.null(df.val[[index]])) {
-    # do we have weights?
-    if (!is.null(weights))
-      variab <- sjstats::weight(x[[index]], weights)
-    else
-      variab <- x[[index]]
-    # create frequency table, but only get valid percentages
-    ftab <- create.frq.df(variab, 20)$mydat$valid.prc
-    # remove last value, which is a NA dummy
-    if (length(ftab) == 1 && is.na(ftab)) {
+    # remove last value, which is N for NA
+    if (sjmisc::is_empty(frqs)) {
       valstring <- "<NA>"
     } else {
-      for (i in 1:(length(ftab) - 1)) {
-        valstring <- paste0(valstring, sprintf("%.2f", ftab[i]))
-        if (i < length(ftab)) valstring <- paste0(valstring, "<br>")
-      }
+      if (as.prc) frqs <- sprintf("%.2f", 100 * frqs / sum(frqs))
+      valstring <- paste(frqs, collapse = "<br>")
     }
-  } else {
-    valstring <- ""
   }
-  return(valstring)
+
+  valstring
 }

@@ -1,7 +1,7 @@
 #' @importFrom sjstats model_frame
 #' @importFrom stats formula sd quantile
 #' @importFrom purrr map map_lgl map_chr
-#' @importFrom sjmisc trim is_empty str_contains
+#' @importFrom sjmisc trim is_empty str_contains is_float
 #' @importFrom dplyr select n_distinct
 #' @importFrom ggeffects ggpredict
 #' @importFrom graphics plot
@@ -11,9 +11,11 @@ plot_type_int <- function(model,
                           pred.type,
                           facets,
                           show.data,
+                          jitter,
                           geom.colors,
                           axis.title,
                           title,
+                          legend.title,
                           axis.lim,
                           case,
                           show.legend,
@@ -76,16 +78,22 @@ plot_type_int <- function(model,
 
       terms <- purrr::map_chr(check_cont, function(x) {
         if (mdrt.val == "minmax") {
-          sprintf("%s [%i,%i]",
-                  x,
-                  min(cont_terms[[x]], na.rm = TRUE),
-                  max(cont_terms[[x]], na.rm = TRUE))
+          ct.min <- min(cont_terms[[x]], na.rm = TRUE)
+          ct.max <- max(cont_terms[[x]], na.rm = TRUE)
+          if (sjmisc::is_float(ct.min) || sjmisc::is_float(ct.max))
+            sprintf("%s [%.2f,%.2f]", x, ct.min, ct.max)
+          else
+            sprintf("%s [%i,%i]", x, ct.min, ct.max)
         } else if (mdrt.val == "meansd") {
           mw <- mean(cont_terms[[x]], na.rm = TRUE)
           sabw <- stats::sd(cont_terms[[x]], na.rm = TRUE)
           sprintf("%s [%.2f,%.2f,%.2f]", x, mw, mw - sabw, mw + sabw)
         } else if (mdrt.val == "zeromax") {
-          sprintf("%s [0,%i]", x, max(cont_terms[[x]], na.rm = TRUE))
+          ct.max <- max(cont_terms[[x]], na.rm = TRUE)
+          if (sjmisc::is_float(ct.max))
+            sprintf("%s [0,%.2f]", x, ct.max)
+          else
+            sprintf("%s [0,%i]", x, ct.max)
         } else if (mdrt.val == "quart") {
           qu <- as.vector(stats::quantile(cont_terms[[x]], na.rm = T))
           sprintf("%s [%.2f,%.2f,%.2f]", x, qu[3], qu[2], qu[4])
@@ -110,8 +118,21 @@ plot_type_int <- function(model,
     )
 
 
-    # select color palette
+    # evaluate dots-arguments
 
+    alpha <- .15
+    dodge <- .1
+    dot.alpha <- .5
+    log.y <- FALSE
+
+    add.args <- lapply(match.call(expand.dots = F)$`...`, function(x) x)
+    if ("alpha" %in% names(add.args)) alpha <- eval(add.args[["alpha"]])
+    if ("dodge" %in% names(add.args)) dodge <- eval(add.args[["dodge"]])
+    if ("dot.alpha" %in% names(add.args)) dot.alpha <- eval(add.args[["dot.alpha"]])
+    if ("log.y" %in% names(add.args)) log.y <- eval(add.args[["log.y"]])
+
+
+    # select color palette
     geom.colors <- col_check2(geom.colors, dplyr::n_distinct(dat$group))
 
 
@@ -123,32 +144,40 @@ plot_type_int <- function(model,
       facets = facets,
       rawdata = show.data,
       colors = geom.colors,
+      jitter = jitter,
       use.theme = FALSE,
       case = case,
       show.legend = show.legend,
-      ...
+      dot.alpha = dot.alpha,
+      alpha = alpha,
+      dodge = dodge,
+      log.y = log.y
     )
 
     # set axis and plot titles
     if (!is.null(axis.title)) {
       if (length(axis.title) > 1) {
-        p <- p + labs(x = axis.title[1],
+        p <- p + ggplot2::labs(x = axis.title[1],
                       y = axis.title[2])
       } else {
-        p <- p + labs(y = axis.title)
+        p <- p + ggplot2::labs(y = axis.title)
       }
     }
 
     # set axis and plot titles
     if (!is.null(title))
-      p <- p + ggtitle(title)
+      p <- p + ggplot2::ggtitle(title)
+
+    # set axis and plot titles
+    if (!is.null(legend.title))
+      p <- p + labs(colour = legend.title)
 
     # set axis limits
     if (!is.null(axis.lim)) {
       if (is.list(axis.lim))
-        p <- p + xlim(axis.lim[[1]]) + ylim(axis.lim[[2]])
+        p <- p + ggplot2::xlim(axis.lim[[1]]) + ylim(axis.lim[[2]])
       else
-        p <- p + ylim(axis.lim)
+        p <- p + ggplot2::ylim(axis.lim)
     }
 
 
@@ -164,8 +193,9 @@ plot_type_int <- function(model,
 }
 
 
+#' @importFrom stats na.omit
 is_categorical <- function(x) {
-  is.factor(x) || (length(unique(na.omit(x))) < 3)
+  is.factor(x) || (length(unique(stats::na.omit(x))) < 3)
 }
 
 

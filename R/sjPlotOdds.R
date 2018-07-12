@@ -5,8 +5,6 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est", "ci.low", "ci.h
 #' @title Plot estimates, predictions or effects of generalized linear models
 #' @name sjp.glm
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.glm/}{sjPlot manual: sjp.glm}
-#'
 #' @description Plot odds or incident rate ratios with confidence intervalls as dot plot.
 #'                Depending on the \code{type} argument, this function may also plot model
 #'                assumptions for generalized linear models, or marginal effects
@@ -68,59 +66,6 @@ utils::globalVariables(c("OR", "lower", "upper", "p", "grp.est", "ci.low", "ci.h
 #'            one or two model predictors. See 'Examples'.}
 #'          }
 #'
-#' @examples
-#' # prepare dichotomous dependent variable
-#' swiss$y <- ifelse(swiss$Fertility < median(swiss$Fertility), 0, 1)
-#'
-#' # fit model
-#' fitOR <- glm(y ~ Education + Examination + Infant.Mortality + Catholic,
-#'              family = binomial(link = "logit"), data = swiss)
-#'
-#' # print Odds Ratios as dots
-#' sjp.glm(fitOR)
-#'
-#' # -------------------------------
-#' # Predictors for negative impact of care. Data from
-#' # the EUROFAMCARE sample dataset
-#' # -------------------------------
-#' library(sjmisc)
-#' library(sjlabelled)
-#' data(efc)
-#' # create binary response
-#' y <- ifelse(efc$neg_c_7 < median(na.omit(efc$neg_c_7)), 0, 1)
-#' # create data frame for fitted model
-#' mydf <- data.frame(y = as.factor(y),
-#'                    sex = to_factor(efc$c161sex),
-#'                    dep = to_factor(efc$e42dep),
-#'                    barthel = efc$barthtot,
-#'                    education = to_factor(efc$c172code))
-#' # fit model
-#' fit <- glm(y ~., data = mydf, family = binomial(link = "logit"))
-#'
-#' # plot odds ratios
-#' sjp.glm(fit, title = get_label(efc$neg_c_7))
-#'
-#' # plot probability curves (relationship between predictors and response)
-#' sjp.glm(fit, title = get_label(efc$neg_c_7), type = "slope")
-#'
-#' # --------------------------
-#' # grouping estimates
-#' # --------------------------
-#' sjp.glm(fit,  group.estimates = c(1, 2, 2, 2, 3, 4, 4))
-#'
-#' # --------------------------
-#' # model predictions, with selected model terms.
-#' # 'vars' needs to be a character vector of length 1 to 3
-#' # with names of model terms for x-axis and grouping factor.
-#' # --------------------------
-#' sjp.glm(fit, type = "pred", vars = "barthel")
-#' # faceted, with ci
-#' sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), show.ci = TRUE)
-#' # w/o facets
-#' sjp.glm(fit, type = "pred", vars = c("barthel", "dep"), facet.grid = FALSE)
-#' # with third grouping variable - this type automatically uses grid layout
-#' sjp.glm(fit, type = "pred", vars = c("barthel", "sex", "education"))
-#'
 #' @import ggplot2
 #' @importFrom stats na.omit coef confint logLik
 #' @export
@@ -160,11 +105,7 @@ sjp.glm <- function(fit,
                     prnt.plot = TRUE,
                     ...) {
 
-  if (stats::runif(1) < .35)
-    message("`sjp.glm()` will become deprecated in the future. Please use `plot_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("plot_model")
 
   # check args -----
 
@@ -275,7 +216,7 @@ sjp.glm <- function(fit,
   }
 
   # check model family, do we have count model?
-  fitfam <- get_glm_family(fit)
+  fitfam <- sjstats::model_family(fit)
 
   # create logical for family
   poisson_fam <- fitfam$is_pois
@@ -604,7 +545,7 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
   # ----------------------------
   fit.df <- stats::model.frame(fit)
   fitfam <- stats::family(fit)
-  faminfo <- get_glm_family(fit)
+  faminfo <- sjstats::model_family(fit)
   # --------------------------------------------------------
   # create logical for family
   # --------------------------------------------------------
@@ -666,7 +607,7 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
       # melt variable
       mydf.vals <- data.frame(values = vals.unique)
       # convert factor to numeric
-      if (is.factor(mydf.vals$values)) mydf.vals$values <- sjmisc::to_value(mydf.vals$values, start.at = 0, keep.labels = F)
+      if (is.factor(mydf.vals$values)) mydf.vals$values <- sjlabelled::as_numeric(mydf.vals$values, start.at = 0, keep.labels = F)
       # check if we have a factor, then we may have reference levels
       if (is.factor(values)) {
         # add reference level to coefficient name
@@ -695,8 +636,8 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
         mydf.vals$grp <- pred.name
         # now copy original values for response and predictor,
         # so we can also plot a scatter plot
-        mydf.vals$resp.y <- sjmisc::to_value(resp, start.at = 0, keep.labels = F)
-        if (is.factor(values)) values <- sjmisc::to_value(values, start.at = 0, keep.labels = F)
+        mydf.vals$resp.y <- sjlabelled::as_numeric(resp, start.at = 0, keep.labels = F)
+        if (is.factor(values)) values <- sjlabelled::as_numeric(values, start.at = 0, keep.labels = F)
         mydf.vals$coef.x <- values
         # add mydf to list
         mydf.metricpred[[length(mydf.metricpred) + 1]] <- mydf.vals
@@ -884,7 +825,6 @@ sjp.glm.slope <- function(fit, title, geom.size, geom.colors, remove.estimates, 
 #' @importFrom stats model.frame predict predict.glm family
 #' @importFrom dplyr select mutate group_by_ summarize
 #' @importFrom sjstats resp_val
-#' @importFrom merTools predictInterval
 sjp.glm.predy <- function(fit,
                           vars,
                           t.title,
@@ -943,7 +883,7 @@ sjp.glm.predy <- function(fit,
   # ----------------------------
   # check model family, do we have count model?
   # ----------------------------
-  faminfo <- get_glm_family(fit)
+  faminfo <- sjstats::model_family(fit)
   # only for glm
   if (fit.m == "lm") {
     fitfam <- ""
@@ -968,19 +908,6 @@ sjp.glm.predy <- function(fit,
     # calculate CI
     fitfram$conf.low <- prdat$fit - 1.96 * prdat$se.fit
     fitfram$conf.high <- prdat$fit + 1.96 * prdat$se.fit
-  } else if (show.ci && (fun == "lmer" || (fun == "glmer" && binom_fam))) {
-    # prediction intervals from merMod-package only work for linear or
-    # binary logistic multilevel models
-    prdat <- merTools::predictInterval(
-      fit, newdata = fitfram, which = ifelse(type == "fe", "fixed", "full"),
-      type = ifelse(fit.m == "lm", "linear.prediction", "probability"),
-      level = dot.args[["ci.lvl"]]
-    )
-    # copy predictions
-    fitfram$predicted.values <- prdat$fit
-    # calculate CI
-    fitfram$conf.low <- prdat$lwr
-    fitfram$conf.high <- prdat$upr
   } else if (fun %in% c("lmer", "nlmer", "glmer")) {
     # for all other kinds of glmer or nlmer, we need the predict-function from
     # lme4, however, without ci-bands
@@ -1039,7 +966,7 @@ sjp.glm.predy <- function(fit,
   # the predictions and the originial response vector (needed for scatter plot)
   mydf <- fitfram %>%
     dplyr::select(match(c(vars, "predicted.values", "conf.low", "conf.high"), colnames(fitfram))) %>%
-    dplyr::mutate(resp.y = sjmisc::to_value(sjstats::resp_val(fit), start.at = 0, keep.labels = F))
+    dplyr::mutate(resp.y = sjlabelled::as_numeric(sjstats::resp_val(fit), start.at = 0, keep.labels = F))
   # init legend labels
   legend.labels <- NULL
   # check if we have a categorical variable with value
@@ -1053,7 +980,7 @@ sjp.glm.predy <- function(fit,
   if (length(vars) == 1) {
     colnames(mydf) <- c("x", "y", "ci.low", "ci.high", "resp.y")
     # x needs to be numeric
-    mydf$x <- sjmisc::to_value(mydf$x)
+    mydf$x <- sjlabelled::as_numeric(mydf$x)
     # convert to factor for proper legend
     mydf$grp <- sjmisc::to_factor(1)
     # set colors
@@ -1070,7 +997,7 @@ sjp.glm.predy <- function(fit,
       mydf$facet <- sjmisc::to_label(mydf$facet, prefix = T, drop.na = T, drop.levels = T)
     }
     # x needs to be numeric
-    mydf$x <- sjmisc::to_value(mydf$x)
+    mydf$x <- sjlabelled::as_numeric(mydf$x)
     # convert to factor for proper legend
     mydf$grp <- sjmisc::to_factor(mydf$grp)
     # check if we have legend labels

@@ -11,8 +11,6 @@
 #'              \item \href{http://www.theanalysisfactor.com/clarifications-on-interpreting-interactions-in-regression/}{Grace-Martin K: Clarifications on Interpreting Interactions in Regression}
 #'              }
 #'
-#' @seealso \href{http://www.strengejacke.de/sjPlot/sjp.int/}{sjPlot manual: sjp.int}
-#'
 #' @description Plot regression (predicted values) or probability lines (predicted probabilities) of
 #'                significant interaction terms to better understand effects
 #'                of moderations in regression models. This function accepts following fitted model classes:
@@ -145,99 +143,6 @@
 #'        are used as grouping variable, while the latter predictor is printed along the x-axis
 #'        (i.e. lm(y~a+b+a:b) means that "a" is used as grouping variable and "b" is plotted along the x-axis).
 #'
-#' @examples
-#' # Note that the data sets used in this example may not be perfectly suitable for
-#' # fitting linear models. I just used them because they are part of the R-software.
-#'
-#' # fit "dummy" model. Note that moderator should enter
-#' # first the model, followed by predictor. Else, use
-#' # argument "swap.pred" to change predictor on
-#' # x-axis with moderator
-#' fit <- lm(weight ~ Diet * Time, data = ChickWeight)
-#'
-#' # show summary to see significant interactions
-#' summary(fit)
-#'
-#' # plot regression line of interaction terms, including value labels
-#' sjp.int(fit, type = "eff", show.values = TRUE)
-#'
-#'
-#' # load sample data set
-#' library(sjmisc)
-#' library(sjlabelled)
-#' data(efc)
-#' # create data frame with variables that should be included
-#' # in the model
-#' mydf <- data.frame(usage = efc$tot_sc_e,
-#'                    sex = efc$c161sex,
-#'                    education = efc$c172code,
-#'                    burden = efc$neg_c_7,
-#'                    dependency = efc$e42dep)
-#' # convert gender predictor to factor
-#' mydf$sex <- relevel(factor(mydf$sex), ref = "2")
-#' # fit "dummy" model
-#' fit <- lm(usage ~ .*., data = mydf)
-#' summary(fit)
-#'
-#' # plot interactions. note that type = "cond" only considers
-#' # significant interactions by default. use "plevel" to
-#' # adjust p-level sensivity
-#' sjp.int(fit, type = "cond")
-#'
-#' # plot only selected interaction term for
-#' # type = "eff"
-#' sjp.int(fit, type = "eff", int.term = "sex*education")
-#'
-#' # plot interactions, using mean and sd as moderator
-#' # values to calculate interaction effect
-#' sjp.int(fit, type = "eff", mdrt.values = "meansd")
-#' sjp.int(fit, type = "cond", mdrt.values = "meansd")
-#'
-#' # plot interactions, including those with p-value up to 0.1
-#' sjp.int(fit, type = "cond", plevel = 0.1)
-#'
-#' # -------------------------------
-#' # Predictors for negative impact of care.
-#' # Data from the EUROFAMCARE sample dataset
-#' # -------------------------------
-#' # create binary response
-#' y <- ifelse(efc$neg_c_7 < median(stats::na.omit(efc$neg_c_7)), 0, 1)
-#' # create data frame for fitted model
-#' mydf <- data.frame(y = as.factor(y),
-#'                    sex = as.factor(efc$c161sex),
-#'                    barthel = as.numeric(efc$barthtot))
-#' # fit model
-#' fit <- glm(y ~ sex * barthel, data = mydf, family = binomial(link = "logit"))
-#' # plot interaction, increase p-level sensivity
-#' sjp.int(fit, type = "eff", legend.labels = get_labels(efc$c161sex), plevel = 0.1)
-#' sjp.int(fit, type = "cond", legend.labels = get_labels(efc$c161sex), plevel = 0.1)
-#'
-#' \dontrun{
-#' # load sample data set
-#' library(sjmisc)
-#' data(efc)
-#' # create data frame with variables that should be included
-#' # in the model
-#' mydf <- data.frame(burden = efc$neg_c_7,
-#'                    sex = efc$c161sex,
-#'                    education = efc$c172code,
-#'                    barthel = efc$barthtot)
-#' # convert gender predictor to factor
-#' mydf$sex <- factor(mydf$sex)
-#' mydf$education <- factor(mydf$education)
-#' # name factor levels and dependent variable
-#' levels(mydf$sex) <- c("female", "male")
-#' levels(mydf$education) <- c("low", "mid", "high")
-#' mydf$burden <- set_label(mydf$burden, lab = "care burden")
-#' # fit "dummy" model
-#' fit <- lm(burden ~ .*., data = mydf)
-#'
-#' # plot effects
-#' sjp.int(fit, type = "eff", show.ci = TRUE)
-#'
-#' # plot effects, faceted
-#' sjp.int(fit, type = "eff", int.plot.index = 3, show.ci = TRUE, facet.grid = TRUE)}
-#'
 #' @import ggplot2
 #' @importFrom stats family quantile sd
 #' @importFrom sjmisc is_num_fac
@@ -275,11 +180,7 @@ sjp.int <- function(fit,
                     prnt.plot = TRUE,
                     ...) {
 
-  if (stats::runif(1) < .35)
-    message("`sjp.int()` will become deprecated in the future. Please use `plot_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("plot_model")
+  .Deprecated("plot_model")
 
   # -----------------------------------------------------------
   # match arguments
@@ -344,7 +245,7 @@ sjp.int <- function(fit,
   # do we have glm? if so, get link family. make exceptions
   # for specific models that don't have family function
   # ------------------------
-  fitfam <- get_glm_family(fit)
+  fitfam <- sjstats::model_family(fit)
   # --------------------------------------------------------
   # create logical for family
   # --------------------------------------------------------
@@ -563,10 +464,10 @@ sjp.int <- function(fit,
     # convert df-values to numeric
     # -----------------------------------------------------------
     if (fun == "lm" || fun == "lmer" || fun == "lme") {
-      intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
-      intdf$y <- sjmisc::to_value(intdf$y, keep.labels = F)
-      intdf$ymin <- sjmisc::to_value(intdf$ymin, keep.labels = F)
-      intdf$ymax <- sjmisc::to_value(intdf$ymax, keep.labels = F)
+      intdf$x <- sjlabelled::as_numeric(intdf$x, keep.labels = F)
+      intdf$y <- sjlabelled::as_numeric(intdf$y, keep.labels = F)
+      intdf$ymin <- sjlabelled::as_numeric(intdf$ymin, keep.labels = F)
+      intdf$ymax <- sjlabelled::as_numeric(intdf$ymax, keep.labels = F)
       intdf$ydiff <- intdf$ymax - intdf$ymin
       # -----------------------------------------------------------
       # retrieve lowest and highest x and y position to determine
@@ -586,10 +487,10 @@ sjp.int <- function(fit,
       }
     } else {
       invlink <- stats::family(fit)
-      intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
-      intdf$y <- invlink$linkinv(eta = sjmisc::to_value(intdf$y, keep.labels = F))
-      intdf$ymin <- invlink$linkinv(eta = sjmisc::to_value(intdf$ymin, keep.labels = F))
-      intdf$ymax <- invlink$linkinv(eta = sjmisc::to_value(intdf$ymax, keep.labels = F))
+      intdf$x <- sjlabelled::as_numeric(intdf$x, keep.labels = F)
+      intdf$y <- invlink$linkinv(eta = sjlabelled::as_numeric(intdf$y, keep.labels = F))
+      intdf$ymin <- invlink$linkinv(eta = sjlabelled::as_numeric(intdf$ymin, keep.labels = F))
+      intdf$ymax <- invlink$linkinv(eta = sjlabelled::as_numeric(intdf$ymax, keep.labels = F))
       intdf$ydiff <- invlink$linkinv(eta = intdf$ymax - intdf$ymin)
     }
     # -----------------------------------------------------------
@@ -940,7 +841,7 @@ sjp.eff.int <- function(fit,
     # prepare axis titles
     labx <- sjlabelled::get_label(stats::model.frame(fit)[[pred_x.name]], def.value = pred_x.name)
     # check whether x-axis-predictor is a factor or not
-    x_is_factor <- is.factor(intdf[[pred_x.name]]) || (length(unique(na.omit(intdf[[pred_x.name]]))) < 3)
+    x_is_factor <- is.factor(intdf[[pred_x.name]]) || (length(unique(stats::na.omit(intdf[[pred_x.name]]))) < 3)
     mod_is_factor <- is.factor(intdf[[moderator.name]])
     # -----------------------------------------------------------
     # check for moderator values, but only, if moderator
@@ -978,7 +879,7 @@ sjp.eff.int <- function(fit,
       } else if (mdrt.values == "meansd") {
         # retrieve mean and sd
         mv.mean <- round(mean(modval, na.rm = T), 2)
-        mv.sd <- round(sd(modval, na.rm = T), 2)
+        mv.sd <- round(stats::sd(modval, na.rm = T), 2)
         # re-compute effects, prepare xlevels
         xl1 <- list(x = c(mv.mean - mv.sd, mv.mean, mv.mean + mv.sd))
       } else if (mdrt.values == "all") {
@@ -1083,7 +984,7 @@ sjp.eff.int <- function(fit,
       }
     }
     # make sure x is numeric
-    intdf$x <- sjmisc::to_value(intdf$x, keep.labels = F)
+    intdf$x <- sjlabelled::as_numeric(intdf$x, keep.labels = F)
     # get name of response, for axis title
     yaxisname <-
       sjlabelled::get_label(stats::model.frame(fit)[[response.name]], def.value = response.name)
@@ -1114,7 +1015,7 @@ sjp.eff.int <- function(fit,
       # do we have glm? if so, get link family. make exceptions
       # for specific models that don't have family function
       # ------------------------
-      fitfam <- get_glm_family(fit)
+      fitfam <- sjstats::model_family(fit)
       # --------------------------------------------------------
       # create logical for family
       # --------------------------------------------------------

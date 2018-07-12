@@ -71,7 +71,7 @@
 #'     \item \code{arc = 'color:blue;'} for a blue text color each 2nd row.
 #'     \item \code{caption = '+color:red;'} to add red font-color to the default table caption style.
 #'   }
-#'   See further examples in \href{../doc/sjtbasic.html}{this package-vignette}.
+#'   See further examples in \href{../doc/table_css.html}{this package-vignette}.
 #'
 #' @examples
 #' \dontrun{
@@ -122,6 +122,7 @@ tab_df <- function(x,
       show.footnote = show.footnote,
       altr.row.col = alternate.rows,
       sort.column = sort.column,
+      include.table.tag = TRUE,
       ...
     )
 
@@ -207,6 +208,7 @@ tab_dfs <- function(x,
           show.footnote = show.footnote,
           altr.row.col = alternate.rows,
           sort.column = sort.column,
+          include.table.tag = TRUE,
           ...
         )
       })),
@@ -245,344 +247,565 @@ tab_dfs <- function(x,
 }
 
 
-#' @importFrom sjmisc is_empty str_start
-check_css_param <- function(CSS) {
-  if (sjmisc::is_empty(CSS)) return(CSS)
+# this function is used from tab_model()
+#' @importFrom dplyr slice full_join
+#' @importFrom sjmisc replace_na
+#' @importFrom tidyselect ends_with
+#' @importFrom purrr map map_dbl
+tab_model_df <- function(x,
+                         zeroinf,
+                         is.zeroinf,
+                         dv.labels,
+                         rsq.list,
+                         n_obs.list,
+                         icc.list,
+                         dev.list,
+                         aic.list,
+                         n.models,
+                         title = NULL,
+                         col.header = NULL,
+                         show.re.var = FALSE,
+                         show.icc = FALSE,
+                         encoding = "UTF-8",
+                         CSS = NULL,
+                         file = NULL,
+                         use.viewer = TRUE,
+                         ...) {
+  # make sure list elements in CSS argument have proper name attribute
+  CSS <- check_css_param(CSS)
 
-  n <- names(CSS)
-  nocss <-
-    unlist(lapply(sjmisc::str_start(x = n, pattern = "css."), sjmisc::is_empty))
+  # get style definition
+  style <- tab_df_style(CSS = CSS, ...)
 
-  if (any(nocss)) {
-    n[nocss] <- paste0("css.", n[nocss])
-    names(CSS) <- n
+
+  # get HTML content
+  page.content <- tab_df_content(
+    mydf = x,
+    title = NULL,
+    footnote = NULL,
+    col.header = col.header,
+    show.type = FALSE,
+    show.rownames = FALSE,
+    show.footnote = FALSE,
+    show.header = TRUE,
+    altr.row.col = FALSE,
+    sort.column = NULL,
+    include.table.tag = FALSE,
+    no.last.table.row = TRUE,
+    ...
+  )
+
+  # replace CSS for first table row
+
+  page.content <- gsub(
+    pattern = "thead ",
+    replacement = "depvarhead ",
+    x = page.content,
+    fixed = TRUE,
+    useBytes = TRUE
+  )
+
+  # replace HTML-Tag for first table row
+
+  page.content <- gsub(
+    pattern = "<th ",
+    replacement = "<td ",
+    x = page.content,
+    fixed = TRUE,
+    useBytes = TRUE
+  )
+
+  page.content <- gsub(
+    pattern = "</th",
+    replacement = "</td",
+    x = page.content,
+    fixed = TRUE,
+    useBytes = TRUE
+  )
+
+
+  # table column header, with label of dependent variables ----
+
+  dv.content <- "  <tr>\n"
+  dv.content <- paste0(dv.content, "    <th class=\"thead firsttablerow firsttablecol col1\">&nbsp;</th>\n")
+
+  for (i in 1:length(dv.labels)) {
+    colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+    dv.content <- paste0(
+      dv.content,
+      sprintf("    <th colspan=\"%i\" class=\"thead firsttablerow\">%s</th>\n", colspan, dv.labels[i])
+    )
   }
 
-  CSS
-}
+  dv.content <- paste0(dv.content, "  </tr>\n")
+  page.content <- paste0(dv.content, page.content)
 
 
-# This functions creates the body of the HTML page, i.e. it puts
-# the content of a data frame into a HTML table that is returned.
+  # zero inflation part here ----
 
-#' @importFrom sjmisc is_empty var_type is_even
-#' @importFrom tibble has_rownames has_name rownames_to_column
-tab_df_content <- function(mydf, title, footnote, col.header, show.type, show.rownames, show.footnote, altr.row.col, sort.column, ...) {
+  if (!is.null(zeroinf)) {
 
-  # save no of rows and columns
+    rem <- 1:nrow(x)
 
-  rowcnt <- nrow(mydf)
-  colcnt <- ncol(mydf)
-
-
-  # check sorting
-
-  if (!is.null(sort.column)) {
-    sc <- abs(sort.column)
-    if (sc < 1 || sc > colcnt)
-      message("Column index in `sort.column` for sorting columns out of bounds. No sorting applied.")
-    else {
-      rows <- order(mydf[[sc]])
-      if (sort.column < 0) rows <- rev(rows)
-      mydf <- mydf[rows, ]
-    }
-  }
-
-
-  cnames <- colnames(mydf)
-
-
-  # if user supplied own column header, which also has the same length
-  # as no. columns, replace column names with user header
-
-  if (!sjmisc::is_empty(col.header) && length(col.header) == length(cnames))
-    cnames <- col.header
-
-
-  # check if rownames should be shown and data has any rownames at all
-  # if so, we need to update our information on column names
-
-  if (show.rownames && tibble::has_rownames(mydf)) {
-    mydf <- tibble::rownames_to_column(mydf)
-    colcnt <- colcnt + 1
-    cnames <- c("Row", cnames)
-  }
-
-
-  # start table tag
-  page.content <- "<table>\n"
-
-  # table caption, variable label
-  if (!sjmisc::is_empty(title))
-    page.content <- paste0(page.content, sprintf("  <caption>%s</caption>\n", title))
-
-
-  # header row ----
-
-  page.content <- paste0(page.content, "  <tr>\n")
-
-  for (i in 1:colcnt) {
-
-    # separate CSS for first column
-    if (i == 1)
-      ftc <- " firsttablecol"
-    else
-      ftc <- ""
-
-    # column names and variable type as table headline
-    vartype <- sjmisc::var_type(mydf[[i]])
-    page.content <- paste0(
-      page.content, sprintf("    <th class=\"thead firsttablerow%s col%i\">%s", ftc, i, cnames[i])
+    zero.part <- suppressMessages(
+      x %>%
+        dplyr::full_join(zeroinf) %>%
+        dplyr::slice(!! -rem) %>%
+        sjmisc::replace_na(value = "")
     )
 
-    if (show.type)
-      page.content <- paste0(page.content, sprintf("<br>(%s)", vartype))
+    page.content <- paste0(page.content, "  <tr>\n")
+    page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"zeroparts\">Zero-Inflated Model</td>\n", ncol(x)))
+    page.content <- paste0(page.content, "  </tr>\n")
 
-    page.content <- paste0(page.content, "</th>\n")
+    zero.content <- tab_df_content(
+      mydf = zero.part,
+      title = NULL,
+      footnote = NULL,
+      col.header = NULL,
+      show.type = FALSE,
+      show.rownames = FALSE,
+      show.footnote = FALSE,
+      show.header = FALSE,
+      altr.row.col = FALSE,
+      sort.column = NULL,
+      include.table.tag = FALSE,
+      no.last.table.row = TRUE,
+      ...
+    )
+
+    page.content <- paste0(page.content, zero.content)
   }
 
-  page.content <- paste0(page.content, "  </tr>\n")
+  # prepare column span for summary information, including CSS
+
+  summary.css <- "tdata summary summarydata"
+  firstsumrow <- TRUE
 
 
-  # subsequent rows ----
+  # add random effects ----
 
-  for (rcnt in 1:rowcnt) {
-
-    # if we have alternating row colors, set css
-
-    arcstring <- ""
-
-    if (altr.row.col)
-      arcstring <- ifelse(sjmisc::is_even(rcnt), " arc", "")
-
-    if (rcnt == rowcnt)
-      ltr <- " lasttablerow"
-    else
-      ltr <- ""
+  if (!is_empty_list(icc.list) && show.re.var) {
 
     page.content <- paste0(page.content, "  <tr>\n")
+    page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"randomparts\">Random Effects</td>\n", ncol(x)))
+    page.content <- paste0(page.content, "  </tr>\n")
 
-    # all columns of a row
-    for (ccnt in 1:colcnt) {
 
-      # separate CSS for first column
-      if (ccnt == 1)
-        ftc <- " firsttablecol"
+    ## random effects: within-group-variance: sigma ----
+
+    s_css <- "tdata leftalign summary"
+    page.content <- paste0(page.content, sprintf("\n  <tr>\n    <td class=\"%s\">&sigma;<sup>2</sup></td>\n", s_css))
+    s_css <- summary.css
+
+    for (i in 1:length(icc.list)) {
+
+      if (length(icc.list) == 1)
+        colspan <- ncol(x) - 1
       else
-        ftc <- ""
+        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
 
+      if (is.null(icc.list[[i]])) {
 
-      page.content <- paste0(page.content, sprintf(
-          "    <td class=\"tdata%s centertalign%s%s col%i\">%s</td>\n",
-          ftc,
-          ltr,
-          arcstring,
-          ccnt,
-          mydf[rcnt, ccnt])
+        page.content <- paste0(
+          page.content,
+          sprintf("    <td class=\"%s\" colspan=\"%i\">&nbsp;</td>\n", s_css, as.integer(colspan))
         )
+
+      } else {
+
+        page.content <- paste0(
+          page.content,
+          sprintf(
+            "    <td class=\"%s\" colspan=\"%i\">%.2f</td>\n",
+            s_css,
+            as.integer(colspan),
+            attr(icc.list[[i]], "sigma_2", exact = TRUE)
+          )
+        )
+
+      }
     }
 
-    page.content <- paste0(page.content, "</tr>\n")
+
+    # random effects: Between-group-variance: tau.00 ----
+
+    tau00 <- purrr::map(icc.list, ~ attr(.x, "tau.00", exact = TRUE))
+    tau00.len <- max(purrr::map_dbl(tau00, length))
+
+    page.content <- paste0(
+      page.content,
+      create_random_effects(
+        rv.len = tau00.len,
+        rv = tau00,
+        rv.string = "&tau;<sub>00</sub>",
+        clean.rv = "tau.00",
+        var.names = colnames(x),
+        summary.css = summary.css,
+        n.cols = ncol(x)
+    ))
+
+
+    # random effects: random-slope-variance: tau11 ----
+
+    has_rnd_slope <- purrr::map_lgl(icc.list, ~ isTRUE(attr(.x, "rnd.slope.model", exact = TRUE)))
+
+    if (any(has_rnd_slope)) {
+
+      tau11 <- purrr::map(icc.list, ~ attr(.x, "tau.11", exact = TRUE))
+      tau11.len <- max(purrr::map_dbl(tau11, length))
+
+      page.content <- paste0(
+        page.content,
+        create_random_effects(
+          rv.len = tau11.len,
+          rv = tau11,
+          rv.string = "&tau;<sub>11</sub>",
+          clean.rv = "tau.11",
+          var.names = colnames(x),
+          summary.css = summary.css,
+          n.cols = ncol(x)
+      ))
+
+      rho01 <- purrr::map(icc.list, ~ attr(.x, "rho.01", exact = TRUE))
+      rho01.len <- max(purrr::map_dbl(rho01, length))
+
+      page.content <- paste0(
+        page.content,
+        create_random_effects(
+          rv.len = rho01.len,
+          rv = rho01,
+          rv.string = "&rho;<sub>01</sub>",
+          clean.rv = "rho.01",
+          var.names = colnames(x),
+          summary.css = summary.css,
+          n.cols = ncol(x)
+      ))
+
+    }
+
   }
 
 
-  # add optional "footnote" row ----
+  # add ICC ----
 
-  if (show.footnote) {
+  if (!is_empty_list(icc.list) && show.icc) {
+
+    icc.len <- max(purrr::map_dbl(icc.list, length))
+
+    page.content <- paste0(
+      page.content,
+      create_random_effects(
+        rv.len = icc.len,
+        rv = icc.list,
+        rv.string = "ICC",
+        clean.rv = "icc",
+        var.names = colnames(x),
+        summary.css = summary.css,
+        n.cols = ncol(x)
+    ))
+
+  }
+
+
+  # add no of observations ----
+
+  if (!is_empty_list(n_obs.list)) {
+
+    # find first name occurence
+
+    s_css <- "tdata leftalign summary"
+    if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
     page.content <- paste0(page.content, "  <tr>\n")
-    page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"footnote\">%s</td>\n", colcnt + 1, footnote))
-    page.content <- paste0(page.content, "</tr>\n")
+    page.content <- paste0(page.content, sprintf("    <td class=\"%s\">Observations</td>\n", s_css))
+
+    # print all r-squared to table
+
+    s_css <- summary.css
+    if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
+    for (i in 1:length(n_obs.list)) {
+
+      if (length(n_obs.list) == 1)
+        colspan <- ncol(x) - 1
+      else
+        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+
+      if (is.null(n_obs.list[[i]])) {
+
+        page.content <- paste0(
+          page.content,
+          sprintf("    <td class=\"%s\" colspan=\"%i\">NA</td>\n", s_css, colspan)
+        )
+
+      } else {
+
+        page.content <- paste0(
+          page.content,
+          sprintf(
+            "    <td class=\"%s\" colspan=\"%i\">%i</td>\n",
+            s_css,
+            as.integer(colspan),
+            as.integer(n_obs.list[[i]])
+          )
+        )
+
+      }
+    }
+
+    firstsumrow <- FALSE
+    page.content <- paste0(page.content, "  </tr>\n")
   }
 
 
-  # finish html page ----
-  paste0(page.content, "</table>\n")
-}
+  # add r-squared ----
+
+  if (!is_empty_list(rsq.list)) {
+
+    # find first name occurence
+
+    for (i in 1:length(rsq.list)) {
+      if (!is.null(rsq.list[[i]])) {
+        rname <- names(rsq.list[[i]][[1]])
+        if (length(rsq.list[[i]] > 1))
+          rname <- sprintf("%s / %s", rname, names(rsq.list[[i]][[2]]))
+        break
+      }
+    }
+
+    # superscript 2
+
+    s_css <- "tdata leftalign summary"
+    if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
+    rname <- gsub("R2", "R<sup>2</sup>", rname, fixed = TRUE)
+    rname <- gsub("R-squared", "R<sup>2</sup>", rname, fixed = TRUE)
+
+    page.content <- paste0(page.content, "  <tr>\n")
+    page.content <- paste0(page.content, sprintf("    <td class=\"%s\">%s</td>\n", s_css, rname))
+
+    # print all r-squared to table
+
+    s_css <- summary.css
+    if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
+    for (i in 1:length(rsq.list)) {
+
+      if (length(rsq.list) == 1)
+        colspan <- ncol(x) - 1
+      else
+        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+
+      if (is.null(rsq.list[[i]])) {
+
+        page.content <- paste0(
+          page.content,
+          sprintf("    <td class=\"%s\" colspan=\"%i\">NA</td>\n", s_css, as.integer(colspan))
+        )
+
+      } else {
+
+        page.content <- paste0(
+          page.content,
+          sprintf(
+            "    <td class=\"%s\" colspan=\"%i\">%.3f / %.3f</td>\n",
+            s_css,
+            as.integer(colspan),
+            rsq.list[[i]][[1]],
+            rsq.list[[i]][[2]]
+          )
+        )
+
+      }
+    }
+
+    firstsumrow <- FALSE
+    page.content <- paste0(page.content, "  </tr>\n")
+  }
 
 
-rmspc <- function(html.table) {
-  cleaned <- gsub("      <", "<", html.table, fixed = TRUE, useBytes = TRUE)
-  cleaned <- gsub("    <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
-  cleaned <- gsub("  <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
+  # add deviance ----
 
-  cleaned
-}
-
-
-# This function creates the CSS style sheet for HTML-output
-
-tab_df_style <- function(CSS = NULL, ...) {
-  tab_df_prepare_style(CSS = CSS, content = NULL, task = 1, ...)
-}
-
-
-# This function creates the CSS style sheet for HTML-output, but
-# converts the style-definition into inline-CSS, which is required
-# for knitr documents, i.e. when HTML tables should be included in
-# knitr documents.
-
-tab_df_knitr <- function(CSS = NULL, content = NULL, ...) {
-  tab_df_prepare_style(CSS = CSS, content = content, task = 2, ...)
-}
+  if (!is_empty_list(dev.list)) {
+    page.content <- paste0(page.content, create_stats(
+      data.list = dev.list,
+      data.string = "Deviance",
+      firstsumrow = firstsumrow,
+      summary.css = summary.css,
+      var.names = colnames(x),
+      n.cols = ncol(x)
+    ))
+    firstsumrow <- FALSE
+  }
 
 
-# This functions creates the complete HTML page, include head and meta
-# section of the final HTML page. Required for display in the browser.
+  # add aic ----
 
-tab_create_page <- function(style, content, encoding = "UTF-8") {
+  if (!is_empty_list(aic.list)) {
+    page.content <- paste0(page.content, create_stats(
+      data.list = aic.list,
+      data.string = "AIC",
+      firstsumrow = firstsumrow,
+      summary.css = summary.css,
+      var.names = colnames(x),
+      n.cols = ncol(x)
+    ))
+    firstsumrow <- FALSE
+  }
 
-  if (is.null(encoding)) encoding <- "UTF-8"
 
-  # first, save table header
-  sprintf(
-    "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html;charset=%s\">\n%s\n</head>\n<body>\n%s\n</body></html>",
-    encoding,
-    style,
-    content
+  ## TODO add bottom table border
+
+  # add table-caption ----
+
+  if (!is.null(title))
+    table.caption <- sprintf("<caption>%s</caption>\n", title)
+  else
+    table.caption <- ""
+
+
+  # surround output with table-tag ----
+
+  page.content <- paste0("<table>\n", table.caption, page.content, "\n<table>\n")
+
+  # create HTML page with header information
+  page.complete <- tab_create_page(
+    style = style,
+    content = page.content,
+    encoding = encoding
+  )
+
+
+  # replace CSS-style to inline, needed for knitr documents
+  knitr <- tab_df_knitr(CSS = CSS, content = page.content, ...)
+
+  # remove spaces
+  knitr <- rmspc(knitr)
+  page.content <- rmspc(page.content)
+
+
+  structure(
+    class = c("sjTable"),
+    list(
+      page.style = style,
+      page.content = page.content,
+      page.complete = page.complete,
+      knitr = knitr,
+      file = file,
+      show = TRUE,
+      viewer = use.viewer
+    )
   )
 }
 
 
-# This function does the actual preparation and transformation of
-# the HTML style sheets, used by \code{tab_df_style()} and
-# \code{tab_df_knitr()}
+create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, summary.css, n.cols) {
+  page.content <- ""
+  pattern <- paste0("^", clean.rv, "_")
 
-tab_df_prepare_style <- function(CSS = NULL, content = NULL, task, ...) {
+  for (i in 1:rv.len) {
 
-  # init style sheet and tags used for css-definitions
-  # we can use these variables for string-replacement
-  # later for return value
+    s_css <- "tdata leftalign summary"
+    rvs <- rv.string
+    rv.name <- gsub(pattern, "", names(rv[[1]][i]))
 
-  tag.table <- "table"
-  tag.caption <- "caption"
-  tag.thead <- "thead"
-  tag.tdata <- "tdata"
-  tag.arc <- "arc"
-  tag.footnote <- "footnote"
-  tag.subtitle <- "subtitle"
-  tag.firsttablerow <- "firsttablerow"
-  tag.lasttablerow <- "lasttablerow"
-  tag.firsttablecol <- "firsttablecol"
-  tag.leftalign <- "leftalign"
-  tag.centertalign <- "centertalign"
-  tag.col1 <- "col1"
-  tag.col2 <- "col2"
-  tag.col3 <- "col3"
-  tag.col4 <- "col4"
-  tag.col5 <- "col5"
-  tag.col6 <- "col6"
-  css.table <- "border-collapse:collapse; border:none;"
-  css.caption <- "font-weight: bold; text-align:left;"
-  css.thead <- "border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm;"
-  css.tdata <- "padding:0.2cm; text-align:left; vertical-align:top;"
-  css.arc <- "background-color:#f2f2f2;"
-  css.lasttablerow <- "border-bottom: double;"
-  css.firsttablerow <- "border-bottom:1px solid black;"
-  css.firsttablecol <- ""
-  css.leftalign <- "text-align:left;"
-  css.centeralign <- "text-align:center;"
-  css.footnote <- "font-style:italic; border-top:double black; text-align:right;"
-  css.subtitle <- "font-weight: normal;"
-  css.col1 <- ""
-  css.col2 <- ""
-  css.col3 <- ""
-  css.col4 <- ""
-  css.col5 <- ""
-  css.col6 <- ""
+    if (length(rv) == 1)
+      rvs <- sprintf("%s <sub>%s</sub>", rv.string, rv.name)
+    else if (i > 1)
+      rvs <- ""
 
-
-  # check user defined style sheets
-
-  if (!is.null(CSS)) {
-    if (!is.null(CSS[['css.table']])) css.table <- ifelse(substring(CSS[['css.table']], 1, 1) == '+', paste0(css.table, substring(CSS[['css.table']], 2)), CSS[['css.table']])
-    if (!is.null(CSS[['css.caption']])) css.caption <- ifelse(substring(CSS[['css.caption']], 1, 1) == '+', paste0(css.caption, substring(CSS[['css.caption']], 2)), CSS[['css.caption']])
-    if (!is.null(CSS[['css.thead']])) css.thead <- ifelse(substring(CSS[['css.thead']], 1, 1) == '+', paste0(css.thead, substring(CSS[['css.thead']], 2)), CSS[['css.thead']])
-    if (!is.null(CSS[['css.tdata']])) css.tdata <- ifelse(substring(CSS[['css.tdata']], 1, 1) == '+', paste0(css.tdata, substring(CSS[['css.tdata']], 2)), CSS[['css.tdata']])
-    if (!is.null(CSS[['css.arc']])) css.arc <- ifelse(substring(CSS[['css.arc']], 1, 1) == '+', paste0(css.arc, substring(CSS[['css.arc']], 2)), CSS[['css.arc']])
-    if (!is.null(CSS[['css.lasttablerow']])) css.lasttablerow <- ifelse(substring(CSS[['css.lasttablerow']], 1, 1) == '+', paste0(css.lasttablerow, substring(CSS[['css.lasttablerow']], 2)), CSS[['css.lasttablerow']])
-    if (!is.null(CSS[['css.firsttablerow']])) css.firsttablerow <- ifelse(substring(CSS[['css.firsttablerow']], 1, 1) == '+', paste0(css.firsttablerow, substring(CSS[['css.firsttablerow']], 2)), CSS[['css.firsttablerow']])
-    if (!is.null(CSS[['css.leftalign']])) css.leftalign <- ifelse(substring(CSS[['css.leftalign']], 1, 1) == '+', paste0(css.leftalign, substring(CSS[['css.leftalign']], 2)), CSS[['css.leftalign']])
-    if (!is.null(CSS[['css.centeralign']])) css.centeralign <- ifelse(substring(CSS[['css.centeralign']], 1, 1) == '+', paste0(css.centeralign, substring(CSS[['css.centeralign']], 2)), CSS[['css.centeralign']])
-    if (!is.null(CSS[['css.firsttablecol']])) css.firsttablecol <- ifelse(substring(CSS[['css.firsttablecol']], 1, 1) == '+', paste0(css.firsttablecol, substring(CSS[['css.firsttablecol']], 2)), CSS[['css.firsttablecol']])
-    if (!is.null(CSS[['css.footnote']])) css.footnote <- ifelse(substring(CSS[['css.footnote']], 1, 1) == '+', paste0(css.footnote, substring(CSS[['css.footnote']], 2)), CSS[['css.footnote']])
-    if (!is.null(CSS[['css.subtitle']])) css.subtitle <- ifelse(substring(CSS[['css.subtitle']], 1, 1) == '+', paste0(css.subtitle, substring(CSS[['css.subtitle']], 2)), CSS[['css.subtitle']])
-    if (!is.null(CSS[['css.col1']])) css.col1 <- ifelse(substring(CSS[['css.col1']], 1, 1) == '+', paste0(css.col1, substring(CSS[['css.col1']], 2)), CSS[['css.col1']])
-    if (!is.null(CSS[['css.col2']])) css.col2 <- ifelse(substring(CSS[['css.col2']], 1, 1) == '+', paste0(css.col2, substring(CSS[['css.col2']], 2)), CSS[['css.col2']])
-    if (!is.null(CSS[['css.col3']])) css.col3 <- ifelse(substring(CSS[['css.col3']], 1, 1) == '+', paste0(css.col3, substring(CSS[['css.col3']], 2)), CSS[['css.col3']])
-    if (!is.null(CSS[['css.col4']])) css.col4 <- ifelse(substring(CSS[['css.col4']], 1, 1) == '+', paste0(css.col4, substring(CSS[['css.col4']], 2)), CSS[['css.col4']])
-    if (!is.null(CSS[['css.col5']])) css.col5 <- ifelse(substring(CSS[['css.col5']], 1, 1) == '+', paste0(css.col5, substring(CSS[['css.col5']], 2)), CSS[['css.col5']])
-    if (!is.null(CSS[['css.col6']])) css.col6 <- ifelse(substring(CSS[['css.col6']], 1, 1) == '+', paste0(css.col6, substring(CSS[['css.col6']], 2)), CSS[['css.col6']])
-  }
-
-
-  # set style sheet
-
-  if (task == 1) {
-    content <- sprintf(
-      "<style>\nhtml, body { background-color: white; }\n%s { %s }\n%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n.%s { %s }\n</style>",
-      tag.table,
-      css.table,
-      tag.caption,
-      css.caption,
-      tag.thead,
-      css.thead,
-      tag.tdata,
-      css.tdata,
-      tag.arc,
-      css.arc,
-      tag.lasttablerow,
-      css.lasttablerow,
-      tag.firsttablerow,
-      css.firsttablerow,
-      tag.leftalign,
-      css.leftalign,
-      tag.centertalign,
-      css.centeralign,
-      tag.firsttablecol,
-      css.firsttablecol,
-      tag.footnote,
-      css.footnote,
-      tag.subtitle,
-      css.subtitle,
-      tag.col1,
-      css.col1,
-      tag.col2,
-      css.col2,
-      tag.col3,
-      css.col3,
-      tag.col4,
-      css.col4,
-      tag.col5,
-      css.col5,
-      tag.col6,
-      css.col6
+    page.content <- paste0(
+      page.content,
+      sprintf("\n  <tr>\n    <td class=\"%s\">%s</td>\n", s_css, rvs)
     )
+    s_css <- summary.css
 
-  } else if (task == 2) {
-    # set style attributes for main table tags
-    content <- gsub("class=", "style=", content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub("<table", sprintf("<table style=\"%s\"", css.table), content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub("<caption", sprintf("<caption style=\"%s\"", css.caption), content, fixed = TRUE, useBytes = TRUE)
+    for (j in 1:length(rv)) {
 
-    # replace class-attributes with inline-style-definitions
-    content <- gsub(tag.tdata, css.tdata, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.thead, css.thead, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.arc, css.arc, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.footnote, css.footnote, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.subtitle, css.subtitle, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.lasttablerow, css.lasttablerow, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.firsttablerow, css.firsttablerow, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.firsttablecol, css.firsttablecol, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.leftalign, css.leftalign, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.centertalign, css.centeralign, content, fixed = TRUE, useBytes = TRUE)
+      if (length(rv) == 1)
+        colspan <- n.cols - 1
+      else
+        colspan <- length(tidyselect::ends_with(sprintf("_%i", j), vars = var.names))
 
-    content <- gsub(tag.col1, css.col1, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.col2, css.col2, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.col3, css.col3, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.col4, css.col4, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.col5, css.col5, content, fixed = TRUE, useBytes = TRUE)
-    content <- gsub(tag.col6, css.col6, content, fixed = TRUE, useBytes = TRUE)
+      if (is.null(rv[[j]]) || is.na(rv[[j]][i])) {
+
+        page.content <- paste0(
+          page.content,
+          sprintf("    <td class=\"%s\" colspan=\"%i\">&nbsp;</td>\n", s_css, as.integer(colspan))
+        )
+
+      } else {
+
+        rv.name <- gsub(pattern, "", names(rv[[j]][i]))
+
+        if (length(rv) > 1)
+          suffix <- sprintf(" <sub>%s</sub>", rv.name)
+        else
+          suffix <- ""
+
+        page.content <- paste0(
+          page.content,
+          sprintf(
+            "    <td class=\"%s\" colspan=\"%i\">%.2f%s</td>\n",
+            s_css,
+            as.integer(colspan),
+            rv[[j]][i],
+            suffix
+          )
+        )
+
+      }
+    }
   }
 
-  content
+  page.content
+}
+
+
+#' @importFrom tidyselect ends_with
+create_stats <- function(data.list, data.string, firstsumrow, summary.css, var.names, n.cols) {
+  page.content <- ""
+
+  s_css <- "tdata leftalign summary"
+  if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
+  page.content <- paste0(page.content, "  <tr>\n")
+  page.content <- paste0(page.content, sprintf("    <td class=\"%s\">%s</td>\n", s_css, data.string))
+
+  # print all r-squared to table
+
+  s_css <- summary.css
+  if (firstsumrow) s_css <- paste0(s_css, " firstsumrow")
+
+  for (i in 1:length(data.list)) {
+
+    if (length(data.list) == 1)
+      colspan <- n.cols - 1
+    else
+      colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = var.names))
+
+    if (is.null(data.list[[i]])) {
+
+      page.content <- paste0(
+        page.content,
+        sprintf("    <td class=\"%s\" colspan=\"%i\">&nbsp;</td>\n", s_css, as.integer(colspan))
+      )
+
+    } else {
+
+      page.content <- paste0(
+        page.content,
+        sprintf(
+          "    <td class=\"%s\" colspan=\"%i\">%.3f</td>\n",
+          s_css,
+          as.integer(colspan),
+          data.list[[i]]
+        )
+      )
+
+    }
+  }
+
+  paste0(page.content, "  </tr>\n")
 }
