@@ -104,8 +104,12 @@
 #'          column will be added to the output; however, when copying tables to
 #'          office applications, it might be helpful not to add this separator column
 #'          when modifying the table layout.
+#' @param p.kr Logical, if \code{TRUE}, the computation of p-values is based on
+#'         conditional F-tests with Kenward-Roger approximation for the df.
 #'
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
+#' @inheritParams plot_model
+#' @inheritParams sjt.xtab
 #' @inheritParams sjp.lmer
 #' @inheritParams sjp.corr
 #'
@@ -118,11 +122,10 @@
 #'            }
 #'
 #'
-#' @importFrom dplyr full_join slice bind_cols select_ rename_
+#' @importFrom dplyr full_join slice bind_cols select_
 #' @importFrom stats nobs AIC confint coef deviance runif
 #' @importFrom lme4 VarCorr
 #' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof p_value robust
-#' @importFrom tibble lst add_row add_column
 #' @importFrom broom tidy
 #' @export
 sjt.lm <- function(...,
@@ -174,7 +177,6 @@ sjt.lm <- function(...,
                    encoding = NULL,
                    file = NULL,
                    use.viewer = TRUE,
-                   no.output = FALSE,
                    remove.spaces = TRUE) {
   # --------------------------------------------------------
   # check p-value-style option
@@ -219,7 +221,8 @@ sjt.lm <- function(...,
   # ------------------------
   # retrieve fitted models
   # ------------------------
-  input_list <- tibble::lst(...)
+  input_list <- list(...)
+  names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
   # --------------------------------------------------------
   # check length. if we have a list of fitted model,
   # we need to "unlist" them
@@ -303,8 +306,8 @@ sjt.lm <- function(...,
     # check for p-value colum
     # -------------------------------------
     if (!sjmisc::str_contains(colnames(fit.df), "p.value")) {
-      fit.df <- tibble::add_column(
-        .data = fit.df,
+      fit.df <- add_cols(
+        fit.df,
         p.value = sjstats::p_value(input_list[[i]], p.kr)[["p.value"]],
         .before = "conf.low"
       )
@@ -313,7 +316,7 @@ sjt.lm <- function(...,
     # get standardized values
     # -------------------------------------
     sbvals <- suppressWarnings(sjstats::std_beta(input_list[[i]], type = show.std))
-    if (!lmerob) sbvals <- tibble::add_row(.data = sbvals, term = "(Intercept)", .before = 1)
+    if (!lmerob) sbvals <- add_cases(sbvals, term = "(Intercept)", .after = -1)
     # -------------------------------------
     # bind std. values to data frame
     # -------------------------------------
@@ -321,9 +324,11 @@ sjt.lm <- function(...,
       fit.df,
       sbvals %>%
         dplyr::select_("-term") %>%
-        dplyr::rename_("std.conf.low" = "conf.low",
-                       "std.conf.high" = "conf.high",
-                       "std.std.error" = "std.error")
+        sjmisc::var_rename(
+          "std.conf.low" = "conf.low",
+          "std.conf.high" = "conf.high",
+          "std.std.error" = "std.error"
+        )
       )
     # -------------------------------------
     # formate values
@@ -1101,7 +1106,6 @@ sjt.lm <- function(...,
       knitr = knitr,
       header = NULL,
       file = file,
-      show = !no.output,
       viewer = use.viewer,
       data = joined.df
     )
@@ -1117,8 +1121,9 @@ sjt.lm <- function(...,
 #'                or saves them as file. The fitted models may have different
 #'                predictors, e.g. when comparing different stepwise fitted models.
 #'
+#' @inheritParams tab_model
 #' @inheritParams sjt.lm
-#' @inheritParams sjt.frq
+#' @inheritParams sjt.xtab
 #' @inheritParams sjp.corr
 #'
 #' @return Invisibly returns
@@ -1144,9 +1149,7 @@ sjt.lm <- function(...,
 #'            \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
 #'            suggestion, rescaling the estimates by dividing them by two standard
 #'            deviations instead of just one. Resulting coefficients are then
-#'            directly comparable for untransformed binary predictors. This type
-#'            of standardization uses the \code{\link[arm]{standardize}}-function
-#'            from the \pkg{arm}-package.
+#'            directly comparable for untransformed binary predictors.
 #'            For backward compatibility reasons, \code{show.std} also may be
 #'            a logical value; if \code{TRUE}, normal standardized estimates are
 #'            printed (same effect as \code{show.std = "std"}). Use
@@ -1213,9 +1216,9 @@ sjt.lmer <- function(...,
                      encoding = NULL,
                      file = NULL,
                      use.viewer = TRUE,
-                     no.output = FALSE,
                      remove.spaces = TRUE) {
-  input_list <- tibble::lst(...)
+  input_list <- list(...)
+  names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
   # -------------------------------------
   # check arguments
   # -------------------------------------
@@ -1237,5 +1240,5 @@ sjt.lmer <- function(...,
                 show.re.var = show.re.var, show.fstat = FALSE, show.aic = show.aic, show.aicc = show.aicc, show.dev = show.dev,
                 remove.estimates = remove.estimates, cell.spacing = cell.spacing, cell.gpr.indent = cell.gpr.indent,
                 sep.column = sep.column, encoding = encoding,
-                CSS = CSS, use.viewer = use.viewer, no.output = no.output, remove.spaces = remove.spaces))
+                CSS = CSS, use.viewer = use.viewer, remove.spaces = remove.spaces))
 }

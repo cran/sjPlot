@@ -1,23 +1,21 @@
 #' @importFrom utils browseURL
 #' @export
 print.sjTable <- function(x, ...) {
-  if (x$show) {
-    # check if we have filename specified
-    if (!is.null(x$file)) {
-      # write file
-      write(x$knitr, file = x$file)
+  # check if we have filename specified
+  if (!is.null(x$file)) {
+    # write file
+    write(x$knitr, file = x$file)
+  } else {
+    x$page.complete <- replace_umlauts(x$page.complete)
+    # else open in viewer pane
+    htmlFile <- tempfile(fileext = ".html")
+    write(x$page.complete, file = htmlFile)
+    # check whether we have RStudio Viewer
+    viewer <- getOption("viewer")
+    if (x$viewer && !is.null(viewer)) {
+      viewer(htmlFile)
     } else {
-      x$page.complete <- replace_umlauts(x$page.complete)
-      # else open in viewer pane
-      htmlFile <- tempfile(fileext = ".html")
-      write(x$page.complete, file = htmlFile)
-      # check whether we have RStudio Viewer
-      viewer <- getOption("viewer")
-      if (x$viewer && !is.null(viewer)) {
-        viewer(htmlFile)
-      } else {
-        utils::browseURL(htmlFile)
-      }
+      utils::browseURL(htmlFile)
     }
   }
 }
@@ -327,7 +325,6 @@ preliab <- function(x, ...) {
 
 
 #' @importFrom purrr map_if
-#' @importFrom tibble as_tibble
 #' @importFrom sjmisc is_float
 pdescr <- function(x, ...) {
   digits <- 2
@@ -356,7 +353,7 @@ pdescr <- function(x, ...) {
 
   x <- x %>%
     purrr::map_if(sjmisc::is_float, ~ round(.x, digits)) %>%
-    tibble::as_tibble()
+    as.data.frame()
 
   tab_df(
     x = x,
@@ -383,7 +380,6 @@ pdescr <- function(x, ...) {
 
 
 #' @importFrom purrr map_if map_chr map
-#' @importFrom tibble as_tibble
 #' @importFrom sjmisc is_float
 pgdescr <- function(x, ...) {
   titles <- purrr::map_chr(x, ~ sprintf(
@@ -419,7 +415,7 @@ pgdescr <- function(x, ...) {
       .x,
       sjmisc::is_float,
       ~ round(.x, digits)
-    ) %>% tibble::as_tibble())
+    ) %>% as.data.frame())
 
   tab_dfs(
     x = x,
@@ -444,8 +440,8 @@ pgdescr <- function(x, ...) {
 
 
 #' @importFrom purrr map_if map_chr map
-#' @importFrom tibble as_tibble
 #' @importFrom dplyr n_distinct select
+#' @importFrom sjmisc is_empty
 pfrq <- function(x, ...) {
   uv <- attr(x, "print", exact = TRUE) == "viewer"
 
@@ -457,7 +453,13 @@ pfrq <- function(x, ...) {
     lab <- attr(i, "label", exact = T)
     vt <- attr(i, "vartype", exact = T)
 
-    if (!is.null(lab)) ret <- sprintf("%s <span style=\"font-weight: normal; font-style: italic\">&lt;%s&gt;</span>", lab, vt)
+    # fix variable type string
+    if (!sjmisc::is_empty(vt))
+      vt <- sprintf(" <span style=\"font-weight: normal; font-style: italic\">&lt;%s&gt;</span>", vt)
+    else
+      vt <- ""
+
+    if (!is.null(lab)) ret <- sprintf("%s%s", lab, vt)
 
     # get grouping title label
     grp <- attr(i, "group", exact = T)

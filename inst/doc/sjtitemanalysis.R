@@ -15,7 +15,7 @@ sjt.itemanalysis(mydf)
 ## ------------------------------------------------------------------------
 # Compute PCA on Cope-Index, and retrieve 
 # factor indices for each COPE index variable
-factor.groups <- sjt.pca(mydf, no.output = TRUE)$factor.index
+factor.groups <- sjt.pca(mydf)$factor.index
 
 ## ------------------------------------------------------------------------
 sjt.itemanalysis(mydf, factor.groups)

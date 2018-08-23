@@ -2,18 +2,21 @@
 #' @export
 magrittr::`%>%`
 
+data_frame <- function(...) {
+  x <- data.frame(..., stringsAsFactors = FALSE)
+  rownames(x) <- NULL
+  x
+}
 
 # do we have a stan-model?
 is.stan <- function(x) inherits(x, c("stanreg", "stanfit", "brmsfit"))
 
 
 #' @importFrom sjmisc is_empty
-#' @importFrom tidyselect starts_with
-#' @importFrom tibble has_name
 #' @importFrom dplyr n_distinct
 stan.has.multiranef <- function(x) {
-  if (tibble::has_name(x, "facet")) {
-    ri <- tidyselect::starts_with("(Intercept", vars = x$facet)
+  if (obj_has_name(x, "facet")) {
+    ri <- string_starts_with("(Intercept", x = x$facet)
     if (!sjmisc::is_empty(ri)) {
       return(dplyr::n_distinct(x$facet[ri]) > 1)
     }
@@ -113,17 +116,22 @@ estimate_axis_title <- function(fit, axis.title, type, transform = NULL, multi.r
   if (is.null(axis.title)) {
 
     if (!is.null(multi.resp))
-      fitfam <- sjstats::model_family(fit, multi.resp = TRUE)[[multi.resp]]
+      fitfam <- sjstats::model_family(fit, mv = TRUE)[[multi.resp]]
     else
       fitfam <- sjstats::model_family(fit)
+
+    ## TODO remove once sjstats was updated to >= 0.17.1
+    if (sjmisc::is_empty(fitfam$is_linear)) fitfam$is_linear <- FALSE
 
     axis.title <-  dplyr::case_when(
       !is.null(transform) && transform == "plogis" ~ "Probabilities",
       is.null(transform) && fitfam$is_bin ~ "Log-Odds",
       is.null(transform) && fitfam$is_ordinal ~ "Log-Odds",
+      is.null(transform) && fitfam$is_categorical ~ "Log-Odds",
       is.null(transform) && fitfam$is_pois ~ "Log-Mean",
       fitfam$is_pois ~ "Incidence Rate Ratios",
       fitfam$is_ordinal ~ "Odds Ratios",
+      fitfam$is_categorical ~ "Odds Ratios",
       fitfam$is_bin && !fitfam$is_logit ~ "Risk Ratios",
       fitfam$is_bin ~ "Odds Ratios",
       TRUE ~ "Estimates"
@@ -328,4 +336,46 @@ m_deviance <- function(x) {
   }
 
   d
+}
+
+
+#' @importFrom purrr map as_vector
+tidy_label <- function(labs, sep = ".") {
+  # create table, and check if any value label is duplicated
+  duped.val <- names(which(table(labs) > 1))
+
+  # find position of duplicated labels
+  dupes <- duped.val %>%
+    purrr::map(~which(labs == .x)) %>%
+    purrr::as_vector(.type = "double")
+
+  # prefix labels with value
+  labs[dupes] <- sprintf("%s%s%s", labs[dupes], sep, dupes)
+
+  labs
+}
+
+
+#' @importFrom lme4 ranef
+se_ranef <- function(object) {
+  se.bygroup <- lme4::ranef(object, condVar = TRUE)
+  n.groupings <- length(se.bygroup)
+
+  for (m in 1:n.groupings) {
+
+    vars.m <- attr(se.bygroup[[m]], "postVar")
+
+    K <- dim(vars.m)[1]
+    J <- dim(vars.m)[3]
+
+    names.full <- dimnames(se.bygroup[[m]])
+    se.bygroup[[m]] <- array(NA, c(J, K))
+
+    for (j in 1:J) {
+      se.bygroup[[m]][j, ] <- sqrt(diag(as.matrix(vars.m[, , j])))
+    }
+    dimnames(se.bygroup[[m]]) <- list(names.full[[1]], names.full[[2]])
+  }
+
+  se.bygroup
 }

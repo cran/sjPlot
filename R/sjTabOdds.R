@@ -32,7 +32,8 @@
 #'          for more details. It is recommended to inspect the model \code{\link{AIC}} (see \code{show.aic}) to get a
 #'          decision help for which model to choose.
 #'
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
+#' @inheritParams sjt.xtab
 #' @inheritParams sjt.lm
 #' @inheritParams sjp.corr
 #'
@@ -56,7 +57,6 @@
 #' @importFrom dplyr full_join slice mutate if_else
 #' @importFrom stats nobs AIC confint coef logLik family deviance
 #' @importFrom sjstats std_beta icc r2 cod chisq_gof hoslem_gof se
-#' @importFrom tibble lst
 #' @importFrom broom tidy
 #' @export
 sjt.glm <- function(...,
@@ -106,8 +106,14 @@ sjt.glm <- function(...,
                     encoding = NULL,
                     file = NULL,
                     use.viewer = TRUE,
-                    no.output = FALSE,
                     remove.spaces = TRUE) {
+
+  if (stats::runif(1) < .35)
+    message("`sjt.glm()` and `sjt.glmer()` will become deprecated in the future. Please use `tab_model()` instead.")
+
+  ## TODO activate in future update
+  # .Deprecated("tab_model")
+
 
   # --------------------------------------------------------
   # check p-value-style option
@@ -116,12 +122,6 @@ sjt.glm <- function(...,
     p_zero <- ""
   else
     p_zero <- "0"
-
-  if (stats::runif(1) < .35)
-    message("`sjt.lm()` and `sjt.lmer()` will become deprecated in the future. Please use `tab_model()` instead.")
-
-  ## TODO activate in future update
-  # .Deprecated("tab_model")
 
   # check hyphen for ci-range
   if (is.null(ci.hyphen)) ci.hyphen <- "&nbsp;&ndash;&nbsp;"
@@ -138,7 +138,8 @@ sjt.glm <- function(...,
   # ------------------------
   # retrieve fitted models
   # ------------------------
-  input_list <- tibble::lst(...)
+  input_list <- list(...)
+  names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
   # --------------------------------------------------------
   # check length. if we have a list of fitted model,
   # we need to "unlist" them
@@ -1015,7 +1016,6 @@ sjt.glm <- function(...,
                            knitr = knitr,
                            file = file,
                            header = NULL,
-                           show = !no.output,
                            viewer = use.viewer,
                            data = joined.df))
 }
@@ -1029,7 +1029,8 @@ sjt.glm <- function(...,
 #'                e.g. when comparing different stepwise fitted models.
 #'
 #' @inheritParams sjt.glm
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
+#' @inheritParams sjt.xtab
 #' @inheritParams sjp.corr
 #'
 #' @return Invisibly returns
@@ -1102,10 +1103,10 @@ sjt.glmer <- function(...,
                       encoding = NULL,
                       file = NULL,
                       use.viewer = TRUE,
-                      no.output = FALSE,
                       remove.spaces = TRUE) {
 
-  input_list <- tibble::lst(...)
+  input_list <- list(...)
+  names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
   return(sjt.glm(input_list, file = file, pred.labels = pred.labels,
                  depvar.labels = depvar.labels, string.pred = string.pred,
                  string.dv = string.dv, show.header = show.header,
@@ -1121,5 +1122,5 @@ sjt.glmer <- function(...,
                  show.re.var = show.re.var, show.loglik = show.loglik, show.aic = show.aic, show.aicc = show.aicc, show.dev = show.dev,
                  show.chi2 = FALSE, show.hoslem = show.hoslem, show.family = show.family, remove.estimates = remove.estimates,
                  cell.spacing = cell.spacing, cell.gpr.indent = cell.gpr.indent, sep.column = sep.column,
-                 encoding = encoding, CSS = CSS, use.viewer = use.viewer, no.output = no.output, remove.spaces = remove.spaces))
+                 encoding = encoding, CSS = CSS, use.viewer = use.viewer, remove.spaces = remove.spaces))
 }

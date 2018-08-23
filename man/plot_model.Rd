@@ -5,27 +5,28 @@
 \alias{get_model_data}
 \title{Plot regression models}
 \usage{
-plot_model(model, type = c("est", "re", "eff", "pred", "int", "std", "std2",
-  "slope", "resid", "diag"), transform, terms = NULL, sort.est = NULL,
-  rm.terms = NULL, group.terms = NULL, order.terms = NULL,
-  pred.type = c("fe", "re"), mdrt.values = c("minmax", "meansd", "zeromax",
-  "quart", "all"), ri.nr = NULL, title = NULL, axis.title = NULL,
+plot_model(model, type = c("est", "re", "eff", "pred", "int", "std",
+  "std2", "slope", "resid", "diag"), transform, terms = NULL,
+  sort.est = NULL, rm.terms = NULL, group.terms = NULL,
+  order.terms = NULL, pred.type = c("fe", "re"),
+  mdrt.values = c("minmax", "meansd", "zeromax", "quart", "all"),
+  ri.nr = NULL, title = NULL, axis.title = NULL,
   axis.labels = NULL, legend.title = NULL, wrap.title = 50,
-  wrap.labels = 25, axis.lim = NULL, grid.breaks = NULL, ci.lvl = NULL,
-  se = NULL, colors = "Set1", show.intercept = FALSE,
-  show.values = FALSE, show.p = TRUE, show.data = FALSE,
-  show.legend = TRUE, show.zeroinf = TRUE, value.offset = NULL,
-  value.size, jitter = NULL, digits = 2, dot.size = NULL,
-  line.size = NULL, vline.color = NULL, grid, case, auto.label = TRUE,
-  prefix.labels = c("none", "varname", "label"), bpe = "median",
-  bpe.style = "line", bpe.color = "white", ...)
+  wrap.labels = 25, axis.lim = NULL, grid.breaks = NULL,
+  ci.lvl = NULL, se = NULL, colors = "Set1",
+  show.intercept = FALSE, show.values = FALSE, show.p = TRUE,
+  show.data = FALSE, show.legend = TRUE, show.zeroinf = TRUE,
+  value.offset = NULL, value.size, jitter = NULL, digits = 2,
+  dot.size = NULL, line.size = NULL, vline.color = NULL, grid, case,
+  auto.label = TRUE, prefix.labels = c("none", "varname", "label"),
+  bpe = "median", bpe.style = "line", bpe.color = "white", ...)
 
 get_model_data(model, type = c("est", "re", "eff", "pred", "int", "std",
   "std2", "slope", "resid", "diag"), transform, terms = NULL,
   sort.est = NULL, rm.terms = NULL, group.terms = NULL,
   order.terms = NULL, pred.type = c("fe", "re"), ri.nr = NULL,
-  ci.lvl = NULL, colors = "Set1", grid, case = "parsed", digits = 2,
-  ...)
+  ci.lvl = NULL, colors = "Set1", grid, case = "parsed",
+  digits = 2, ...)
 }
 \arguments{
 \item{model}{A regression model object. Depending on the \code{type}, many
@@ -242,8 +243,6 @@ color palette. Following options are valid for the \code{colors} argument:
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
-  \item If \pkg{wesanderson} is installed, you may also specify a name of a palette from that package.
-  \item If \pkg{viridis} is installed, use \code{colors = "v"} to get the viridis color palette.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
 }}
@@ -380,7 +379,7 @@ Depending on the plot-type, \code{plot_model()} returns a
   estimates (as so-called forest or dot whisker plots) or marginal effects.
 }
 \details{
-\code{get_model_data} simply calls \code{plot_model()} and returns
+\code{get_model_data()} simply calls \code{plot_model()} and returns
   the data from the ggplot-object. Hence, it is rather inefficient and should
   be used as alternative to \pkg{brooms} \code{tidy()}-function only in
   specific situations. \cr \cr Some notes on the different plot-types:
@@ -389,8 +388,7 @@ Depending on the plot-type, \code{plot_model()} returns a
     however, standardization follows Gelman's (2008) suggestion, rescaling the
     estimates by dividing them by two standard deviations instead of just one.
     Resulting coefficients are then directly comparable for untransformed
-    binary predictors. This standardization uses the
-    \code{\link[arm]{standardize}}-function from the \pkg{arm}-package.
+    binary predictors.
   }
   \item{\code{type = "pred"}}{Plots marginal effects. Simply wraps
     \code{\link[ggeffects]{ggpredict}}.
@@ -411,11 +409,6 @@ Depending on the plot-type, \code{plot_model()} returns a
     and specify a certain order in the \code{terms}-argument to indicate
     which variable(s) should be used as moderator.}
   }
-}
-\note{
-\code{plot_model()} replaces the functions \code{sjp.lm},
-  \code{sjp.glm}, \code{sjp.lmer}, \code{sjp.glmer} and \code{sjp.int}. These
-  are becoming softly deprecated and will be removed in a future update.
 }
 \examples{
 # prepare data

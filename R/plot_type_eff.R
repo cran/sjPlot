@@ -14,6 +14,8 @@ plot_type_eff <- function(type,
                           axis.lim,
                           case,
                           show.legend,
+                          dot.size,
+                          line.size,
                           ...) {
 
   if (type == "pred") {
@@ -65,6 +67,11 @@ plot_type_eff <- function(type,
     alpha = alpha,
     dodge = dodge,
     log.y = log.y
+
+    ## TODO activate once ggeffects-update is on  CRAN
+
+    # dot.size = dot.size,
+    # line.size = line.size
   )
 
   # set axis and plot titles

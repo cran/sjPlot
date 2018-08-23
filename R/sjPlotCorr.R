@@ -1,6 +1,3 @@
-# bind global variables
-utils::globalVariables(c("ordx", "ordy"))
-
 #' @title Plot correlation matrix
 #' @name sjp.corr
 #'
@@ -28,7 +25,7 @@ utils::globalVariables(c("ordx", "ordy"))
 #'          as numbers. If \code{FALSE} (default), asterisks are used.
 #'
 #' @inheritParams sjp.grpfrq
-#' @inheritParams sjp.lm
+#' @inheritParams plot_gpt
 #'
 #' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
 #'           was used for setting up the ggplot-object (\code{df}) and the original correlation matrix
@@ -95,8 +92,7 @@ sjp.corr <- function(data,
                      legend.title = NULL,
                      show.values = TRUE,
                      show.p = TRUE,
-                     p.numeric = FALSE,
-                     prnt.plot = TRUE) {
+                     p.numeric = FALSE) {
   # --------------------------------------------------------
   # check p-value-style option
   # --------------------------------------------------------
@@ -202,8 +198,6 @@ sjp.corr <- function(data,
   # --------------------------------------------------------
   # melt correlation matrix and create data frame
   # --------------------------------------------------------
-  # first, save original matrix for return value
-  oricor <- orderedCorr
   orderedCorr <- tidyr::gather(data.frame(orderedCorr), "var", "value",
                                !! seq_len(ncol(orderedCorr)), factor_key = TRUE)
   # orderedCorr <- melt(orderedCorr)
@@ -268,15 +262,6 @@ sjp.corr <- function(data,
     corrPlot <- corrPlot + guides(fill = legend.title)
   else
     corrPlot <- corrPlot + guides(fill = "none")
-  # ---------------------------------------------------------
-  # Check whether ggplot object should be returned or plotted
-  # ---------------------------------------------------------
-  if (prnt.plot) suppressWarnings(graphics::plot(corrPlot))
-  # -------------------------------------
-  # return results
-  # -------------------------------------
-  invisible(structure(class = "sjpcorr",
-                      list(plot = corrPlot,
-                           df = orderedCorr,
-                           corr.matrix = oricor)))
+
+  corrPlot
 }

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-07-11" />
+<meta name="date" content="2018-08-23" />
 
 <title>Customizing HTML tables</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Customizing HTML tables</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-07-11</em></h4>
+<h4 class="date"><em>2018-08-23</em></h4>
 
 
 
@@ -186,7 +186,7 @@ tab &lt;-<span class="st"> </span><span class="kw">tab_model</span>(m)</code></p
 <span class="co">#&gt; &lt;td class=&quot;tdata summary summarydata&quot; colspan=&quot;3&quot;&gt;0.270 / 0.266&lt;/td&gt;</span>
 <span class="co">#&gt; &lt;/tr&gt;</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; &lt;table&gt;</span></code></pre></div>
+<span class="co">#&gt; &lt;/table&gt;</span></code></pre></div>
 <p>Now you can see which table elements are associated with which CSS class attributes.</p>
 </div>
 </div>
@@ -319,7 +319,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.270 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <p>In the above example, the header row lost the original style and just became red. If you want to keep the original style and just add additional style information, use the plus-sign (+) as initial character for the parameter attributes. In the following example, the header row keeps its original style and is additionally printed in red:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tab_model</span>(m, <span class="dt">CSS =</span> <span class="kw">list</span>(<span class="dt">css.depvarhead =</span> <span class="st">'+color: red;'</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
@@ -431,7 +431,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.270 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 <div id="pre-defined-table-layouts" class="section level2">
 <h2>Pre-defined Table-Layouts</h2>
@@ -546,7 +546,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.270 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 
 

@@ -8,18 +8,20 @@ sjt.lm(..., pred.labels = NULL, depvar.labels = NULL,
   remove.estimates = NULL, group.pred = TRUE, p.numeric = TRUE,
   emph.p = FALSE, p.zero = FALSE, p.kr = TRUE, robust = FALSE,
   separate.ci.col = TRUE, newline.ci = TRUE, show.est = TRUE,
-  show.std = NULL, show.ci = TRUE, show.se = FALSE, show.header = FALSE,
-  show.col.header = TRUE, show.r2 = TRUE, show.icc = FALSE,
-  show.re.var = FALSE, show.fstat = FALSE, show.aic = FALSE,
-  show.aicc = FALSE, show.dev = FALSE, string.pred = "Predictors",
-  string.dv = "Dependent Variables", string.interc = "(Intercept)",
-  string.obs = "Observations", string.est = "B", string.std = "std. Beta",
-  string.ci = "CI", string.se = "std. Error", string.p = "p",
-  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
-  digits.std = 2, digits.p = 3, digits.ci = 2, digits.se = 2,
-  digits.summary = 3, cell.spacing = 0.2, cell.gpr.indent = 0.6,
-  sep.column = TRUE, CSS = NULL, encoding = NULL, file = NULL,
-  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  show.std = NULL, show.ci = TRUE, show.se = FALSE,
+  show.header = FALSE, show.col.header = TRUE, show.r2 = TRUE,
+  show.icc = FALSE, show.re.var = FALSE, show.fstat = FALSE,
+  show.aic = FALSE, show.aicc = FALSE, show.dev = FALSE,
+  string.pred = "Predictors", string.dv = "Dependent Variables",
+  string.interc = "(Intercept)", string.obs = "Observations",
+  string.est = "B", string.std = "std. Beta", string.ci = "CI",
+  string.se = "std. Error", string.p = "p",
+  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;",
+  digits.est = 2, digits.std = 2, digits.p = 3, digits.ci = 2,
+  digits.se = 2, digits.summary = 3, cell.spacing = 0.2,
+  cell.gpr.indent = 0.6, sep.column = TRUE, CSS = NULL,
+  encoding = NULL, file = NULL, use.viewer = TRUE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{...}{One or more fitted linear (mixed) models.}
@@ -56,9 +58,8 @@ as numbers. If \code{FALSE} (default), asterisks are used.}
 period (e.g. \emph{0.002}), else p-values start with a period and
 without a zero (e.g. \emph{.002}).}
 
-\item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional
-F-tests with Kenward-Roger approximation for the df. Caution: Computation
-may take very long time for large samples!}
+\item{p.kr}{Logical, if \code{TRUE}, the computation of p-values is based on
+conditional F-tests with Kenward-Roger approximation for the df.}
 
 \item{robust}{Logical, if \code{TRUE}, robust standard errors and confidence
 intervals will be reported. Computation of robust standard errors is
@@ -168,10 +169,9 @@ column will be added to the output; however, when copying tables to
 office applications, it might be helpful not to add this separator column
 when modifying the table layout.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
 \item{encoding}{String, indicating the charset encoding used for variable and
 value labels. Default is \code{NULL}, so encoding will be auto-detected
@@ -182,13 +182,9 @@ Windows OS). Change encoding if specific chars are not properly displayed (e.g. 
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source

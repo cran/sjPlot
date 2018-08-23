@@ -211,8 +211,6 @@
 #'     \item If \code{"gs"}, a greyscale will be used.
 #'     \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
 #'     \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
-#'     \item If \pkg{wesanderson} is installed, you may also specify a name of a palette from that package.
-#'     \item If \pkg{viridis} is installed, use \code{colors = "v"} to get the viridis color palette.
 #'     \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
 #'     \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
 #'   }
@@ -311,7 +309,7 @@
 #'   (depending on the plot-type) a list of such data frames.
 #'
 #' @details
-#'   \code{get_model_data} simply calls \code{plot_model()} and returns
+#'   \code{get_model_data()} simply calls \code{plot_model()} and returns
 #'   the data from the ggplot-object. Hence, it is rather inefficient and should
 #'   be used as alternative to \pkg{brooms} \code{tidy()}-function only in
 #'   specific situations. \cr \cr Some notes on the different plot-types:
@@ -320,8 +318,7 @@
 #'     however, standardization follows Gelman's (2008) suggestion, rescaling the
 #'     estimates by dividing them by two standard deviations instead of just one.
 #'     Resulting coefficients are then directly comparable for untransformed
-#'     binary predictors. This standardization uses the
-#'     \code{\link[arm]{standardize}}-function from the \pkg{arm}-package.
+#'     binary predictors.
 #'   }
 #'   \item{\code{type = "pred"}}{Plots marginal effects. Simply wraps
 #'     \code{\link[ggeffects]{ggpredict}}.
@@ -342,11 +339,6 @@
 #'     and specify a certain order in the \code{terms}-argument to indicate
 #'     which variable(s) should be used as moderator.}
 #'   }
-#'
-#' @note
-#'   \code{plot_model()} replaces the functions \code{sjp.lm},
-#'   \code{sjp.glm}, \code{sjp.lmer}, \code{sjp.glmer} and \code{sjp.int}. These
-#'   are becoming softly deprecated and will be removed in a future update.
 #'
 #' @references
 #'   Gelman A (2008) "Scaling regression inputs by dividing by two
@@ -419,7 +411,6 @@
 #' @importFrom graphics plot
 #' @importFrom ggeffects ggpredict ggeffect
 #' @importFrom stats terms
-#' @importFrom tibble add_column
 #'
 #' @export
 plot_model <- function(model,
@@ -489,6 +480,8 @@ plot_model <- function(model,
   # get info on model family
   fam.info <- sjstats::model_family(model)
 
+  ## TODO remove once sjstats was updated to >= 0.17.1
+  if (sjmisc::is_empty(fam.info$is_linear)) fam.info$is_linear <- FALSE
 
   # check whether estimates should be transformed or not
 
@@ -523,7 +516,7 @@ plot_model <- function(model,
 
 
   # check nr of terms. if only one, plot slope
-  if (type == "est" && length(sjstats::pred_vars(model)) == 1) type <- "slope"
+  if (type == "est" && length(sjstats::pred_vars(model)) == 1 && fam.info$is_linear) type <- "slope"
 
 
   # set some default options for stan-models, which are not
@@ -541,7 +534,7 @@ plot_model <- function(model,
 
   if (is.null(ci.lvl)) ci.lvl <- dplyr::if_else(is.stan(model), .89, .95)
   if (is.null(dot.size)) dot.size <- dplyr::if_else(is.stan(model), 1, 2.5)
-  if (is.null(line.size)) line.size <- dplyr::if_else(is.stan(model), .5, .5)
+  if (is.null(line.size)) line.size <- dplyr::if_else(is.stan(model), .7, .7)
   if (is.null(value.offset)) value.offset <- dplyr::if_else(is.stan(model), .25, .15)
 
 
@@ -639,6 +632,8 @@ plot_model <- function(model,
       axis.lim = axis.lim,
       case = case,
       show.legend = show.legend,
+      dot.size = dot.size,
+      line.size = line.size,
       ...
     )
 
@@ -661,6 +656,8 @@ plot_model <- function(model,
       axis.lim = axis.lim,
       case = case,
       show.legend = show.legend,
+      dot.size = dot.size,
+      line.size = line.size,
       ...
     )
 

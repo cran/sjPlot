@@ -4,13 +4,14 @@
 \alias{sjt.stackfrq}
 \title{Summary of stacked frequencies as HTML table}
 \usage{
-sjt.stackfrq(items, weight.by = NULL, title = NULL, var.labels = NULL,
-  value.labels = NULL, wrap.labels = 20, sort.frq = NULL,
-  altr.row.col = FALSE, digits = 2, string.total = "N",
-  string.na = "NA", show.n = FALSE, show.total = FALSE, show.na = FALSE,
-  show.skew = FALSE, show.kurtosis = FALSE, digits.stats = 2,
-  file = NULL, encoding = NULL, CSS = NULL, use.viewer = TRUE,
-  no.output = FALSE, remove.spaces = TRUE)
+sjt.stackfrq(items, weight.by = NULL, title = NULL,
+  var.labels = NULL, value.labels = NULL, wrap.labels = 20,
+  sort.frq = NULL, alternate.rows = FALSE, digits = 2,
+  string.total = "N", string.na = "NA", show.n = FALSE,
+  show.total = FALSE, show.na = FALSE, show.skew = FALSE,
+  show.kurtosis = FALSE, digits.stats = 2, file = NULL,
+  encoding = NULL, CSS = NULL, use.viewer = TRUE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{items}{Data frame, with each column representing one item.}
@@ -19,7 +20,10 @@ sjt.stackfrq(items, weight.by = NULL, title = NULL, var.labels = NULL,
 Must be a vector of same length as the input vector. Default is
 \code{NULL}, so no weights are used.}
 
-\item{title}{Table caption, as character vector.}
+\item{title}{Character vector with table
+caption(s) resp. footnote(s). For  \code{tab_df()}, must be a character
+of length 1; for \code{tab_dfs()}, a character vector of same length as
+\code{x} (i.e. one title or footnote per data frame).}
 
 \item{var.labels}{Character vector with variable names, which will be used
 to label variables in the output.}
@@ -41,10 +45,10 @@ by highest count of first or last category of \code{items}.
   \item or \code{NULL} (default) for no sorting.
 }}
 
-\item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
-background color.}
+\item{alternate.rows}{Logical, if \code{TRUE}, rows are printed in
+alternatig colors (white and light grey by default).}
 
-\item{digits}{Numeric, amount of digits after decimal point when rounding estimates and values.}
+\item{digits}{Amount of decimals for estimates}
 
 \item{string.total}{label for the total N column.}
 
@@ -63,9 +67,8 @@ are added to the output.}
 The skewness is retrieved from the \code{\link[psych]{describe}}-function
 of the \pkg{psych}-package.}
 
-\item{show.kurtosis}{Logical, if \code{TRUE}, the variable's kurtosis is added to the summary.
-The kurtosis is retrieved from the \code{\link[psych]{describe}}-function
-of the \pkg{psych}-package and indicated by a lower case Greek omega.}
+\item{show.kurtosis}{Logical, if \code{TRUE}, the kurtosis for each item will also be shown (see \code{\link[psych]{kurtosi}}
+and \code{\link[psych]{describe}} in the \code{psych}-package for more details.}
 
 \item{digits.stats}{amount of digits for rounding the skewness and kurtosis valuess.
 Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.}
@@ -74,23 +77,18 @@ Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal poin
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{encoding}{String, indicating the charset encoding used for variable and
-value labels. Default is \code{NULL}, so encoding will be auto-detected
-depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
+\item{encoding}{Character vector, indicating the charset encoding used
+for variable and value labels. Default is \code{"UTF-8"}. For Windows
+Systems, \code{encoding = "Windows-1252"} might be necessary for proper
+display of special characters.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
@@ -111,12 +109,6 @@ Shows the results of stacked frequencies (such as likert scales) as HTML table.
                This function is useful when several items with identical scale/categories
                should be printed as table to compare their distributions (e.g.
                when plotting scales like SF, Barthel-Index, Quality-of-Life-scales etc.).
-}
-\details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
-\note{
-See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 # -------------------------------
@@ -152,15 +144,15 @@ start <- which(colnames(efc) == "c82cop1")
 # recveive first item of COPE-index scale
 end <- which(colnames(efc) == "c90cop9")
 
-sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE)
+sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE)
 
-sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE,
              show.n = TRUE, show.na = TRUE)
 
 # --------------------------------
 # User defined style sheet
 # --------------------------------
-sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE,
              show.total = TRUE, show.skew = TRUE, show.kurtosis = TRUE,
              CSS = list(css.ncol = "border-left:1px dotted black;",
                         css.summary = "font-style:italic;"))}

@@ -7,11 +7,10 @@
 sjt.pca(data, rotation = c("varimax", "oblimin"), nmbr.fctr = NULL,
   fctr.load.tlrn = 0.1, title = "Principal Component Analysis",
   var.labels = NULL, wrap.labels = 40, show.cronb = TRUE,
-  show.msa = FALSE, show.var = FALSE, altr.row.col = FALSE, digits = 2,
-  string.pov = "Proportion of Variance",
+  show.msa = FALSE, show.var = FALSE, alternate.rows = FALSE,
+  digits = 2, string.pov = "Proportion of Variance",
   string.cpov = "Cumulative Proportion", CSS = NULL, encoding = NULL,
-  file = NULL, use.viewer = TRUE, no.output = FALSE,
-  remove.spaces = TRUE)
+  file = NULL, use.viewer = TRUE, remove.spaces = TRUE)
 }
 \arguments{
 \item{data}{A data frame that should be used to compute a PCA, or a \code{\link{prcomp}} object.}
@@ -30,13 +29,13 @@ on 3 possible factors can not be clearly assigned to just one factor and thus wo
 from the principal component analysis. By default, the minimum difference of loading values
 between the highest and 2nd highest factor should be 0.1}
 
-\item{title}{Table caption, as character vector.}
+\item{title}{String, will be used as table caption.}
 
 \item{var.labels}{Character vector with variable names, which will be used
 to label variables in the output.}
 
-\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis
-labels are displayed in one line and when a line break is inserted.}
+\item{wrap.labels}{Numeric, determines how many chars of the value, variable
+or axis labels are displayed in one line and when a line break is inserted.}
 
 \item{show.cronb}{Logical, if \code{TRUE} (default), the cronbach's alpha value for each factor scale will be calculated,
 i.e. all variables with the highest loading for a factor are taken for the
@@ -49,10 +48,10 @@ dor each component.}
 \item{show.var}{Logical, if \code{TRUE}, the proportions of variances for each component as well as cumulative
 variance are shown in the table footer.}
 
-\item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
-background color.}
+\item{alternate.rows}{Logical, if \code{TRUE}, rows are printed in
+alternatig colors (white and light grey by default).}
 
-\item{digits}{Numeric, amount of digits after decimal point when rounding estimates and values.}
+\item{digits}{Amount of decimals for estimates}
 
 \item{string.pov}{String for the table row that contains the proportions of variances. By default,
 \emph{"Proportion of Variance"} will be used.}
@@ -60,27 +59,22 @@ background color.}
 \item{string.cpov}{String for the table row that contains the cumulative variances. By default,
 \emph{"Cumulative Proportion"} will be used.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
-\item{encoding}{String, indicating the charset encoding used for variable and
-value labels. Default is \code{NULL}, so encoding will be auto-detected
-depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
+\item{encoding}{Character vector, indicating the charset encoding used
+for variable and value labels. Default is \code{"UTF-8"}. For Windows
+Systems, \code{encoding = "Windows-1252"} might be necessary for proper
+display of special characters.}
 
 \item{file}{Destination file, if the output should be saved as file.
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
@@ -105,12 +99,6 @@ Performes a principle component analysis on a data frame or matrix
                parameter, the Cronbach's Alpha value for each factor scale will be calculated,
                i.e. all variables with the highest loading for a factor are taken for the
                reliability test. The result is an alpha value for each factor dimension.
-}
-\details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
-\note{
-See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 \dontrun{

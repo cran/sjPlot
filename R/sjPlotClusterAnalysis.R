@@ -1,7 +1,3 @@
-# bind global variables
-utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "se", "group", "var", "kmeans"))
-
-
 #' @title Compute quick cluster analysis
 #' @name sjc.qclus
 #' @description Compute a quick kmeans or hierarchical cluster analysis and displays "cluster characteristics"
@@ -101,6 +97,7 @@ utils::globalVariables(c("xpos", "value", "Var2", "grp", "prc", "fg", "cprc", "s
 #' @importFrom stats na.omit
 #' @importFrom graphics plot
 #' @importFrom sjmisc std
+#' @importFrom rlang .data
 #' @export
 sjc.qclus <- function(data,
                       groupcount = NULL,
@@ -126,60 +123,55 @@ sjc.qclus <- function(data,
                       legend.title = NULL,
                       legend.labels = NULL,
                       coord.flip = FALSE,
-                      reverse.axis = FALSE,
-                      prnt.plot = TRUE) {
-  # --------------------------------------------------------
+                      reverse.axis = FALSE) {
+
   # match arguments
-  # --------------------------------------------------------
+
   distance <- match.arg(distance)
   method <- match.arg(method)
   agglomeration <- match.arg(agglomeration)
   algorithm <- match.arg(algorithm)
-  # --------------------------------------------------------
+
   # save original data frame
-  # --------------------------------------------------------
+
   rownames(data) <- seq_len(nrow(data))
   data.origin <- data
   # remove missings
   data <- stats::na.omit(data)
   # check for valid argument
   if (is.null(axis.labels)) axis.labels <- colnames(data)
-  # --------------------------------------------------------
+
   # Trim labels and title to appropriate size
-  # --------------------------------------------------------
-  # check length of diagram title and split longer string at into new lines
+
   if (!is.null(title)) title <- sjmisc::word_wrap(title, wrap.title)
-  # check length of legend title and split longer string at into new lines
   if (!is.null(legend.title)) legend.title <- sjmisc::word_wrap(title, wrap.legend.title)
-  # check length of y-axis title and split longer string at into new lines
   if (!is.null(legend.labels)) legend.labels <- sjmisc::word_wrap(legend.labels, wrap.legend.labels)
-  # check length of x-axis-labels and split longer strings at into new lines
-  # every 10 chars, so labels don't overlap
   axis.labels <- sjmisc::word_wrap(axis.labels, wrap.labels)
-  # ---------------------------------------------
+
   # check for auto-groupcount
-  # ---------------------------------------------
+
   if (is.null(groupcount)) {
-    # ------------------------
-    # check if suggested package is available
-    # ------------------------
+
     if (!requireNamespace("cluster", quietly = TRUE)) {
       stop("Package `cluster` needed for this function to work. Please install it.", call. = FALSE)
     }
+
     # check whether method is kmeans. hierarchical clustering
     # requires a specified groupcount
+
     if (method != "kmeans") {
       message("Cannot compute hierarchical cluster analysis when `groupcount` is NULL. Using kmeans clustering instead.")
       method <- "kmeans"
     }
+
     # retrieve optimal group count via gap statistics
     kgap <- sjc.kgap(data, plotResults = F)
     # save group counts
     groupcount <- kgap$solution
   }
-  # ---------------------------------------------
+
   # run cluster analysis with claculated group count
-  # ---------------------------------------------
+
   if (is.null(groups)) {
     # check for argument and R version
     if (agglomeration == "ward") agglomeration <- "ward.D2"
@@ -187,26 +179,28 @@ sjc.qclus <- function(data,
   } else {
     grp.class <- grp <- groups
   }
+
   # remove missings
   grp <- stats::na.omit(grp)
-  # ---------------------------------------------
+
   # check whether groupcount was matrix or not
-  # ---------------------------------------------
+
   if (is.matrix(groupcount)) groupcount <- length(unique(grp))
-  # ---------------------------------------------
+
   # auto-set legend labels
-  # ---------------------------------------------
+
   if (is.null(legend.labels)) legend.labels <- sprintf("Group %i", seq_len(groupcount))
-  # --------------------------------------------------------
+
   # show goodness of classification
-  # --------------------------------------------------------
-  grp.accuracy <- sjc.grpdisc(data,
-                              groups = grp,
-                              groupcount = groupcount,
-                              prnt.plot = show.accuracy)
-  # ---------------------------------------------
+
+  grp.accuracy <- sjc.grpdisc(
+    data,
+    groups = grp,
+    groupcount = groupcount
+  )
+
   # Add group count to legend labels
-  # ---------------------------------------------
+
   if (show.grpcnt || show.accuracy) {
     # iterate legend labels
     for (i in seq_len(length(legend.labels))) {
@@ -229,15 +223,15 @@ sjc.qclus <- function(data,
   colnr <- ncol(data)
   # init data frame
   df <- data.frame()
-  # ---------------------------------------------
+
   # iterate all columns to calculate group means
-  # ---------------------------------------------
+
   for (cnt in seq_len(colnr)) {
     # retrieve column data
     coldat <- z[[cnt]]
-    # ---------------------------------------------
+
     # iterate groups
-    # ---------------------------------------------
+
     for (i in seq_len(groupcount)) {
       # retrieve column values for each group
       grpvalues <- coldat[which(grp == i)]
@@ -247,39 +241,48 @@ sjc.qclus <- function(data,
     }
     # df %.% group_by(grp) %.% summarise(mean(a))
   }
-  # --------------------------------------------------------
+
   # factor for discrete scale
-  # --------------------------------------------------------
+
   df$group <- as.factor(df$group)
-  # --------------------------------------------------------
+
   # create plot
-  # --------------------------------------------------------
+
   if (reverse.axis) {
-    gp <- ggplot(df, aes(x = rev(x), y = y, fill = group))
+    gp <- ggplot(df, aes(x = rev(.data$x), y = .data$y, fill = .data$group))
     axis.labels <- rev(axis.labels)
   } else {
-    gp <- ggplot(df, aes_string(x = "x", y = "y", fill = "group"))
+    gp <- ggplot(df, aes(x = .data$x, y = .data$y, fill = .data$group))
   }
   gp <- gp +
-    geom_bar(stat = "identity",
-             position = position_dodge(geom.size + geom.spacing),
-             width = geom.size) +
-    scale_x_discrete(breaks = seq_len(colnr),
-                     limits = seq_len(colnr),
-                     labels = axis.labels) +
-    labs(title = title, x = "Cluster group characteristics", y = "Mean of z-scores", fill = legend.title)
-  # --------------------------------------------------------
+    geom_bar(
+      stat = "identity",
+      position = position_dodge(geom.size + geom.spacing),
+      width = geom.size
+    ) +
+    scale_x_discrete(
+      breaks = seq_len(colnr),
+      limits = seq_len(colnr),
+      labels = axis.labels
+    ) +
+    labs(
+      title = title,
+      x = "Cluster group characteristics",
+      y = "Mean of z-scores",
+      fill = legend.title
+    )
+
   # check whether coordinates should be flipped, i.e.
   # swap x and y axis
-  # --------------------------------------------------------
+
   if (coord.flip) gp <- gp + coord_flip()
-  # --------------------------------------------------------
+
   # use facets
-  # --------------------------------------------------------
+
   if (facet.grid) gp <- gp + facet_wrap(~group)
-  # ---------------------------------------------------------
+
   # set geom colors
-  # ---------------------------------------------------------
+
   gp <- sj.setGeomColors(gp,
                          geom.colors,
                          length(legend.labels),
@@ -288,7 +291,7 @@ sjc.qclus <- function(data,
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
-  if (prnt.plot) graphics::plot(gp)
+  graphics::plot(gp)
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
@@ -413,7 +416,7 @@ sjc.cluster <- function(data,
   # assign valid group values
   complete.groups[data.origin$sj.grp.id] <- groups
   # return group assignment
-  return(complete.groups)
+  complete.groups
 }
 
 
@@ -540,7 +543,7 @@ sjc.dend <- function(data, groupcount, distance = "euclidean", agglomeration = "
 #' @importFrom MASS lda
 #' @import ggplot2
 #' @export
-sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = TRUE) {
+sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE) {
   # Prepare Data
   # listwise deletion of missing
   data <- stats::na.omit(data)
@@ -592,7 +595,7 @@ sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = T
     labeldat <- rbind(labeldat, 0)
   }
   # create data frame
-  mydat <- data.frame(filldat, newdat, tmpdat, labeldat)
+  mydat <- data.frame(filldat, newdat, tmpdat, labeldat, stringsAsFactors = FALSE)
   # name columns
   names(mydat) <- c("fg", "grp", "prc", "cprc")
   # fillgroup-indicator ($fg) needs to be a factor
@@ -600,7 +603,7 @@ sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = T
   # plot bar charts, stacked proportional
   # this works, because we always have two "values" (variables)
   # for the X-axis in the $grp-columns indicating a group
-  classplot <- ggplot(mydat, aes_string(x = "grp", y = "prc", fill = "fg")) +
+  classplot <- ggplot(mydat, aes(x = .data$grp, y = .data$prc, fill = .data$fg)) +
     # use stat identity to show value, not count of $prc-variable
     # draw no legend!
     geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
@@ -611,7 +614,7 @@ sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = T
          x = "cluster groups",
          y = NULL) +
     # print value labels into bar chart
-    geom_text(aes_string(label = "cprc", y = "cprc"),
+    geom_text(aes(label = .data$cprc, y = .data$cprc),
               vjust = 1.2,
               colour = "white") +
     # larger font size for axes
@@ -628,7 +631,7 @@ sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = T
     classplot <- classplot +
     # set line across all bars which indicates the total percentage of
     # correct assigned cases
-    geom_hline(yintercept = totalcorrect,
+      geom_hline(yintercept = totalcorrect,
                linetype = 2,
                colour = "#333333") +
       # print text annotation
@@ -643,7 +646,7 @@ sjc.grpdisc <- function(data, groups, groupcount, clss.fit = TRUE, prnt.plot = T
   # --------------------------------------------------------
   # plot
   # --------------------------------------------------------
-  if (prnt.plot) graphics::plot(classplot)
+  graphics::plot(classplot)
   # --------------------------------------------------------
   # return values
   # --------------------------------------------------------
@@ -690,7 +693,7 @@ sjc.elbow <- function(data, steps = 15, show.diff = FALSE) {
   # define line linecolor
   lcol <- grDevices::rgb(128, 172, 200, maxColorValue = 255)
   # calculate elbow values (sum of squares)
-  wss <- (nrow(data) - 1) * sum(apply(data, 2, var))
+  wss <- (nrow(data) - 1) * sum(apply(data, 2, stats::var))
   for (i in 2:steps) wss[i] <- sum(kmeans(data, centers = i)$withinss)
   # round and print elbow values
   wssround <- round(wss, 0)
@@ -829,8 +832,8 @@ sjc.kgap <- function(x,
                    psize = nclus,
                    pcol = cclus)
   # plot cluster solution
-  gp <- ggplot(df, aes_string(x = "x", y = "y")) +
-    geom_errorbar(aes(ymin = y - se, ymax = y + se),
+  gp <- ggplot(df, aes(x = .data$x, y = .data$y)) +
+    geom_errorbar(aes(ymin = .data$y - .data$se, ymax = .data$y + .data$se),
                   width = 0,
                   size = 0.5,
                   colour = "#3366cc") +

@@ -3,7 +3,6 @@
 #' @importFrom sjmisc str_contains is_empty
 #' @importFrom stats formula residuals
 #' @importFrom dplyr filter
-#' @importFrom tibble has_name
 plot_type_slope <- function(model,
                             terms,
                             rm.terms,
@@ -86,22 +85,22 @@ plot_type_slope <- function(model,
 
   # iterate all predictors
 
-  mydat <- purrr::map_df(predvars, function(p_v) {
+  mydat <- suppressWarnings(purrr::map_df(predvars, function(p_v) {
 
     # make sure we have the variable in our data. for mixed
     # models, we might have some random effects which were not
     # in the model frame
 
-    if (tibble::has_name(model_data, p_v)) {
+    if (obj_has_name(model_data, p_v)) {
 
       if (useResiduals) {
-        tibble::tibble(
+        data_frame(
           x = sjlabelled::as_numeric(model_data[[p_v]]),
           y = stats::residuals(model),
           group = sjlabelled::get_label(model_data[[p_v]], def.value = p_v, case = case)
         )
       } else {
-        tibble::tibble(
+        data_frame(
           x = sjlabelled::as_numeric(model_data[[p_v]]),
           y = sjstats::resp_val(model),
           group = sjlabelled::get_label(model_data[[p_v]], def.value = p_v, case = case)
@@ -109,14 +108,14 @@ plot_type_slope <- function(model,
       }
 
     }
-  })
+  }))
 
 
   # facets, all in one plot
 
   if (facets) {
 
-    p <- ggplot(mydat, aes_string(x = "x", y = "y")) +
+    p <- ggplot(mydat, aes(x = .data$x, y = .data$y)) +
       stat_smooth(
         method = "lm", se = !is.na(ci.lvl), colour = lineColor,
         fill = lineColor, alpha = alpha, level = ci.lvl
@@ -151,7 +150,7 @@ plot_type_slope <- function(model,
 
       dat <- dplyr::filter(mydat, .data$group == !! p_v)
 
-      pl <- ggplot(dat, aes_string(x = "x", y = "y")) +
+      pl <- ggplot(dat, aes(x = .data$x, y = .data$y)) +
         stat_smooth(
           method = "lm", se = !is.na(ci.lvl), colour = lineColor,
           fill = lineColor, alpha = alpha, level = ci.lvl

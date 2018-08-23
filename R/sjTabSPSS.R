@@ -38,12 +38,11 @@
 #' @param max.len Numeric, indicates how many values and value labels per variable
 #'   are shown. Useful for variables with many different values, where the output
 #'   can be truncated.
-#' @param hide.progress logical, if \code{TRUE}, the progress bar that is displayed
-#'   when creating the output is hidden. Default in \code{FALSE}, hence the
-#'   bar is visible.
+#' @param verbose,hide.progress Logical, if \code{TRUE}, a progress bar is displayed
+#'   while creating the output.
 #'
 #' @inheritParams tab_df
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
 #' @inheritParams sjt.xtab
 #' @inheritParams sjp.grpfrq
 #'
@@ -84,7 +83,7 @@
 #' @export
 view_df <- function(x,
                     weight.by = NULL,
-                    altr.row.col = TRUE,
+                    alternate.rows = TRUE,
                     show.id = TRUE,
                     show.type = FALSE,
                     show.values = TRUE,
@@ -99,12 +98,20 @@ view_df <- function(x,
                     sort.by.name = FALSE,
                     wrap.labels = 50,
                     hide.progress = FALSE,
+                    verbose = TRUE,
                     CSS = NULL,
                     encoding = NULL,
                     file = NULL,
                     use.viewer = TRUE,
-                    no.output = FALSE,
                     remove.spaces = TRUE) {
+
+  ## TODO remove hide.progress later
+
+  if (!missing(hide.progress)) {
+    message("`hide.progress` is deprecated. Please use `verbose` instead.")
+    verbose <- !hide.progress
+  }
+
   # check encoding
   encoding <- get.encoding(encoding, x)
 
@@ -117,6 +124,16 @@ view_df <- function(x,
 
   if (!missing(weight.by)) {
     weights <- rlang::quo_name(rlang::enquo(weight.by))
+    w.string <- tryCatch(
+      {
+        eval(weight.by)
+      },
+      error = function(x) { NULL },
+      warning = function(x) { NULL },
+      finally = function(x) { NULL }
+    )
+
+    if (!is.null(w.string) && is.character(w.string)) weights <- w.string
     if (sjmisc::is_empty(weights) || weights == "NULL") weights <- NULL
   } else
     weights <- NULL
@@ -199,7 +216,7 @@ view_df <- function(x,
   page.content <- paste0(page.content, "\n  </tr>\n")
 
   # create progress bar
-  if (!hide.progress) pb <- utils::txtProgressBar(min = 0, max = length(id), style = 3)
+  if (verbose) pb <- utils::txtProgressBar(min = 0, max = length(id), style = 3)
 
   # subsequent rows
   for (ccnt in 1:length(id)) {
@@ -209,7 +226,7 @@ view_df <- function(x,
     arcstring <- ""
 
     # if we have alternating row colors, set css
-    if (altr.row.col) arcstring <- ifelse(sjmisc::is_even(ccnt), " arc", "")
+    if (alternate.rows) arcstring <- ifelse(sjmisc::is_even(ccnt), " arc", "")
     page.content <- paste0(page.content, "  <tr>\n")
 
     # ID
@@ -433,11 +450,11 @@ view_df <- function(x,
     }
 
     # update progress bar
-    if (!hide.progress) utils::setTxtProgressBar(pb, ccnt)
+    if (verbose) utils::setTxtProgressBar(pb, ccnt)
     # close row tag
     page.content <- paste0(page.content, "  </tr>\n")
   }
-  if (!hide.progress) close(pb)
+  if (verbose) close(pb)
 
   # finish html page
   page.content <- paste(page.content, "</table>", sep = "\n")
@@ -473,7 +490,6 @@ view_df <- function(x,
       header = NULL,
       knitr = knitr,
       file = file,
-      show = !no.output,
       viewer = use.viewer
     )
   )

@@ -23,9 +23,8 @@
 #'          where row and column item are identical (i.e. the "self-correlation"). By defauilt,
 #'          this argument is \code{NULL} and the diagnal cells are empty.
 #'
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
 #' @inheritParams sjt.xtab
-#' @inheritParams sjt.df
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjp.glmer
 #' @inheritParams sjp.lm
@@ -44,10 +43,6 @@
 #'       the \code{\link{cor}}-function, p-values can't be computed.
 #'       Thus, \code{show.p}, \code{p.numeric} and \code{fade.ns}
 #'       only have an effect if \code{data} is a \code{\link{data.frame}}.
-#'       \cr \cr
-#'       Additionally, see 'Note' in \code{\link{sjt.frq}}.
-#'
-#' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
 #' @examples
 #' \dontrun{
@@ -105,7 +100,6 @@ sjt.corr <- function(data,
                      encoding = NULL,
                      file = NULL,
                      use.viewer = TRUE,
-                     no.output = FALSE,
                      remove.spaces = TRUE) {
   # --------------------------------------------------------
   # check p-value-style option
@@ -472,7 +466,6 @@ sjt.corr <- function(data,
       header = table.header,
       knitr = knitr,
       file = file,
-      show = !no.output,
       viewer = use.viewer
     )
   )

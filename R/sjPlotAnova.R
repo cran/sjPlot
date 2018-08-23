@@ -1,7 +1,3 @@
-# bind global variables
-utils::globalVariables(c("pv", "xv"))
-
-
 #' @title Plot One-Way-Anova tables
 #' @name sjp.aov1
 #'
@@ -10,26 +6,22 @@ utils::globalVariables(c("pv", "xv"))
 #'                dependent variable (variance within and between groups) is printed to
 #'                the model summary.
 #'
-#' @seealso \code{\link{sjt.grpmean}}
-#'
 #' @param var.dep Dependent variable. Will be used with following formula:
 #'          \code{aov(var.dep ~ var.grp)}
 #' @param var.grp Factor with the cross-classifying variable, where \code{var.dep}
 #'          is grouped into the categories represented by \code{var.grp}.
-#' @param meansums Logical, if \code{TRUE}, the values reported are the true group mean values (see also \code{\link{sjt.grpmean}}).
+#' @param meansums Logical, if \code{TRUE}, the values reported are the true group mean values.
 #'          If \code{FALSE} (default), the values are reported in the standard way, i.e. the values indicate the difference of
 #'          the group mean in relation to the intercept (reference group).
 #' @param string.interc Character vector that indicates the reference group (intercept), that is appended to
 #'          the value label of the grouping variable. Default is \code{"(Intercept)"}.
 #'
 #' @inheritParams sjp.grpfrq
-#' @inheritParams sjp.lm
-#' @inheritParams sjp.glmer
 #' @inheritParams sjp.xtab
-#' @inheritParams sjp.gpt
+#' @inheritParams plot_gpt
+#' @inheritParams plot_model
 #'
-#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-#'           was used for setting up the ggplot-object (\code{df}).
+#' @return A ggplot-object.
 #'
 #' @examples
 #' data(efc)
@@ -41,7 +33,8 @@ utils::globalVariables(c("pv", "xv"))
 #' @import ggplot2
 #' @importFrom sjmisc trim word_wrap to_value
 #' @importFrom stats confint aov summary.lm
-#' @importFrom tibble rownames_to_column
+#' @importFrom rlang .data
+#' @importFrom sjlabelled get_label get_labels
 #' @export
 sjp.aov1 <- function(var.dep,
                      var.grp,
@@ -59,10 +52,9 @@ sjp.aov1 <- function(var.dep,
                      grid.breaks = NULL,
                      show.values = TRUE,
                      digits = 2,
-                     y.offset = .1,
+                     y.offset = .15,
                      show.p = TRUE,
-                     show.summary = FALSE,
-                     prnt.plot = TRUE) {
+                     show.summary = FALSE) {
   # --------------------------------------------------------
   # get variable name
   # --------------------------------------------------------
@@ -73,8 +65,8 @@ sjp.aov1 <- function(var.dep,
   # --------------------------------------------------------
   if (is.null(axis.labels)) axis.labels <- sjlabelled::get_labels(var.grp,
                                                               attr.only = F,
-                                                              include.values = NULL,
-                                                              include.non.labelled = T)
+                                                              values = NULL,
+                                                              non.labelled = T)
   if (is.null(axis.title)) axis.title <- sjlabelled::get_label(var.dep, def.value = var.dep.name)
   if (is.null(title)) {
     t1 <- sjlabelled::get_label(var.grp, def.value = var.grp.name)
@@ -192,12 +184,14 @@ sjp.aov1 <- function(var.dep,
   # create new data.frame, since ggplot requires data.frame as parameter
   # The data frame contains means, CI and p-values
   # --------------------------------------------------------
-  df <- data.frame(means,     # Append coefficients
-                   means.lci, # append CI
-                   means.uci,
-                   means.p,   # append p-value
-                   ps,
-                   catorder)
+  df <- data_frame(
+    means = means,     # Append coefficients
+    lower = means.lci, # append CI
+    upper = means.uci,
+    p = means.p,   # append p-value
+    pv = ps,
+    xv = catorder
+  )
   # --------------------------------------------------------
   # check if user defined labels have been supplied
   # if not, use variable names from data frame
@@ -205,13 +199,12 @@ sjp.aov1 <- function(var.dep,
   if (is.null(axis.labels)) axis.labels <- row.names(df)
   # order labels
   axis.labels <- axis.labels[catorder]
-  # give columns names
-  names(df) <- c("means", "lower", "upper", "p", "pv", "xv")
   df$means <- sjmisc::to_value(df$means, keep.labels = F)
   df$lower <- sjmisc::to_value(df$lower, keep.labels = F)
   df$upper <- sjmisc::to_value(df$upper, keep.labels = F)
   df$p <- sjmisc::to_value(df$p, keep.labels = F)
   df$pv <- as.character(df$pv)
+  df$xv <- as.factor(df$xv)
   # bind color values to data frame, because we cannot use several
   # different color aesthetics in ggplot
   df <- cbind(df, geocol = ifelse(df$means >= 0, geom.colors[1], geom.colors[2]))
@@ -244,20 +237,22 @@ sjp.aov1 <- function(var.dep,
   # --------------------------------------------------------
   # Set up plot padding (margins inside diagram)
   # --------------------------------------------------------
-  scaley <- scale_y_continuous(limits = c(lower_lim, upper_lim),
-                               breaks = ticks,
-                               labels = ticks)
+  scaley <- scale_y_continuous(
+    limits = c(lower_lim, upper_lim),
+    breaks = ticks,
+    labels = ticks
+  )
   # --------------------------------------------------------
   # Start plot here!
   # --------------------------------------------------------
-  anovaplot <- ggplot(df, aes(y = means, x = as.factor(xv))) +
+  anovaplot <- ggplot(df, aes(y = .data$means, x = .data$xv)) +
     # print point
     geom_point(size = geom.size, colour = df$geocol) +
     # and error bar
-    geom_errorbar(aes(ymin = lower, ymax = upper), colour = df$geocol, width = 0) +
+    geom_errorbar(aes(ymin = .data$lower, ymax = .data$upper), colour = df$geocol, width = 0) +
     # Print p-values. With vertical adjustment, so
     # they don't overlap with the errorbars
-    geom_text(aes(label = pv, y = means), nudge_x = y.offset, show.legend = FALSE) +
+    geom_text(aes(label = .data$pv, y = .data$means), nudge_x = y.offset, show.legend = FALSE) +
     # set y-scale-limits, breaks and tick labels
     scaley +
     # set value labels to x-axis
@@ -265,6 +260,7 @@ sjp.aov1 <- function(var.dep,
     # flip coordinates
     labs(title = title, x = NULL, y = axis.title) +
     coord_flip()
+
   # check whether modelsummary should be printed
   if (show.summary) {
     # add annotations with model summary
@@ -273,20 +269,6 @@ sjp.aov1 <- function(var.dep,
       annotate("text", label = modsum, parse = TRUE, x = -Inf, y = Inf,
                hjust = "right", vjust = "bottom")
   }
-  # ---------------------------------------------------------
-  # Check whether ggplot object should be returned or plotted
-  # ---------------------------------------------------------
-  if (prnt.plot) graphics::plot(anovaplot)
-  # -------------------------------------
-  # set proper column names
-  # -------------------------------------
-  df <- tibble::rownames_to_column(df)
-  colnames(df) <- c("term", "estimate", "conf.low", "conf.high",
-                    "p.value", "p.string", "xpos", "geom.color")
-  # -------------------------------------
-  # return results
-  # -------------------------------------
-  invisible(structure(class = "sjpaov1",
-                      list(plot = anovaplot,
-                           data = df)))
+
+  anovaplot
 }

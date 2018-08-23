@@ -1,3 +1,38 @@
+# sjPlot 2.6.0
+
+## General
+
+* `sjp.scatter()` was revised and renamed to `plot_scatter()`. `plot_scatter()` is pipe-friendly, and also works on grouped data frames.
+* `sjp.gpt()` was revised and renamed to `plot_gpt()`. `plot_gpt()` is pipe-friendly, and also works on grouped data frames.
+* Reduce package dependencies.
+
+## Renamed functions
+
+* `sjp.scatter()` was renamed to `plot_scatter()`.
+* `sjp.likert()` was renamed to `plot_likert()`.
+* `sjp.gpt()` was renamed to `plot_gpt()`.
+* `sjp.resid()` was renamed to `plot_residuals()`.
+
+## Changes to functions
+
+* Improved support for `brmsfit`-objects with categorical-family for `plot_model()` and `tab_model()`.
+* `tab_model()` gets a `show.adj.icc`-argument, to also show the adjusted ICC for mixed models.
+* `tab_model()` gets a `col.order`-argument, reorder the table columns.
+* Argument `hide.progress` in `view_df()` is deprecated. Please use `verbose` now.
+* The `statistics`-argument in `sjt.xtab()` gets a `"fisher"`-option, to force Fisher's Exact Test to be used.
+
+## Removed / Defunct
+
+Following functions are now defunct:
+
+* `sjp.lm()`, `sjp.glm()`, `sjp.lmer()`, `sjp.glmer()` and `sjp.int()`. Please use `plot_model()` instead.
+* `sjt.frq()`. Please use `sjmisc::frq(out = "v")` instead.
+
+## Bug fixes
+
+* Due to changes in the _broom_ and _lmerTest_ packages, tidiers did no longer work for `lmerModLmerTest` objects.
+* Fix issue with standardized coefficient (argument `show.std`) in `tab_model()`.
+
 # sjPlot 2.5.0
 
 ## New functions

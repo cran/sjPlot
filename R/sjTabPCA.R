@@ -33,9 +33,10 @@
 #' @param string.cpov String for the table row that contains the cumulative variances. By default,
 #'          \emph{"Cumulative Proportion"} will be used.
 #'
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
+#' @inheritParams view_df
+#' @inheritParams tab_df
 #' @inheritParams sjt.xtab
-#' @inheritParams sjt.df
 #' @inheritParams sjp.grpfrq
 #' @inheritParams sjt.corr
 #'
@@ -49,11 +50,6 @@
 #'            \item the \code{removed.items}, i.e. which variables have been removed because they were outside of the \code{fctr.load.tlrn}'s range.
 #'            }
 #'            for further use.
-#'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
-#'
-#' @details See 'Details' in \code{\link{sjt.frq}}.
-#'
 #'
 #' @examples
 #' \dontrun{
@@ -81,7 +77,7 @@ sjt.pca <- function(data,
                     show.cronb = TRUE,
                     show.msa = FALSE,
                     show.var = FALSE,
-                    altr.row.col = FALSE,
+                    alternate.rows = FALSE,
                     digits = 2,
                     string.pov = "Proportion of Variance",
                     string.cpov = "Cumulative Proportion",
@@ -89,7 +85,6 @@ sjt.pca <- function(data,
                     encoding = NULL,
                     file = NULL,
                     use.viewer = TRUE,
-                    no.output = FALSE,
                     remove.spaces = TRUE) {
   # -------------------------------------
   # check encoding
@@ -378,7 +373,7 @@ sjt.pca <- function(data,
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (altr.row.col) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
+    if (alternate.rows) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
     # write tr-tag with class-attributes
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell
@@ -534,6 +529,5 @@ sjt.pca <- function(data,
                            removed.items = removableItems,
                            file = file,
                            header = table.header,
-                           show = !no.output,
                            viewer = use.viewer))
 }

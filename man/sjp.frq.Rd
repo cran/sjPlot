@@ -4,20 +4,21 @@
 \alias{sjp.frq}
 \title{Plot frequencies of variables}
 \usage{
-sjp.frq(var.cnt, title = "", weight.by = NULL, title.wtd.suffix = NULL,
-  sort.frq = c("none", "asc", "desc"), type = c("bar", "dot", "histogram",
-  "line", "density", "boxplot", "violin"), geom.size = NULL,
-  geom.colors = "#336699", errorbar.color = "darkred", axis.title = NULL,
-  axis.labels = NULL, xlim = NULL, ylim = NULL, wrap.title = 50,
-  wrap.labels = 20, grid.breaks = NULL, expand.grid = FALSE,
-  show.values = TRUE, show.n = TRUE, show.prc = TRUE,
-  show.axis.values = TRUE, show.ci = FALSE, show.na = FALSE,
-  show.mean = FALSE, show.mean.val = TRUE, show.sd = TRUE,
-  mean.line.type = 2, mean.line.size = 0.5, inner.box.width = 0.15,
-  inner.box.dotsize = 3, normal.curve = FALSE, normal.curve.color = "red",
-  normal.curve.size = 0.8, normal.curve.alpha = 0.4, auto.group = NULL,
-  coord.flip = FALSE, vjust = "bottom", hjust = "center",
-  y.offset = NULL, prnt.plot = TRUE)
+sjp.frq(var.cnt, title = "", weight.by = NULL,
+  title.wtd.suffix = NULL, sort.frq = c("none", "asc", "desc"),
+  type = c("bar", "dot", "histogram", "line", "density", "boxplot",
+  "violin"), geom.size = NULL, geom.colors = "#336699",
+  errorbar.color = "darkred", axis.title = NULL, axis.labels = NULL,
+  xlim = NULL, ylim = NULL, wrap.title = 50, wrap.labels = 20,
+  grid.breaks = NULL, expand.grid = FALSE, show.values = TRUE,
+  show.n = TRUE, show.prc = TRUE, show.axis.values = TRUE,
+  show.ci = FALSE, show.na = FALSE, show.mean = FALSE,
+  show.mean.val = TRUE, show.sd = TRUE, mean.line.type = 2,
+  mean.line.size = 0.5, inner.box.width = 0.15,
+  inner.box.dotsize = 3, normal.curve = FALSE,
+  normal.curve.color = "red", normal.curve.size = 0.8,
+  normal.curve.alpha = 0.4, auto.group = NULL, coord.flip = FALSE,
+  vjust = "bottom", hjust = "center", y.offset = NULL)
 }
 \arguments{
 \item{var.cnt}{Vector of counts, for which frequencies or means will be plotted or printed.}
@@ -63,11 +64,7 @@ will have same colors as dots (see \code{geom.colors}).}
 
 \item{axis.title}{Character vector of length one or two (depending on
 the plot function and type), used as title(s) for the x and y axis.
-If not specified, a default labelling  is chosen. To set multiple
-axis titles (e.g. with \code{type = "eff"} for many predictors),
-\code{axis.title} must be a character vector of same length of plots
-that are printed. In this case, each plot gets an own axis title
-(applying, for instance, to the y-axis for \code{type = "eff"}).
+If not specified, a default labelling  is chosen.
 \strong{Note:} Some plot types do not support this argument. In such
 cases, use the return value and add axis titles manually with
 \code{\link[ggplot2]{labs}}, e.g.: \code{$plot.list[[1]] + labs(x = ...)}}
@@ -173,13 +170,9 @@ away from the center of the plot respectively.}
 
 \item{y.offset}{numeric, offset for text labels when their alignment is adjusted
 to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
-
-\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
-(Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-          was used for setting up the ggplot-object (\code{data}).
+A ggplot-object.
 }
 \description{
 Plot frequencies of a variable as bar graph, histogram,

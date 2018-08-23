@@ -1,6 +1,3 @@
-# bind global variables
-utils::globalVariables(c("train", "model", "test", "predicted", ".response", "sse", "sst"))
-
 #' @title Plot model fit from k-fold cross-validation
 #' @name sjp.kfold_cv
 #'
@@ -48,9 +45,8 @@ utils::globalVariables(c("train", "model", "test", "predicted", ".response", "ss
 #' sjp.kfold_cv(efc, fit = fit)
 #'
 #' @import ggplot2
-#' @importFrom tibble is.tibble as_tibble
 #' @importFrom modelr crossv_kfold
-#' @importFrom dplyr mutate group_by_ ungroup summarise
+#' @importFrom dplyr mutate ungroup summarise
 #' @importFrom purrr map map2
 #' @importFrom broom augment
 #' @importFrom tidyr unnest
@@ -61,8 +57,8 @@ utils::globalVariables(c("train", "model", "test", "predicted", ".response", "ss
 #' @importFrom MASS glm.nb
 #' @export
 sjp.kfold_cv <- function(data, formula, k = 5, fit) {
-  # make sure that data is a tibble
-  if (!tibble::is.tibble(data)) data <- tibble::as_tibble(data)
+  # make sure that data is a data frame
+  if (!is.data.frame(data)) data <- as.data.frame(data)
 
   # check if a formula was passed as argument...
   if (!missing(formula)) {
@@ -95,37 +91,37 @@ sjp.kfold_cv <- function(data, formula, k = 5, fit) {
       # create cross-validated test-training pairs, run poisson-model on each
       # pair, get deviance residuals and response value
       res <- modelr::crossv_kfold(data, k = k) %>%
-        dplyr::mutate(model = purrr::map(train, ~ stats::glm(formula, data = .x, family = stats::poisson(link = "log")))) %>%
-        dplyr::mutate(residuals = purrr::map(model, ~ stats::residuals(.x, "deviance"))) %>%
-        dplyr::mutate(.response = purrr::map(model, ~ sjstats::resp_val(.x)))
+        dplyr::mutate(model = purrr::map(.data$train, ~ stats::glm(formula, data = .x, family = stats::poisson(link = "log")))) %>%
+        dplyr::mutate(residuals = purrr::map(.data$model, ~ stats::residuals(.x, "deviance"))) %>%
+        dplyr::mutate(.response = purrr::map(.data$model, ~ sjstats::resp_val(.x)))
     # for negative binomial models, show deviance residuals
     } else if (inherits(fit, "negbin")) {
       # create cross-validated test-training pairs, run poisson-model on each
       # pair, get deviance residuals and response value
       res <- modelr::crossv_kfold(data, k = k) %>%
-        dplyr::mutate(model = purrr::map(train, ~ MASS::glm.nb(formula, data = .))) %>%
-        dplyr::mutate(residuals = purrr::map(model, ~ stats::residuals(.x, "deviance"))) %>%
-        dplyr::mutate(.response = purrr::map(model, ~ sjstats::resp_val(.x)))
+        dplyr::mutate(model = purrr::map(.data$train, ~ MASS::glm.nb(formula, data = .))) %>%
+        dplyr::mutate(residuals = purrr::map(.data$model, ~ stats::residuals(.x, "deviance"))) %>%
+        dplyr::mutate(.response = purrr::map(.data$model, ~ sjstats::resp_val(.x)))
     }
 
     # unnest residuals and response values
-    res <- res %>% tidyr::unnest(residuals, .response)
+    res <- res %>% tidyr::unnest(residuals, .data$.response)
 
   } else {
     # create cross-validated test-training pairs, run linear model on each
     # pair, get predicted values and quality measures for models fitted on the
     # train data
     res <- modelr::crossv_kfold(data, k = k) %>%
-      dplyr::mutate(model = purrr::map(train, ~ stats::lm(formula, data = .))) %>%
-      dplyr::mutate(predicted = purrr::map2(model, test, ~ broom::augment(.x, newdata = .y))) %>%
-      tidyr::unnest(predicted)
+      dplyr::mutate(model = purrr::map(.data$train, ~ stats::lm(formula, data = .))) %>%
+      dplyr::mutate(predicted = purrr::map2(.data$model, .data$test, ~ broom::augment(.x, newdata = .y))) %>%
+      tidyr::unnest(.data$predicted)
 
     # make sure that response vector has an identifiably name
     colnames(res)[which(colnames(res) == deparse(resp))] <- ".response"
 
     # compute residuals for each k-fold model
     res <- res %>%
-      dplyr::mutate(residuals = .response - .fitted)
+      dplyr::mutate(residuals = .data$.response - .data$.fitted)
   }
 
   # plot response against residuals, to see where our model over- or
@@ -138,9 +134,5 @@ sjp.kfold_cv <- function(data, formula, k = 5, fit) {
     labs(y = "Residuals", x = resp.name)
 
   # plot it
-  suppressWarnings(graphics::plot(p))
-
-  # return plot and quality measures
-  invisible(structure(class = "sjp.kfold_cv",
-                      list(plot = p)))
+  p
 }

@@ -32,12 +32,22 @@
 #'          may lead to non-exact results). Default is \code{"100.0"}.
 #' @param statistics Name of measure of association that should be computed. May
 #'          be one of \code{"auto"}, \code{"cramer"}, \code{"phi"}, \code{"spearman"},
-#'          \code{"kendall"} or \code{"pearson"}. See 'Details'.
+#'          \code{"kendall"}, \code{"pearson"} or \code{"fisher"}. See
+#'          \code{\link[sjstats]{xtab_statistics}}.
 #' @param ... Other arguments, currently passed down to the test statistics functions
 #'        \code{chisq.test()} or \code{fisher.test()}.
+#' @param encoding String, indicating the charset encoding used for variable and
+#'          value labels. Default is \code{NULL}, so encoding will be auto-detected
+#'          depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
+#'          Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).
+#' @param remove.spaces Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
+#'          that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
+#'          may look less pretty, but it may help when exporting html-tables to office tools.
+#' @param value.labels Character vector (or \code{list} of character vectors)
+#'          with value labels of the supplied variables, which will be used
+#'          to label variable values in the output.
 #'
-#' @inheritParams sjt.frq
-#' @inheritParams sjt.df
+#' @inheritParams tab_model
 #' @inheritParams sjp.glmer
 #' @inheritParams sjp.grpfrq
 #'
@@ -49,19 +59,6 @@
 #'            \item the html-table with inline-css for use with knitr (\code{knitr})
 #'            }
 #'            for further use.
-#'
-#' @details The p-value for Cramer's V and the Phi coefficient are based
-#'          on \code{chisq.test()}. If any expected value of a table cell is
-#'          smaller than 5, or smaller than 10 and the df is 1, then \code{fisher.test()}
-#'          is used to compute the p-value. The test statistic is calculated
-#'          with \code{cramer()} resp. \code{phi()}.
-#'          \cr \cr
-#'          Both test statistic and p-value for Spearman's rho, Kendall's tau
-#'          and Pearson's r are calculated with \code{cor.test()}.
-#'          \cr \cr
-#'          When \code{statistics = "auto"}, only Cramer's V or Phi are calculated,
-#'          based on the dimension of the table (i.e. if the table has more than
-#'          two rows or columns, Cramer's V is calculated, else Phi).
 #'
 #' @examples
 #' # prepare sample data set
@@ -119,7 +116,7 @@ sjt.xtab <- function(var.row,
                      show.legend = FALSE,
                      show.na = FALSE,
                      show.summary = TRUE,
-                     statistics = c("auto", "cramer", "phi", "spearman", "kendall", "pearson"),
+                     statistics = c("auto", "cramer", "phi", "spearman", "kendall", "pearson", "fisher"),
                      string.total = "Total",
                      digits = 1,
                      tdcol.n = "black",
@@ -135,7 +132,6 @@ sjt.xtab <- function(var.row,
                      encoding = NULL,
                      file = NULL,
                      use.viewer = TRUE,
-                     no.output = FALSE,
                      remove.spaces = TRUE,
                      ...) {
   # --------------------------------------------------------
@@ -425,8 +421,24 @@ sjt.xtab <- function(var.row,
   # table summary
   # -------------------------------------
   if (show.summary) {
-    xt_stat <-
-      sjstats::xtab_statistics(data = data.frame(var.row, var.col), statistics = statistics, ...)
+
+    xtsdf <- data.frame(var.row, var.col)
+
+    if (!is.null(weight.by)) {
+      xtsdf$weights <- weight.by
+      xt_stat <- sjstats::xtab_statistics(
+        data = xtsdf,
+        weights = "weights",
+        statistics = statistics,
+        ...
+      )
+    } else {
+      xt_stat <- sjstats::xtab_statistics(
+        data = xtsdf,
+        statistics = statistics,
+        ...
+      )
+    }
 
     # fisher's exact test?
     if (xt_stat$fisher)
@@ -561,6 +573,5 @@ sjt.xtab <- function(var.row,
                            knitr = knitr,
                            header = table.header,
                            file = file,
-                           show = !no.output,
                            viewer = use.viewer))
 }

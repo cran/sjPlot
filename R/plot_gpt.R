@@ -1,11 +1,11 @@
-utils::globalVariables(c("dep", "n"))
+utils::globalVariables("n")
 
 #' @title Plot grouped proportional tables
-#' @name sjp.gpt
+#' @name plot_gpt
 #'
 #' @description Plot grouped proportional crosstables, where the proportion of
 #'                each level of \code{x} for the highest category in \code{y}
-#'                is plotted, for each subgroup of \code{groups}.
+#'                is plotted, for each subgroup of \code{grp}.
 #'
 #' @param x Categorical variable, where the proportion of each category in
 #'            \code{x} for the highest category of \code{y} will be printed
@@ -13,12 +13,12 @@ utils::globalVariables(c("dep", "n"))
 #' @param y Categorical or numeric variable. If not a binary variable, \code{y}
 #'            will be recoded into a binary variable, dichtomized at the highest
 #'            category and all remaining categories.
-#' @param groups Grouping variable, which will define the y-axis
+#' @param grp Grouping variable, which will define the y-axis
 #' @param shape.fill.color Optional color vector, fill-color for non-filled shapes
 #' @param shapes Numeric vector with shape styles, used to map the different
 #'          categories of \code{x}.
 #' @param show.total Logical, if \code{TRUE}, a total summary line for all aggregated
-#'          \code{groups} is added.
+#'          \code{grp} is added.
 #' @param annotate.total Logical, if \code{TRUE} and \code{show.total = TRUE},
 #'          the total-row in the figure will be highlighted with a slightly
 #'          shaded background.
@@ -28,17 +28,17 @@ utils::globalVariables(c("dep", "n"))
 #'          \code{type = "slope"} in \code{\link{sjp.glm}}), \code{axis.lim} may
 #'          also be a list of vectors of length 2, defining axis limits for each
 #'          plot (only if non-faceted).
+#' @param show.p Logical, adds significance levels to values, or value and
+#'          variable labels.
 #'
-#' @return (Insisibily) returns the ggplot-object with the complete plot
-#'           (\code{plot}) as well as the data frame that
-#'           was used for setting up the ggplot-object (\code{df}).
+#' @return A ggplot-object.
 #'
+#' @inheritParams plot_scatter
 #' @inheritParams sjp.grpfrq
-#' @inheritParams sjp.lm
 #' @inheritParams sjp.xtab
 #'
 #' @details The p-values are based on \code{\link[stats]{chisq.test}} of \code{x}
-#'            and \code{y} for each \code{groups}.
+#'            and \code{y} for each \code{grp}.
 #'
 #' @examples
 #' data(efc)
@@ -46,12 +46,12 @@ utils::globalVariables(c("dep", "n"))
 #' # the proportion of dependency levels in female
 #' # elderly, for each family carer's relationship
 #' # to elderly
-#' sjp.gpt(efc$e42dep, efc$e16sex, efc$e15relat)
+#' plot_gpt(efc, e42dep, e16sex, e15relat)
 #'
 #' # proportion of educational levels in highest
 #' # dependency category of elderly, for different
 #' # care levels
-#' sjp.gpt(efc$c172code, efc$e42dep, efc$n4pstu)
+#' plot_gpt(efc, c172code, e42dep, n4pstu)
 #'
 #' @import ggplot2
 #' @importFrom dplyr group_by summarise bind_rows "%>%"
@@ -59,32 +59,101 @@ utils::globalVariables(c("dep", "n"))
 #' @importFrom sjmisc to_factor rec
 #' @importFrom stats na.omit chisq.test
 #' @export
-sjp.gpt <- function(x,
-                    y,
-                    groups,
-                    geom.colors = "Set1",
-                    geom.size = 2.5,
-                    shape.fill.color = "#f0f0f0",
-                    shapes = c(15, 16, 17, 18, 21, 22, 23, 24, 25, 7, 8, 9, 10, 12),
-                    title = NULL,
-                    axis.labels = NULL,
-                    axis.titles = NULL,
-                    legend.title = NULL,
-                    legend.labels = NULL,
-                    wrap.title = 50,
-                    wrap.labels = 15,
-                    wrap.legend.title = 20,
-                    wrap.legend.labels = 20,
-                    axis.lim = NULL,
-                    grid.breaks = NULL,
-                    show.total = TRUE,
-                    annotate.total = TRUE,
-                    show.p = TRUE,
-                    show.n = TRUE,
-                    prnt.plot = TRUE) {
-  # get variable name
-  var.name.x <- get_var_name(deparse(substitute(x)))
-  var.name.y <- get_var_name(deparse(substitute(y)))
+plot_gpt <- function(
+  data,
+  x,
+  y,
+  grp,
+  colors = "metro ui",
+  geom.size = 2.5,
+  shape.fill.color = "#f0f0f0",
+  shapes = c(15, 16, 17, 18, 21, 22, 23, 24, 25, 7, 8, 9, 10, 12),
+  title = NULL,
+  axis.labels = NULL,
+  axis.titles = NULL,
+  legend.title = NULL,
+  legend.labels = NULL,
+  wrap.title = 50,
+  wrap.labels = 15,
+  wrap.legend.title = 20,
+  wrap.legend.labels = 20,
+  axis.lim = NULL,
+  grid.breaks = NULL,
+  show.total = TRUE,
+  annotate.total = TRUE,
+  show.p = TRUE,
+  show.n = TRUE)
+{
+
+  # get data
+
+  name.x <- deparse(substitute(x))
+  name.y <- deparse(substitute(y))
+  name.grp <- deparse(substitute(grp))
+
+  pl <- NULL
+
+  if (inherits(data, "grouped_df")) {
+    # get grouped data
+    grps <- get_grouped_data(data)
+
+    # now plot everything
+    for (i in seq_len(nrow(grps))) {
+      # copy back labels to grouped data frame
+      tmp <- sjlabelled::copy_labels(grps$data[[i]], data)
+
+      # prepare argument list, including title
+      tmp.title <- get_grouped_plottitle(data, grps, i, sep = "\n")
+
+      # copy data
+
+      x <- tmp[[name.x]]
+      y <- tmp[[name.y]]
+      grp <- tmp[[name.grp]]
+
+      # plot
+
+      plots <- gpt_helper(
+        x, y, grp, colors, geom.size, shape.fill.color, shapes, title = tmp.title,
+        axis.labels, axis.titles, legend.title, legend.labels, wrap.title,
+        wrap.labels, wrap.legend.title, wrap.legend.labels, axis.lim,
+        grid.breaks, show.total, annotate.total, show.p, show.n, name.x, name.y, name.grp
+      )
+
+      # add plots, check for NULL results
+      pl <- c(pl, list(plots))
+    }
+  } else {
+    # copy data
+    x <- data[[name.x]]
+    y <- data[[name.y]]
+    grp <- data[[name.grp]]
+
+    # plot
+
+    pl <- gpt_helper(
+      x, y, grp, colors, geom.size, shape.fill.color, shapes, title,
+      axis.labels, axis.titles, legend.title, legend.labels, wrap.title,
+      wrap.labels, wrap.legend.title, wrap.legend.labels, axis.lim,
+      grid.breaks, show.total, annotate.total, show.p, show.n, name.x, name.y, name.grp
+    )
+  }
+
+  pl
+}
+
+
+gpt_helper <- function(
+  x, y, grp, colors, geom.size, shape.fill.color, shapes, title,
+  axis.labels, axis.titles, legend.title, legend.labels, wrap.title,
+  wrap.labels, wrap.legend.title, wrap.legend.labels, axis.lim,
+  grid.breaks, show.total, annotate.total, show.p, show.n, name.x, name.y, name.grp
+) {
+  # any missing names?
+
+  if (is.null(name.x) || name.x == "NULL") name.x <- ""
+  if (is.null(name.y) || name.y == "NULL") name.y <- ""
+  if (is.null(name.grp) || name.grp == "NULL") name.grp <- ""
 
   # copy titles
   if (is.null(axis.titles)) {
@@ -104,8 +173,8 @@ sjp.gpt <- function(x,
     sjlabelled::get_labels(
       y,
       attr.only = F,
-      include.values = NULL,
-      include.non.labelled = T
+      values = NULL,
+      non.labelled = T
     )
 
   # get only value label for hightest category
@@ -113,10 +182,10 @@ sjp.gpt <- function(x,
   if (is.null(axis.labels)) {
     axis.labels <-
       sjlabelled::get_labels(
-        groups,
+        grp,
         attr.only = F,
-        include.values = NULL,
-        include.non.labelled = T
+        values = NULL,
+        non.labelled = T
       )
   }
 
@@ -124,9 +193,9 @@ sjp.gpt <- function(x,
     axisTitle.y <-
       paste0(
         "Proportion of ",
-        sjlabelled::get_label(x, def.value = var.name.x),
+        sjlabelled::get_label(x, def.value = name.x),
         " in ",
-        sjlabelled::get_label(y, def.value = var.name.y),
+        sjlabelled::get_label(y, def.value = name.y),
         " (",
         ylabels,
         ")"
@@ -134,7 +203,7 @@ sjp.gpt <- function(x,
   }
 
   if (is.null(legend.title)) {
-    legend.title <- sjlabelled::get_label(x, def.value = var.name.x)
+    legend.title <- sjlabelled::get_label(x, def.value = name.x)
   }
 
   if (is.null(legend.labels)) {
@@ -142,13 +211,13 @@ sjp.gpt <- function(x,
       sjlabelled::get_labels(
         x,
         attr.only = F,
-        include.values = NULL,
-        include.non.labelled = T
+        values = NULL,
+        non.labelled = T
       )
   }
 
   # set labels that are still missing, but which need values
-  if (is.null(axis.labels)) axis.labels <- as.character(seq_len(length(groups)))
+  if (is.null(axis.labels)) axis.labels <- as.character(seq_len(length(grp)))
 
   # wrap titles and labels
   if (!is.null(legend.labels)) legend.labels <- sjmisc::word_wrap(legend.labels, wrap.legend.labels)
@@ -166,7 +235,7 @@ sjp.gpt <- function(x,
   # create data frame, for dplyr-chain
   mydf <-
     stats::na.omit(data.frame(
-      grp = sjlabelled::as_numeric(groups, keep.labels = F),
+      grp = sjlabelled::as_numeric(grp, keep.labels = F),
       xpos = x,
       dep = sjlabelled::as_numeric(y, keep.labels = F)
     ))
@@ -180,15 +249,16 @@ sjp.gpt <- function(x,
   # groups, group the x-variable
 
   newdf <- mydf %>%
-    dplyr::group_by(grp, xpos) %>%
-    dplyr::summarise(ypos = mean(dep))
+    dplyr::group_by(.data$grp, .data$xpos) %>%
+    dplyr::summarise(ypos = mean(.data$dep))
 
   # group data by grouping variable,
   # and summarize N per group and chisq.test
   # of grp and x within each group
+
   pvals <- mydf %>%
-    dplyr::group_by(grp) %>%
-    dplyr::summarise(N = n(), p = suppressWarnings(stats::chisq.test(table(xpos, dep))$p.value))
+    dplyr::group_by(.data$grp) %>%
+    dplyr::summarise(N = n(), p = suppressWarnings(stats::chisq.test(table(.data$xpos, .data$dep))$p.value))
 
   # copy p values
   for (i in seq_len(length(pvals$grp))) group.p <- c(group.p, get_p_stars(pvals$p[i]))
@@ -201,12 +271,12 @@ sjp.gpt <- function(x,
   # complete data frame
   if (show.total) {
     tmp <- mydf %>%
-      dplyr::group_by(xpos) %>%
-      dplyr::summarise(ypos = mean(dep))
+      dplyr::group_by(.data$xpos) %>%
+      dplyr::summarise(ypos = mean(.data$dep))
 
     # pvalues and N
     pvals <- mydf %>%
-      dplyr::summarise(N = n(), p = suppressWarnings(stats::chisq.test(table(xpos, dep))$p.value))
+      dplyr::summarise(N = n(), p = suppressWarnings(stats::chisq.test(table(.data$xpos, .data$dep))$p.value))
 
     # bind total row to final df
     newdf <- dplyr::bind_rows(newdf, tmp)
@@ -235,23 +305,16 @@ sjp.gpt <- function(x,
 
   # Set up grid breaks
   if (is.null(grid.breaks))
-    gridbreaks <- ggplot2::waiver()
+    gridbreaks <- waiver()
   else
     gridbreaks <- seq(axis.lim[1], axis.lim[2], by = grid.breaks)
 
   # Set up geom colors
   pal.len <- length(legend.labels)
-  if (is.brewer.pal(geom.colors[1])) {
-    geom.colors <- scales::brewer_pal(palette = geom.colors[1])(pal.len)
-  } else if (geom.colors[1] == "gs") {
-    geom.colors <- scales::grey_pal()(pal.len)
-  } else if (length(geom.colors) > pal.len) {
-    warning("More colors provided than needed. Shortening color palette.")
-    geom.colors <- geom.colors[1:pal.len]
-  }
+  geom.colors <- col_check2(colors, pal.len)
 
   # Set up plot
-  p <- ggplot(newdf, aes(x = rev(grp), y = ypos, colour = xpos, shape = xpos)) +
+  p <- ggplot(newdf, aes(x = rev(.data$grp), y = .data$ypos, colour = .data$xpos, shape = .data$xpos)) +
     geom_point(size = geom.size, fill = shape.fill.color) +
     scale_y_continuous(labels = scales::percent, breaks = gridbreaks, limits = axis.lim) +
     scale_x_discrete(labels = rev(axis.labels)) +
@@ -264,7 +327,5 @@ sjp.gpt <- function(x,
   if (show.total && annotate.total)
     p <- p + annotate("rect", xmin = 0.5,  xmax = 1.5, ymin = -Inf, ymax = Inf, alpha = 0.15)
 
-  # print plot
-  if (prnt.plot) graphics::plot(p)
-  invisible(structure(list(plot = p, df = newdf)))
+  p
 }

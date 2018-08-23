@@ -1,6 +1,3 @@
-# bind global variables
-utils::globalVariables(c("prc","ges", "n", "Count", "Group", "line.break"))
-
 #' @title Plot contingency tables
 #' @name sjp.xtab
 #'
@@ -25,8 +22,7 @@ utils::globalVariables(c("prc","ges", "n", "Count", "Group", "line.break"))
 #'
 #' @inheritParams sjp.grpfrq
 #'
-#' @return (Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-#'           was used for setting up the ggplot-object (\code{mydf}).
+#' @return A ggplot-object.
 #'
 #' @examples
 #' # create 4-category-items
@@ -120,8 +116,7 @@ sjp.xtab <- function(x,
                      vjust = "bottom",
                      hjust = "center",
                      y.offset = NULL,
-                     coord.flip = FALSE,
-                     prnt.plot = TRUE) {
+                     coord.flip = FALSE) {
   # --------------------------------------------------------
   # get variable name
   # --------------------------------------------------------
@@ -150,7 +145,7 @@ sjp.xtab <- function(x,
   # grid-expansion
   # --------------------------------------------------------
   if (expand.grid) {
-    expand.grid <- ggplot2::waiver()
+    expand.grid <- waiver()
   } else {
     expand.grid <- c(0, 0)
   }
@@ -234,7 +229,7 @@ sjp.xtab <- function(x,
     myptab <- mydat$proptab.col
   else if (margin == "row")
     myptab <- mydat$proptab.row
-  myptab <- tibble::rownames_to_column(data.frame(myptab))
+  myptab <- rownames_as_column(data.frame(myptab))
   # -----------------------------------------------
   # tidy data
   #---------------------------------------------------
@@ -358,27 +353,27 @@ sjp.xtab <- function(x,
     # as well, sofor better reading
     if (bar.pos == "dodge") {
       if (show.prc && show.n) {
-        ggvaluelabels <- geom_text(aes(y = ypos + y_offset, label = sprintf("%.01f%%%s(n=%i)", 100 * prc, line.break, n)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos + y_offset, label = sprintf("%.01f%%%s(n=%i)", 100 * .data$prc, .data$line.break, .data$n)),
                                    position = position_dodge(posdodge),
                                    vjust = vjust, hjust = hjust)
       } else if (show.prc) {
-        ggvaluelabels <- geom_text(aes(y = ypos + y_offset, label = sprintf("%.01f%%", 100 * prc)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos + y_offset, label = sprintf("%.01f%%", 100 * .data$prc)),
                                    position = position_dodge(posdodge),
                                    vjust = vjust, hjust = hjust)
       } else if (show.n) {
-        ggvaluelabels <- geom_text(aes(y = ypos + y_offset, label = sprintf("n=%i", n)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos + y_offset, label = sprintf("n=%i", .data$n)),
                                    position = position_dodge(posdodge),
                                    vjust = vjust, hjust = hjust)
       }
     } else {
       if (show.prc && show.n) {
-        ggvaluelabels <- geom_text(aes(y = ypos, label = sprintf("%.01f%%%s(n=%i)", 100 * prc, line.break, n)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos, label = sprintf("%.01f%%%s(n=%i)", 100 * .data$prc, .data$line.break, .data$n)),
                                    vjust = vjust, hjust = hjust)
       } else if (show.prc) {
-        ggvaluelabels <- geom_text(aes(y = ypos, label = sprintf("%.01f%%", 100 * prc)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos, label = sprintf("%.01f%%", 100 * .data$prc)),
                                    vjust = vjust, hjust = hjust)
       } else if (show.n) {
-        ggvaluelabels <- geom_text(aes(y = ypos, label = sprintf("n=%i", n)),
+        ggvaluelabels <- geom_text(aes(y = .data$ypos, label = sprintf("n=%i", .data$n)),
                                    vjust = vjust, hjust = hjust)
       }
     }
@@ -389,7 +384,7 @@ sjp.xtab <- function(x,
   # Set up grid breaks
   # --------------------------------------------------------
   if (is.null(grid.breaks)) {
-    gridbreaks <- ggplot2::waiver()
+    gridbreaks <- waiver()
   } else {
     gridbreaks <- seq(lower_lim, upper_lim, by = grid.breaks)
   }
@@ -456,19 +451,11 @@ sjp.xtab <- function(x,
   # ---------------------------------------------------------
   # set geom colors
   # ---------------------------------------------------------
-  baseplot <- sj.setGeomColors(baseplot,
-                               geom.colors,
-                               length(legend.labels),
-                               show.legend,
-                               legend.labels)
-  # ---------------------------------------------------------
-  # Check whether ggplot object should be returned or plotted
-  # ---------------------------------------------------------
-  if (prnt.plot) graphics::plot(baseplot)
-  # -------------------------------------
-  # return results
-  # -------------------------------------
-  invisible(structure(class = "sjpxtab",
-                      list(plot = baseplot,
-                           mydf = mydf)))
+  sj.setGeomColors(
+    baseplot,
+    geom.colors,
+    length(legend.labels),
+    show.legend,
+    legend.labels
+  )
 }

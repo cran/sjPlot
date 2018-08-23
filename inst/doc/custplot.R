@@ -118,9 +118,8 @@ sjp.grpfrq(
   efc$e42dep,
   efc$e16sex,
   coord.flip = TRUE,
-  show.axis.values = FALSE,
-  prnt.plot = FALSE
-)$plot +
+  show.axis.values = FALSE
+) +
   theme(axis.line.x = element_line(color = "white"))
 
 ## ------------------------------------------------------------------------

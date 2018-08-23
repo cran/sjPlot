@@ -52,6 +52,9 @@
 #'    for mixed models. See \code{\link[sjstats]{re_var}} for details.
 #' @param show.icc Logical, if \code{TRUE}, prints the intraclass correlation
 #'    coefficient for mixed models. See \code{\link[sjstats]{icc}} for details.
+#' @param show.adj.icc Logical, if \code{TRUE}, prints the adjusted intraclass
+#'    correlation coefficient for mixed models. See \code{\link[sjstats]{icc}}
+#'    with argument \code{adjusted = TRUE} for details.
 #' @param show.dev Logical, if \code{TRUE}, shows the deviance of the model.
 #' @param show.ci Either logical, and if \code{TRUE}, the confidence intervals
 #'    is printed to the table; if \code{FALSE}, confidence intervals are
@@ -107,6 +110,12 @@
 #'    is printed in the table summary.
 #' @param show.obs Logical, if \code{TRUE}, the number of observations per model is
 #'    printed in the table summary.
+#' @param col.order Character vector, indicating which columns should be printed
+#'    and in which order. Column names that are excluded from \code{col.order}
+#'    are not shown in the table output. However, column names that are included,
+#'    are only shown in the table when the related argument (like \code{show.est}
+#'    for \code{"estimate"}) is set to \code{TRUE} or another valid value.
+#'    Table columns are printed in the order as they appear in \code{col.order}.
 #' @param p.val Character, for mixed models, indicates how p-values are computed.
 #'   Use \code{p.val = "wald"} for a faster, but less precise computation. For
 #'   \code{p.val = "kr"}, computation of p-values is based on conditional F-tests
@@ -116,6 +125,12 @@
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions,
 #'    according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
 #'    See 'Details' or \href{../doc/table_css.html}{this package-vignette}.
+#' @param file Destination file, if the output should be saved as file.
+#'    If \code{NULL} (default), the output will be saved as temporary file and
+#'    openend either in the IDE's viewer pane or the default web browser.
+#' @param use.viewer Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+#'    viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+#'    opened in a web browser.
 #'
 #' @inheritParams plot_models
 #' @inheritParams plot_model
@@ -144,9 +159,7 @@
 #'    \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
 #'    suggestion, rescaling the estimates by dividing them by two standard
 #'    deviations instead of just one. Resulting coefficients are then
-#'    directly comparable for untransformed binary predictors. This type
-#'    of standardization uses the \code{\link[arm]{standardize}}-function
-#'    from the \pkg{arm}-package.
+#'    directly comparable for untransformed binary predictors.
 #'    For backward compatibility reasons, \code{show.std} also may be
 #'    a logical value; if \code{TRUE}, normal standardized estimates are
 #'    printed (same effect as \code{show.std = "std"}). Use
@@ -175,7 +188,6 @@
 #'    }
 #
 #' @importFrom dplyr full_join select if_else mutate
-#' @importFrom tibble lst add_case as_tibble
 #' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
 #' @importFrom sjlabelled get_dv_labels get_term_labels
 #' @importFrom sjmisc word_wrap var_rename add_columns
@@ -200,6 +212,7 @@ tab_model <- function(
   show.zeroinf = TRUE,
   show.r2 = TRUE,
   show.icc = TRUE,
+  show.adj.icc = FALSE,
   show.re.var = TRUE,
   show.fstat = FALSE,
   show.aic = FALSE,
@@ -231,6 +244,21 @@ tab_model <- function(
   collapse.se = FALSE,
   linebreak = TRUE,
 
+  col.order = c(
+    "est",
+    "se",
+    "std.est",
+    "std.se",
+    "ci",
+    "std.ci",
+    "hdi.inner",
+    "hdi.outer",
+    "stat",
+    "p",
+    "df",
+    "response.level"
+  ),
+
   digits = 2,
   digits.p = 3,
   emph.p = TRUE,
@@ -239,14 +267,40 @@ tab_model <- function(
   case = "parsed",
   auto.label = TRUE,
   bpe = "median",
-  CSS = css_theme("regression")
+  CSS = css_theme("regression"),
+  file = NULL,
+  use.viewer = TRUE
 ) {
 
   p.val <- match.arg(p.val)
 
-  models <- tibble::lst(...)
+  models <- list(...)
+  names(models) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
+
   auto.transform <- missing(transform)
   ci.lvl <- ifelse(is.null(show.ci), .95, show.ci)
+
+  copos <- which("est" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "estimate"
+
+  copos <- which("se" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.error"
+
+  copos <- which("ci" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "conf.int"
+
+  copos <- which("std.est" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.estimate"
+
+  copos <- which("std.ci" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.conf.int"
+
+  copos <- which("p" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "p.value"
+
+  copos <- which("stat" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "statistic"
+
 
   model.list <- purrr::map2(
     models,
@@ -255,6 +309,10 @@ tab_model <- function(
 
       # get info on model family
       fam.info <- sjstats::model_family(model)
+
+      ## TODO remove once sjstats was updated to >= 0.17.1
+      if (sjmisc::is_empty(fam.info$is_linear)) fam.info$is_linear <- FALSE
+
 
       # check whether estimates should be transformed or not
 
@@ -350,7 +408,7 @@ tab_model <- function(
             conf.low = "std.conf.low",
             conf.high = "std.conf.high"
           ) %>%
-          tibble::add_case(.before = 1) %>%
+          add_cases(.after = -1) %>%
           dplyr::select(-1) %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
@@ -362,13 +420,12 @@ tab_model <- function(
             .data$std.conf.high
           )) %>%
           dplyr::select(-.data$std.conf.low, -.data$std.conf.high)
-
       }
 
 
       # switch column for p-value and conf. int. ----
 
-      dat <- dat[, sort_columns(colnames(dat), is.stan(model))]
+      dat <- dat[, sort_columns(colnames(dat), is.stan(model), col.order)]
 
 
       # add suffix to column names, so we can distinguish models later
@@ -381,13 +438,13 @@ tab_model <- function(
 
       dat <- dat %>%
         purrr::map_if(is.numeric, ~ sprintf("%.*f", digits, .x)) %>%
-        tibble::as_tibble()
+        as.data.frame(stringsAsFactors = FALSE)
 
 
       # remove 2nd HDI if requested ----
 
       if (!show.hdi50)
-        dat <- dplyr::select(dat, -tidyselect::starts_with("hdi.inner"))
+        dat <- dplyr::select(dat, -string_starts_with("hdi.inner", colnames(dat)))
 
 
       ## TODO optionally insert linebreak for new-line-CI / SE
@@ -401,22 +458,22 @@ tab_model <- function(
         else
           lb <- " "
 
-        est.cols <- tidyselect::starts_with("estimate", vars = colnames(dat))
+        est.cols <- string_starts_with("estimate", x = colnames(dat))
         dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
 
         # for stan models, we also have 50% HDI
-        if (!sjmisc::is_empty(tidyselect::starts_with("hdi", vars = colnames(dat)))) {
-          dat <- dplyr::select(dat, -tidyselect::starts_with("hdi.outer"))
+        if (!sjmisc::is_empty(string_starts_with("hdi", x = colnames(dat)))) {
+          dat <- dplyr::select(dat, -string_starts_with("hdi.outer", x = colnames(dat)))
           dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
-          dat <- dplyr::select(dat, -tidyselect::starts_with("hdi.inner"))
+          dat <- dplyr::select(dat, -string_starts_with("hdi.inner", x = colnames(dat)))
         } else {
-          dat <- dplyr::select(dat, -tidyselect::starts_with("conf.int"))
+          dat <- dplyr::select(dat, -string_starts_with("conf.int", x = colnames(dat)))
         }
 
-        std.cols <- tidyselect::starts_with("std.estimate", vars = colnames(dat))
+        std.cols <- string_starts_with("std.estimate", x = colnames(dat))
         if (!sjmisc::is_empty(std.cols)) {
           dat[[std.cols]] <- sprintf("%s%s(%s)", dat[[std.cols]], lb, dat[[std.cols + 2]])
-          dat <- dplyr::select(dat, -tidyselect::starts_with("std.conf.int"))
+          dat <- dplyr::select(dat, -string_starts_with("std.conf.int", x = colnames(dat)))
         }
       }
 
@@ -427,14 +484,14 @@ tab_model <- function(
         else
           lb <- " "
 
-        est.cols <- tidyselect::starts_with("estimate", vars = colnames(dat))
+        est.cols <- string_starts_with("estimate", x = colnames(dat))
         dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 1]])
-        dat <- dplyr::select(dat, -tidyselect::starts_with("std.error"))
+        dat <- dplyr::select(dat, -string_starts_with("std.error", x = colnames(dat)))
 
-        std.cols <- tidyselect::starts_with("std.estimate", vars = colnames(dat))
+        std.cols <- string_starts_with("std.estimate", x = colnames(dat))
         if (!sjmisc::is_empty(std.cols)) {
           dat[[std.cols]] <- sprintf("%s%s(%s)", dat[[std.cols]], lb, dat[[std.cols + 1]])
-          dat <- dplyr::select(dat, -tidyselect::starts_with("std.se"))
+          dat <- dplyr::select(dat, -string_starts_with("std.se", x = colnames(dat)))
         }
       }
 
@@ -442,7 +499,7 @@ tab_model <- function(
       # handle zero-inflation part ----
 
       zidat <- NULL
-      wf <- tidyselect::starts_with("wrap.facet", vars = colnames(dat))
+      wf <- string_starts_with("wrap.facet", x = colnames(dat))
 
       if (!sjmisc::is_empty(wf)) {
         zi <- which(dat[[wf]] %in% c("Zero-Inflated Model", "Zero Inflation Model"))
@@ -493,6 +550,15 @@ tab_model <- function(
         )
       }
 
+      icc.adjusted <- NULL
+
+      if ((show.adj.icc) && is_mixed_model(model)) {
+        icc.adjusted <- tryCatch(
+          sjstats::icc(model, adjusted = TRUE),
+          error = function(x) { NULL }
+        )
+      }
+
 
       # Add deviance and AIC statistic ----
 
@@ -501,6 +567,9 @@ tab_model <- function(
 
       aic <- NULL
       if (show.aic) aic <- model_aic(model)
+
+
+      ## TODO add F-Statistic
 
 
       # fix brms coefficient names
@@ -519,7 +588,8 @@ tab_model <- function(
         n_obs = n_obs,
         icc = icc,
         dev = dev,
-        aic = aic
+        aic = aic,
+        icc.adj = icc.adjusted
       )
     }
   )
@@ -546,6 +616,7 @@ tab_model <- function(
   icc.data <- purrr::map(model.list, ~.x[[6]])
   dev.data <- purrr::map(model.list, ~.x[[7]])
   aic.data <- purrr::map(model.list, ~.x[[8]])
+  icc.adj.data <- purrr::map(model.list, ~.x[[9]])
   is.zeroinf <- purrr::map_lgl(model.list, ~ !is.null(.x[[3]]))
 
   zeroinf.data <- purrr::compact(zeroinf.data)
@@ -559,7 +630,7 @@ tab_model <- function(
   # sort multivariate response models by response level
 
   model.data <- purrr::map(model.data, function(.x) {
-    resp.col <- tidyselect::starts_with("response.level", vars = colnames(.x))
+    resp.col <- string_starts_with("response.level", x = colnames(.x))
     if (!sjmisc::is_empty(resp.col))
       .x[order(match(.x[[resp.col]], unique(.x[[resp.col]]))), ]
     else
@@ -575,20 +646,31 @@ tab_model <- function(
 
   if (length(model.data) == 1) {
     fi <- sjstats::model_family(models[[1]])
-    if (fi$is_multivariate) {
+    if (fi$is_multivariate || fi$is_categorical) {
+
       show.response <- FALSE
 
-      dv.labels <- sjmisc::word_wrap(
-        sjlabelled::get_dv_labels(models, multi.resp = TRUE, case = case),
-        wrap = wrap.labels,
-        linesep = "<br>"
-      )
+      if (fi$is_categorical) {
+        dv.labels <- sprintf(
+          "%s: %s",
+          sjstats::resp_var(models[[1]]),
+          unique(model.data[[1]][["response.level_1"]])
+        )
 
-      if (sjmisc::is_empty(dv.labels) || !isTRUE(auto.label))
-        dv.labels <- sjstats::resp_var(models[[1]])
+        model.data <- split(model.data[[1]], model.data[[1]]["response.level_1"])
+      } else {
+        dv.labels <- sjmisc::word_wrap(
+          sjlabelled::get_dv_labels(models, multi.resp = TRUE, case = case),
+          wrap = wrap.labels,
+          linesep = "<br>"
+        )
 
-      model.data <- split(model.data[[1]], model.data[[1]]["response.level_1"])
-      dv.labels <- dv.labels[match(names(dv.labels), names(model.data))]
+        if (sjmisc::is_empty(dv.labels) || !isTRUE(auto.label))
+          dv.labels <- sjstats::resp_var(models[[1]])
+
+        model.data <- split(model.data[[1]], model.data[[1]]["response.level_1"])
+        dv.labels <- dv.labels[match(names(dv.labels), names(model.data))]
+      }
 
       model.data <- purrr::map2(model.data, 1:length(model.data), function(x, y) {
         colnames(x) <- gsub(
@@ -656,13 +738,9 @@ tab_model <- function(
   # get default labels for dv and terms ----
 
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
-    ## TODO fix in sjlabelled
-    pred.labels <- sjlabelled::get_term_labels(models, case = case)
-    pred.cat <- sjlabelled::get_term_labels(models, mark.cat = TRUE)
+    pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE)
     no.dupes <- !duplicated(names(pred.labels))
-    pred.labels <- pred.labels[no.dupes]
-    attr(pred.labels, "category.value") <- attr(pred.cat, "category.value")[no.dupes]
-    pred.labels <- prepare.labels(pred.labels, grp = group.terms)
+    pred.labels <- prepare.labels(pred.labels[no.dupes], grp = group.terms)
   } else {
     # no automatic grouping of table rows for categorical variables
     # when user supplies own labels
@@ -833,19 +911,24 @@ tab_model <- function(
     rsq.list = rsq.data,
     n_obs.list = n_obs.data,
     icc.list = icc.data,
+    icc.adj.list = icc.adj.data,
     dev.list = dev.data,
     aic.list = aic.data,
     n.models = length(model.list),
     show.re.var = show.re.var,
     show.icc = show.icc,
-    CSS = CSS
+    show.adj.icc = show.adj.icc,
+    CSS = CSS,
+    file = file,
+    use.viewer = use.viewer
   )
 }
 
 
 #' @importFrom stats na.omit
-sort_columns <- function(x, is.stan) {
+sort_columns <- function(x, is.stan, col.order) {
   ## TODO check code for multiple response models
+  ## TODO allow custom sorting
 
   reihe <- c(
     "term",
@@ -864,18 +947,22 @@ sort_columns <- function(x, is.stan) {
     "response.level"
   )
 
-  if (is.stan) reihe <- reihe[-which(reihe == "p.value")]
-  as.vector(stats::na.omit(match(reihe, x)))
+  # fix args
+  if (sjmisc::is_empty(col.order)) col.order <- reihe
+  if (col.order[1] != "term") col.order <- c("term", col.order)
+  if (!("wrap.facet" %in% col.order)) col.order <- c(col.order, "wrap.facet")
+
+  if (is.stan) col.order <- col.order[-which(col.order == "p.value")]
+  as.vector(stats::na.omit(match(col.order, x)))
 }
 
 
-#' @importFrom tidyselect starts_with
 #' @importFrom dplyr select slice
 remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, show.se, show.stat, show.p, show.df, show.response, terms, rm.terms) {
   if (!show.intercept) {
-    ints1 <- tidyselect::contains("(Intercept", vars = dat$term)
-    ints2 <- tidyselect::contains("b_Intercept", vars = dat$term)
-    ints3 <- tidyselect::contains("b_zi_Intercept", vars = dat$term)
+    ints1 <- string_contains("(Intercept", x = dat$term)
+    ints2 <- string_contains("b_Intercept", x = dat$term)
+    ints3 <- string_contains("b_zi_Intercept", x = dat$term)
     ints4 <- which(dat$term %in% "Intercept")
 
     ints <- c(ints1, ints2, ints3, ints4)
@@ -887,43 +974,47 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
   if (show.est == FALSE) {
     dat <- dplyr::select(
       dat,
-      -tidyselect::starts_with("estimate"),
-      -tidyselect::starts_with("conf"),
-      -tidyselect::starts_with("std.error")
+      -string_starts_with("estimate", x = colnames(dat)),
+      -string_starts_with("conf", x = colnames(dat)),
+      -string_starts_with("std.error", x = colnames(dat))
     )
   }
 
   if (is.null(show.std) || show.std == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("std.estimate"))
+    dat <- dplyr::select(dat, -string_starts_with("std.estimate", x = colnames(dat)))
   }
 
   if (is.null(show.ci) || show.ci == FALSE) {
     dat <- dplyr::select(
       dat,
-      -tidyselect::starts_with("conf"),
-      -tidyselect::starts_with("std.conf"),
-      -tidyselect::starts_with("hdi")
+      -string_starts_with("conf", x = colnames(dat)),
+      -string_starts_with("std.conf", x = colnames(dat)),
+      -string_starts_with("hdi", x = colnames(dat))
     )
   }
 
   if (is.null(show.se) || show.se == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("std.error"), -tidyselect::starts_with("std.se"))
+    dat <- dplyr::select(
+      dat,
+      -string_starts_with("std.error", x = colnames(dat)),
+      -string_starts_with("std.se", x = colnames(dat))
+    )
   }
 
   if (show.stat == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("statistic"))
+    dat <- dplyr::select(dat, -string_starts_with("statistic", x = colnames(dat)))
   }
 
   if (show.response == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("response.level"))
+    dat <- dplyr::select(dat, -string_starts_with("response.level", x = colnames(dat)))
   }
 
   if (show.p == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("p.value"))
+    dat <- dplyr::select(dat, -string_starts_with("p.value", x = colnames(dat)))
   }
 
   if (show.df == FALSE) {
-    dat <- dplyr::select(dat, -tidyselect::starts_with("df"))
+    dat <- dplyr::select(dat, -string_starts_with("df", x = colnames(dat)))
   }
 
   if (!is.null(terms)) {
@@ -942,13 +1033,12 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
 }
 
 
-#' @importFrom tidyselect starts_with
 prepare.labels <- function(x, grp) {
   x_var <- names(x[attr(x, "category.value") == FALSE])
   x_val <- names(x[attr(x, "category.value") == TRUE])
 
   for (i in x_var) {
-    pos <- tidyselect::starts_with(i, vars = x_val)
+    pos <- string_starts_with(i, x = x_val)
 
     if (!grp || (length(pos) > 0 && length(pos) < 3)) {
       match.vals <- x_val[pos]

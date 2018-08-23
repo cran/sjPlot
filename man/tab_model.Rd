@@ -5,20 +5,24 @@
 \title{Print regression models as HTML table}
 \usage{
 tab_model(..., transform, show.intercept = TRUE, show.est = TRUE,
-  show.ci = 0.95, show.hdi50 = TRUE, show.se = NULL, show.std = NULL,
-  show.p = TRUE, show.stat = FALSE, show.df = FALSE,
-  show.zeroinf = TRUE, show.r2 = TRUE, show.icc = TRUE,
-  show.re.var = TRUE, show.fstat = FALSE, show.aic = FALSE,
-  show.aicc = FALSE, show.dev = FALSE, show.obs = TRUE, terms = NULL,
-  rm.terms = NULL, group.terms = TRUE, order.terms = NULL, title = NULL,
+  show.ci = 0.95, show.hdi50 = TRUE, show.se = NULL,
+  show.std = NULL, show.p = TRUE, show.stat = FALSE,
+  show.df = FALSE, show.zeroinf = TRUE, show.r2 = TRUE,
+  show.icc = TRUE, show.adj.icc = FALSE, show.re.var = TRUE,
+  show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
+  show.dev = FALSE, show.obs = TRUE, terms = NULL, rm.terms = NULL,
+  group.terms = TRUE, order.terms = NULL, title = NULL,
   pred.labels = NULL, dv.labels = NULL, wrap.labels = 25,
-  string.pred = "Predictors", string.std = "std. Beta", string.ci = "CI",
-  string.se = "std. Error", string.p = "p", string.df = "df",
-  string.stat = "Statistic", ci.hyphen = "&nbsp;&ndash;&nbsp;",
-  minus.sign = "&#45;", collapse.ci = FALSE, collapse.se = FALSE,
-  linebreak = TRUE, digits = 2, digits.p = 3, emph.p = TRUE,
-  p.val = c("wald", "kr"), case = "parsed", auto.label = TRUE,
-  bpe = "median", CSS = css_theme("regression"))
+  string.pred = "Predictors", string.std = "std. Beta",
+  string.ci = "CI", string.se = "std. Error", string.p = "p",
+  string.df = "df", string.stat = "Statistic",
+  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;",
+  collapse.ci = FALSE, collapse.se = FALSE, linebreak = TRUE,
+  col.order = c("est", "se", "std.est", "std.se", "ci", "std.ci",
+  "hdi.inner", "hdi.outer", "stat", "p", "df", "response.level"),
+  digits = 2, digits.p = 3, emph.p = TRUE, p.val = c("wald", "kr"),
+  case = "parsed", auto.label = TRUE, bpe = "median",
+  CSS = css_theme("regression"), file = NULL, use.viewer = TRUE)
 }
 \arguments{
 \item{...}{One or more regression models, including glm's or mixed models.
@@ -67,6 +71,10 @@ r-squared etc. See \code{\link[sjstats]{r2}} for details.}
 
 \item{show.icc}{Logical, if \code{TRUE}, prints the intraclass correlation
 coefficient for mixed models. See \code{\link[sjstats]{icc}} for details.}
+
+\item{show.adj.icc}{Logical, if \code{TRUE}, prints the adjusted intraclass
+correlation coefficient for mixed models. See \code{\link[sjstats]{icc}}
+with argument \code{adjusted = TRUE} for details.}
 
 \item{show.re.var}{Logical, if \code{TRUE}, prints the random effect variances
 for mixed models. See \code{\link[sjstats]{re_var}} for details.}
@@ -168,6 +176,13 @@ a separate table column.}
 CI resp. SE values. If \code{FALSE}, values are printed in the same line
 as estimate values.}
 
+\item{col.order}{Character vector, indicating which columns should be printed
+and in which order. Column names that are excluded from \code{col.order}
+are not shown in the table output. However, column names that are included,
+are only shown in the table when the related argument (like \code{show.est}
+for \code{"estimate"}) is set to \code{TRUE} or another valid value.
+Table columns are printed in the order as they appear in \code{col.order}.}
+
 \item{digits}{Amount of decimals for estimates}
 
 \item{digits.p}{Amount of decimals for p-values}
@@ -207,6 +222,14 @@ calculate the mean value of the posterior distribution.}
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
 according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
 See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
+
+\item{file}{Destination file, if the output should be saved as file.
+If \code{NULL} (default), the output will be saved as temporary file and
+openend either in the IDE's viewer pane or the default web browser.}
+
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 }
 \value{
 Invisibly returns
@@ -230,9 +253,7 @@ Invisibly returns
    \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
    suggestion, rescaling the estimates by dividing them by two standard
    deviations instead of just one. Resulting coefficients are then
-   directly comparable for untransformed binary predictors. This type
-   of standardization uses the \code{\link[arm]{standardize}}-function
-   from the \pkg{arm}-package.
+   directly comparable for untransformed binary predictors.
    For backward compatibility reasons, \code{show.std} also may be
    a logical value; if \code{TRUE}, normal standardized estimates are
    printed (same effect as \code{show.std = "std"}). Use

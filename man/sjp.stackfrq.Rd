@@ -6,12 +6,12 @@
 \usage{
 sjp.stackfrq(items, title = NULL, legend.title = NULL,
   legend.labels = NULL, axis.titles = NULL, axis.labels = NULL,
-  weight.by = NULL, sort.frq = NULL, wrap.title = 50, wrap.labels = 30,
-  wrap.legend.title = 30, wrap.legend.labels = 28, geom.size = 0.5,
-  geom.colors = "Blues", show.values = TRUE, show.n = TRUE,
-  show.prc = TRUE, show.legend = TRUE, grid.breaks = 0.2,
-  expand.grid = FALSE, digits = 1, vjust = "center", coord.flip = TRUE,
-  prnt.plot = TRUE)
+  weight.by = NULL, sort.frq = NULL, wrap.title = 50,
+  wrap.labels = 30, wrap.legend.title = 30, wrap.legend.labels = 28,
+  geom.size = 0.5, geom.colors = "Blues", show.values = TRUE,
+  show.n = TRUE, show.prc = TRUE, show.legend = TRUE,
+  grid.breaks = 0.2, expand.grid = FALSE, digits = 1,
+  vjust = "center", coord.flip = TRUE)
 }
 \arguments{
 \item{items}{Data frame, with each column representing one item.}
@@ -79,7 +79,8 @@ i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
 \item{expand.grid}{logical, if \code{TRUE}, the plot grid is expanded, i.e. there is a small margin between
 axes and plotting region. Default is \code{FALSE}.}
 
-\item{digits}{Numeric, amount of digits after decimal point when rounding estimates and values.}
+\item{digits}{Numeric, amount of digits after decimal point when rounding
+estimates or values.}
 
 \item{vjust}{character vector, indicating the vertical position of value
 labels. Allowed are same values as for \code{vjust} aesthetics from
@@ -88,13 +89,9 @@ new options like "inward" and "outward", which align text towards and
 away from the center of the plot respectively.}
 
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
-
-\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
-(Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-          was used for setting up the ggplot-object (\code{df}).
+A ggplot-object.
 }
 \description{
 Plot items (variables) of a scale as stacked proportional bars. This

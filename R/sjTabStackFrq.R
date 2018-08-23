@@ -25,8 +25,7 @@
 #' @param digits.stats amount of digits for rounding the skewness and kurtosis valuess.
 #'          Default is 2, i.e. skewness and kurtosis values have 2 digits after decimal point.
 #'
-#' @inheritParams sjt.frq
-#' @inheritParams sjt.df
+#' @inheritParams tab_df
 #' @inheritParams sjt.itemanalysis
 #' @inheritParams sjp.glmer
 #' @inheritParams sjt.xtab
@@ -41,10 +40,6 @@
 #'            \item the html-table with inline-css for use with knitr (\code{knitr})
 #'            }
 #'            for further use.
-#'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
-#'
-#' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
 #' @examples
 #' # -------------------------------
@@ -80,15 +75,15 @@
 #' # recveive first item of COPE-index scale
 #' end <- which(colnames(efc) == "c90cop9")
 #'
-#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE)
+#' sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE)
 #'
-#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+#' sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE,
 #'              show.n = TRUE, show.na = TRUE)
 #'
 #' # --------------------------------
 #' # User defined style sheet
 #' # --------------------------------
-#' sjt.stackfrq(efc[, c(start:end)], altr.row.col = TRUE,
+#' sjt.stackfrq(efc[, c(start:end)], alternate.rows = TRUE,
 #'              show.total = TRUE, show.skew = TRUE, show.kurtosis = TRUE,
 #'              CSS = list(css.ncol = "border-left:1px dotted black;",
 #'                         css.summary = "font-style:italic;"))}
@@ -103,7 +98,7 @@ sjt.stackfrq <- function(items,
                          value.labels = NULL,
                          wrap.labels = 20,
                          sort.frq = NULL,
-                         altr.row.col = FALSE,
+                         alternate.rows = FALSE,
                          digits = 2,
                          string.total = "N",
                          string.na = "NA",
@@ -117,7 +112,6 @@ sjt.stackfrq <- function(items,
                          encoding = NULL,
                          CSS = NULL,
                          use.viewer = TRUE,
-                         no.output = FALSE,
                          remove.spaces = TRUE) {
   # --------------------------------------------------------
   # check sorting
@@ -153,8 +147,8 @@ sjt.stackfrq <- function(items,
     value.labels <- sjlabelled::get_labels(
       items[[1]],
       attr.only = F,
-      include.values = NULL,
-      include.non.labelled = T
+      values = NULL,
+      non.labelled = T
     )
   }
 
@@ -383,7 +377,7 @@ sjt.stackfrq <- function(items,
     # default row string for alternative row colors
     arcstring <- ""
     # if we have alternating row colors, set css
-    if (altr.row.col) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
+    if (alternate.rows) arcstring <- ifelse(sjmisc::is_even(i), " arc", "")
     # write tr-tag
     page.content <- paste0(page.content, "  <tr>\n")
     # print first table cell
@@ -459,6 +453,5 @@ sjt.stackfrq <- function(items,
                            header = table.header,
                            knitr = knitr,
                            file = file,
-                           show = !no.output,
                            viewer = use.viewer))
 }

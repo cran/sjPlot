@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-07-11" />
+<meta name="date" content="2018-08-23" />
 
 <title>Item Analysis of a Scale or an Index</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Item Analysis of a Scale or an Index</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-07-11</em></h4>
+<h4 class="date"><em>2018-08-23</em></h4>
 
 
 
@@ -382,7 +382,7 @@ Mean inter-item-correlation=0.092 · Cronbach’s α=0.459
 <p>The items of the COPE index used for our example do not represent a single factor. We can check this, for instance, with a principle component analysis. If you know, which variable belongs to which factor (i.e. which variable is part of which component), you can pass a numeric vector with these group indices to the argument <code>factor.groups</code>. In this case, the data frame is divided into the components specified by <code>factor.groups</code>, and each component (or factor) is analysed.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Compute PCA on Cope-Index, and retrieve </span>
 <span class="co"># factor indices for each COPE index variable</span>
-factor.groups &lt;-<span class="st"> </span><span class="kw">sjt.pca</span>(mydf, <span class="dt">no.output =</span> <span class="ot">TRUE</span>)<span class="op">$</span>factor.index</code></pre></div>
+factor.groups &lt;-<span class="st"> </span><span class="kw">sjt.pca</span>(mydf)<span class="op">$</span>factor.index</code></pre></div>
 <p>The PCA extracted two components. Now <code>sjt.itemanalysis()</code> …</p>
 <ol style="list-style-type: decimal">
 <li>performs an item analysis on both components, showing whether each of them is a reliable and useful scale or index score</li>

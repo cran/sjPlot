@@ -53,8 +53,9 @@
 #'          After that, each case (df's row) has a scales sum score for each component.
 #'          Finally, a correlation of these "scale sum scores" is computed.
 #'
-#' @inheritParams sjt.frq
-#' @inheritParams sjt.df
+#' @inheritParams tab_model
+#' @inheritParams view_df
+#' @inheritParams sjt.xtab
 #' @inheritParams tab_df
 #'
 #' @return Invisibly returns
@@ -77,10 +78,6 @@
 #'          \item For \emph{item discrimination}, acceptable values are 0.20 or higher; the closer to 1.00 the better. See \code{\link[sjstats]{reliab_test}} for more details.
 #'          \item In case the total \emph{Cronbach's Alpha} value is below the acceptable cut-off of 0.7 (mostly if an index has few items), the \emph{mean inter-item-correlation} is an alternative measure to indicate acceptability. Satisfactory range lies between 0.2 and 0.4. See also \code{\link[sjstats]{mic}}.
 #'        }
-#'
-#' @note See 'Notes' in \code{\link{sjt.frq}}.
-#'
-#' @details See 'Details' in \code{\link{sjt.frq}}.
 #'
 #' @references \itemize{
 #'              \item Jorion N, Self B, James K, Schroeder L, DiBello L, Pellegrino J (2013) Classical Test Theory Analysis of the Dynamics Concept Inventory. (\href{https://www.academia.edu/4104752/Classical_Test_Theory_Analysis_of_the_Dynamics_Concept_Inventory}{web})
@@ -115,7 +112,7 @@
 #'
 #' # Compute PCA on Cope-Index, and perform a
 #' # item analysis for each extracted factor.
-#' factor.groups <- sjt.pca(mydf, no.output = TRUE)$factor.index
+#' factor.groups <- sjt.pca(mydf)$factor.index
 #' sjt.itemanalysis(mydf, factor.groups)}
 #'
 #' @importFrom psych describe
@@ -128,7 +125,7 @@ sjt.itemanalysis <- function(df,
                              factor.groups.titles = "auto",
                              scale = FALSE,
                              min.valid.rowmean = 2,
-                             altr.row.col = TRUE,
+                             alternate.rows = TRUE,
                              sort.column = NULL,
                              show.shapiro = FALSE,
                              show.kurtosis = FALSE,
@@ -137,7 +134,6 @@ sjt.itemanalysis <- function(df,
                              encoding = NULL,
                              file = NULL,
                              use.viewer = TRUE,
-                             no.output = FALSE,
                              remove.spaces = TRUE) {
   # check encoding
   encoding <- get.encoding(encoding, df)
@@ -222,7 +218,7 @@ sjt.itemanalysis <- function(df,
     }
 
     # create dummy data frame
-    df.dummy <- data.frame(cbind(
+    df.dummy <- data_frame(cbind(
       sprintf("%.2f %%", missings.prz),
       round(dstat$mean, 2),
       round(dstat$sd, 2),
@@ -233,7 +229,7 @@ sjt.itemanalysis <- function(df,
 
     # include kurtosis statistics
     if (show.kurtosis) {
-      df.dummy <- data.frame(cbind(df.dummy, round(dstat$kurtosis, 2)))
+      df.dummy <- data_frame(cbind(df.dummy, round(dstat$kurtosis, 2)))
       df.colnames <- c(df.colnames, "Kurtosis")
     }
 
@@ -241,7 +237,7 @@ sjt.itemanalysis <- function(df,
     if (show.shapiro) {
       shaptest.w <- apply(df.sub, 2, function(x) stats::shapiro.test(x)$statistic)
       shaptest.p <- apply(df.sub, 2, function(x) stats::shapiro.test(x)$p.value)
-      df.dummy <- data.frame(cbind(df.dummy, sprintf("%.2f (%.3f)", shaptest.w, shaptest.p)))
+      df.dummy <- data_frame(cbind(df.dummy, sprintf("%.2f (%.3f)", shaptest.w, shaptest.p)))
       df.colnames <- c(df.colnames, "W(p)")
     }
 
@@ -281,7 +277,7 @@ sjt.itemanalysis <- function(df,
     x = df.ia,
     titles = factor.groups.titles,
     col.header = NULL,
-    alternate.rows = altr.row.col,
+    alternate.rows = alternate.rows,
     CSS = CSS,
     sort.column = sort.column,
     show.type = FALSE,
@@ -315,8 +311,7 @@ sjt.itemanalysis <- function(df,
         p.numeric = TRUE,
         triangle = "lower",
         string.diag = sprintf("&alpha;=%.3f", unlist(cronbach.total)),
-        encoding = encoding,
-        no.output = TRUE
+        encoding = encoding
       )
 
     }

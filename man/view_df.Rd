@@ -4,13 +4,14 @@
 \alias{view_df}
 \title{View structure of labelled data frames}
 \usage{
-view_df(x, weight.by = NULL, altr.row.col = TRUE, show.id = TRUE,
+view_df(x, weight.by = NULL, alternate.rows = TRUE, show.id = TRUE,
   show.type = FALSE, show.values = TRUE, show.string.values = FALSE,
   show.labels = TRUE, show.frq = FALSE, show.prc = FALSE,
   show.wtd.frq = FALSE, show.wtd.prc = FALSE, show.na = FALSE,
   max.len = 15, sort.by.name = FALSE, wrap.labels = 50,
-  hide.progress = FALSE, CSS = NULL, encoding = NULL, file = NULL,
-  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  hide.progress = FALSE, verbose = TRUE, CSS = NULL,
+  encoding = NULL, file = NULL, use.viewer = TRUE,
+  remove.spaces = TRUE)
 }
 \arguments{
 \item{x}{A (labelled) data frame, imported by \code{\link[sjlabelled]{read_spss}},
@@ -22,8 +23,8 @@ and \code{\link[sjlabelled]{set_labels}}).}
 weights that will be applied to weight all  observations. Default is
 \code{NULL}, so no weights are used.}
 
-\item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
-background color.}
+\item{alternate.rows}{Logical, if \code{TRUE}, rows are printed in
+alternatig colors (white and light grey by default).}
 
 \item{show.id}{Logical, if \code{TRUE} (default), the variable ID is shown in
 the first column.}
@@ -65,17 +66,15 @@ can be truncated.}
 variable names. By default, rows (variables) are ordered according to their
 order in the data frame.}
 
-\item{wrap.labels}{numeric, determines how many chars of the value, variable or axis
-labels are displayed in one line and when a line break is inserted.}
+\item{wrap.labels}{Numeric, determines how many chars of the value, variable
+or axis labels are displayed in one line and when a line break is inserted.}
 
-\item{hide.progress}{logical, if \code{TRUE}, the progress bar that is displayed
-when creating the output is hidden. Default in \code{FALSE}, hence the
-bar is visible.}
+\item{verbose, hide.progress}{Logical, if \code{TRUE}, a progress bar is displayed
+while creating the output.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
 \item{encoding}{Character vector, indicating the charset encoding used
 for variable and value labels. Default is \code{"UTF-8"}. For Windows
@@ -86,13 +85,9 @@ display of special characters.}
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source

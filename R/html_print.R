@@ -33,7 +33,7 @@
 #'   alternatig colors (white and light grey by default).
 #' @param ... Currently not used.
 #'
-#' @inheritParams sjt.frq
+#' @inheritParams tab_model
 #'
 #' @return A list with following items:
 #'   \itemize{
@@ -151,7 +151,6 @@ tab_df <- function(x,
       page.complete = page.complete,
       knitr = knitr,
       file = file,
-      show = TRUE,
       viewer = use.viewer
     )
   )
@@ -240,7 +239,6 @@ tab_dfs <- function(x,
       page.complete = page.complete,
       knitr = knitr,
       file = file,
-      show = TRUE,
       viewer = use.viewer
     )
   )
@@ -250,7 +248,6 @@ tab_dfs <- function(x,
 # this function is used from tab_model()
 #' @importFrom dplyr slice full_join
 #' @importFrom sjmisc replace_na
-#' @importFrom tidyselect ends_with
 #' @importFrom purrr map map_dbl
 tab_model_df <- function(x,
                          zeroinf,
@@ -259,6 +256,7 @@ tab_model_df <- function(x,
                          rsq.list,
                          n_obs.list,
                          icc.list,
+                         icc.adj.list = NULL,
                          dev.list,
                          aic.list,
                          n.models,
@@ -266,6 +264,7 @@ tab_model_df <- function(x,
                          col.header = NULL,
                          show.re.var = FALSE,
                          show.icc = FALSE,
+                         show.adj.icc = FALSE,
                          encoding = "UTF-8",
                          CSS = NULL,
                          file = NULL,
@@ -330,7 +329,7 @@ tab_model_df <- function(x,
   dv.content <- paste0(dv.content, "    <th class=\"thead firsttablerow firsttablecol col1\">&nbsp;</th>\n")
 
   for (i in 1:length(dv.labels)) {
-    colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+    colspan <- length(string_ends_with(sprintf("_%i", i), x = colnames(x)))
     dv.content <- paste0(
       dv.content,
       sprintf("    <th colspan=\"%i\" class=\"thead firsttablerow\">%s</th>\n", colspan, dv.labels[i])
@@ -403,7 +402,7 @@ tab_model_df <- function(x,
       if (length(icc.list) == 1)
         colspan <- ncol(x) - 1
       else
-        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+        colspan <- length(string_ends_with(sprintf("_%i", i), x = colnames(x)))
 
       if (is.null(icc.list[[i]])) {
 
@@ -508,6 +507,26 @@ tab_model_df <- function(x,
   }
 
 
+  if (!is_empty_list(icc.adj.list) && show.adj.icc) {
+
+    # icc.len <- max(purrr::map_dbl(icc.adj.list, length))
+
+    page.content <- paste0(
+      page.content,
+      create_random_effects(
+        rv.len = 1,
+        rv = icc.adj.list,
+        rv.string = "ICC <sub>adjusted</sub>",
+        clean.rv = "icc",
+        var.names = colnames(x),
+        summary.css = summary.css,
+        n.cols = ncol(x),
+        delim = ".adjusted"
+      ))
+
+  }
+
+
   # add no of observations ----
 
   if (!is_empty_list(n_obs.list)) {
@@ -530,7 +549,7 @@ tab_model_df <- function(x,
       if (length(n_obs.list) == 1)
         colspan <- ncol(x) - 1
       else
-        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+        colspan <- length(string_ends_with(sprintf("_%i", i), x = colnames(x)))
 
       if (is.null(n_obs.list[[i]])) {
 
@@ -595,7 +614,7 @@ tab_model_df <- function(x,
       if (length(rsq.list) == 1)
         colspan <- ncol(x) - 1
       else
-        colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = colnames(x)))
+        colspan <- length(string_ends_with(sprintf("_%i", i), x = colnames(x)))
 
       if (is.null(rsq.list[[i]])) {
 
@@ -667,7 +686,7 @@ tab_model_df <- function(x,
 
   # surround output with table-tag ----
 
-  page.content <- paste0("<table>\n", table.caption, page.content, "\n<table>\n")
+  page.content <- paste0("<table>\n", table.caption, page.content, "\n</table>\n")
 
   # create HTML page with header information
   page.complete <- tab_create_page(
@@ -693,16 +712,15 @@ tab_model_df <- function(x,
       page.complete = page.complete,
       knitr = knitr,
       file = file,
-      show = TRUE,
       viewer = use.viewer
     )
   )
 }
 
 
-create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, summary.css, n.cols) {
+create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, summary.css, n.cols, delim = "_") {
   page.content <- ""
-  pattern <- paste0("^", clean.rv, "_")
+  pattern <- paste0("^", clean.rv, delim)
 
   for (i in 1:rv.len) {
 
@@ -726,7 +744,7 @@ create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, su
       if (length(rv) == 1)
         colspan <- n.cols - 1
       else
-        colspan <- length(tidyselect::ends_with(sprintf("_%i", j), vars = var.names))
+        colspan <- length(string_ends_with(sprintf("_%i", j), x = var.names))
 
       if (is.null(rv[[j]]) || is.na(rv[[j]][i])) {
 
@@ -763,7 +781,6 @@ create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, su
 }
 
 
-#' @importFrom tidyselect ends_with
 create_stats <- function(data.list, data.string, firstsumrow, summary.css, var.names, n.cols) {
   page.content <- ""
 
@@ -783,7 +800,7 @@ create_stats <- function(data.list, data.string, firstsumrow, summary.css, var.n
     if (length(data.list) == 1)
       colspan <- n.cols - 1
     else
-      colspan <- length(tidyselect::ends_with(sprintf("_%i", i), vars = var.names))
+      colspan <- length(string_ends_with(sprintf("_%i", i), x = var.names))
 
     if (is.null(data.list[[i]])) {
 

@@ -4,16 +4,16 @@
 \alias{plot_models}
 \title{Forest plot of multiple regression models}
 \usage{
-plot_models(..., transform, std.est = NULL, rm.terms = NULL, title = NULL,
-  m.labels = NULL, legend.title = "Dependent Variables",
-  legend.pval.title = "p-level", axis.labels = NULL, axis.title = NULL,
-  axis.lim = NULL, wrap.title = 50, wrap.labels = 25,
-  wrap.legend.title = 20, grid.breaks = NULL, dot.size = 3,
-  spacing = 0.4, colors = "Set1", show.values = FALSE,
-  show.legend = TRUE, show.intercept = FALSE, show.p = TRUE,
-  p.shape = FALSE, ci.lvl = 0.95, vline.color = NULL, digits = 2,
-  grid = FALSE, auto.label = TRUE, prefix.labels = c("none", "varname",
-  "label"))
+plot_models(..., transform, std.est = NULL, rm.terms = NULL,
+  title = NULL, m.labels = NULL,
+  legend.title = "Dependent Variables", legend.pval.title = "p-level",
+  axis.labels = NULL, axis.title = NULL, axis.lim = NULL,
+  wrap.title = 50, wrap.labels = 25, wrap.legend.title = 20,
+  grid.breaks = NULL, dot.size = 3, spacing = 0.4, colors = "Set1",
+  show.values = FALSE, show.legend = TRUE, show.intercept = FALSE,
+  show.p = TRUE, p.shape = FALSE, ci.lvl = 0.95,
+  vline.color = NULL, digits = 2, grid = FALSE, auto.label = TRUE,
+  prefix.labels = c("none", "varname", "label"))
 }
 \arguments{
 \item{...}{One or more regression models, including glm's or mixed models.
@@ -113,8 +113,6 @@ color palette. Following options are valid for the \code{colors} argument:
   \item If \code{"gs"}, a greyscale will be used.
   \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
-  \item If \pkg{wesanderson} is installed, you may also specify a name of a palette from that package.
-  \item If \pkg{viridis} is installed, use \code{colors = "v"} to get the viridis color palette.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
 }}

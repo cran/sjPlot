@@ -5,11 +5,12 @@
 \title{Plot One-Way-Anova tables}
 \usage{
 sjp.aov1(var.dep, var.grp, meansums = FALSE, title = NULL,
-  axis.labels = NULL, rev.order = FALSE, string.interc = "(Intercept)",
-  axis.title = "", axis.lim = NULL, geom.colors = c("#3366a0", "#aa3333"),
-  geom.size = 3, wrap.title = 50, wrap.labels = 25, grid.breaks = NULL,
-  show.values = TRUE, digits = 2, y.offset = 0.1, show.p = TRUE,
-  show.summary = FALSE, prnt.plot = TRUE)
+  axis.labels = NULL, rev.order = FALSE,
+  string.interc = "(Intercept)", axis.title = "", axis.lim = NULL,
+  geom.colors = c("#3366a0", "#aa3333"), geom.size = 3,
+  wrap.title = 50, wrap.labels = 25, grid.breaks = NULL,
+  show.values = TRUE, digits = 2, y.offset = 0.15, show.p = TRUE,
+  show.summary = FALSE)
 }
 \arguments{
 \item{var.dep}{Dependent variable. Will be used with following formula:
@@ -18,7 +19,7 @@ sjp.aov1(var.dep, var.grp, meansums = FALSE, title = NULL,
 \item{var.grp}{Factor with the cross-classifying variable, where \code{var.dep}
 is grouped into the categories represented by \code{var.grp}.}
 
-\item{meansums}{Logical, if \code{TRUE}, the values reported are the true group mean values (see also \code{\link{sjt.grpmean}}).
+\item{meansums}{Logical, if \code{TRUE}, the values reported are the true group mean values.
 If \code{FALSE} (default), the values are reported in the standard way, i.e. the values indicate the difference of
 the group mean in relation to the intercept (reference group).}
 
@@ -35,16 +36,13 @@ argument, since in most cases, axis labels are set automatically.}
 \item{string.interc}{Character vector that indicates the reference group (intercept), that is appended to
 the value label of the grouping variable. Default is \code{"(Intercept)"}.}
 
-\item{axis.title}{Character vector of length one or two (depending on
-the plot function and type), used as title(s) for the x and y axis.
-If not specified, a default labelling  is chosen. To set multiple
-axis titles (e.g. with \code{type = "eff"} for many predictors),
-\code{axis.title} must be a character vector of same length of plots
-that are printed. In this case, each plot gets an own axis title
-(applying, for instance, to the y-axis for \code{type = "eff"}).
-\strong{Note:} Some plot types do not support this argument. In such
-cases, use the return value and add axis titles manually with
-\code{\link[ggplot2]{labs}}, e.g.: \code{$plot.list[[1]] + labs(x = ...)}}
+\item{axis.title}{Character vector of length one or two (depending on the
+plot function and type), used as title(s) for the x and y axis. If not
+specified, a default labelling  is chosen. \strong{Note:} Some plot types
+may not support this argument sufficiently. In such cases, use the returned
+ggplot-object and add axis titles manually with
+\code{\link[ggplot2]{labs}}. Use \code{axis.title = ""} to remove axis
+titles.}
 
 \item{axis.lim}{Numeric vector of length 2, defining the range of the plot axis.
 Depending on plot type, may effect either x- or y-axis, or both.
@@ -70,7 +68,8 @@ i.e. at every \code{grid.breaks}'th position a major grid is being printed.}
 
 \item{show.values}{Logical, whether values should be plotted or not.}
 
-\item{digits}{Numeric, amount of digits after decimal point when rounding estimates and values.}
+\item{digits}{Numeric, amount of digits after decimal point when rounding
+estimates or values.}
 
 \item{y.offset}{numeric, offset for text labels when their alignment is adjusted
 to the top/bottom of the geom (see \code{hjust} and \code{vjust}).}
@@ -84,13 +83,9 @@ is shown. If a cell contains expected values lower than five (or lower than 10
 if df is 1), the Fisher's excact test (see \code{\link{fisher.test}}) is
 computed instead of chi-squared test. If the table's matrix is larger
 than 2x2, Fisher's excact test with Monte Carlo simulation is computed.}
-
-\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
-(Insisibily) returns the ggplot-object with the complete plot (\code{plot}) as well as the data frame that
-          was used for setting up the ggplot-object (\code{df}).
+A ggplot-object.
 }
 \description{
 Plot One-Way-Anova table sum of squares (SS) of each factor level (group)
@@ -105,7 +100,4 @@ data(efc)
 sjp.aov1(efc$c12hour, efc$e42dep)
 
 
-}
-\seealso{
-\code{\link{sjt.grpmean}}
 }

@@ -6,30 +6,39 @@
 \usage{
 sjt.lmer(..., pred.labels = NULL, depvar.labels = NULL,
   remove.estimates = NULL, group.pred = FALSE, p.numeric = TRUE,
-  emph.p = FALSE, p.zero = FALSE, p.kr = TRUE, separate.ci.col = TRUE,
-  newline.ci = TRUE, show.est = TRUE, show.std = NULL, show.ci = TRUE,
-  show.se = FALSE, show.header = FALSE, show.col.header = TRUE,
-  show.r2 = TRUE, show.icc = TRUE, show.re.var = TRUE,
-  show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
-  show.dev = FALSE, string.pred = "Predictors",
-  string.dv = "Dependent Variables", string.interc = "(Intercept)",
-  string.obs = "Observations", string.est = "B", string.std = "std. Beta",
-  string.ci = "CI", string.se = "std. Error", string.p = "p",
-  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;", digits.est = 2,
-  digits.std = 2, digits.p = 3, digits.ci = 2, digits.se = 2,
-  digits.summary = 3, cell.spacing = 0.2, cell.gpr.indent = 0.6,
-  sep.column = TRUE, CSS = NULL, encoding = NULL, file = NULL,
-  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+  emph.p = FALSE, p.zero = FALSE, p.kr = TRUE,
+  separate.ci.col = TRUE, newline.ci = TRUE, show.est = TRUE,
+  show.std = NULL, show.ci = TRUE, show.se = FALSE,
+  show.header = FALSE, show.col.header = TRUE, show.r2 = TRUE,
+  show.icc = TRUE, show.re.var = TRUE, show.fstat = FALSE,
+  show.aic = FALSE, show.aicc = FALSE, show.dev = FALSE,
+  string.pred = "Predictors", string.dv = "Dependent Variables",
+  string.interc = "(Intercept)", string.obs = "Observations",
+  string.est = "B", string.std = "std. Beta", string.ci = "CI",
+  string.se = "std. Error", string.p = "p",
+  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;",
+  digits.est = 2, digits.std = 2, digits.p = 3, digits.ci = 2,
+  digits.se = 2, digits.summary = 3, cell.spacing = 0.2,
+  cell.gpr.indent = 0.6, sep.column = TRUE, CSS = NULL,
+  encoding = NULL, file = NULL, use.viewer = TRUE,
+  remove.spaces = TRUE)
 }
 \arguments{
-\item{...}{One or more fitted linear (mixed) models.}
+\item{...}{One or more regression models, including glm's or mixed models.
+May also be a \code{list} with fitted models. See 'Examples'.}
 
 \item{pred.labels}{Character vector with labels of predictor variables.
 If not \code{NULL}, \code{pred.labels} will be used in the first
-table column with the predictors' names. If \code{NULL}, variable
-labels are set based on label attributes (see \code{\link[sjlabelled]{get_label}}).
-If \code{pred.labels = ""}, column names (vector names) are used
-as predictor labels. See 'Examples'.}
+table column with the predictors' names. By default, if \code{auto.label = TRUE}
+and \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+of the coefficients, which will be used as predictor labels.
+If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
+variable names as used in the model formula are used as predictor
+labels. If \code{pred.labels} is a named vector, predictor labels (by
+default, the names of the model's coefficients) will be matched with the
+names of \code{pred.labels}. This ensures that labels always match the
+related predictor in the table, no matter in which way the predictors
+are sorted. See 'Examples'.}
 
 \item{depvar.labels}{Character vector with labels of dependent
 variables of all fitted models. See 'Examples'.}
@@ -56,9 +65,8 @@ as numbers. If \code{FALSE} (default), asterisks are used.}
 period (e.g. \emph{0.002}), else p-values start with a period and
 without a zero (e.g. \emph{.002}).}
 
-\item{p.kr}{logical, if \code{TRUE}, p-value estimation is based on conditional
-F-tests with Kenward-Roger approximation for the df. Caution: Computation
-may take very long time for large samples!}
+\item{p.kr}{Logical, if \code{TRUE}, the computation of p-values is based on
+conditional F-tests with Kenward-Roger approximation for the df.}
 
 \item{separate.ci.col}{Logical, if \code{TRUE}, the CI values are shown in a separate table column.
 Default is \code{FALSE}.}
@@ -67,17 +75,18 @@ Default is \code{FALSE}.}
 between estimate and CI values. If \code{FALSE}, CI values are printed in the same
 line as estimate values.}
 
-\item{show.est}{Logical, if \code{TRUE} (default), the estimates are printed.}
+\item{show.est}{Logical, if \code{TRUE}, the estimates are printed.}
 
 \item{show.std}{Indicates whether standardized beta-coefficients should
 also printed, and if yes, which type of standardization is done.
 See 'Details'.}
 
-\item{show.ci}{Logical, if \code{TRUE} (default), the confidence intervall is also printed to the table. Use
-\code{FALSE} to omit the CI in the table.}
+\item{show.ci}{Either logical, and if \code{TRUE}, the confidence intervals
+is printed to the table; if \code{FALSE}, confidence intervals are
+omitted. Or numeric, between 0 and 1, indicating the range of the
+confidence intervals.}
 
-\item{show.se}{Logical, if \code{TRUE}, the standard errors are also printed.
-Default is \code{FALSE}.}
+\item{show.se}{Logical, if \code{TRUE}, the standard errors are also printed.}
 
 \item{show.header}{Logical, if \code{TRUE}, the header strings \code{string.pred}
 and \code{string.dv} are shown. By default, they're hidden.}
@@ -85,29 +94,26 @@ and \code{string.dv} are shown. By default, they're hidden.}
 \item{show.col.header}{Logical, if \code{TRUE} (default), the table data columns have a headline with
 abbreviations for estimates, std. beta-values, confidence interval and p-values.}
 
-\item{show.r2}{Logical, if \code{TRUE} (default), the R2 and adjusted R2 values for each model are printed
-in the model summary. For linear mixed models, the R2 and Omega-squared values are printed
-(see \code{\link[sjstats]{r2}} for details).}
+\item{show.r2}{Logical, if \code{TRUE}, the r-squared value is also printed.
+Depending on the model, these might be pseudo-r-squared values, or Bayesian
+r-squared etc. See \code{\link[sjstats]{r2}} for details.}
 
-\item{show.icc}{Logical, if \code{TRUE}, the intra-class-correlation for each
-model is printed in the model summary. Only applies to mixed models.}
+\item{show.icc}{Logical, if \code{TRUE}, prints the intraclass correlation
+coefficient for mixed models. See \code{\link[sjstats]{icc}} for details.}
 
-\item{show.re.var}{Logical, if \code{TRUE}, the variance parameters for the random
-effects for each model are printed in the model summary. Only applies to mixed models.
-For details output, see 'Note' in \code{\link[sjstats]{icc}}.}
+\item{show.re.var}{Logical, if \code{TRUE}, prints the random effect variances
+for mixed models. See \code{\link[sjstats]{re_var}} for details.}
 
-\item{show.fstat}{Logical, if \code{TRUE}, the F-statistics for each model is printed
-in the model summary. Default is \code{FALSE}. This argument does not apply to
-\code{\link{sjt.lmer}}.}
+\item{show.fstat}{Logical, if \code{TRUE}, the F-statistics for each model is
+printed in the table summary. This option is not supported by all model types.}
 
 \item{show.aic}{Logical, if \code{TRUE}, the AIC value for each model is printed
-in the model summary. Default is \code{FALSE}.}
+in the table summary.}
 
 \item{show.aicc}{Logical, if \code{TRUE}, the second-order AIC value for each model
-is printed in the model summary. Default is \code{FALSE}.}
+is printed in the table summary.}
 
-\item{show.dev}{Logical, if \code{TRUE}, the deviance for each model
-is printed in the model summary.}
+\item{show.dev}{Logical, if \code{TRUE}, shows the deviance of the model.}
 
 \item{string.pred}{Character vector,used as headline for the predictor column.
 Default is \code{"Predictors"}.}
@@ -141,7 +147,7 @@ May be an HTML entity. See 'Examples'.}
 
 \item{digits.std}{Amount of decimals for standardized beta.}
 
-\item{digits.p}{Amount of decimals for p-values.}
+\item{digits.p}{Amount of decimals for p-values}
 
 \item{digits.ci}{Amount of decimals for confidence intervals.}
 
@@ -163,10 +169,9 @@ column will be added to the output; however, when copying tables to
 office applications, it might be helpful not to add this separator column
 when modifying the table layout.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
 \item{encoding}{String, indicating the charset encoding used for variable and
 value labels. Default is \code{NULL}, so encoding will be auto-detected
@@ -177,13 +182,9 @@ Windows OS). Change encoding if specific chars are not properly displayed (e.g. 
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
@@ -212,9 +213,7 @@ Concerning the \code{show.std} argument, \code{show.std = "std"}
            \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
            suggestion, rescaling the estimates by dividing them by two standard
            deviations instead of just one. Resulting coefficients are then
-           directly comparable for untransformed binary predictors. This type
-           of standardization uses the \code{\link[arm]{standardize}}-function
-           from the \pkg{arm}-package.
+           directly comparable for untransformed binary predictors.
            For backward compatibility reasons, \code{show.std} also may be
            a logical value; if \code{TRUE}, normal standardized estimates are
            printed (same effect as \code{show.std = "std"}). Use

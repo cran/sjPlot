@@ -5,10 +5,10 @@
 \title{Plot PCA results}
 \usage{
 sjp.pca(data, rotation = c("varimax", "oblimin"), nmbr.fctr = NULL,
-  fctr.load.tlrn = 0.1, plot.eigen = FALSE, digits = 2, title = NULL,
-  axis.labels = NULL, type = c("bar", "circle", "tile"), geom.size = 0.6,
-  geom.colors = "RdBu", wrap.title = 50, wrap.labels = 30,
-  show.values = TRUE, show.cronb = TRUE, prnt.plot = TRUE)
+  fctr.load.tlrn = 0.1, plot.eigen = FALSE, digits = 2,
+  title = NULL, axis.labels = NULL, type = c("bar", "circle",
+  "tile"), geom.size = 0.6, geom.colors = "RdBu", wrap.title = 50,
+  wrap.labels = 30, show.values = TRUE, show.cronb = TRUE)
 }
 \arguments{
 \item{data}{A data frame that should be used to compute a PCA, or a \code{\link{prcomp}} object.}
@@ -30,7 +30,7 @@ between the highest and 2nd highest factor should be 0.1}
 \item{plot.eigen}{If \code{TRUE}, a plot showing the Eigenvalues according to the
 Kaiser criteria is plotted to determine the number of factors.}
 
-\item{digits}{Numeric, amount of digits after decimal point when rounding estimates and values.}
+\item{digits}{Amount of decimals for estimates}
 
 \item{title}{character vector, used as plot title. Depending on plot type and function,
 will be set automatically. If \code{title = ""}, no title is printed.
@@ -62,9 +62,6 @@ labels are displayed in one line and when a line break is inserted.}
 i.e. all variables with the highest loading for a factor are taken for the
 reliability test. The result is an alpha value for each factor dimension.
 Only applies when \code{data} is a data frame.}
-
-\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
 (Invisibly) returns a \code{\link{structure}} with

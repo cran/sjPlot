@@ -65,6 +65,12 @@ tab_model(m1, show.se = TRUE, show.std = TRUE, show.stat = TRUE)
 tab_model(m3, m4, show.ci = FALSE, show.p = FALSE, auto.label = FALSE)
 
 ## ------------------------------------------------------------------------
+tab_model(
+  m1, show.se = TRUE, show.std = TRUE, show.stat = TRUE,
+  col.order = c("p", "stat", "est", "std.se", "se", "std.est")
+)
+
+## ------------------------------------------------------------------------
 tab_model(m1, collapse.ci = TRUE)
 
 ## ------------------------------------------------------------------------

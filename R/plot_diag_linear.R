@@ -30,10 +30,9 @@ plot_diag_glm <- function(model, geom.colors, dot.size, ...) {
 }
 
 
-#' @importFrom tibble tibble
 #' @importFrom stats residuals fitted
 diag_ncv <- function(model) {
-  dat <- tibble::tibble(
+  dat <- data.frame(
     res = stats::residuals(model),
     fitted = stats::fitted(model)
   )
@@ -52,10 +51,9 @@ diag_ncv <- function(model) {
 
 
 #' @importFrom rlang .data
-#' @importFrom tibble tibble
 #' @importFrom stats residuals sd
 diag_norm <- function(model, geom.colors) {
-  res_ <- tibble::tibble(res = stats::residuals(model))
+  res_ <- data.frame(res = stats::residuals(model))
 
   ggplot(res_, aes_string(x = "res")) +
     geom_density(fill = geom.colors[1], alpha = 0.2) +
@@ -110,7 +108,6 @@ diag_qq <- function(model, geom.colors, ...) {
 
 #' @importFrom lme4 ranef
 #' @importFrom purrr map map_dbl
-#' @importFrom tibble tibble
 #' @importFrom stats qnorm ppoints
 diag_reqq <- function(model, dot.size) {
 
@@ -147,14 +144,17 @@ diag_reqq <- function(model, dot.size) {
   purrr::map2(re, se, function(.re, .se) {
     ord  <- unlist(lapply(.re, order)) + rep((0:(ncol(.re) - 1)) * nrow(.re), each = nrow(.re))
 
-    pDf  <- tibble::tibble(
-      y = unlist(.re)[ord],
-      ci = stats::qnorm(.975) * .se[ord],
+    df.y <- unlist(.re)[ord]
+    df.ci <- stats::qnorm(.975) * .se[ord]
+
+    pDf  <- data_frame(
+      y = df.y,
+      ci = df.ci,
       nQQ = rep(stats::qnorm(stats::ppoints(nrow(.re))), ncol(.re)),
       ID = factor(rep(rownames(.re), ncol(.re))[ord], levels = rownames(.re)[ord]),
       ind = gl(ncol(.re), nrow(.re), labels = names(.re)),
-      conf.low = .data$y - .data$ci,
-      conf.high = .data$y + .data$ci
+      conf.low = df.y - df.ci,
+      conf.high = df.y + df.ci
     )
 
     ggplot(pDf, aes_string(
@@ -176,7 +176,6 @@ diag_reqq <- function(model, dot.size) {
 
 
 #' @importFrom stats coef
-#' @importFrom tibble rownames_to_column
 diag_vif <- function(fit) {
 
   if (is_merMod(fit) || inherits(fit, "lme"))
@@ -214,7 +213,7 @@ diag_vif <- function(fit) {
     if (maxval >= upperLimit) upperLimit <- ceiling(maxval)
 
     mydat <- data.frame(vif = round(val, 2)) %>%
-      tibble::rownames_to_column(var = "vars")
+      rownames_as_column(var = "vars")
 
 
     vifplot <- ggplot(mydat, aes_string(x = "vars", y = "vif")) +

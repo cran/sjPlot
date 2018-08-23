@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-07-11" />
+<meta name="date" content="2018-08-23" />
 
 <title>Summary of Regression Models as HTML Table</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Summary of Regression Models as HTML Table</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-07-11</em></h4>
+<h4 class="date"><em>2018-08-23</em></h4>
 
 
 
@@ -160,7 +160,7 @@ average number of hours<br>of care per week
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-carer’s gender: Female
+Female
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.39
@@ -216,7 +216,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 <div id="automatic-labelling" class="section level2">
 <h2>Automatic labelling</h2>
@@ -319,7 +319,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.843 / 0.826
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <div id="turn-off-automatic-labelling" class="section level3">
 <h3>Turn off automatic labelling</h3>
 <p>To turn off automatic labelling, use <code>auto.label = FALSE</code>, or provide an empty character vector for <code>pred.labels</code> and <code>dv.labels</code>.</p>
@@ -447,7 +447,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 </div>
 <div id="more-than-one-model" class="section level2">
@@ -560,7 +560,7 @@ average number of hours<br>of care per week
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-carer’s gender: Female
+Female
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.39
@@ -663,7 +663,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.067 / 0.063
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 <div id="generalized-linear-models" class="section level2">
 <h2>Generalized linear models</h2>
@@ -782,7 +782,7 @@ average number of hours<br>of care per week
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-carer’s gender: Female
+Female
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 1.01
@@ -891,7 +891,7 @@ Cox &amp; Snell’s R<sup>2</sup> / Nagelkerke’s R<sup>2</sup>
 0.184 / 0.247
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <div id="untransformed-estimates-on-the-linear-scale" class="section level3">
 <h3>Untransformed estimates on the linear scale</h3>
 <p>To plot the estimates on the linear scale, use <code>transform = NULL</code>.</p>
@@ -1105,7 +1105,7 @@ Cox &amp; Snell’s R<sup>2</sup> / Nagelkerke’s R<sup>2</sup>
 0.184 / 0.247
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 </div>
 <div id="more-complex-models" class="section level2">
@@ -1312,7 +1312,7 @@ ment
 <strong>0.003</strong>
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <p>You can combine any model in one table.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tab_model</span>(m1, m3, m5, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
@@ -1723,7 +1723,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 NA
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 <div id="show-or-hide-further-columns" class="section level2">
 <h2>Show or hide further columns</h2>
@@ -1865,7 +1865,7 @@ average number of hours<br>of care per week
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-carer’s gender: Female
+Female
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.39
@@ -1966,7 +1966,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 <div id="removing-columns" class="section level3">
 <h3>Removing columns</h3>
@@ -2091,7 +2091,202 @@ Cox &amp; Snell’s R<sup>2</sup> / Nagelkerke’s R<sup>2</sup>
 0.184 / 0.247
 </td>
 </tr>
+</table>
+</div>
+<div id="removing-and-sorting-columns" class="section level3">
+<h3>Removing and sorting columns</h3>
+<p>Another way to remove columns, which also allows to reorder the columns, is the <code>col.order</code>-argument. This is a character vector, where each element indicates a column in the output. The value <code>&quot;est&quot;</code>, for instance, indicates the estimates, while <code>&quot;std.est&quot;</code> is the column for standardized estimates and so on.</p>
+<p>By default, <code>col.order</code> contains all possible columns. All columns that should shown (see previous tables, for example using <code>show.se = TRUE</code> to show standard errors, or <code>show.st = TRUE</code> to show standardized estimates) are then printed by default. Colums that are <em>excluded</em> from <code>col.order</code> are <em>not shown</em>, no matter if the <code>show*</code>-arguments are <code>TRUE</code> or <code>FALSE</code>. So if <code>show.se = TRUE</code>, but<code>col.order</code> does not contain the element <code>&quot;se&quot;</code>, standard errors are not shown. On the other hand, if <code>show.est = FALSE</code>, but <code>col.order</code> <em>does include</em> the element <code>&quot;est&quot;</code>, the columns with estimates are not shown.</p>
+<p>In summary, <code>col.order</code> can be used to <em>exclude</em> columns from the table and to change the order of colums.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tab_model</span>(
+  m1, <span class="dt">show.se =</span> <span class="ot">TRUE</span>, <span class="dt">show.std =</span> <span class="ot">TRUE</span>, <span class="dt">show.stat =</span> <span class="ot">TRUE</span>,
+  <span class="dt">col.order =</span> <span class="kw">c</span>(<span class="st">&quot;p&quot;</span>, <span class="st">&quot;stat&quot;</span>, <span class="st">&quot;est&quot;</span>, <span class="st">&quot;std.se&quot;</span>, <span class="st">&quot;se&quot;</span>, <span class="st">&quot;std.est&quot;</span>)
+)</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="6" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+Total score BARTHEL INDEX
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Statistic
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+standardized std. Error
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+std. Error
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
+std. Beta
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+18.62
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+87.15
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+4.68
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+carer’age
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.004</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-2.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.21
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.07
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+-0.09
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+average number of hours<br>of care per week
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-14.95
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.28
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+-0.48
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+Female
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.850
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.19
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.39
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.09
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+-0.01
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+intermediate level of<br>education
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.550
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.60
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+1.37
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.28
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+0.02
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+high level of education
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.564
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.58
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-1.64
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.84
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+-0.02
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="6">
+821
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+R<sup>2</sup> / adjusted R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="6">
+0.271 / 0.266
+</td>
+</tr>
+</table>
 </div>
 <div id="collapsing-columns" class="section level3">
 <h3>Collapsing columns</h3>
@@ -2152,7 +2347,7 @@ average number of hours<br>of care per week
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-carer’s gender: Female
+Female
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.39<br>(-4.49 – 3.71)
@@ -2199,7 +2394,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 </div>
 <div id="defining-own-labels" class="section level2">
@@ -2429,7 +2624,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.067 / 0.063
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <div id="automatic-matching-for-named-vectors" class="section level3">
 <h3>Automatic matching for named vectors</h3>
 <p>Another way to easily assign labels are <em>named vectors</em>. In this case, it doesn’t matter if <code>pred.labels</code> has more labels than coefficients in the model(s), or in which order the labels are passed to <code>tab_model()</code>. The only requirement is that the labels’ names equal the coefficients names as they appear in the <code>summary()</code>-output.</p>
@@ -2675,7 +2870,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.184 / 0.247
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 </div>
 <div id="keep-or-remove-coefficients-from-the-table" class="section level2">
@@ -2749,7 +2944,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 <p>Note that the names of terms to keep or remove should match the coefficients names. For categorical predictors, one example would be:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tab_model</span>(m1, <span class="dt">rm.terms =</span> <span class="kw">c</span>(<span class="st">&quot;c172code2&quot;</span>, <span class="st">&quot;c161sex2&quot;</span>))</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
@@ -2847,7 +3042,7 @@ R<sup>2</sup> / adjusted R<sup>2</sup>
 0.271 / 0.266
 </td>
 </tr>
-<table style="border-collapse:collapse; border:none;">
+</table>
 </div>
 
 

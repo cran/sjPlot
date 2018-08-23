@@ -4,17 +4,18 @@
 \alias{sjc.qclus}
 \title{Compute quick cluster analysis}
 \usage{
-sjc.qclus(data, groupcount = NULL, groups = NULL, method = c("kmeans",
-  "hclust"), distance = c("euclidean", "maximum", "manhattan", "canberra",
-  "binary", "minkowski"), agglomeration = c("ward", "ward.D", "ward.D2",
-  "single", "complete", "average", "mcquitty", "median", "centroid"),
-  iter.max = 20, algorithm = c("Hartigan-Wong", "Lloyd", "MacQueen"),
+sjc.qclus(data, groupcount = NULL, groups = NULL,
+  method = c("kmeans", "hclust"), distance = c("euclidean", "maximum",
+  "manhattan", "canberra", "binary", "minkowski"),
+  agglomeration = c("ward", "ward.D", "ward.D2", "single", "complete",
+  "average", "mcquitty", "median", "centroid"), iter.max = 20,
+  algorithm = c("Hartigan-Wong", "Lloyd", "MacQueen"),
   show.accuracy = FALSE, title = NULL, axis.labels = NULL,
   wrap.title = 40, wrap.labels = 20, wrap.legend.title = 20,
-  wrap.legend.labels = 20, facet.grid = FALSE, geom.colors = "Paired",
-  geom.size = 0.5, geom.spacing = 0.1, show.legend = TRUE,
-  show.grpcnt = TRUE, legend.title = NULL, legend.labels = NULL,
-  coord.flip = FALSE, reverse.axis = FALSE, prnt.plot = TRUE)
+  wrap.legend.labels = 20, facet.grid = FALSE,
+  geom.colors = "Paired", geom.size = 0.5, geom.spacing = 0.1,
+  show.legend = TRUE, show.grpcnt = TRUE, legend.title = NULL,
+  legend.labels = NULL, coord.flip = FALSE, reverse.axis = FALSE)
 }
 \arguments{
 \item{data}{A data frame with variables that should be used for the
@@ -116,9 +117,6 @@ legend labels (e.g. \code{"Group 1 (n=87)"}).}
 \item{coord.flip}{logical, if \code{TRUE}, the x and y axis are swapped.}
 
 \item{reverse.axis}{Logical, if \code{TRUE}, the values on the x-axis are reversed.}
-
-\item{prnt.plot}{logical, if \code{TRUE} (default), plots the results as graph. Use \code{FALSE} if you don't
-want to plot any graphs. In either case, the ggplot-object will be returned as value.}
 }
 \value{
 (Invisibly) returns an object with

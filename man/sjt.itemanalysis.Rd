@@ -4,11 +4,12 @@
 \alias{sjt.itemanalysis}
 \title{Summary of item analysis of an item scale as HTML table}
 \usage{
-sjt.itemanalysis(df, factor.groups = NULL, factor.groups.titles = "auto",
-  scale = FALSE, min.valid.rowmean = 2, altr.row.col = TRUE,
-  sort.column = NULL, show.shapiro = FALSE, show.kurtosis = FALSE,
-  show.corr.matrix = TRUE, CSS = NULL, encoding = NULL, file = NULL,
-  use.viewer = TRUE, no.output = FALSE, remove.spaces = TRUE)
+sjt.itemanalysis(df, factor.groups = NULL,
+  factor.groups.titles = "auto", scale = FALSE,
+  min.valid.rowmean = 2, alternate.rows = TRUE, sort.column = NULL,
+  show.shapiro = FALSE, show.kurtosis = FALSE,
+  show.corr.matrix = TRUE, CSS = NULL, encoding = NULL,
+  file = NULL, use.viewer = TRUE, remove.spaces = TRUE)
 }
 \arguments{
 \item{df}{A data frame with items.}
@@ -32,8 +33,8 @@ Default is 2, i.e. the return values \code{index.scores} and \code{df.index.scor
 computed for those items that have at least \code{min.valid.rowmean} per case (observation, or
 technically, row). See \code{mean_n} for details.}
 
-\item{altr.row.col}{Logical, if \code{TRUE}, alternating rows are highlighted with a light gray
-background color.}
+\item{alternate.rows}{Logical, if \code{TRUE}, rows are printed in
+alternatig colors (white and light grey by default).}
 
 \item{sort.column}{Numeric vector, indicating the index of the column
 that should sorted. by default, the column is sorted in ascending order.
@@ -55,27 +56,22 @@ each component (a component is represented by each group of \code{factor.groups}
 After that, each case (df's row) has a scales sum score for each component.
 Finally, a correlation of these "scale sum scores" is computed.}
 
-\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions, according to the
-\href{http://www.w3.org/Style/CSS/}{official CSS syntax}. For more details,
-see \href{../doc/table_css.html}{this package-vignette}, or 'Details' in
-\code{\link{sjt.frq}}.}
+\item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
+according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
 
-\item{encoding}{String, indicating the charset encoding used for variable and
-value labels. Default is \code{NULL}, so encoding will be auto-detected
-depending on your platform (e.g., \code{"UTF-8"} for Unix and \code{"Windows-1252"} for
-Windows OS). Change encoding if specific chars are not properly displayed (e.g. German umlauts).}
+\item{encoding}{Character vector, indicating the charset encoding used
+for variable and value labels. Default is \code{"UTF-8"}. For Windows
+Systems, \code{encoding = "Windows-1252"} might be necessary for proper
+display of special characters.}
 
 \item{file}{Destination file, if the output should be saved as file.
 If \code{NULL} (default), the output will be saved as temporary file and
 openend either in the IDE's viewer pane or the default web browser.}
 
-\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's viewer pane. If
-\code{FALSE} or no viewer available, the HTML table is opened in a web browser.}
-
-\item{no.output}{Logical, if \code{TRUE}, the html-output is neither opened in a browser nor shown in
-the viewer pane and not even saved to file. This option is useful when the html output
-should be used in \code{knitr} documents. The html output can be accessed via the return
-value.}
+\item{use.viewer}{Logical, if \code{TRUE}, the HTML table is shown in the IDE's
+viewer pane. If \code{FALSE} or no viewer available, the HTML table is
+opened in a web browser.}
 
 \item{remove.spaces}{Logical, if \code{TRUE}, leading spaces are removed from all lines in the final string
 that contains the html-data. Use this, if you want to remove parantheses for html-tags. The html-source
@@ -121,9 +117,6 @@ This function performs an item analysis with certain statistics that are
                of the data frame that belong to a certain factor (see return value of function \code{\link{sjt.pca}}
                as example for retrieving factor groups for a scale and see examples for more details).
 }
-\details{
-See 'Details' in \code{\link{sjt.frq}}.
-}
 \note{
 \itemize{
          \item The \emph{Shapiro-Wilk Normality Test} (see column \code{W(p)}) tests if an item has a distribution that is significantly different from normal.
@@ -131,8 +124,6 @@ See 'Details' in \code{\link{sjt.frq}}.
          \item For \emph{item discrimination}, acceptable values are 0.20 or higher; the closer to 1.00 the better. See \code{\link[sjstats]{reliab_test}} for more details.
          \item In case the total \emph{Cronbach's Alpha} value is below the acceptable cut-off of 0.7 (mostly if an index has few items), the \emph{mean inter-item-correlation} is an alternative measure to indicate acceptability. Satisfactory range lies between 0.2 and 0.4. See also \code{\link[sjstats]{mic}}.
        }
-
-See 'Notes' in \code{\link{sjt.frq}}.
 }
 \examples{
 # Data from the EUROFAMCARE sample dataset
@@ -160,7 +151,7 @@ sjt.itemanalysis(efc[, start:end])
 
 # Compute PCA on Cope-Index, and perform a
 # item analysis for each extracted factor.
-factor.groups <- sjt.pca(mydf, no.output = TRUE)$factor.index
+factor.groups <- sjt.pca(mydf)$factor.index
 sjt.itemanalysis(mydf, factor.groups)}
 
 }
