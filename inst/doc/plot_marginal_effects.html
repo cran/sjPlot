@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-08-23" />
+<meta name="date" content="2018-10-14" />
 
 <title>Plotting Marginal Effects of Regression Models</title>
 
@@ -70,10 +70,16 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Plotting Marginal Effects of Regression Models</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-08-23</em></h4>
+<h4 class="date"><em>2018-10-14</em></h4>
 
 
 
+<!--
+vignette: >
+  %\VignetteIndexEntry{Plotting Marginal Effects of Regression Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+-->
 <p>This document describes how to plot marginal effects of various regression models, using the <code>plot_model()</code> function. <code>plot_model()</code> is a generic plot-function, which accepts many model-objects, like <code>lm</code>, <code>glm</code>, <code>lme</code>, <code>lmerMod</code> etc.</p>
 <p><code>plot_model()</code> allows to create various plot tyes, which can be defined via the <code>type</code>-argument. The default is <code>type = &quot;fe&quot;</code>, which means that fixed effects (model coefficients) are plotted. To plot marginal effects, call <code>plot_model()</code> with:</p>
 <ul>

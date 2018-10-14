@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-08-23" />
+<meta name="date" content="2018-10-14" />
 
 <title>Summary of Mixed Models as HTML Table</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Summary of Mixed Models as HTML Table</h1>
 <h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-08-23</em></h4>
+<h4 class="date"><em>2018-10-14</em></h4>
 
 
 
@@ -327,7 +327,7 @@ df
 17.71
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-16.34 – 19.08
+16.07 – 19.34
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 <strong>&lt;0.001
@@ -344,7 +344,7 @@ age
 0.66
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.56 – 0.76
+0.54 – 0.78
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 <strong>&lt;0.001
@@ -361,7 +361,7 @@ SexFemale
 -2.32
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--3.57 – -1.07
+-3.81 – -0.83
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 <strong>0.005</strong>
@@ -656,8 +656,7 @@ m4 &lt;-<span class="st"> </span><span class="kw">glmmTMB</span>(
   <span class="dt">data =</span> Salamanders
 )
 
-<span class="kw">tab_model</span>(m1, m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)
-<span class="co">#&gt; Warning: mu of 2.5 is too close to zero, estimate may be unreliable.</span></code></pre></div>
+<span class="kw">tab_model</span>(m1, m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">

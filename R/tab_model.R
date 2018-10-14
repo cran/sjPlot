@@ -122,6 +122,9 @@
 #'   with Kenward-Roger approximation for the degrees of freedom, using the
 #'   \pkg{pbkrtest}-package. In this case, use \code{show.df = TRUE} to show
 #'   the approximated degrees of freedom for each coefficient.
+#' @param p.style Character, indicating if p-values should be printed as
+#'   numeric value (\code{"numeric"}) or as asterisks (\code{"asterisk"}).
+#'   May be abbreviated.
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions,
 #'    according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
 #'    See 'Details' or \href{../doc/table_css.html}{this package-vignette}.
@@ -149,7 +152,10 @@
 #'         or opened with the default web browser. Displaying resp. opening a temporary file is the
 #'         default behaviour (i.e. \code{file = NULL}).
 #'         \cr \cr
-#'         Examples are shown in \href{../doc/tab_model_estimates.html}{this package-vignette}.
+#'         Examples are shown in these three vignettes:
+#'         \href{../doc/tab_model_estimates.html}{Summary of Regression Models as HTML Table},
+#'         \href{../doc/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
+#'         \href{../doc/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
 #'
 #' @details \strong{Standardized Estimates}
 #'    \cr \cr
@@ -263,6 +269,8 @@ tab_model <- function(
   digits.p = 3,
   emph.p = TRUE,
   p.val = c("wald", "kr"),
+  p.style = c("numeric", "asterisk"),
+  p.threshold = c(0.05, 0.01, 0.001),
 
   case = "parsed",
   auto.label = TRUE,
@@ -273,9 +281,20 @@ tab_model <- function(
 ) {
 
   p.val <- match.arg(p.val)
+  p.style <- match.arg(p.style)
+
+  if (p.style == "asterisk") show.p <- FALSE
+
 
   models <- list(...)
-  names(models) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
+
+  if (length(class(models[[1]]) == 1) && class(models[[1]]) == "list")
+    models <- lapply(models[[1]], function(x) x)
+
+  names(models) <- unlist(lapply(
+    match.call(expand.dots = F)$`...`,
+    function(.x) deparse(.x, width.cutoff = 500L))
+  )
 
   auto.transform <- missing(transform)
   ci.lvl <- ifelse(is.null(show.ci), .95, show.ci)
@@ -309,10 +328,6 @@ tab_model <- function(
 
       # get info on model family
       fam.info <- sjstats::model_family(model)
-
-      ## TODO remove once sjstats was updated to >= 0.17.1
-      if (sjmisc::is_empty(fam.info$is_linear)) fam.info$is_linear <- FALSE
-
 
       # check whether estimates should be transformed or not
 
@@ -361,6 +376,7 @@ tab_model <- function(
         )) %>%
         dplyr::select(-.data$conf.low, -.data$conf.high) %>%
         dplyr::mutate(
+          p.stars = get_p_stars(.data$p.value, p.threshold),
           p.sig = .data$p.value < .05,
           p.value = sprintf("%.*f", digits.p, .data$p.value)
         )
@@ -421,6 +437,18 @@ tab_model <- function(
           )) %>%
           dplyr::select(-.data$std.conf.low, -.data$std.conf.high)
       }
+
+
+      # add asterisks to estimates ----
+
+      if (p.style == "asterisk") {
+        if (obj_has_name(dat, "estimate"))
+          dat$estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$estimate, dat$p.stars)
+        if (!show.est && obj_has_name(dat, "std.estimate"))
+          dat$std.estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$std.estimate, dat$p.stars)
+      }
+
+      dat <- dplyr::select(dat, -.data$p.stars)
 
 
       # switch column for p-value and conf. int. ----
@@ -545,7 +573,7 @@ tab_model <- function(
 
       if ((show.icc || show.re.var) && is_mixed_model(model)) {
         icc <- tryCatch(
-          sjstats::icc(model),
+          suppressWarnings(sjstats::icc(model)),
           error = function(x) { NULL }
         )
       }
@@ -660,7 +688,7 @@ tab_model <- function(
         model.data <- split(model.data[[1]], model.data[[1]]["response.level_1"])
       } else {
         dv.labels <- sjmisc::word_wrap(
-          sjlabelled::get_dv_labels(models, multi.resp = TRUE, case = case),
+          sjlabelled::get_dv_labels(models, mv = TRUE, case = case),
           wrap = wrap.labels,
           linesep = "<br>"
         )
@@ -837,7 +865,8 @@ tab_model <- function(
           axis.title = NULL,
           type = "est",
           transform = transform.data[[i]],
-          multi.resp = NULL
+          multi.resp = NULL,
+          include.zeroinf = FALSE
         )
       } else if (length(models) == 1) {
 
@@ -853,7 +882,8 @@ tab_model <- function(
           axis.title = NULL,
           type = "est",
           transform = transform.data[[1]],
-          multi.resp = mr
+          multi.resp = mr,
+          include.zeroinf = FALSE
         )
 
       } else {
@@ -901,6 +931,18 @@ tab_model <- function(
     x
   })
 
+
+  if (p.style == "asterisk")
+    footnote <- sprintf(
+      "* p&lt;%s&nbsp;&nbsp;&nbsp;** p&lt;%s&nbsp;&nbsp;&nbsp;*** p&lt;%s",
+      format(p.threshold[1]),
+      format(p.threshold[2]),
+      format(p.threshold[3])
+    )
+  else
+    footnote <- NULL
+
+
   tab_model_df(
     x = dat,
     zeroinf = zeroinf,
@@ -920,7 +962,8 @@ tab_model <- function(
     show.adj.icc = show.adj.icc,
     CSS = CSS,
     file = file,
-    use.viewer = use.viewer
+    use.viewer = use.viewer,
+    footnote = footnote
   )
 }
 
@@ -952,7 +995,12 @@ sort_columns <- function(x, is.stan, col.order) {
   if (col.order[1] != "term") col.order <- c("term", col.order)
   if (!("wrap.facet" %in% col.order)) col.order <- c(col.order, "wrap.facet")
 
-  if (is.stan) col.order <- col.order[-which(col.order == "p.value")]
+  if (is.stan) {
+    pcol <- which(col.order == "p.value")
+    if (!sjmisc::is_empty(pcol))
+      col.order <- col.order[-pcol]
+  }
+
   as.vector(stats::na.omit(match(col.order, x)))
 }
 

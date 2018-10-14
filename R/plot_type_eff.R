@@ -36,6 +36,9 @@ plot_type_eff <- function(type,
     )
   }
 
+
+  if (is.null(dat)) return(NULL)
+
   # evaluate dots-arguments
   alpha <- .15
   dodge <- .1
@@ -66,12 +69,9 @@ plot_type_eff <- function(type,
     dot.alpha = dot.alpha,
     alpha = alpha,
     dodge = dodge,
-    log.y = log.y
-
-    ## TODO activate once ggeffects-update is on  CRAN
-
-    # dot.size = dot.size,
-    # line.size = line.size
+    log.y = log.y,
+    dot.size = dot.size,
+    line.size = line.size
   )
 
   # set axis and plot titles
