@@ -229,7 +229,7 @@ check_se_argument <- function(se, type = NULL) {
     }
 
     # no robust s.e. for random effetcs
-    if (type == "re") {
+    if (!is.null(type) && type == "re") {
       warning("No robust standard errors for `type = \"re\"`.")
       se <- TRUE
     }
@@ -318,7 +318,9 @@ is_empty_list <- function(x) {
 
 model_deviance <- function(x) {
   tryCatch(
-    m_deviance(x),
+    {
+      m_deviance(x)
+    },
     error = function(x) { NULL }
   )
 }
@@ -327,7 +329,9 @@ model_deviance <- function(x) {
 #' @importFrom stats AIC
 model_aic <- function(x) {
   tryCatch(
-    stats::AIC(x),
+    {
+      stats::AIC(x)
+    },
     error = function(x) { NULL }
   )
 }

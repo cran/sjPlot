@@ -22,7 +22,8 @@ tab_model(..., transform, show.intercept = TRUE, show.est = TRUE,
   "hdi.inner", "hdi.outer", "stat", "p", "df", "response.level"),
   digits = 2, digits.p = 3, emph.p = TRUE, p.val = c("wald", "kr"),
   p.style = c("numeric", "asterisk"), p.threshold = c(0.05, 0.01,
-  0.001), case = "parsed", auto.label = TRUE, bpe = "median",
+  0.001), case = "parsed", auto.label = TRUE,
+  prefix.labels = c("none", "varname", "label"), bpe = "median",
   CSS = css_theme("regression"), file = NULL, use.viewer = TRUE)
 }
 \arguments{
@@ -48,7 +49,11 @@ confidence intervals.}
 \item{show.hdi50}{Logical, if \code{TRUE}, for Bayesian models, a second
 credible interval is added to the table output.}
 
-\item{show.se}{Logical, if \code{TRUE}, the standard errors are also printed.}
+\item{show.se}{Either logical, and if \code{TRUE}, the standard errors are
+also printed. Or a character vector with a specification of the
+covariance matrix to compute robust standard errors (see argument \code{vcov}
+of \code{\link[sjstats]{robust}} for valid values; robust standard errors
+are only supported for models that work with \code{\link[lmtest]{coeftest}}).}
 
 \item{show.std}{Indicates whether standardized beta-coefficients should
 also printed, and if yes, which type of standardization is done.
@@ -104,7 +109,7 @@ would remove the terms \code{"t_name2"} and \code{"t_name3"} (assuming
 that the variable \code{t_name} is categorical and has at least
 the factor levels \code{2} and \code{3}). Another example for the
 \emph{iris}-dataset: \code{terms = "Species"} would not work, instead
-you would \code{terms = "Species [versicolor,virginica]"}.}
+use \code{terms = "Species [versicolor,virginica]"}.}
 
 \item{rm.terms}{Character vector with names that indicate which terms should
 be removed from the output Counterpart to \code{terms}. \code{rm.terms =
@@ -219,6 +224,11 @@ based on value and variable labels, if the data is labelled. See
 \code{\link[sjlabelled]{get_label}} and
 \code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
 original variable names and value labels (factor levels) are used.}
+
+\item{prefix.labels}{Indicates whether the value labels of categorical variables
+should be prefixed, e.g. with the variable name or variable label. See
+argument \code{prefix} in \code{\link[sjlabelled]{get_term_labels}} for
+details.}
 
 \item{bpe}{For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
 \pkg{brms}-package), the Bayesian point estimate is, by default, the median

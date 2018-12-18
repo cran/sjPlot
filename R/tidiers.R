@@ -2,9 +2,20 @@ tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, show.zeroinf, p
   dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...)
 
   # get robust standard errors, if requestes, and replace former s.e.
-  if (!is.null(se) && !is.logical(se)) {
+
+  if (!is.null(se) && !is.logical(se) && obj_has_name(dat, "std.error")) {
     std.err <- sjstats::robust(model, vcov.type = se)
     dat[["std.error"]] <- std.err[["std.error"]]
+
+    # also fix CI and p-value after robust SE
+    ci <- get_confint(ci.lvl)
+
+    dat$conf.low <- dat$estimate - stats::qnorm(ci) * dat$std.error
+    dat$conf.high <- dat$estimate + stats::qnorm(ci) * dat$std.error
+
+    if (obj_has_name(dat, "p.value")) {
+      dat$p.value <- 2 * stats::pnorm(abs(dat$estimate / dat$std.error), lower.tail = FALSE)
+    }
   }
 
   dat
@@ -50,12 +61,7 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
 tidy_generic <- function(model, ci.lvl, facets, p.val) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # check for multiple reponse levels
 
@@ -85,7 +91,9 @@ tidy_generic <- function(model, ci.lvl, facets, p.val) {
 
     if (is_merMod(model) && !is.null(p.val) && p.val == "kr") {
       pv <- tryCatch(
-        suppressMessages(sjstats::p_value(model, p.kr = TRUE)),
+        {
+          suppressMessages(sjstats::p_value(model, p.kr = TRUE))
+        },
         error = function(x) { NULL }
       )
 
@@ -103,7 +111,9 @@ tidy_generic <- function(model, ci.lvl, facets, p.val) {
       # see if we have p-values. if not, add them
       if (!obj_has_name(dat, "p.value"))
         dat$p.value <- tryCatch(
-          sjstats::p_value(model, p.kr = FALSE)[["p.value"]],
+          {
+            sjstats::p_value(model, p.kr = FALSE)[["p.value"]]
+          },
           error = function(x) { NA }
         )
     }
@@ -142,12 +152,7 @@ tidy_svynb_model <- function(model, ci.lvl) {
 
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # keep original value, not rounded
 
@@ -250,6 +255,18 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
 
     if (!sjmisc::is_empty(resp.cor))
       dat <- dplyr::slice(dat, !! -resp.cor)
+  }
+
+  # do transformation on posterior samples first,
+  # then summarize (see https://discourse.mc-stan.org/t/monotonic-effects-in-non-gaussian-models/6353/5)
+
+  # need to transform point estimate as well
+  if (!is.null(tf)) {
+    funtrans <- match.fun(tf)
+    all.cols <- sjmisc::seq_col(mod.dat)
+    simp.pars <- string_starts_with("simo_mo", colnames(mod.dat))
+    if (!sjmisc::is_empty(simp.pars)) all.cols <- all.cols[-simp.pars]
+    for (i in all.cols) mod.dat[[i]] <- funtrans(mod.dat[[i]])
   }
 
 
@@ -474,10 +491,19 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
   }
 
 
-  # need to transform point estimate as well
-  if (!is.null(tf)) {
-    funtrans <- match.fun(tf)
-    dat$estimate <- funtrans(dat$estimate)
+  # check model for monotonic effects
+
+  simplex.terms <- string_starts_with(pattern = "simo_mo", x = dat$term)
+  if (!sjmisc::is_empty(simplex.terms)) {
+    if (!obj_has_name(dat, "wrap.facet")) {
+      dat$wrap.facet <- ""
+      dat$wrap.facet[simplex.terms] <- "Simplex Parameters"
+    } else {
+      dat$wrap.facet[simplex.terms] <- sprintf(
+        "%s (Simplex Parameters)",
+        dat$wrap.facet[simplex.terms]
+      )
+    }
   }
 
 
@@ -543,12 +569,7 @@ tidy_gls_model <- function(model, ci.lvl) {
 tidy_glmmTMB_model <- function(model, ci.lvl, show.zeroinf) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get fixed effects
 
@@ -618,12 +639,7 @@ tidy_glmmTMB_model <- function(model, ci.lvl, show.zeroinf) {
 tidy_hurdle_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates
 
@@ -654,12 +670,7 @@ tidy_hurdle_model <- function(model, ci.lvl) {
 tidy_logistf_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates
 
@@ -685,12 +696,7 @@ tidy_logistf_model <- function(model, ci.lvl) {
 tidy_clm_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates, as data frame
 
@@ -725,12 +731,7 @@ tidy_clm_model <- function(model, ci.lvl) {
 tidy_polr_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates, as data frame
 
@@ -765,12 +766,7 @@ tidy_polr_model <- function(model, ci.lvl) {
 tidy_multinom_model <- function(model, ci.lvl, facets) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates, as data frame
   dat <- broom::tidy(model, conf.int = FALSE, exponentiate = FALSE)
@@ -802,12 +798,7 @@ tidy_multinom_model <- function(model, ci.lvl, facets) {
 tidy_gam_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   # get estimates
 
@@ -832,12 +823,7 @@ tidy_gam_model <- function(model, ci.lvl) {
 tidy_zelig_model <- function(model, ci.lvl) {
 
   # compute ci, two-ways
-
-  if (!is.null(ci.lvl) && !is.na(ci.lvl))
-    ci <- 1 - ((1 - ci.lvl) / 2)
-  else
-    ci <- .975
-
+  ci <- get_confint(ci.lvl)
 
   if (!requireNamespace("Zelig"))
     stop("Package `Zelig` required. Please install", call. = F)
@@ -856,4 +842,12 @@ tidy_zelig_model <- function(model, ci.lvl) {
     conf.high = est + stats::qnorm(ci) * se,
     p.value = unname(unlist(Zelig::get_pvalue(model)))
   )
+}
+
+
+get_confint <- function(ci.lvl = .95) {
+  if (!is.null(ci.lvl) && !is.na(ci.lvl))
+    (1 + ci.lvl) / 2
+  else
+    .975
 }

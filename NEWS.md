@@ -1,3 +1,29 @@
+# sjPlot 2.6.2
+
+## General
+
+* Revised some help-files and vignettes.
+
+## Removed / Defunct
+
+Following functions are now defunct:
+
+* `sjt.lm()`, `sjt.glm()`, `sjt.lmer()` and `sjt.glmer()`. Please use `tab_model()` instead.
+
+## Changes to functions
+
+* `tab_model()` supports printing simplex parameters of monotonic effects of **brms** models.
+* `tab_model()` gets a `prefix.labels`-argument to add a prefix to the labels of categorical terms.
+* The `rotation`-argument in `sjt.pca()` and `sjp.pca()` now supports all rotations from `psych::principal()`.
+
+## Bug fixes
+
+* `plot_model()` no longer automatically changes the plot-type to `"slope"` for models with only one predictor that is categorical and has more than two levels.
+* `type = "eff"` and `type = "pred"` in `plot_model()` did not work when `terms` was not specified. 
+* If robust standard errors are requested in `tab_model()`, the confidence intervals and p-values are now re-calculated and adjusted based on the robust standard errors.
+* `colors = "bw"` was not recognized correctly for `plot_model(..., type = "int")`.
+* Fix issue in `sjp.frq()` with correct axis labels for non-labelled character vectors.
+
 # sjPlot 2.6.1
 
 ## General

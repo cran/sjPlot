@@ -21,7 +21,7 @@
 #'    that the variable \code{t_name} is categorical and has at least
 #'    the factor levels \code{2} and \code{3}). Another example for the
 #'    \emph{iris}-dataset: \code{terms = "Species"} would not work, instead
-#'    you would \code{terms = "Species [versicolor,virginica]"}.
+#'    use \code{terms = "Species [versicolor,virginica]"}.
 #' @param rm.terms Character vector with names that indicate which terms should
 #'    be removed from the output Counterpart to \code{terms}. \code{rm.terms =
 #'    "t_name"} would remove the term \emph{t_name}. Default is \code{NULL}, i.e.
@@ -64,7 +64,11 @@
 #'    also printed, and if yes, which type of standardization is done.
 #'    See 'Details'.
 #' @param show.p Logical, if \code{TRUE}, p-values are also printed.
-#' @param show.se Logical, if \code{TRUE}, the standard errors are also printed.
+#' @param show.se Either logical, and if \code{TRUE}, the standard errors are
+#'   also printed. Or a character vector with a specification of the
+#'   covariance matrix to compute robust standard errors (see argument \code{vcov}
+#'   of \code{\link[sjstats]{robust}} for valid values; robust standard errors
+#'   are only supported for models that work with \code{\link[lmtest]{coeftest}}).
 #' @param show.r2 Logical, if \code{TRUE}, the r-squared value is also printed.
 #'    Depending on the model, these might be pseudo-r-squared values, or Bayesian
 #'    r-squared etc. See \code{\link[sjstats]{r2}} for details.
@@ -196,7 +200,7 @@
 #' @importFrom dplyr full_join select if_else mutate
 #' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
 #' @importFrom sjlabelled get_dv_labels get_term_labels
-#' @importFrom sjmisc word_wrap var_rename add_columns
+#' @importFrom sjmisc word_wrap var_rename add_columns add_case
 #' @importFrom sjstats std_beta model_family r2 icc resp_var
 #' @importFrom stats nobs
 #' @importFrom rlang .data
@@ -274,6 +278,7 @@ tab_model <- function(
 
   case = "parsed",
   auto.label = TRUE,
+  prefix.labels = c("none", "varname", "label"),
   bpe = "median",
   CSS = css_theme("regression"),
   file = NULL,
@@ -282,13 +287,27 @@ tab_model <- function(
 
   p.val <- match.arg(p.val)
   p.style <- match.arg(p.style)
+  prefix.labels <- match.arg(prefix.labels)
+
+
+  # if we prefix labels, use different default for case conversion,
+  # else the separating white spaces after colon are removed.
+  if (missing(case)) {
+    if (prefix.labels == "none")
+      case <- "parsed"
+    else
+      case <- NULL
+  }
 
   if (p.style == "asterisk") show.p <- FALSE
+
+  # check se-argument
+  show.se <- check_se_argument(se = show.se, type = NULL)
 
 
   models <- list(...)
 
-  if (length(class(models[[1]]) == 1) && class(models[[1]]) == "list")
+  if (length(class(models[[1]])) == 1 && class(models[[1]]) == "list")
     models <- lapply(models[[1]], function(x) x)
 
   names(models) <- unlist(lapply(
@@ -424,7 +443,7 @@ tab_model <- function(
             conf.low = "std.conf.low",
             conf.high = "std.conf.high"
           ) %>%
-          add_cases(.after = -1) %>%
+          sjmisc::add_case(.after = -1) %>%
           dplyr::select(-1) %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
@@ -543,25 +562,15 @@ tab_model <- function(
       }
 
 
-      # Add r-squared statistic ----
-
-      rsq <- NULL
-
-      if (show.r2) {
-        rsq <- tryCatch(
-          suppressWarnings(sjstats::r2(model)),
-          error = function(x) { NULL }
-        )
-      }
-
-
       # Add no of observations statistic ----
 
       n_obs <- NULL
 
       if (show.obs) {
         n_obs <- tryCatch(
-          stats::nobs(model),
+          {
+            stats::nobs(model)
+          },
           error = function(x) { NULL }
         )
       }
@@ -573,19 +582,50 @@ tab_model <- function(
 
       if ((show.icc || show.re.var) && is_mixed_model(model)) {
         icc <- tryCatch(
-          suppressWarnings(sjstats::icc(model)),
+          {
+            suppressWarnings(sjstats::icc(model))
+          },
           error = function(x) { NULL }
         )
       }
 
       icc.adjusted <- NULL
 
+      # get adjusted ICC, which also contains r-squared.
+      # these are similar to compute, so we save computation time
+
       if ((show.adj.icc) && is_mixed_model(model)) {
         icc.adjusted <- tryCatch(
-          sjstats::icc(model, adjusted = TRUE),
+          {
+            sjstats::icc(model, adjusted = TRUE, type = "all")
+          },
           error = function(x) { NULL }
         )
       }
+
+
+      # Add r-squared statistic ----
+
+      rsq <- NULL
+
+      if (show.r2) {
+        # if marginal and conditional r-squared already have been computed
+        # via adjusted ICC, use these results and avoid time consuming
+        # multiple computation
+        if (is_mixed_model(model) && !is.null(icc.adjusted)) {
+          rsq <- icc.adjusted[[1]]
+        } else {
+          rsq <- tryCatch(
+            {
+              suppressWarnings(sjstats::r2(model))
+            },
+            error = function(x) { NULL }
+          )
+        }
+      }
+
+      # fix return value for type = "all"
+      if (!is.null(icc.adjusted)) icc.adjusted <- icc.adjusted[[2]]
 
 
       # Add deviance and AIC statistic ----
@@ -766,7 +806,7 @@ tab_model <- function(
   # get default labels for dv and terms ----
 
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
-    pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE)
+    pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
     no.dupes <- !duplicated(names(pred.labels))
     pred.labels <- prepare.labels(pred.labels[no.dupes], grp = group.terms)
   } else {
