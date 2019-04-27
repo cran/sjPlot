@@ -5,24 +5,28 @@
 \title{Print regression models as HTML table}
 \usage{
 tab_model(..., transform, show.intercept = TRUE, show.est = TRUE,
-  show.ci = 0.95, show.hdi50 = TRUE, show.se = NULL,
+  show.ci = 0.95, show.ci50 = TRUE, show.se = NULL,
   show.std = NULL, show.p = TRUE, show.stat = FALSE,
   show.df = FALSE, show.zeroinf = TRUE, show.r2 = TRUE,
-  show.icc = TRUE, show.adj.icc = FALSE, show.re.var = TRUE,
+  show.icc = TRUE, show.re.var = TRUE, show.ngroups = TRUE,
   show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
-  show.dev = FALSE, show.obs = TRUE, terms = NULL, rm.terms = NULL,
-  group.terms = TRUE, order.terms = NULL, title = NULL,
-  pred.labels = NULL, dv.labels = NULL, wrap.labels = 25,
-  string.pred = "Predictors", string.std = "std. Beta",
+  show.dev = FALSE, show.loglik = FALSE, show.obs = TRUE,
+  terms = NULL, rm.terms = NULL, group.terms = TRUE,
+  order.terms = NULL, title = NULL, pred.labels = NULL,
+  dv.labels = NULL, wrap.labels = 25, vcov.fun = NULL,
+  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m",
+  "HC5"), vcov.args = NULL, string.pred = "Predictors",
+  string.est = "Estimate", string.std = "std. Beta",
   string.ci = "CI", string.se = "std. Error", string.p = "p",
   string.df = "df", string.stat = "Statistic",
+  string.resp = "Response", strings = NULL,
   ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;",
   collapse.ci = FALSE, collapse.se = FALSE, linebreak = TRUE,
   col.order = c("est", "se", "std.est", "std.se", "ci", "std.ci",
-  "hdi.inner", "hdi.outer", "stat", "p", "df", "response.level"),
+  "ci.inner", "ci.outer", "stat", "p", "df", "response.level"),
   digits = 2, digits.p = 3, emph.p = TRUE, p.val = c("wald", "kr"),
-  p.style = c("numeric", "asterisk"), p.threshold = c(0.05, 0.01,
-  0.001), case = "parsed", auto.label = TRUE,
+  p.style = c("numeric", "asterisk", "both"), p.threshold = c(0.05,
+  0.01, 0.001), case = "parsed", auto.label = TRUE,
   prefix.labels = c("none", "varname", "label"), bpe = "median",
   CSS = css_theme("regression"), file = NULL, use.viewer = TRUE)
 }
@@ -33,7 +37,7 @@ May also be a \code{list} with fitted models. See 'Examples'.}
 \item{transform}{A character vector, naming a function that will be applied
 on estimates and confidence intervals. By default, \code{transform} will
 automatically use \code{"exp"} as transformation for applicable classes of
-regression models (e.g. logistic or poisson regression). Estimates of linear
+\code{model} (e.g. logistic or poisson regression). Estimates of linear
 models remain untransformed. Use \code{NULL} if you want the raw,
 non-transformed estimates.}
 
@@ -46,14 +50,13 @@ is printed to the table; if \code{FALSE}, confidence intervals are
 omitted. Or numeric, between 0 and 1, indicating the range of the
 confidence intervals.}
 
-\item{show.hdi50}{Logical, if \code{TRUE}, for Bayesian models, a second
+\item{show.ci50}{Logical, if \code{TRUE}, for Bayesian models, a second
 credible interval is added to the table output.}
 
-\item{show.se}{Either logical, and if \code{TRUE}, the standard errors are
-also printed. Or a character vector with a specification of the
-covariance matrix to compute robust standard errors (see argument \code{vcov}
-of \code{\link[sjstats]{robust}} for valid values; robust standard errors
-are only supported for models that work with \code{\link[lmtest]{coeftest}}).}
+\item{show.se}{Logical, if \code{TRUE}, the standard errors are
+also printed. If robust standard errors are required, use arguments
+\code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
+\code{\link[sjstats]{robust}} for details).}
 
 \item{show.std}{Indicates whether standardized beta-coefficients should
 also printed, and if yes, which type of standardization is done.
@@ -73,17 +76,16 @@ model part, this is also printed to the table.}
 
 \item{show.r2}{Logical, if \code{TRUE}, the r-squared value is also printed.
 Depending on the model, these might be pseudo-r-squared values, or Bayesian
-r-squared etc. See \code{\link[sjstats]{r2}} for details.}
+r-squared etc. See \code{\link[performance]{r2}} for details.}
 
 \item{show.icc}{Logical, if \code{TRUE}, prints the intraclass correlation
-coefficient for mixed models. See \code{\link[sjstats]{icc}} for details.}
-
-\item{show.adj.icc}{Logical, if \code{TRUE}, prints the adjusted intraclass
-correlation coefficient for mixed models. See \code{\link[sjstats]{icc}}
-with argument \code{adjusted = TRUE} for details.}
+coefficient for mixed models. See \code{\link[performance]{icc}} for details.}
 
 \item{show.re.var}{Logical, if \code{TRUE}, prints the random effect variances
-for mixed models. See \code{\link[sjstats]{re_var}} for details.}
+for mixed models. See \code{\link[insight]{get_variance}} for details.}
+
+\item{show.ngroups}{Logical, if \code{TRUE}, shows number of random effects groups
+for mixed models.}
 
 \item{show.fstat}{Logical, if \code{TRUE}, the F-statistics for each model is
 printed in the table summary. This option is not supported by all model types.}
@@ -95,6 +97,8 @@ in the table summary.}
 is printed in the table summary.}
 
 \item{show.dev}{Logical, if \code{TRUE}, shows the deviance of the model.}
+
+\item{show.loglik}{Logical, if \code{TRUE}, shows the log-Likelihood of the model.}
 
 \item{show.obs}{Logical, if \code{TRUE}, the number of observations per model is
 printed in the table summary.}
@@ -150,8 +154,24 @@ fitted models. See 'Examples'.}
 \item{wrap.labels}{Numeric, determines how many chars of the value, variable
 or axis labels are displayed in one line and when a line break is inserted.}
 
+\item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
+from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
+standard errors are required.}
+
+\item{vcov.type}{Character vector, specifying the estimation type for the
+robust covariance matrix estimation (see \code{\link[sandwich]{vcovHC}}
+for details).}
+
+\item{vcov.args}{List of named vectors, used as additional arguments that
+are passed down to \code{vcov.fun}.}
+
 \item{string.pred}{Character vector,used as headline for the predictor column.
 Default is \code{"Predictors"}.}
+
+\item{string.est}{Character vector, used for the column heading of coefficients.
+Default is based on the response scale, e.g. for logistic regression models,
+\code{"Odds Ratios"} will be chosen, while for Poisson models it is
+\code{"Incidence Rate Ratios"} etc. Default if not specified is \code{"Estimate"}.}
 
 \item{string.std}{Character vector, used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.}
 
@@ -164,6 +184,14 @@ Default is \code{"Predictors"}.}
 \item{string.df}{Character vector, used for the column heading of degrees of freedom. Default is \code{"df"}.}
 
 \item{string.stat}{Character vector, used for the test statistic. Default is \code{"Statistic"}.}
+
+\item{string.resp}{Character vector, used for the column heading of of the response level for multinominal or categorical models. Default is \code{"Response"}.}
+
+\item{strings}{Named character vector, as alternative to arguments like \code{string.ci}
+or \code{string.p} etc. The name (lhs) must be one of the string-indicator from
+the forementioned arguments, while the value (rhs) is the string that is used
+as column heading. E.g., \code{strings = c(ci = "Conf.Int.", se = "std. Err")}
+would be equivalent to setting \code{string.ci = "Conf.Int.", string.se = "std. Err"}.}
 
 \item{ci.hyphen}{Character vector, indicating the hyphen for confidence interval range.
 May be an HTML entity. See 'Examples'.}
@@ -203,8 +231,8 @@ with Kenward-Roger approximation for the degrees of freedom, using the
 the approximated degrees of freedom for each coefficient.}
 
 \item{p.style}{Character, indicating if p-values should be printed as
-numeric value (\code{"numeric"}) or as asterisks (\code{"asterisk"}).
-May be abbreviated.}
+numeric value (\code{"numeric"}), as asterisks (\code{"asterisk"})
+or both (\code{"both"}). May be abbreviated.}
 
 \item{p.threshold}{Numeric vector of length 3, indicating the treshold for
 annotating p-values with asterisks. Only applies if
@@ -235,7 +263,7 @@ details.}
 of the posterior distribution. Use \code{bpe} to define other functions to
 calculate the Bayesian point estimate. \code{bpe} needs to be a character
 naming the specific function, which is passed to the \code{fun}-argument in
-\code{\link[sjstats]{typical_value}}. So, \code{bpe = "mean"} would
+\code{\link[sjmisc]{typical_value}}. So, \code{bpe = "mean"} would
 calculate the mean value of the posterior distribution.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,

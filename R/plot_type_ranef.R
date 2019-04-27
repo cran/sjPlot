@@ -4,6 +4,7 @@
 #' @importFrom forcats fct_reorder
 #' @importFrom dplyr if_else
 #' @importFrom sjmisc remove_var
+#' @importFrom insight find_random
 plot_type_ranef <- function(model,
                             dat,
                             ri.nr,
@@ -25,6 +26,7 @@ plot_type_ranef <- function(model,
                             vline.color,
                             value.size,
                             bpe.color,
+                            ci.style,
                             ...) {
 
   if (inherits(model, "clmm")) {
@@ -36,7 +38,13 @@ plot_type_ranef <- function(model,
 
   if (inherits(model, "glmmTMB"))
     rand.ef <- glmmTMB::ranef(model)[[1]]
-  else
+  else if (inherits(model, "MixMod")) {
+    rand.ef <- lme4::ranef(model)
+    if (!is.list(rand.ef)) {
+      rand.ef <- list(rand.ef)
+      names(rand.ef) <- insight::find_random(model, flatten = TRUE)
+    }
+  } else
     rand.ef <- lme4::ranef(model)
 
 
@@ -314,6 +322,7 @@ plot_type_ranef <- function(model,
           value.size = value.size,
           facets = facets,
           bpe.color = bpe.color,
+          ci.style = ci.style,
           ...
         )
       }

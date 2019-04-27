@@ -2,10 +2,11 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.6.2
-Date: 2018-12-18
+Version: 2.6.3
+Date: 2019-04-27
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
+    person("Alexander", "Bartel", role = "ctb", comment = c(ORCID = "0000-0002-1280-6138")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb")
           )
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
@@ -19,20 +20,21 @@ Description: Collection of plotting and table output functions for data
     labelled data.
 License: GPL-3
 Depends: R (>= 3.2), graphics, grDevices, stats, utils
-Imports: broom, dplyr (>= 0.7.5), forcats, ggeffects (>= 0.7.0),
-        glmmTMB, ggplot2 (>= 2.2.1), knitr, lme4 (>= 1.1-12), magrittr,
-        MASS, modelr, nlme, psych, purrr, rlang, scales, sjlabelled (>=
-        1.0.14), sjmisc (>= 2.7.6), sjstats (>= 0.17.2), tidyr (>=
-        0.7.0)
-Suggests: brms, car, cluster, GPArotation, gridExtra, ggrepel,
+Imports: bayestestR, broom, dplyr (>= 0.7.5), forcats, ggeffects (>=
+        0.7.0), glmmTMB, ggplot2 (>= 2.2.1), knitr, insight, lme4 (>=
+        1.1-12), magrittr, MASS, modelr, nlme, performance, psych,
+        purrr, rlang, scales, sjlabelled (>= 1.0.14), sjmisc (>=
+        2.7.6), sjstats (>= 0.17.2), tidyr (>= 0.7.0)
+Suggests: brms, car, cluster, cowplot, GPArotation, gridExtra, ggrepel,
         ggridges, pscl, rstanarm, survey, TMB, Zelig, testthat
 URL: https://strengejacke.github.io/sjPlot/
 BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-12-18 16:39:15 UTC; Daniel
+Packaged: 2019-04-27 15:10:39 UTC; Daniel
 Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
+  Alexander Bartel [ctb] (<https://orcid.org/0000-0002-1280-6138>),
   Carsten Schwemmer [ctb]
 Repository: CRAN
-Date/Publication: 2018-12-18 17:10:03 UTC
+Date/Publication: 2019-04-27 15:30:03 UTC

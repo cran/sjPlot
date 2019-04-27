@@ -105,7 +105,7 @@ axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, expon
 }
 
 
-#' @importFrom sjstats model_family
+#' @importFrom insight model_info
 #' @importFrom dplyr case_when
 estimate_axis_title <- function(fit, axis.title, type, transform = NULL, multi.resp = NULL, include.zeroinf = FALSE) {
 
@@ -115,22 +115,24 @@ estimate_axis_title <- function(fit, axis.title, type, transform = NULL, multi.r
   # check default label and fit family
   if (is.null(axis.title)) {
 
+    fitfam <- insight::model_info(fit)
+
     if (!is.null(multi.resp))
-      fitfam <- sjstats::model_family(fit, mv = TRUE)[[multi.resp]]
-    else
-      fitfam <- sjstats::model_family(fit)
+      fitfam <- fitfam[[multi.resp]]
+    else if (insight::is_multivariate(fit))
+      fitfam <- fitfam[[1]]
 
     axis.title <- dplyr::case_when(
       !is.null(transform) && transform == "plogis" ~ "Probabilities",
-      is.null(transform) && fitfam$is_bin ~ "Log-Odds",
+      is.null(transform) && fitfam$is_binomial ~ "Log-Odds",
       is.null(transform) && fitfam$is_ordinal ~ "Log-Odds",
       is.null(transform) && fitfam$is_categorical ~ "Log-Odds",
-      is.null(transform) && fitfam$is_pois ~ "Log-Mean",
-      fitfam$is_pois ~ "Incidence Rate Ratios",
+      is.null(transform) && fitfam$is_count ~ "Log-Mean",
+      fitfam$is_count ~ "Incidence Rate Ratios",
       fitfam$is_ordinal ~ "Odds Ratios",
       fitfam$is_categorical ~ "Odds Ratios",
-      fitfam$is_bin && !fitfam$is_logit ~ "Risk Ratios",
-      fitfam$is_bin ~ "Odds Ratios",
+      fitfam$is_binomial && !fitfam$is_logit ~ "Risk Ratios",
+      fitfam$is_binomial ~ "Odds Ratios",
       TRUE ~ "Estimates"
     )
 
@@ -216,23 +218,14 @@ geom_intercept_line2 <- function(yintercept, vline.color) {
 
 
 check_se_argument <- function(se, type = NULL) {
-  if (!is.null(se) && !is.logical(se) && !is.null(type) && type %in% c("std", "std2")) {
+  if (!is.null(se) && !is.null(type) && type %in% c("std", "std2")) {
     warning("No robust standard errors for `type = \"std\"` or `type = \"std2\"`.")
-    se <- TRUE
+    se <- NULL
   }
 
-  if (!is.null(se) && !is.logical(se)) {
-    # check for valid values, if robust standard errors are requested
-    if (!(se %in% c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"))) {
-      warning("`se` must be one of \"HC3\", \"const\", \"HC\", \"HC0\", \"HC1\", \"HC2\", \"HC4\", \"HC4m\" or \"HC5\" for robust standard errors, or `TRUE` for normal standard errors.")
-      se <- NULL
-    }
-
-    # no robust s.e. for random effetcs
-    if (!is.null(type) && type == "re") {
-      warning("No robust standard errors for `type = \"re\"`.")
-      se <- TRUE
-    }
+  if (!is.null(se) && !is.null(type) && type == "re") {
+    warning("No robust standard errors for `type = \"re\"`.")
+    se <- NULL
   }
 
   se
@@ -337,6 +330,17 @@ model_aic <- function(x) {
 }
 
 
+#' @importFrom stats logLik
+model_loglik <- function(x) {
+  tryCatch(
+    {
+      stats::logLik(x)
+    },
+    error = function(x) { NULL }
+  )
+}
+
+
 #' @importFrom lme4 getME
 #' @importFrom stats deviance
 m_deviance <- function(x) {
@@ -369,25 +373,56 @@ tidy_label <- function(labs, sep = ".") {
 
 
 #' @importFrom lme4 ranef
+#' @importFrom purrr map_df
+#' @importFrom insight find_random
 se_ranef <- function(object) {
-  se.bygroup <- lme4::ranef(object, condVar = TRUE)
-  n.groupings <- length(se.bygroup)
+  if (inherits(object, "MixMod")) {
+    se.bygroup <- lme4::ranef(object, post_vars = TRUE)
+    vars.m <- attr(se.bygroup, "post_vars")
 
-  for (m in 1:n.groupings) {
+    if (dim(vars.m[[1]])[1] == 1)
+      se.bygroup <- sqrt(unlist(vars.m))
+    else {
+      se.bygroup <- do.call(
+        rbind,
+        purrr::map_df(vars.m, ~ t(as.data.frame(sqrt(diag(.x)))))
+      )
 
-    vars.m <- attr(se.bygroup[[m]], "postVar")
-
-    K <- dim(vars.m)[1]
-    J <- dim(vars.m)[3]
-
-    names.full <- dimnames(se.bygroup[[m]])
-    se.bygroup[[m]] <- array(NA, c(J, K))
-
-    for (j in 1:J) {
-      se.bygroup[[m]][j, ] <- sqrt(diag(as.matrix(vars.m[, , j])))
+      dimnames(se.bygroup)[[2]] <- dimnames(vars.m[[1]])[[1]]
+      se.bygroup <- list(se.bygroup)
+      names(se.bygroup) <- insight::find_random(object, flatten = TRUE)
     }
-    dimnames(se.bygroup[[m]]) <- list(names.full[[1]], names.full[[2]])
+  } else {
+    se.bygroup <- lme4::ranef(object, condVar = TRUE)
+    n.groupings <- length(se.bygroup)
+
+    for (m in 1:n.groupings) {
+
+      vars.m <- attr(se.bygroup[[m]], "postVar")
+
+      K <- dim(vars.m)[1]
+      J <- dim(vars.m)[3]
+
+      names.full <- dimnames(se.bygroup[[m]])
+      se.bygroup[[m]] <- array(NA, c(J, K))
+
+      for (j in 1:J) {
+        se.bygroup[[m]][j, ] <- sqrt(diag(as.matrix(vars.m[, , j])))
+      }
+      dimnames(se.bygroup[[m]]) <- list(names.full[[1]], names.full[[2]])
+    }
   }
 
   se.bygroup
+}
+
+
+#' @importFrom insight n_obs
+get_observations <- function(model) {
+  tryCatch(
+    {
+      insight::n_obs(model)
+    },
+    error = function(x) { NULL }
+  )
 }

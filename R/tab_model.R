@@ -5,12 +5,6 @@
 #'   \code{tab_model()} creates HTML tables from regression models.
 #'
 #' @param title String, will be used as table caption.
-#' @param transform A character vector, naming a function that will be applied
-#'   on estimates and confidence intervals. By default, \code{transform} will
-#'   automatically use \code{"exp"} as transformation for applicable classes of
-#'   regression models (e.g. logistic or poisson regression). Estimates of linear
-#'   models remain untransformed. Use \code{NULL} if you want the raw,
-#'   non-transformed estimates.
 #' @param terms Character vector with names of those terms (variables) that should
 #'    be printed in the table. All other terms are removed from the output. If
 #'    \code{NULL}, all terms are printed. Note that the term names must match
@@ -49,13 +43,13 @@
 #' @param show.zeroinf Logical, if \code{TRUE} and model has a zero-inflated
 #'    model part, this is also printed to the table.
 #' @param show.re.var Logical, if \code{TRUE}, prints the random effect variances
-#'    for mixed models. See \code{\link[sjstats]{re_var}} for details.
+#'    for mixed models. See \code{\link[insight]{get_variance}} for details.
 #' @param show.icc Logical, if \code{TRUE}, prints the intraclass correlation
-#'    coefficient for mixed models. See \code{\link[sjstats]{icc}} for details.
-#' @param show.adj.icc Logical, if \code{TRUE}, prints the adjusted intraclass
-#'    correlation coefficient for mixed models. See \code{\link[sjstats]{icc}}
-#'    with argument \code{adjusted = TRUE} for details.
+#'    coefficient for mixed models. See \code{\link[performance]{icc}} for details.
+#' @param show.ngroups Logical, if \code{TRUE}, shows number of random effects groups
+#'    for mixed models.
 #' @param show.dev Logical, if \code{TRUE}, shows the deviance of the model.
+#' @param show.loglik Logical, if \code{TRUE}, shows the log-Likelihood of the model.
 #' @param show.ci Either logical, and if \code{TRUE}, the confidence intervals
 #'    is printed to the table; if \code{FALSE}, confidence intervals are
 #'    omitted. Or numeric, between 0 and 1, indicating the range of the
@@ -64,14 +58,13 @@
 #'    also printed, and if yes, which type of standardization is done.
 #'    See 'Details'.
 #' @param show.p Logical, if \code{TRUE}, p-values are also printed.
-#' @param show.se Either logical, and if \code{TRUE}, the standard errors are
-#'   also printed. Or a character vector with a specification of the
-#'   covariance matrix to compute robust standard errors (see argument \code{vcov}
-#'   of \code{\link[sjstats]{robust}} for valid values; robust standard errors
-#'   are only supported for models that work with \code{\link[lmtest]{coeftest}}).
+#' @param show.se Logical, if \code{TRUE}, the standard errors are
+#'   also printed. If robust standard errors are required, use arguments
+#'   \code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
+#'   \code{\link[sjstats]{robust}} for details).
 #' @param show.r2 Logical, if \code{TRUE}, the r-squared value is also printed.
 #'    Depending on the model, these might be pseudo-r-squared values, or Bayesian
-#'    r-squared etc. See \code{\link[sjstats]{r2}} for details.
+#'    r-squared etc. See \code{\link[performance]{r2}} for details.
 #' @param show.stat Logical, if \code{TRUE}, the coefficients' test statistic
 #'    is also printed.
 #' @param show.df Logical, if \code{TRUE} and \code{p.val = "kr"}, the p-values
@@ -79,12 +72,22 @@
 #'    These df-values are printed. See \code{\link[sjstats]{p_value}} for details.
 #' @param string.pred Character vector,used as headline for the predictor column.
 #'    Default is \code{"Predictors"}.
+#' @param string.est Character vector, used for the column heading of coefficients.
+#'    Default is based on the response scale, e.g. for logistic regression models,
+#'    \code{"Odds Ratios"} will be chosen, while for Poisson models it is
+#'    \code{"Incidence Rate Ratios"} etc. Default if not specified is \code{"Estimate"}.
 #' @param string.std Character vector, used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.
 #' @param string.ci Character vector, used for the column heading of confidence interval values. Default is \code{"CI"}.
 #' @param string.se Character vector, used for the column heading of standard error values. Default is \code{"std. Error"}.
 #' @param string.p Character vector, used for the column heading of p values. Default is \code{"p"}.
 #' @param string.df Character vector, used for the column heading of degrees of freedom. Default is \code{"df"}.
 #' @param string.stat Character vector, used for the test statistic. Default is \code{"Statistic"}.
+#' @param string.resp Character vector, used for the column heading of of the response level for multinominal or categorical models. Default is \code{"Response"}.
+#' @param strings Named character vector, as alternative to arguments like \code{string.ci}
+#'    or \code{string.p} etc. The name (lhs) must be one of the string-indicator from
+#'    the forementioned arguments, while the value (rhs) is the string that is used
+#'    as column heading. E.g., \code{strings = c(ci = "Conf.Int.", se = "std. Err")}
+#'    would be equivalent to setting \code{string.ci = "Conf.Int.", string.se = "std. Err"}.
 #' @param ci.hyphen Character vector, indicating the hyphen for confidence interval range.
 #'    May be an HTML entity. See 'Examples'.
 #' @param minus.sign string, indicating the minus sign for negative numbers.
@@ -104,7 +107,7 @@
 #'    factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
 #'    be grouped, if the factor has more than two levels. Grouping means that a separate headline
 #'    row is inserted to the table just before the predictor values.
-#' @param show.hdi50 Logical, if \code{TRUE}, for Bayesian models, a second
+#' @param show.ci50 Logical, if \code{TRUE}, for Bayesian models, a second
 #'    credible interval is added to the table output.
 #' @param show.fstat Logical, if \code{TRUE}, the F-statistics for each model is
 #'    printed in the table summary. This option is not supported by all model types.
@@ -127,8 +130,8 @@
 #'   \pkg{pbkrtest}-package. In this case, use \code{show.df = TRUE} to show
 #'   the approximated degrees of freedom for each coefficient.
 #' @param p.style Character, indicating if p-values should be printed as
-#'   numeric value (\code{"numeric"}) or as asterisks (\code{"asterisk"}).
-#'   May be abbreviated.
+#'   numeric value (\code{"numeric"}), as asterisks (\code{"asterisk"})
+#'   or both (\code{"both"}). May be abbreviated.
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions,
 #'    according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
 #'    See 'Details' or \href{../doc/table_css.html}{this package-vignette}.
@@ -201,7 +204,9 @@
 #' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
 #' @importFrom sjlabelled get_dv_labels get_term_labels
 #' @importFrom sjmisc word_wrap var_rename add_columns add_case
-#' @importFrom sjstats std_beta model_family r2 icc resp_var
+#' @importFrom sjstats std_beta
+#' @importFrom insight model_info is_multivariate find_random get_data
+#' @importFrom performance r2 icc
 #' @importFrom stats nobs
 #' @importFrom rlang .data
 #' @export
@@ -212,7 +217,7 @@ tab_model <- function(
   show.intercept = TRUE,
   show.est = TRUE,
   show.ci = .95,
-  show.hdi50 = TRUE,
+  show.ci50 = TRUE,
   show.se = NULL,
   show.std = NULL,
   show.p = TRUE,
@@ -222,12 +227,13 @@ tab_model <- function(
   show.zeroinf = TRUE,
   show.r2 = TRUE,
   show.icc = TRUE,
-  show.adj.icc = FALSE,
   show.re.var = TRUE,
+  show.ngroups = TRUE,
   show.fstat = FALSE,
   show.aic = FALSE,
   show.aicc = FALSE,
   show.dev = FALSE,
+  show.loglik = FALSE,
   show.obs = TRUE,
 
   terms = NULL,
@@ -240,13 +246,20 @@ tab_model <- function(
   dv.labels = NULL,
   wrap.labels = 25,
 
+  vcov.fun = NULL,
+  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+  vcov.args = NULL,
+
   string.pred = "Predictors",
+  string.est = "Estimate",
   string.std = "std. Beta",
   string.ci = "CI",
   string.se = "std. Error",
   string.p = "p",
   string.df = "df",
   string.stat = "Statistic",
+  string.resp = "Response",
+  strings = NULL,
   ci.hyphen = "&nbsp;&ndash;&nbsp;",
   minus.sign = "&#45;",
 
@@ -261,8 +274,8 @@ tab_model <- function(
     "std.se",
     "ci",
     "std.ci",
-    "hdi.inner",
-    "hdi.outer",
+    "ci.inner",
+    "ci.outer",
     "stat",
     "p",
     "df",
@@ -273,7 +286,7 @@ tab_model <- function(
   digits.p = 3,
   emph.p = TRUE,
   p.val = c("wald", "kr"),
-  p.style = c("numeric", "asterisk"),
+  p.style = c("numeric", "asterisk", "both"),
   p.threshold = c(0.05, 0.01, 0.001),
 
   case = "parsed",
@@ -288,6 +301,7 @@ tab_model <- function(
   p.val <- match.arg(p.val)
   p.style <- match.arg(p.style)
   prefix.labels <- match.arg(prefix.labels)
+  vcov.type <- match.arg(vcov.type)
 
 
   # if we prefix labels, use different default for case conversion,
@@ -302,7 +316,7 @@ tab_model <- function(
   if (p.style == "asterisk") show.p <- FALSE
 
   # check se-argument
-  show.se <- check_se_argument(se = show.se, type = NULL)
+  vcov.fun <- check_se_argument(se = vcov.fun, type = NULL)
 
 
   models <- list(...)
@@ -340,13 +354,31 @@ tab_model <- function(
   if (!sjmisc::is_empty(copos)) col.order[copos] <- "statistic"
 
 
+  # match strings, to label the default strings in the table,
+  # like "Estimate", "CI" etc.
+  if (!sjmisc::is_empty(strings) && !is.null(names(strings))) {
+    s.names <- names(strings)
+    if ("pred" %in% s.names) string.pred <- strings[["pred"]]
+    if ("est" %in% s.names) string.est <- strings[["est"]]
+    if ("std" %in% s.names) string.std <- strings[["std"]]
+    if ("ci" %in% s.names) string.ci <- strings[["ci"]]
+    if ("se" %in% s.names) string.se <- strings[["se"]]
+    if ("p" %in% s.names) string.p <- strings[["p"]]
+    if ("df" %in% s.names) string.df <- strings[["df"]]
+    if ("stat" %in% s.names) string.stat <- strings[["stat"]]
+    if ("resp" %in% s.names) string.resp <- strings[["resp"]]
+  }
+
   model.list <- purrr::map2(
     models,
     1:length(models),
     function(model, i) {
 
       # get info on model family
-      fam.info <- sjstats::model_family(model)
+      fam.info <- insight::model_info(model)
+
+      if (insight::is_multivariate(model))
+        fam.info <- fam.info[[1]]
 
       # check whether estimates should be transformed or not
 
@@ -366,6 +398,7 @@ tab_model <- function(
         type = "est",
         bpe,
         se = show.se,
+        robust = list(vcov.fun, vcov.type, vcov.args),
         facets = FALSE,
         show.zeroinf = show.zeroinf,
         p.val = p.val
@@ -411,8 +444,8 @@ tab_model <- function(
 
       if (is.stan(model)) {
         dat <- dat %>%
-          sjmisc::var_rename(conf.int = "hdi.outer") %>%
-          dplyr::mutate(hdi.inner = sprintf(
+          sjmisc::var_rename(conf.int = "ci.outer") %>%
+          dplyr::mutate(ci.inner = sprintf(
             "%.*f%s%.*f",
             digits,
             .data$conf.low50,
@@ -460,7 +493,7 @@ tab_model <- function(
 
       # add asterisks to estimates ----
 
-      if (p.style == "asterisk") {
+      if (p.style %in% c("asterisk", "both")) {
         if (obj_has_name(dat, "estimate"))
           dat$estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$estimate, dat$p.stars)
         if (!show.est && obj_has_name(dat, "std.estimate"))
@@ -490,8 +523,8 @@ tab_model <- function(
 
       # remove 2nd HDI if requested ----
 
-      if (!show.hdi50)
-        dat <- dplyr::select(dat, -string_starts_with("hdi.inner", colnames(dat)))
+      if (!show.ci50)
+        dat <- dplyr::select(dat, -string_starts_with("ci.inner", colnames(dat)))
 
 
       ## TODO optionally insert linebreak for new-line-CI / SE
@@ -509,10 +542,10 @@ tab_model <- function(
         dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
 
         # for stan models, we also have 50% HDI
-        if (!sjmisc::is_empty(string_starts_with("hdi", x = colnames(dat)))) {
-          dat <- dplyr::select(dat, -string_starts_with("hdi.outer", x = colnames(dat)))
+        if (!sjmisc::is_empty(string_starts_with("ci", x = colnames(dat)))) {
+          dat <- dplyr::select(dat, -string_starts_with("ci.outer", x = colnames(dat)))
           dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
-          dat <- dplyr::select(dat, -string_starts_with("hdi.inner", x = colnames(dat)))
+          dat <- dplyr::select(dat, -string_starts_with("ci.inner", x = colnames(dat)))
         } else {
           dat <- dplyr::select(dat, -string_starts_with("conf.int", x = colnames(dat)))
         }
@@ -567,65 +600,99 @@ tab_model <- function(
       n_obs <- NULL
 
       if (show.obs) {
-        n_obs <- tryCatch(
-          {
-            stats::nobs(model)
-          },
-          error = function(x) { NULL }
-        )
+        n_obs <- get_observations(model)
       }
 
+
+      vars <- NULL
+
+      # extract variance components ----
+
+      if ((show.icc || show.re.var || show.r2) && is_mixed_model(model)) {
+        if (inherits(model, "brmsfit")) {
+          vars_brms <- performance::icc(model)
+          vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
+          vars$var.residual <- attr(vars_brms, "var_residual")
+        } else {
+          vars <- insight::get_variance(model)
+        }
+      } else {
+        vars <- NULL
+      }
 
       # Add ICC statistic ----
 
       icc <- NULL
 
-      if ((show.icc || show.re.var) && is_mixed_model(model)) {
-        icc <- tryCatch(
-          {
-            suppressWarnings(sjstats::icc(model))
-          },
-          error = function(x) { NULL }
-        )
+      if (show.icc && is_mixed_model(model) && !is.null(vars) && !all(is.na(vars))) {
+        if (inherits(model, "brmsfit")) {
+          icc <- list(icc.adjusted = vars_brms$ICC_decomposed)
+        } else {
+          icc <- list(icc.adjusted = vars$var.random / (vars$var.random + vars$var.residual))
+        }
       }
-
-      icc.adjusted <- NULL
-
-      # get adjusted ICC, which also contains r-squared.
-      # these are similar to compute, so we save computation time
-
-      if ((show.adj.icc) && is_mixed_model(model)) {
-        icc.adjusted <- tryCatch(
-          {
-            sjstats::icc(model, adjusted = TRUE, type = "all")
-          },
-          error = function(x) { NULL }
-        )
-      }
-
 
       # Add r-squared statistic ----
 
       rsq <- NULL
 
-      if (show.r2) {
+      if (show.r2 && !insight::is_multivariate(model)) {
         # if marginal and conditional r-squared already have been computed
         # via adjusted ICC, use these results and avoid time consuming
         # multiple computation
-        if (is_mixed_model(model) && !is.null(icc.adjusted)) {
-          rsq <- icc.adjusted[[1]]
+        if (is_mixed_model(model)) {
+          if (inherits(model, "brmsfit")) {
+            rsqdummy <- tryCatch(
+              {
+                suppressWarnings(performance::r2(model))
+              },
+              error = function(x) { NULL }
+            )
+            if (!is.null(rsqdummy)) {
+              rsq <- list(
+                `Marginal R2` = rsqdummy$R2_Bayes_marginal,
+                `Conditional R2` = rsqdummy$R2_Bayes
+              )
+            }
+          } else {
+            rsq <- list(
+              `Marginal R2` = vars$var.fixed / (vars$var.fixed + vars$var.random + vars$var.residual),
+              `Conditional R2` = (vars$var.fixed + vars$var.random) / (vars$var.fixed + vars$var.random + vars$var.residual)
+            )
+          }
         } else {
           rsq <- tryCatch(
             {
-              suppressWarnings(sjstats::r2(model))
+              suppressWarnings(performance::r2(model))
             },
             error = function(x) { NULL }
           )
+
+          # fix names of r-squared values
+
+          if (!is.null(rsq)) {
+            r_has_names <- sapply(rsq, function(.n) !is.null(names(.n)))
+            if (all(r_has_names)) {
+              rnames <- as.vector(sapply(rsq, names))
+            } else {
+              rnames <- names(rsq)
+            }
+            rnames <- sub("_", " ", rnames)
+            names(rsq) <- rnames
+          }
         }
       }
 
-      # fix return value for type = "all"
-      if (!is.null(icc.adjusted)) icc.adjusted <- icc.adjusted[[2]]
+
+      # Add number of random effect groups ----
+
+      n_re_grps <- NULL
+
+      if (show.ngroups && is_mixed_model(model)) {
+        rand_eff <- insight::get_data(model)[, insight::find_random(model, split_nested = TRUE, flatten = TRUE), drop = FALSE]
+        n_re_grps <- sapply(rand_eff, function(.i) length(unique(.i, na.rm = TRUE)))
+        names(n_re_grps) <- sprintf("ngrps.%s", names(n_re_grps))
+      }
 
 
       # Add deviance and AIC statistic ----
@@ -635,6 +702,9 @@ tab_model <- function(
 
       aic <- NULL
       if (show.aic) aic <- model_aic(model)
+
+      loglik <- NULL
+      if (show.loglik) loglik <- model_loglik(model)
 
 
       ## TODO add F-Statistic
@@ -657,7 +727,9 @@ tab_model <- function(
         icc = icc,
         dev = dev,
         aic = aic,
-        icc.adj = icc.adjusted
+        variances = vars,
+        n_re_grps = n_re_grps,
+        loglik = loglik
       )
     }
   )
@@ -684,7 +756,9 @@ tab_model <- function(
   icc.data <- purrr::map(model.list, ~.x[[6]])
   dev.data <- purrr::map(model.list, ~.x[[7]])
   aic.data <- purrr::map(model.list, ~.x[[8]])
-  icc.adj.data <- purrr::map(model.list, ~.x[[9]])
+  variance.data <- purrr::map(model.list, ~.x[[9]])
+  ngrps.data <- purrr::map(model.list, ~.x[[10]])
+  loglik.data <- purrr::map(model.list, ~.x[[11]])
   is.zeroinf <- purrr::map_lgl(model.list, ~ !is.null(.x[[3]]))
 
   zeroinf.data <- purrr::compact(zeroinf.data)
@@ -713,15 +787,19 @@ tab_model <- function(
   show.response <- TRUE
 
   if (length(model.data) == 1) {
-    fi <- sjstats::model_family(models[[1]])
-    if (fi$is_multivariate || fi$is_categorical) {
+    fi <- insight::model_info(models[[1]])
+
+    if (insight::is_multivariate(models[[1]]))
+      fi <- fi[[1]]
+
+    if (insight::is_multivariate(models[[1]]) || fi$is_categorical) {
 
       show.response <- FALSE
 
       if (fi$is_categorical) {
         dv.labels <- sprintf(
           "%s: %s",
-          sjstats::resp_var(models[[1]]),
+          insight::find_response(models[[1]]),
           unique(model.data[[1]][["response.level_1"]])
         )
 
@@ -734,7 +812,7 @@ tab_model <- function(
         )
 
         if (sjmisc::is_empty(dv.labels) || !isTRUE(auto.label))
-          dv.labels <- sjstats::resp_var(models[[1]])
+          dv.labels <- insight::find_response(models[[1]])
 
         model.data <- split(model.data[[1]], model.data[[1]]["response.level_1"])
         dv.labels <- dv.labels[match(names(dv.labels), names(model.data))]
@@ -868,7 +946,7 @@ tab_model <- function(
       linesep = "<br>"
     )
   } else if (sjmisc::is_empty(dv.labels)) {
-    dv.labels <- purrr::map(models, sjstats::resp_var) %>% purrr::flatten_chr()
+    dv.labels <- purrr::map(models, insight::find_response) %>% purrr::flatten_chr()
   }
 
 
@@ -899,23 +977,21 @@ tab_model <- function(
     if (!sjmisc::is_empty(pos)) {
       i <- as.numeric(sub("estimate_", "", x = x, fixed = T))
 
+      if (insight::is_multivariate(models[[1]]))
+        mr <- i
+      else
+        mr <- NULL
+
       if (i <= length(models)) {
         x <- estimate_axis_title(
           models[[i]],
           axis.title = NULL,
           type = "est",
           transform = transform.data[[i]],
-          multi.resp = NULL,
+          multi.resp = mr,
           include.zeroinf = FALSE
         )
       } else if (length(models) == 1) {
-
-        fi <- sjstats::model_family(models[[1]])
-
-        if (fi$is_multivariate)
-          mr <- i
-        else
-          mr <- NULL
 
         x <- estimate_axis_title(
           models[[1]],
@@ -927,7 +1003,7 @@ tab_model <- function(
         )
 
       } else {
-        x <- "Estimate"
+        x <- string.est
       }
     }
 
@@ -960,19 +1036,19 @@ tab_model <- function(
     if (!sjmisc::is_empty(pos)) x <- string.stat
 
     pos <- grep("^response.level", x)
-    if (!sjmisc::is_empty(pos)) x <- "Response"
+    if (!sjmisc::is_empty(pos)) x <- string.resp
 
-    pos <- grep("^hdi.inner", x)
-    if (!sjmisc::is_empty(pos)) x <- "HDI (50%)"
+    pos <- grep("^ci.inner", x)
+    if (!sjmisc::is_empty(pos)) x <- "CI (50%)"
 
-    pos <- grep("^hdi.outer", x)
-    if (!sjmisc::is_empty(pos)) x <- sprintf("HDI (%i%%)", round(100 * show.ci))
+    pos <- grep("^ci.outer", x)
+    if (!sjmisc::is_empty(pos)) x <- sprintf("CI (%i%%)", round(100 * show.ci))
 
     x
   })
 
 
-  if (p.style == "asterisk")
+  if (p.style %in% c("asterisk", "both"))
     footnote <- sprintf(
       "* p&lt;%s&nbsp;&nbsp;&nbsp;** p&lt;%s&nbsp;&nbsp;&nbsp;*** p&lt;%s",
       format(p.threshold[1]),
@@ -993,13 +1069,14 @@ tab_model <- function(
     rsq.list = rsq.data,
     n_obs.list = n_obs.data,
     icc.list = icc.data,
-    icc.adj.list = icc.adj.data,
     dev.list = dev.data,
     aic.list = aic.data,
+    variance.list = variance.data,
+    ngrps.list = ngrps.data,
+    loglik.list = loglik.data,
     n.models = length(model.list),
     show.re.var = show.re.var,
     show.icc = show.icc,
-    show.adj.icc = show.adj.icc,
     CSS = CSS,
     file = file,
     use.viewer = use.viewer,
@@ -1021,8 +1098,8 @@ sort_columns <- function(x, is.stan, col.order) {
     "std.se",
     "conf.int",
     "std.conf.int",
-    "hdi.inner",
-    "hdi.outer",
+    "ci.inner",
+    "ci.outer",
     "statistic",
     "p.value",
     "df",
@@ -1077,7 +1154,7 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
       dat,
       -string_starts_with("conf", x = colnames(dat)),
       -string_starts_with("std.conf", x = colnames(dat)),
-      -string_starts_with("hdi", x = colnames(dat))
+      -string_starts_with("ci", x = colnames(dat))
     )
   }
 

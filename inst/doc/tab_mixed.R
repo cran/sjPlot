@@ -6,7 +6,8 @@ knitr::opts_chunk$set(
   collapse = TRUE, 
   comment = "#>", 
   message = FALSE,
-  eval = if (isTRUE(exists("params"))) params$EVAL else FALSE
+  eval = TRUE
+  # eval = if (isTRUE(exists("params"))) params$EVAL else FALSE
 )
 
 ## ---- results='hide', message=FALSE, warning=FALSE-----------------------
@@ -49,11 +50,4 @@ m4 <- glmmTMB(
 )
 
 tab_model(m1, m3, m4, show.ci = FALSE)
-
-## ------------------------------------------------------------------------
-set.seed(2)
-sleepstudy$mygrp <- sample(1:30, size = 180, replace = TRUE)
-m5 <- lmer(Reaction ~ Days + (1 | mygrp) + (1 | Subject), sleepstudy)
-
-tab_model(m1, m5, show.ci = FALSE, show.adj.icc = TRUE)
 

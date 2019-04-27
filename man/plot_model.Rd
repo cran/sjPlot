@@ -13,14 +13,16 @@ plot_model(model, type = c("est", "re", "eff", "pred", "int", "std",
   ri.nr = NULL, title = NULL, axis.title = NULL,
   axis.labels = NULL, legend.title = NULL, wrap.title = 50,
   wrap.labels = 25, axis.lim = NULL, grid.breaks = NULL,
-  ci.lvl = NULL, se = NULL, colors = "Set1",
-  show.intercept = FALSE, show.values = FALSE, show.p = TRUE,
-  show.data = FALSE, show.legend = TRUE, show.zeroinf = TRUE,
-  value.offset = NULL, value.size, jitter = NULL, digits = 2,
-  dot.size = NULL, line.size = NULL, vline.color = NULL,
-  p.threshold = c(0.05, 0.01, 0.001), grid, case, auto.label = TRUE,
-  prefix.labels = c("none", "varname", "label"), bpe = "median",
-  bpe.style = "line", bpe.color = "white", ...)
+  ci.lvl = NULL, se = NULL, vcov.fun = NULL, vcov.type = c("HC3",
+  "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+  vcov.args = NULL, colors = "Set1", show.intercept = FALSE,
+  show.values = FALSE, show.p = TRUE, show.data = FALSE,
+  show.legend = TRUE, show.zeroinf = TRUE, value.offset = NULL,
+  value.size, jitter = NULL, digits = 2, dot.size = NULL,
+  line.size = NULL, vline.color = NULL, p.threshold = c(0.05, 0.01,
+  0.001), grid, case, auto.label = TRUE, prefix.labels = c("none",
+  "varname", "label"), bpe = "median", bpe.style = "line",
+  bpe.color = "white", ci.style = c("whisker", "bar"), ...)
 
 get_model_data(model, type = c("est", "re", "eff", "pred", "int", "std",
   "std2", "slope", "resid", "diag"), transform, terms = NULL,
@@ -224,22 +226,32 @@ axis positions of the major grid lines.}
 
 \item{ci.lvl}{Numeric, the level of the confidence intervals (error bars).
 Use \code{ci.lvl = NA} to remove error bars. For \code{stanreg}-models,
-\code{ci.lvl} defines the (outer) probability for the
-\code{\link[sjstats]{hdi}} (High Density Interval) that is plotted. By
+\code{ci.lvl} defines the (outer) probability for the \emph{credible interval}
+that is plotted (see \code{\link[bayestestR]{ci}}). By
 default, \code{stanreg}-models are printed with two intervals: the "inner"
-interval, which defaults to the 50\%-HDI; and the "outer" interval, which
-defaults to the 89\%-HDI. \code{ci.lvl} affects only the outer interval in
+interval, which defaults to the 50\%-CI; and the "outer" interval, which
+defaults to the 89\%-CI. \code{ci.lvl} affects only the outer interval in
 such cases. See \code{prob.inner} and \code{prob.outer} under the
 \code{...}-argument for more details.}
 
-\item{se}{Either a logical, and if \code{TRUE}, error bars indicate standard
-errors, not confidence intervals. Or a character vector with a specification
-of the covariance matrix to compute robust standard errors (see argument
-\code{vcov} of \code{\link[sjstats]{robust}} for valid values; robust standard
-errors are only supported for models that work with \code{\link[lmtest]{coeftest}}).
-\code{se} overrides \code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
+\item{se}{Logical, if \code{TRUE}, the standard errors are
+also printed. If robust standard errors are required, use arguments
+\code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
+\code{\link[sjstats]{robust}} for details). \code{se} overrides
+\code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
 and \code{transform} will be ignored. Currently, \code{se} only applies
 to \emph{Coefficients} plots.}
+
+\item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
+from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
+standard errors are required.}
+
+\item{vcov.type}{Character vector, specifying the estimation type for the
+robust covariance matrix estimation (see \code{\link[sandwich]{vcovHC}}
+for details).}
+
+\item{vcov.args}{List of named vectors, used as additional arguments that
+are passed down to \code{vcov.fun}.}
 
 \item{colors}{May be a character vector of color values in hex-format, valid
 color value names (see \code{demo("colors")}) or a name of a pre-defined
@@ -326,7 +338,7 @@ details.}
 of the posterior distribution. Use \code{bpe} to define other functions to
 calculate the Bayesian point estimate. \code{bpe} needs to be a character
 naming the specific function, which is passed to the \code{fun}-argument in
-\code{\link[sjstats]{typical_value}}. So, \code{bpe = "mean"} would
+\code{\link[sjmisc]{typical_value}}. So, \code{bpe = "mean"} would
 calculate the mean value of the posterior distribution.}
 
 \item{bpe.style}{For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
@@ -337,6 +349,10 @@ instead of a line for the point estimate.}
 \item{bpe.color}{Character vector, indicating the color of the Bayesian
 point estimate. Setting \code{bpe.color = NULL} will inherit the color
 from the mapped aesthetic to match it with the geom's color.}
+
+\item{ci.style}{Character vector, defining whether inner and outer intervals
+for Bayesion models are shown in boxplot-style (\code{"whisker"}) or in
+bars with different alpha-levels (\code{"bar"}).}
 
 \item{...}{Other arguments, passed down to various functions. Here is a list
 of supported arguments and their description in detail.
@@ -500,7 +516,7 @@ if (require("rstanarm")) {
 }
 \references{
 Gelman A (2008) "Scaling regression inputs by dividing by two
-  standard deviations." \emph{Statistics in Medicine 27: 2865–2873.}
+  standard deviations." \emph{Statistics in Medicine 27: 2865-2873.}
   \url{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}
   \cr \cr
   Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.

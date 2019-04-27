@@ -9,8 +9,9 @@
 #'                reliability test. The result is an alpha value for each factor dimension.
 #'
 #' @param data A data frame that should be used to compute a PCA, or a \code{\link{prcomp}} object.
-#' @param rotation Rotation of the factor loadings. May be \code{"varimax"} for orthogonal rotation
-#'          or \code{"oblimin"} for oblique transformation.
+#' @param rotation Rotation of the factor loadings. May be one of
+#'    \code{"varimax", "quartimax", "promax", "oblimin", "simplimax", "cluster"}
+#'    or \code{"none"}.
 #' @param nmbr.fctr Number of factors used for calculating the rotation. By
 #'          default, this value is \code{NULL} and the amount of factors is
 #'          calculated according to the Kaiser-criteria.
@@ -294,7 +295,7 @@ sjt.pca <- function(data,
     for (n in seq_len(length(unique(itemloadings)))) {
       # calculate cronbach's alpha for those cases that all have the
       # highest loading on the same factor
-      cbv <- c(cbv, sjstats::cronb(stats::na.omit(dataframe[, which(itemloadings == n)])))
+      cbv <- c(cbv, performance::cronbachs_alpha(stats::na.omit(dataframe[, which(itemloadings == n)])))
     }
     # cbv now contains the factor numbers and the related alpha values
     # for each "factor dimension scale"

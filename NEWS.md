@@ -1,3 +1,45 @@
+# sjPlot 2.6.3
+
+## General
+
+* Export `dplyr::n()`, to meet changes in dplyr 0.8.0.
+* `plot_model()` and `tab_model()` now support `MixMod`-objects from package **GLMMadpative**, `mlogit`- and `gmnl`-models.
+
+## Renamed functions
+
+* `sjp.kfold_cv()` was renamed to `plot_kfold_cv()`.
+* `sjp.frq()` was renamed to `plot_frq()`.
+
+## Changes to functions
+
+### tab_model()
+
+* `tab_model()` gets a `show.ngrps`-argument, which adds back the functionality to print the number of random effects groups for mixed models.
+* `tab_model()` gets a `show.loglik`-argument, which adds back the functionality to print the model's log-Likelihood.
+* `tab_model()` gets a `strings`-argument, as convenient shortcut for setting column-header strings.
+* `tab_model()` gets additional arguments `vcov.fun`, `vcov.type` and `vcov.args` that are passed down to `sjstats::robust()`, to calculate different types of (clustered) robust standard errors.
+* The `p.style`-argument now also allows printing both numeric p-values and asterisks, by using `p.style = "both"`.
+
+### plot_likert()
+
+* `plot_likert()` gets a `reverse.scale` argument to reverse the order of categories, so positive and negative values switch position.
+* `plot_likert()` gets a `groups` argument, to group items in the plot (thanks to @ndevln).
+* Argument `grid.range` in `plot_likert()` now may also be a vector of length 2, to define diffent length for the left and right x-axis scales.
+
+### Other
+
+* `plot_frq()` (former `sjp.frq()`) now has pipe-consistent syntax, enables plotting multiple variables in one function call and supports grouped data frames.
+* `plot_model()` gets additional arguments `vcov.fun`, `vcov.type` and `vcov.args` that are passed down to `sjstats::robust()`, to calculate different types of (clustered) robust standard errors.
+* `sjt.xtab()`, `sjp.xtab()`, `plot_frq()` and `sjp.grpfrq()` get a `drop.empty()`-argument, to drop values / factor levels with no observations from output.
+
+## Bug fixes
+
+* Legend labels were inverted for **brms**-models in `plot_model(..., type = "diag")`.
+* Legend labels were duplicated for marginal effects plots when `color ="bw"` and `legend.title` was specified.
+* Fixed encoding issues with help-files.
+* `view_df()` did not truncate frequency- and percentage-values for variables where value labels were truncated to a certain maximum number.
+* `tab_model()` did not print number of observations for `coxph`-models.
+
 # sjPlot 2.6.2
 
 ## General

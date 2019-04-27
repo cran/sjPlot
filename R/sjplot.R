@@ -30,10 +30,6 @@
 #'             \item{\code{"aov1"}}{calls \code{\link{sjp.aov1}}. The first
 #'             two variables in \code{data} are used (and required) to create the plot.
 #'             }
-#'             \item{\code{"frq"}}{calls \code{\link{sjp.frq}}.
-#'             If \code{data} has more than one variable, a plot for each
-#'             variable in \code{data} is plotted.
-#'             }
 #'             \item{\code{"grpfrq"}}{calls \code{\link{sjp.grpfrq}}. The first
 #'             two variables in \code{data} are used (and required) to create the plot.
 #'             }
@@ -53,27 +49,12 @@
 #' library(dplyr)
 #' data(efc)
 #'
-#' # Frequency plot
-#' sjplot(efc, e42dep, c172code, fun = "frq")
-#'
 #' # Grouped frequencies
 #' efc %>% sjplot(e42dep, c172code, fun = "grpfrq")
 #'
 #' # Grouped frequencies, as box plots
 #' efc %>% sjplot(e17age, c172code, fun = "grpfrq",
 #'                type = "box", geom.colors = "Set1")
-#'
-#' # frequencies, as plot grid
-#' efc %>%
-#'   select(e42dep, c172code, e16sex, c161sex) %>%
-#'   sjplot() %>%
-#'   plot_grid()
-#'
-#' # plot grouped data frame
-#' efc %>%
-#'   group_by(e16sex, c172code) %>%
-#'   select(e42dep, e16sex, c172code) %>%
-#'   sjplot(wrap.title = 100) # no line break for subtitles
 #'
 #' \dontrun{
 #' # table output of grouped data frame
@@ -88,7 +69,7 @@
 #' @importFrom tidyr nest
 #' @importFrom stats complete.cases
 #' @export
-sjplot <- function(data, ..., fun = c("frq", "grpfrq", "xtab", "aov1", "likert", "stackfrq")) {
+sjplot <- function(data, ..., fun = c("grpfrq", "xtab", "aov1", "likert", "stackfrq")) {
   # check if x is a data frame
   if (!is.data.frame(data)) stop("`data` must be a data frame.", call. = F)
 
@@ -225,7 +206,7 @@ get_grouped_plottitle <- function(x, grps, i, sep = "\n") {
   title <- sprintf("%s: %s", tp[1], tp[2])
 
   # do we have another groupng variable?
-  if (length(attr(x, "vars", exact = T)) > 1) {
+  if (length(dplyr::group_vars(x)) > 1) {
     # prepare title for group
     tp <- get_title_part(x, grps, 2, i)
     title <- sprintf("%s%s%s: %s", title, sep, tp[1], tp[2])
@@ -241,7 +222,7 @@ get_grouped_title <- function(x, grps, args, i, sep = "\n") {
   title <- sprintf("%s: %s", tp[1], tp[2])
 
   # do we have another groupng variable?
-  if (length(attr(x, "vars", exact = T)) > 1) {
+  if (length(dplyr::group_vars(x)) > 1) {
     # prepare title for group
     tp <- get_title_part(x, grps, 2, i)
     title <- sprintf("%s%s%s: %s", title, sep, tp[1], tp[2])
@@ -277,7 +258,7 @@ get_title_part <- function(x, grps, level, i) {
 
 
 #' @importFrom rlang .data
-#' @importFrom dplyr select filter
+#' @importFrom dplyr select filter group_vars
 #' @importFrom stats complete.cases
 #'
 get_grouped_data <- function(x) {
@@ -292,7 +273,7 @@ get_grouped_data <- function(x) {
   grps <- grps %>% dplyr::filter(!! cc)
 
   # arrange data
-  if (length(attr(x, "vars", exact = T)) == 1)
+  if (length(dplyr::group_vars(x)) == 1)
     reihe <- order(grps[[1]])
   else
     reihe <- order(grps[[1]], grps[[2]])
@@ -308,12 +289,7 @@ plot_sj <- function(x, fun, args) {
 
   # choose plottype, and call plot-function with or w/o additional arguments
   if (sjmisc::is_empty(args)) {
-    if (fun == "frq") {
-      pl <- list()
-      for (i in seq_len(ncol(x))) {
-        pl[[length(pl) + 1]] <- sjp.frq(x[[i]])
-      }
-    } else if (fun  == "grpfrq") {
+    if (fun  == "grpfrq") {
       p <- sjp.grpfrq(x[[1]], x[[2]])
     } else if (fun  == "likert") {
       p <- plot_likert(x)
@@ -325,12 +301,7 @@ plot_sj <- function(x, fun, args) {
       p <- sjp.aov1(x[[1]], x[[2]])
     }
   } else {
-    if (fun == "frq") {
-      pl <- list()
-      for (i in seq_len(ncol(x))) {
-        pl[[length(pl) + 1]] <- do.call(sjp.frq, args = c(list(var.cnt = x[[i]]), args))
-      }
-    } else if (fun  == "grpfrq") {
+    if (fun  == "grpfrq") {
       p <- do.call(sjp.grpfrq, args = c(list(var.cnt = x[[1]], var.grp = x[[2]]), args))
     } else if (fun  == "likert") {
       p <- do.call(plot_likert, args = c(list(items = x), args))

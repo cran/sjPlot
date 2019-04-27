@@ -72,7 +72,7 @@ sjp.grpfrq(efc$e42dep, efc$e16sex, expand.grid = TRUE)
 
 ## ------------------------------------------------------------------------
 set_theme(base = theme_light())
-sjp.frq(efc$e42dep)
+plot_frq(efc$e42dep)
 
 ## ------------------------------------------------------------------------
 library(sjmisc)
@@ -101,7 +101,7 @@ show_sjplot_pals()
 
 ## ------------------------------------------------------------------------
 set_theme(base = theme_bw(), axis.linecolor = "darkgreen")
-sjp.frq(efc$e42dep)
+plot_frq(efc$e42dep)
 
 ## ------------------------------------------------------------------------
 set_theme(

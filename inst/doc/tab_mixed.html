@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2018-12-18" />
+<meta name="date" content="2019-04-27" />
 
 <title>Summary of Mixed Models as HTML Table</title>
 
@@ -37,7 +37,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -291,6 +291,9 @@ code > span.al { color: #ff0000; font-weight: bold; }
 code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
+
+
+
 </head>
 
 <body>
@@ -299,8 +302,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 
 <h1 class="title toc-ignore">Summary of Mixed Models as HTML Table</h1>
-<h4 class="author"><em>Daniel Lüdecke</em></h4>
-<h4 class="date"><em>2018-12-18</em></h4>
+<h4 class="author">Daniel Lüdecke</h4>
+<h4 class="date">2019-04-27</h4>
 
 
 
@@ -311,19 +314,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 -->
 <p>This vignette shows examples for using <code>tab_model()</code> to create HTML tables for mixed models. Basically, <code>tab_model()</code> behaves in a very similar way for mixed models as for other, simple regression models, as shown <a href="tab_model_estimates.html">in this vignette</a>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="co"># load required packages</span></a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(sjPlot)</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(lme4)</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="kw">library</span>(nlme)</a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw">data</span>(<span class="st">&quot;sleepstudy&quot;</span>)</a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="kw">data</span>(<span class="st">&quot;Orthodont&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="co"># load required packages</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">library</span>(sjPlot)</a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="kw">library</span>(lme4)</a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">library</span>(nlme)</a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="kw">data</span>(<span class="st">&quot;sleepstudy&quot;</span>)</a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="kw">data</span>(<span class="st">&quot;Orthodont&quot;</span>)</a></code></pre></div>
 <div id="mixed-models-summaries-as-html-table" class="section level2">
 <h2>Mixed models summaries as HTML table</h2>
 <p>Unlike tables for <a href="tab_model_estimates.html">non-mixed models</a>, <code>tab_models()</code> adds additional information on the random effects to the table output for mixed models. You can hide these information with <code>show.icc = FALSE</code> and <code>show.re.var = FALSE</code>. Furthermore, the R-squared values are marginal and conditional R-squared statistics, based on <em>Nakagawa et al. 2017</em>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">m1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(distance <span class="op">~</span><span class="st"> </span>age <span class="op">+</span><span class="st"> </span>Sex <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>Subject), <span class="dt">data =</span> Orthodont)</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">m2 &lt;-<span class="st"> </span><span class="kw">lmer</span>(Reaction <span class="op">~</span><span class="st"> </span>Days <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>Days <span class="op">|</span><span class="st"> </span>Subject), <span class="dt">data =</span> sleepstudy)</a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="kw">tab_model</span>(m1, m2)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">m1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(distance <span class="op">~</span><span class="st"> </span>age <span class="op">+</span><span class="st"> </span>Sex <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>Subject), <span class="dt">data =</span> Orthodont)</a>
+<a class="sourceLine" id="cb2-2" title="2">m2 &lt;-<span class="st"> </span><span class="kw">lmer</span>(Reaction <span class="op">~</span><span class="st"> </span>Days <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span>Days <span class="op">|</span><span class="st"> </span>Subject), <span class="dt">data =</span> sleepstudy)</a>
+<a class="sourceLine" id="cb2-3" title="3"></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="kw">tab_model</span>(m1, m2)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -465,7 +468,7 @@ Random Effects
 3.27 <sub>Subject</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-612.09 <sub>Subject</sub>
+611.90 <sub>Subject</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
@@ -475,7 +478,7 @@ Random Effects
  
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-35.07 <sub>Subject.Days</sub>
+35.08 <sub>Subject.Days</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
@@ -492,10 +495,20 @@ Random Effects
 ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.61 <sub>Subject</sub>
+0.61
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.48 <sub>Subject</sub>
+0.72
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+27 <sub>Subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+18 <sub>Subject</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
@@ -522,7 +535,7 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </table>
 <p>The marginal R-squared considers only the variance of the fixed effects, while the conditional R-squared takes both the fixed and random effects into account.</p>
 <p>The p-value is a simple approximation, based on the t-statistics and using the normal distribution function. A more precise p-value can be computed using <code>p.val = &quot;kr&quot;</code>. In this case, which only applies to linear mixed models, the computation of p-values is based on conditional F-tests with Kenward-Roger approximation for the degrees of freedom (using the using the <strong>pbkrtest</strong>-package). Note that here the computation is more time consuming and thus not used as default. You can also display the approximated degrees of freedom with <code>show.df</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">tab_model</span>(m1, <span class="dt">p.val =</span> <span class="st">&quot;kr&quot;</span>, <span class="dt">show.df =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">p.val =</span> <span class="st">&quot;kr&quot;</span>, <span class="dt">show.df =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -621,10 +634,17 @@ Random Effects
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-ICC <sub>Subject</sub>
+ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
 0.61
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>Subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
+27
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
@@ -647,16 +667,16 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 <div id="generalized-linear-mixed-models" class="section level2">
 <h2>Generalized linear mixed models</h2>
 <p><code>tab_model()</code> can also print and combine models with different link-functions.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw">data</span>(<span class="st">&quot;efc&quot;</span>)</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">efc<span class="op">$</span>neg_c_7d &lt;-<span class="st"> </span><span class="kw">ifelse</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span> <span class="op">&lt;</span><span class="st"> </span><span class="kw">median</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span>, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), <span class="dv">0</span>, <span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">efc<span class="op">$</span>cluster &lt;-<span class="st"> </span><span class="kw">as.factor</span>(efc<span class="op">$</span>e15relat)</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">m3 &lt;-<span class="st"> </span><span class="kw">glmer</span>(</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5">  neg_c_7d <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e42dep <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>cluster),</a>
-<a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="dt">data =</span> efc, </a>
-<a class="sourceLine" id="cb4-7" data-line-number="7">  <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;logit&quot;</span>)</a>
-<a class="sourceLine" id="cb4-8" data-line-number="8">)</a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb4-10" data-line-number="10"><span class="kw">tab_model</span>(m1, m3)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">data</span>(<span class="st">&quot;efc&quot;</span>)</a>
+<a class="sourceLine" id="cb4-2" title="2">efc<span class="op">$</span>neg_c_7d &lt;-<span class="st"> </span><span class="kw">ifelse</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span> <span class="op">&lt;</span><span class="st"> </span><span class="kw">median</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span>, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), <span class="dv">0</span>, <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb4-3" title="3">efc<span class="op">$</span>cluster &lt;-<span class="st"> </span><span class="kw">as.factor</span>(efc<span class="op">$</span>e15relat)</a>
+<a class="sourceLine" id="cb4-4" title="4">m3 &lt;-<span class="st"> </span><span class="kw">glmer</span>(</a>
+<a class="sourceLine" id="cb4-5" title="5">  neg_c_7d <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e42dep <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>cluster),</a>
+<a class="sourceLine" id="cb4-6" title="6">  <span class="dt">data =</span> efc, </a>
+<a class="sourceLine" id="cb4-7" title="7">  <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;logit&quot;</span>)</a>
+<a class="sourceLine" id="cb4-8" title="8">)</a>
+<a class="sourceLine" id="cb4-9" title="9"></a>
+<a class="sourceLine" id="cb4-10" title="10"><span class="kw">tab_model</span>(m1, m3)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -845,10 +865,20 @@ Random Effects
 ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.61 <sub>Subject</sub>
+0.61
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.07 <sub>cluster</sub>
+0.07
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+27 <sub>Subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+8 <sub>cluster</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
@@ -877,16 +907,18 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 <div id="more-complex-models" class="section level2">
 <h2>More complex models</h2>
 <p>Finally, an example from the <strong>glmmTMB</strong>-package to show how easy it is to print zero-inflated generalized linear mixed models as HTML table.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">library</span>(glmmTMB)</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">data</span>(<span class="st">&quot;Salamanders&quot;</span>)</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">m4 &lt;-<span class="st"> </span><span class="kw">glmmTMB</span>(</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">  count <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>mined <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>site),</a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="dt">ziformula =</span> <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>mined, </a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">  <span class="dt">family =</span> <span class="kw">truncated_poisson</span>(<span class="dt">link =</span> <span class="st">&quot;log&quot;</span>), </a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">  <span class="dt">data =</span> Salamanders</a>
-<a class="sourceLine" id="cb5-8" data-line-number="8">)</a>
-<a class="sourceLine" id="cb5-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb5-10" data-line-number="10"><span class="kw">tab_model</span>(m1, m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">library</span>(glmmTMB)</a>
+<a class="sourceLine" id="cb5-2" title="2"><span class="kw">data</span>(<span class="st">&quot;Salamanders&quot;</span>)</a>
+<a class="sourceLine" id="cb5-3" title="3">m4 &lt;-<span class="st"> </span><span class="kw">glmmTMB</span>(</a>
+<a class="sourceLine" id="cb5-4" title="4">  count <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>mined <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>site),</a>
+<a class="sourceLine" id="cb5-5" title="5">  <span class="dt">ziformula =</span> <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>mined, </a>
+<a class="sourceLine" id="cb5-6" title="6">  <span class="dt">family =</span> <span class="kw">truncated_poisson</span>(<span class="dt">link =</span> <span class="st">&quot;log&quot;</span>), </a>
+<a class="sourceLine" id="cb5-7" title="7">  <span class="dt">data =</span> Salamanders</a>
+<a class="sourceLine" id="cb5-8" title="8">)</a>
+<a class="sourceLine" id="cb5-9" title="9"></a>
+<a class="sourceLine" id="cb5-10" title="10"><span class="kw">tab_model</span>(m1, m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb5-11" title="11"><span class="co">#&gt; Warning: get_variance ignores effects of zero-inflation.</span></a>
+<a class="sourceLine" id="cb5-12" title="12"><span class="co">#&gt; Warning: mu of 2.5 is too close to zero, estimate of random effect variances may be unreliable.</span></a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1369,13 +1401,26 @@ Random Effects
 ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.61 <sub>Subject</sub>
+0.61
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.07 <sub>cluster</sub>
+0.07
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.34 <sub>site</sub>
+0.34
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
+27 <sub>Subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
+8 <sub>cluster</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
+23 <sub>site</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
@@ -1403,193 +1448,6 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
 0.724 / 0.819
-</td>
-</tr>
-</table>
-</div>
-<div id="alternative-measures-of-random-effect-variances" class="section level2">
-<h2>Alternative measures of random effect variances</h2>
-<p>By default, the ICC for nested or cross-classified models only reports the proportion of variance explained for each grouping level. Use <code>show.adj.icc = TRUE</code> to calculate the adjusted ICC, which takes all sources of uncertainty (of all random effects) into account.</p>
-<p>If random effects are not nested and not cross-classified, the adjusted and unadjusted ICC are identical (see <code>m1</code> in table below).</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">2</span>)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">sleepstudy<span class="op">$</span>mygrp &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">30</span>, <span class="dt">size =</span> <span class="dv">180</span>, <span class="dt">replace =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb6-3" data-line-number="3">m5 &lt;-<span class="st"> </span><span class="kw">lmer</span>(Reaction <span class="op">~</span><span class="st"> </span>Days <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>mygrp) <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>Subject), sleepstudy)</a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="kw">tab_model</span>(m1, m5, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>, <span class="dt">show.adj.icc =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-<table style="border-collapse:collapse; border:none;">
-<tr>
-<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
- 
-</th>
-<th colspan="2" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-distance
-</th>
-<th colspan="2" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-Reaction
-</th>
-</tr>
-<tr>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
-Predictors
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Estimates
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-p
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Estimates
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-p
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-(Intercept)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-17.71
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-251.16
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-age
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.66
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Female
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--2.32
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>0.002</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Days
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-10.42
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001
-</td>
-</tr>
-<tr>
-<td colspan="5" style="font-weight:bold; text-align:left; padding-top:.8em;">
-Random Effects
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-σ<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-2.05
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-867.68
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-τ<sub>00</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-3.27 <sub>Subject</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-98.07 <sub>mygrp</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
- 
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-1371.09 <sub>Subject</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-ICC
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.61 <sub>Subject</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.04 <sub>mygrp</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
- 
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.59 <sub>Subject</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-ICC <sub>adjusted</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.61 <sub></sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.63 <sub></sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
-Observations
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="2">
-108
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="2">
-180
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.398 / 0.768
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-0.278 / 0.732
 </td>
 </tr>
 </table>

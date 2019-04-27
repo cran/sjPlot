@@ -256,21 +256,23 @@ tab_model_df <- function(x,
                          rsq.list,
                          n_obs.list,
                          icc.list,
-                         icc.adj.list = NULL,
                          dev.list,
                          aic.list,
+                         variance.list,
+                         ngrps.list,
+                         loglik.list,
                          n.models,
                          title = NULL,
                          footnote = NULL,
                          col.header = NULL,
                          show.re.var = FALSE,
                          show.icc = FALSE,
-                         show.adj.icc = FALSE,
                          encoding = "UTF-8",
                          CSS = NULL,
                          file = NULL,
                          use.viewer = TRUE,
                          ...) {
+
   # make sure list elements in CSS argument have proper name attribute
   CSS <- check_css_param(CSS)
 
@@ -428,7 +430,7 @@ tab_model_df <- function(x,
 
   # add random effects ----
 
-  if (!is_empty_list(icc.list) && show.re.var) {
+  if (!is_empty_list(variance.list) && show.re.var) {
 
     page.content <- paste0(page.content, "  <tr>\n")
     page.content <- paste0(page.content, sprintf("    <td colspan=\"%i\" class=\"randomparts\">Random Effects</td>\n", ncol(x)))
@@ -441,14 +443,14 @@ tab_model_df <- function(x,
     page.content <- paste0(page.content, sprintf("\n  <tr>\n    <td class=\"%s\">&sigma;<sup>2</sup></td>\n", s_css))
     s_css <- summary.css
 
-    for (i in 1:length(icc.list)) {
+    for (i in 1:length(variance.list)) {
 
-      if (length(icc.list) == 1)
+      if (length(variance.list) == 1)
         colspan <- ncol(x) - 1
       else
         colspan <- length(string_ends_with(sprintf("_%i", i), x = colnames(x)))
 
-      if (is.null(icc.list[[i]])) {
+      if (is.null(variance.list[[i]])) {
 
         page.content <- paste0(
           page.content,
@@ -463,7 +465,7 @@ tab_model_df <- function(x,
             "    <td class=\"%s\" colspan=\"%i\">%.2f</td>\n",
             s_css,
             as.integer(colspan),
-            attr(icc.list[[i]], "sigma_2", exact = TRUE)
+            variance.list[[i]]$var.residual
           )
         )
 
@@ -473,7 +475,7 @@ tab_model_df <- function(x,
 
     # random effects: Between-group-variance: tau.00 ----
 
-    tau00 <- purrr::map(icc.list, ~ attr(.x, "tau.00", exact = TRUE))
+    tau00 <- purrr::map(variance.list, ~ .x$var.intercept)
     tau00.len <- max(purrr::map_dbl(tau00, length))
 
     page.content <- paste0(
@@ -491,11 +493,11 @@ tab_model_df <- function(x,
 
     # random effects: random-slope-variance: tau11 ----
 
-    has_rnd_slope <- purrr::map_lgl(icc.list, ~ isTRUE(attr(.x, "rnd.slope.model", exact = TRUE)))
+    has_rnd_slope <- purrr::map_lgl(variance.list, ~ !is.null(.x$var.slope))
 
     if (any(has_rnd_slope)) {
 
-      tau11 <- purrr::map(icc.list, ~ attr(.x, "tau.11", exact = TRUE))
+      tau11 <- purrr::map(variance.list, ~ .x$var.slope)
       tau11.len <- max(purrr::map_dbl(tau11, length))
 
       page.content <- paste0(
@@ -510,7 +512,7 @@ tab_model_df <- function(x,
           n.cols = ncol(x)
       ))
 
-      rho01 <- purrr::map(icc.list, ~ attr(.x, "rho.01", exact = TRUE))
+      rho01 <- purrr::map(variance.list, ~ .x$cor.slope_intercept)
       rho01.len <- max(purrr::map_dbl(rho01, length))
 
       page.content <- paste0(
@@ -534,40 +536,38 @@ tab_model_df <- function(x,
 
   if (!is_empty_list(icc.list) && show.icc) {
 
-    icc.len <- max(purrr::map_dbl(icc.list, length))
-
     page.content <- paste0(
       page.content,
       create_random_effects(
-        rv.len = icc.len,
+        rv.len = 1,
         rv = icc.list,
         rv.string = "ICC",
         clean.rv = "icc",
         var.names = colnames(x),
         summary.css = summary.css,
-        n.cols = ncol(x)
-    ))
+        n.cols = ncol(x),
+        delim = ".adjusted"
+      ))
 
   }
 
 
-  ## TODO also show conditional ICC
+  if (!is_empty_list(ngrps.list)) {
 
-  if (!is_empty_list(icc.adj.list) && show.adj.icc) {
-
-    # icc.len <- max(purrr::map_dbl(icc.adj.list, length))
+    ngrps.len <- max(purrr::map_dbl(ngrps.list, length))
 
     page.content <- paste0(
       page.content,
       create_random_effects(
-        rv.len = 1,
-        rv = icc.adj.list,
-        rv.string = "ICC <sub>adjusted</sub>",
-        clean.rv = "icc",
+        rv.len = ngrps.len,
+        rv = ngrps.list,
+        rv.string = "N",
+        clean.rv = "",
         var.names = colnames(x),
         summary.css = summary.css,
         n.cols = ncol(x),
-        delim = ".adjusted"
+        delim = "ngrps.",
+        as_int = TRUE
       ))
 
   }
@@ -632,9 +632,9 @@ tab_model_df <- function(x,
 
     for (i in 1:length(rsq.list)) {
       if (!is.null(rsq.list[[i]])) {
-        rname <- names(rsq.list[[i]][[1]])
-        if (length(rsq.list[[i]] > 1))
-          rname <- sprintf("%s / %s", rname, names(rsq.list[[i]][[2]]))
+        rname <- names(rsq.list[[i]][1])
+        if (length(rsq.list[[i]]) > 1)
+          rname <- sprintf("%s / %s", rname, names(rsq.list[[i]][2]))
         break
       }
     }
@@ -669,7 +669,7 @@ tab_model_df <- function(x,
           sprintf("    <td class=\"%s\" colspan=\"%i\">NA</td>\n", s_css, as.integer(colspan))
         )
 
-      } else {
+      } else if (length(rsq.list[[i]]) > 1) {
 
         page.content <- paste0(
           page.content,
@@ -679,6 +679,18 @@ tab_model_df <- function(x,
             as.integer(colspan),
             rsq.list[[i]][[1]],
             rsq.list[[i]][[2]]
+          )
+        )
+
+      } else {
+
+        page.content <- paste0(
+          page.content,
+          sprintf(
+            "    <td class=\"%s\" colspan=\"%i\">%.3f</td>\n",
+            s_css,
+            as.integer(colspan),
+            rsq.list[[i]][[1]]
           )
         )
 
@@ -711,6 +723,21 @@ tab_model_df <- function(x,
     page.content <- paste0(page.content, create_stats(
       data.list = aic.list,
       data.string = "AIC",
+      firstsumrow = firstsumrow,
+      summary.css = summary.css,
+      var.names = colnames(x),
+      n.cols = ncol(x)
+    ))
+    firstsumrow <- FALSE
+  }
+
+
+  # add logLik ----
+
+  if (!is_empty_list(loglik.list)) {
+    page.content <- paste0(page.content, create_stats(
+      data.list = loglik.list,
+      data.string = "log-Likelihood",
       firstsumrow = firstsumrow,
       summary.css = summary.css,
       var.names = colnames(x),
@@ -773,7 +800,7 @@ tab_model_df <- function(x,
 }
 
 
-create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, summary.css, n.cols, delim = "_") {
+create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, summary.css, n.cols, delim = "_", as_int = FALSE) {
   page.content <- ""
   pattern <- paste0("^", clean.rv, delim)
 
@@ -783,7 +810,7 @@ create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, su
     rvs <- rv.string
     rv.name <- gsub(pattern, "", names(rv[[1]][i]))
 
-    if (length(rv) == 1)
+    if (length(rv) == 1 && !sjmisc::is_empty(rv.name))
       rvs <- sprintf("%s <sub>%s</sub>", rv.string, rv.name)
     else if (i > 1)
       rvs <- ""
@@ -801,7 +828,7 @@ create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, su
       else
         colspan <- length(string_ends_with(sprintf("_%i", j), x = var.names))
 
-      if (is.null(rv[[j]]) || is.na(rv[[j]][i])) {
+      if (is.null(rv[[j]]) || is.na(rv[[j]][i]) || sjmisc::is_empty(rv[[j]][i])) {
 
         page.content <- paste0(
           page.content,
@@ -812,21 +839,34 @@ create_random_effects <- function(rv.len, rv, rv.string, clean.rv, var.names, su
 
         rv.name <- gsub(pattern, "", names(rv[[j]][i]))
 
-        if (length(rv) > 1)
+        if (length(rv) > 1 && !sjmisc::is_empty(rv.name))
           suffix <- sprintf(" <sub>%s</sub>", rv.name)
         else
           suffix <- ""
 
-        page.content <- paste0(
-          page.content,
-          sprintf(
-            "    <td class=\"%s\" colspan=\"%i\">%.2f%s</td>\n",
-            s_css,
-            as.integer(colspan),
-            rv[[j]][i],
-            suffix
+        if (as_int) {
+          page.content <- paste0(
+            page.content,
+            sprintf(
+              "    <td class=\"%s\" colspan=\"%i\">%i%s</td>\n",
+              s_css,
+              as.integer(colspan),
+              as.integer(rv[[j]][i]),
+              suffix
+            )
           )
-        )
+        } else {
+          page.content <- paste0(
+            page.content,
+            sprintf(
+              "    <td class=\"%s\" colspan=\"%i\">%.2f%s</td>\n",
+              s_css,
+              as.integer(colspan),
+              rv[[j]][i],
+              suffix
+            )
+          )
+        }
 
       }
     }

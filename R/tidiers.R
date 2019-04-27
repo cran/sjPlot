@@ -1,10 +1,10 @@
-tidy_model <- function(model, ci.lvl, tf, type, bpe, se, facets, show.zeroinf, p.val, ...) {
+tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val, ...) {
   dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...)
 
   # get robust standard errors, if requestes, and replace former s.e.
 
-  if (!is.null(se) && !is.logical(se) && obj_has_name(dat, "std.error")) {
-    std.err <- sjstats::robust(model, vcov.type = se)
+  if (!is.null(robust) && !is.null(robust$vcov.fun) && obj_has_name(dat, "std.error")) {
+    std.err <- sjstats::robust(model, vcov.fun = robust$vcov.fun, vcov.type = robust$vcov.type, vcov.args = robust$vcov.args)
     dat[["std.error"]] <- std.err[["std.error"]]
 
     # also fix CI and p-value after robust SE
@@ -43,12 +43,16 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
     tidy_clm_model(model, ci.lvl)
   else if (inherits(model, "polr"))
     tidy_polr_model(model, ci.lvl)
+  else if (inherits(model, c("gmnl", "mlogit")))
+    tidy_gmnl_model(model, ci.lvl)
   else if (inherits(model, "multinom"))
     tidy_multinom_model(model, ci.lvl, facets)
   else if (inherits(model, "gam"))
     tidy_gam_model(model, ci.lvl)
   else if (inherits(model, "Zelig-relogit"))
     tidy_zelig_model(model, ci.lvl)
+  else if (inherits(model, "MixMod"))
+    tidy_MixMod_model(model, ci.lvl, show.zeroinf)
   else
     tidy_generic(model, ci.lvl, facets, p.val)
 }
@@ -185,11 +189,10 @@ tidy_cox_model <- function(model, ci.lvl) {
 }
 
 
-## TODO replace with sjstats::tidy_stan() in the future?
-
 #' @importFrom stats mad formula
-#' @importFrom sjstats hdi typical_value model_family
-#' @importFrom sjmisc var_rename add_columns is_empty
+#' @importFrom bayestestR ci
+#' @importFrom insight is_multivariate model_info
+#' @importFrom sjmisc var_rename add_columns is_empty typical_value
 #' @importFrom dplyr select filter slice inner_join n_distinct
 #' @importFrom purrr map_dbl
 #' @importFrom rlang .data
@@ -201,37 +204,48 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
   p.outer <- ci.lvl
 
   # get model information
-  modfam <- sjstats::model_family(model)
+  modfam <- insight::model_info(model)
+
+  if (insight::is_multivariate(model))
+    modfam <- modfam[[1]]
 
   # additional arguments for 'effects()'-function?
   add.args <- lapply(match.call(expand.dots = F)$`...`, function(x) x)
 
   # check whether we have "prob.inner" and "prob.outer" argument
-  # and if so, use these for HDI and Bayesian point estimate
+  # and if so, use these for CI and Bayesian point estimate
 
   if ("prob.inner" %in% names(add.args)) p.inner <- eval(add.args[["prob.inner"]])
   if ("prob.outer" %in% names(add.args)) p.outer <- eval(add.args[["prob.outer"]])
 
 
-  # get two HDI-intervals
+  # get two CI-intervals
 
   if (type == "re")
     ty <- "random"
   else
     ty <- "fixed"
 
-  d1 <- sjstats::hdi(model, prob = p.outer, trans = tf, type = ty)
-  d2 <- sjstats::hdi(model, prob = p.inner, trans = tf, type = ty)
+  d1 <- bayestestR::ci(model, ci = p.outer, effects = ty)
+  d2 <- bayestestR::ci(model, ci = p.inner, effects = ty)
 
+  if (!is.null(tf)) {
+    funtrans <- match.fun(tf)
+
+    d1$CI_low <- funtrans(d1$CI_low)
+    d1$CI_high <- funtrans(d1$CI_high)
+    d2$CI_low <- funtrans(d2$CI_low)
+    d2$CI_high <- funtrans(d2$CI_high)
+  }
 
   # bind columns, so we have inner and outer hdi interval
 
   dat <- d2 %>%
-    dplyr::select(.data$hdi.low, .data$hdi.high) %>%
-    sjmisc::var_rename(hdi.low = "conf.low50", hdi.high = "conf.high50") %>%
+    dplyr::select(.data$CI_low, .data$CI_high) %>%
+    sjmisc::var_rename(CI_low = "conf.low50", CI_high = "conf.high50") %>%
     sjmisc::add_columns(d1) %>%
-    sjmisc::var_rename(hdi.low = "conf.low", hdi.high = "conf.high")
-
+    sjmisc::var_rename(CI_low = "conf.low", CI_high = "conf.high", Parameter = "term") %>%
+    dplyr::select(-.data$CI)
 
   # for brmsfit models, we need to remove some columns here to
   # match data rows later
@@ -244,8 +258,10 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
     lp <- string_starts_with("lp__", x = colnames(mod.dat))
     resp.cor <- string_starts_with("rescor__", x = colnames(mod.dat))
     priors <- string_starts_with("prior_", x = colnames(mod.dat))
+    xme <- string_starts_with(pattern = "Xme_me", x = colnames(mod.dat))
+    xme.sd <- string_starts_with(pattern = "sdme_me", x = colnames(mod.dat))
 
-    brmsfit.removers <- unique(c(re.sd, re.cor, lp, resp.cor, priors))
+    brmsfit.removers <- unique(c(re.sd, re.cor, lp, resp.cor, priors, xme, xme.sd))
 
     if (!sjmisc::is_empty(brmsfit.removers))
       mod.dat <- dplyr::select(mod.dat, !! -brmsfit.removers)
@@ -272,7 +288,7 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
 
   # add bayesian point estimate
 
-  est <- purrr::map_dbl(mod.dat, ~ sjstats::typical_value(.x, fun = bpe))
+  est <- purrr::map_dbl(mod.dat, ~ sjmisc::typical_value(.x, fun = bpe))
 
   dat <- data_frame(
     term = names(est),
@@ -432,7 +448,7 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
 
   # multivariate-response model?
 
-  if (inherits(model, "brmsfit") && modfam$is_multivariate) {
+  if (inherits(model, "brmsfit") && insight::is_multivariate(model)) {
 
     # get response variables
 
@@ -456,7 +472,7 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
     # and remove response name from term name
 
     for (i in responses) {
-      m <- string_contains(i, x = dat$term)
+      m <- grep(pattern = sprintf("_%s_", i), x = dat$term)
       dat$response.level[intersect(which(dat$response.level == ""), m)] <- i
       dat$term <- gsub(sprintf("b_%s_", i), "", dat$term, fixed = TRUE)
       dat$term <- gsub(sprintf("s_%s_", i), "", dat$term, fixed = TRUE)
@@ -761,6 +777,41 @@ tidy_polr_model <- function(model, ci.lvl) {
 #' @importFrom stats qnorm pnorm
 #' @importFrom rlang .data
 #' @importFrom dplyr mutate
+tidy_gmnl_model <- function(model, ci.lvl) {
+
+  # compute ci, two-ways
+  ci <- get_confint(ci.lvl)
+
+  # get estimates, as data frame
+
+  smry <- summary(model)$CoefTable
+  est <- smry %>%
+    as.data.frame() %>%
+    rownames_as_column(var = "term")
+
+  # proper column names
+  colnames(est) <- c("term", "estimate", "std.error", "statistic", "p.value")
+
+  # mark intercepts
+  intercepts <- grepl(":(intercept)", est$term, fixed = TRUE)
+  est$term[intercepts] <- sprintf(
+    "(Intercept: %s)",
+    sub(":(intercept)", replacement = "", est$term[intercepts], fixed = TRUE)
+  )
+
+  # add conf. int. and p.value
+
+  est %>%
+    dplyr::mutate(
+      conf.low = .data$estimate - stats::qnorm(ci) * .data$std.error,
+      conf.high = .data$estimate + stats::qnorm(ci) * .data$std.error
+    )
+}
+
+
+#' @importFrom stats qnorm pnorm
+#' @importFrom rlang .data
+#' @importFrom dplyr mutate
 #' @importFrom broom tidy
 #' @importFrom sjmisc var_rename
 tidy_multinom_model <- function(model, ci.lvl, facets) {
@@ -842,6 +893,55 @@ tidy_zelig_model <- function(model, ci.lvl) {
     conf.high = est + stats::qnorm(ci) * se,
     p.value = unname(unlist(Zelig::get_pvalue(model)))
   )
+}
+
+
+#' @importFrom stats qnorm
+#' @importFrom dplyr select bind_rows
+tidy_MixMod_model <- function(model, ci.lvl, show.zeroinf) {
+
+  # compute ci, two-ways
+  ci <- get_confint(ci.lvl)
+
+  ct <- summary(model)$coef_table
+  ctzi <- summary(model)$coef_table_zi
+
+  est <- ct[, 1]
+  se <- ct[, 2]
+
+  cond <- data_frame(
+    term = names(est),
+    estimate = est,
+    std.error = se,
+    statistic = ct[, 3],
+    conf.low = est - stats::qnorm(ci) * se,
+    conf.high = est + stats::qnorm(ci) * se,
+    p.value = ct[, 4],
+    wrap.facet = "Conditional Model"
+  )
+
+  if (!is.null(ctzi)) {
+    est <- ctzi[, 1]
+    se <- ctzi[, 2]
+
+    zi <- data_frame(
+      term = names(est),
+      estimate = est,
+      std.error = se,
+      statistic = ctzi[, 3],
+      conf.low = est - stats::qnorm(ci) * se,
+      conf.high = est + stats::qnorm(ci) * se,
+      p.value = ctzi[, 4],
+      wrap.facet = "Zero-Inflated Model"
+    )
+
+    cond <- dplyr::bind_rows(cond, zi)
+  }
+
+  # remove facet column if not necessary
+  if (!show.zeroinf) cond <- dplyr::select(cond, -.data$wrap.facet)
+
+  cond
 }
 
 

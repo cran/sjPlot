@@ -29,6 +29,15 @@ get_dot_data <- function(data, dots) {
 dot_names <- function(dots) unname(unlist(lapply(dots, as.character)))
 
 
+#' @importFrom dplyr quos select
+get_dplyr_dot_data <- function(x, qs) {
+  if (sjmisc::is_empty(qs))
+    x
+  else
+    suppressMessages(dplyr::select(x, !!!qs))
+}
+
+
 # add annotations with table summary
 # here we print out total N of cases, chi-square and significance of the table
 print.table.summary <- function(baseplot,
@@ -454,4 +463,8 @@ sju.rmspc <- function(html.table) {
   cleaned <- gsub("    <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
   cleaned <- gsub("  <", "<", cleaned, fixed = TRUE, useBytes = TRUE)
   return(cleaned)
+}
+
+.is_false <- function(x) {
+  is.logical(x) && length(x) == 1L && !is.na(x) && !x
 }

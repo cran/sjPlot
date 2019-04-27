@@ -5,7 +5,7 @@
 \alias{sjtab}
 \title{Wrapper to create plots and tables within a pipe-workflow}
 \usage{
-sjplot(data, ..., fun = c("frq", "grpfrq", "xtab", "aov1", "likert",
+sjplot(data, ..., fun = c("grpfrq", "xtab", "aov1", "likert",
   "stackfrq"))
 
 sjtab(data, ..., fun = c("xtab", "stackfrq"))
@@ -37,10 +37,6 @@ Following \code{fun}-values are currently supported:
             \item{\code{"aov1"}}{calls \code{\link{sjp.aov1}}. The first
             two variables in \code{data} are used (and required) to create the plot.
             }
-            \item{\code{"frq"}}{calls \code{\link{sjp.frq}}.
-            If \code{data} has more than one variable, a plot for each
-            variable in \code{data} is plotted.
-            }
             \item{\code{"grpfrq"}}{calls \code{\link{sjp.grpfrq}}. The first
             two variables in \code{data} are used (and required) to create the plot.
             }
@@ -69,27 +65,12 @@ The \code{...}-argument is used, first, to specify the variables from \code{data
 library(dplyr)
 data(efc)
 
-# Frequency plot
-sjplot(efc, e42dep, c172code, fun = "frq")
-
 # Grouped frequencies
 efc \%>\% sjplot(e42dep, c172code, fun = "grpfrq")
 
 # Grouped frequencies, as box plots
 efc \%>\% sjplot(e17age, c172code, fun = "grpfrq",
                type = "box", geom.colors = "Set1")
-
-# frequencies, as plot grid
-efc \%>\%
-  select(e42dep, c172code, e16sex, c161sex) \%>\%
-  sjplot() \%>\%
-  plot_grid()
-
-# plot grouped data frame
-efc \%>\%
-  group_by(e16sex, c172code) \%>\%
-  select(e42dep, e16sex, c172code) \%>\%
-  sjplot(wrap.title = 100) # no line break for subtitles
 
 \dontrun{
 # table output of grouped data frame

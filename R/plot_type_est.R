@@ -31,6 +31,10 @@ plot_type_est <- function(type,
                           facets,
                           show.zeroinf,
                           p.threshold,
+                          vcov.fun,
+                          vcov.type,
+                          vcov.args,
+                          ci.style,
                           ...) {
 
   if (missing(facets)) facets <- TRUE
@@ -38,7 +42,8 @@ plot_type_est <- function(type,
   # get tidy output of summary ----
 
   if (type == "est" || type == "re") {
-    dat <- tidy_model(model, ci.lvl, tf, type, bpe, se, facets, show.zeroinf, p.val = "wald", ...)
+    robust <- list(vcov.fun, vcov.type, vcov.args)
+    dat <- tidy_model(model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val = "wald", ...)
   } else {
     dat <- model %>%
       sjstats::std_beta(type = type, ci.lvl = ci.lvl) %>%
@@ -121,6 +126,7 @@ plot_type_est <- function(type,
     value.size = value.size,
     facets = facets,
     p.threshold = p.threshold,
+    ci.style = ci.style,
     ...
   )
 }

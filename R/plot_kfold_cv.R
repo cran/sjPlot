@@ -1,5 +1,5 @@
 #' @title Plot model fit from k-fold cross-validation
-#' @name sjp.kfold_cv
+#' @name plot_kfold_cv
 #'
 #' @description This function plots the aggregated residuals of k-fold cross-validated
 #'                models against the outcome. This allows to evaluate how the model performs
@@ -33,16 +33,16 @@
 #' @examples
 #' data(efc)
 #'
-#' sjp.kfold_cv(efc, neg_c_7 ~ e42dep + c172code + c12hour)
-#' sjp.kfold_cv(mtcars, mpg ~.)
+#' plot_kfold_cv(efc, neg_c_7 ~ e42dep + c172code + c12hour)
+#' plot_kfold_cv(mtcars, mpg ~.)
 #'
 #' # for poisson models. need to fit a model and use 'fit'-argument
 #' fit <- glm(tot_sc_e ~ neg_c_7 + c172code, data = efc, family = poisson)
-#' sjp.kfold_cv(efc, fit = fit)
+#' plot_kfold_cv(efc, fit = fit)
 #'
 #' # and for negative binomial models
 #' fit <- MASS::glm.nb(tot_sc_e ~ neg_c_7 + c172code, data = efc)
-#' sjp.kfold_cv(efc, fit = fit)
+#' plot_kfold_cv(efc, fit = fit)
 #'
 #' @import ggplot2
 #' @importFrom modelr crossv_kfold
@@ -52,11 +52,10 @@
 #' @importFrom tidyr unnest
 #' @importFrom graphics plot
 #' @importFrom stats as.formula formula family poisson glm lm
-#' @importFrom sjstats resp_val
 #' @importFrom purrr map
 #' @importFrom MASS glm.nb
 #' @export
-sjp.kfold_cv <- function(data, formula, k = 5, fit) {
+plot_kfold_cv <- function(data, formula, k = 5, fit) {
   # make sure that data is a data frame
   if (!is.data.frame(data)) data <- as.data.frame(data)
 
@@ -93,7 +92,7 @@ sjp.kfold_cv <- function(data, formula, k = 5, fit) {
       res <- modelr::crossv_kfold(data, k = k) %>%
         dplyr::mutate(model = purrr::map(.data$train, ~ stats::glm(formula, data = .x, family = stats::poisson(link = "log")))) %>%
         dplyr::mutate(residuals = purrr::map(.data$model, ~ stats::residuals(.x, "deviance"))) %>%
-        dplyr::mutate(.response = purrr::map(.data$model, ~ sjstats::resp_val(.x)))
+        dplyr::mutate(.response = purrr::map(.data$model, ~ insight::get_response(.x)))
     # for negative binomial models, show deviance residuals
     } else if (inherits(fit, "negbin")) {
       # create cross-validated test-training pairs, run poisson-model on each
@@ -101,7 +100,7 @@ sjp.kfold_cv <- function(data, formula, k = 5, fit) {
       res <- modelr::crossv_kfold(data, k = k) %>%
         dplyr::mutate(model = purrr::map(.data$train, ~ MASS::glm.nb(formula, data = .))) %>%
         dplyr::mutate(residuals = purrr::map(.data$model, ~ stats::residuals(.x, "deviance"))) %>%
-        dplyr::mutate(.response = purrr::map(.data$model, ~ sjstats::resp_val(.x)))
+        dplyr::mutate(.response = purrr::map(.data$model, ~ insight::get_response(.x)))
     }
 
     # unnest residuals and response values

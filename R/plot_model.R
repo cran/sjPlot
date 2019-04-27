@@ -176,19 +176,18 @@
 #'   axis positions of the major grid lines.
 #' @param ci.lvl Numeric, the level of the confidence intervals (error bars).
 #'   Use \code{ci.lvl = NA} to remove error bars. For \code{stanreg}-models,
-#'   \code{ci.lvl} defines the (outer) probability for the
-#'   \code{\link[sjstats]{hdi}} (High Density Interval) that is plotted. By
+#'   \code{ci.lvl} defines the (outer) probability for the \emph{credible interval}
+#'   that is plotted (see \code{\link[bayestestR]{ci}}). By
 #'   default, \code{stanreg}-models are printed with two intervals: the "inner"
-#'   interval, which defaults to the 50\%-HDI; and the "outer" interval, which
-#'   defaults to the 89\%-HDI. \code{ci.lvl} affects only the outer interval in
+#'   interval, which defaults to the 50\%-CI; and the "outer" interval, which
+#'   defaults to the 89\%-CI. \code{ci.lvl} affects only the outer interval in
 #'   such cases. See \code{prob.inner} and \code{prob.outer} under the
 #'   \code{...}-argument for more details.
-#' @param se Either a logical, and if \code{TRUE}, error bars indicate standard
-#'   errors, not confidence intervals. Or a character vector with a specification
-#'   of the covariance matrix to compute robust standard errors (see argument
-#'   \code{vcov} of \code{\link[sjstats]{robust}} for valid values; robust standard
-#'   errors are only supported for models that work with \code{\link[lmtest]{coeftest}}).
-#'   \code{se} overrides \code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
+#' @param se Logical, if \code{TRUE}, the standard errors are
+#'   also printed. If robust standard errors are required, use arguments
+#'   \code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
+#'   \code{\link[sjstats]{robust}} for details). \code{se} overrides
+#'   \code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
 #'   and \code{transform} will be ignored. Currently, \code{se} only applies
 #'   to \emph{Coefficients} plots.
 #' @param show.intercept Logical, if \code{TRUE}, the intercept of the fitted
@@ -204,6 +203,14 @@
 #'   legend.
 #' @param show.zeroinf Logical, if \code{TRUE}, shows the zero-inflation part of
 #'   hurdle- or zero-inflated models.
+#' @param vcov.fun Character vector, indicating the name of the \code{vcov*()}-function
+#'    from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
+#'    standard errors are required.
+#' @param vcov.type Character vector, specifying the estimation type for the
+#'    robust covariance matrix estimation (see \code{\link[sandwich]{vcovHC}}
+#'    for details).
+#' @param vcov.args List of named vectors, used as additional arguments that
+#'    are passed down to \code{vcov.fun}.
 #' @param value.offset Numeric, offset for text labels to adjust their position
 #'   relative to the dots or lines.
 #' @param dot.size Numeric, size of the dots that indicate the point estimates.
@@ -261,7 +268,7 @@
 #'   of the posterior distribution. Use \code{bpe} to define other functions to
 #'   calculate the Bayesian point estimate. \code{bpe} needs to be a character
 #'   naming the specific function, which is passed to the \code{fun}-argument in
-#'   \code{\link[sjstats]{typical_value}}. So, \code{bpe = "mean"} would
+#'   \code{\link[sjmisc]{typical_value}}. So, \code{bpe = "mean"} would
 #'   calculate the mean value of the posterior distribution.
 #' @param bpe.style For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
 #'   \pkg{brms}-package), the Bayesian point estimate is indicated as a small,
@@ -270,6 +277,9 @@
 #' @param bpe.color Character vector, indicating the color of the Bayesian
 #'   point estimate. Setting \code{bpe.color = NULL} will inherit the color
 #'   from the mapped aesthetic to match it with the geom's color.
+#' @param ci.style Character vector, defining whether inner and outer intervals
+#'   for Bayesion models are shown in boxplot-style (\code{"whisker"}) or in
+#'   bars with different alpha-levels (\code{"bar"}).
 #' @param ... Other arguments, passed down to various functions. Here is a list
 #'   of supported arguments and their description in detail.
 #'   \describe{
@@ -370,7 +380,7 @@
 #'
 #' @references
 #'   Gelman A (2008) "Scaling regression inputs by dividing by two
-#'   standard deviations." \emph{Statistics in Medicine 27: 2865–2873.}
+#'   standard deviations." \emph{Statistics in Medicine 27: 2865-2873.}
 #'   \url{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}
 #'   \cr \cr
 #'   Aiken and West (1991). Multiple Regression: Testing and Interpreting Interactions.
@@ -432,7 +442,8 @@
 #'   plot_model(m, bpe.style = "dot")
 #' }}
 #'
-#' @importFrom sjstats pred_vars std_beta p_value model_family
+#' @importFrom sjstats std_beta p_value
+#' @importFrom insight model_info find_predictors
 #' @importFrom sjmisc word_wrap str_contains
 #' @importFrom sjlabelled get_dv_labels get_term_labels
 #' @importFrom dplyr if_else n_distinct
@@ -462,6 +473,9 @@ plot_model <- function(model,
                        grid.breaks = NULL,
                        ci.lvl = NULL,
                        se = NULL,
+                       vcov.fun = NULL,
+                       vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+                       vcov.args = NULL,
                        colors = "Set1",
                        show.intercept = FALSE,
                        show.values = FALSE,
@@ -484,6 +498,7 @@ plot_model <- function(model,
                        bpe = "median",
                        bpe.style = "line",
                        bpe.color = "white",
+                       ci.style = c("whisker", "bar"),
                        ...
                        ) {
 
@@ -491,7 +506,8 @@ plot_model <- function(model,
   pred.type <- match.arg(pred.type)
   mdrt.values <- match.arg(mdrt.values)
   prefix.labels <- match.arg(prefix.labels)
-
+  vcov.type <- match.arg(vcov.type)
+  ci.style <- match.arg(ci.style)
 
   # if we prefix labels, use different default for case conversion,
   # else the separating white spaces after colon are removed.
@@ -503,11 +519,14 @@ plot_model <- function(model,
   }
 
   # check se-argument
-  se <- check_se_argument(se = se, type = type)
+  vcov.fun <- check_se_argument(se = vcov.fun, type = type)
 
 
   # get info on model family
-  fam.info <- sjstats::model_family(model)
+  fam.info <- insight::model_info(model)
+
+  if (insight::is_multivariate(model))
+    fam.info <- fam.info[[1]]
 
   # check whether estimates should be transformed or not
 
@@ -542,7 +561,7 @@ plot_model <- function(model,
 
 
   # check nr of estimates. if only one, plot slope
-  if (type == "est" && length(sjstats::pred_vars(model)) == 1 && fam.info$is_linear && one_par(model)) type <- "slope"
+  if (type == "est" && length(insight::find_predictors(model, component = "conditional", flatten = TRUE)) == 1 && fam.info$is_linear && one_par(model)) type <- "slope"
 
 
   # set some default options for stan-models, which are not
@@ -608,6 +627,10 @@ plot_model <- function(model,
       facets = grid,
       show.zeroinf = show.zeroinf,
       p.threshold = p.threshold,
+      vcov.fun = vcov.fun,
+      vcov.type = vcov.type,
+      vcov.args = vcov.args,
+      ci.style = ci.style,
       ...
     )
 
@@ -636,6 +659,7 @@ plot_model <- function(model,
       vline.color = vline.color,
       value.size = value.size,
       bpe.color = bpe.color,
+      ci.style = ci.style,
       ...
     )
 
