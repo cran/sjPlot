@@ -175,8 +175,13 @@ is_brms_mixed <- function(fit) {
 
 
 # short checker so we know if we need more summary statistics like ICC
+#' @importFrom insight model_info is_multivariate
 is_mixed_model <- function(fit) {
-  is_merMod(fit) | is_brms_mixed(fit) | inherits(fit, "glmmTMB")
+  mi <- insight::model_info(fit)
+  if (insight::is_multivariate(fit))
+    mi[[1]]$is_mixed
+  else
+    mi$is_mixed
 }
 
 
@@ -324,6 +329,17 @@ model_aic <- function(x) {
   tryCatch(
     {
       stats::AIC(x)
+    },
+    error = function(x) { NULL }
+  )
+}
+
+
+#' @importFrom performance performance_aicc
+model_aicc <- function(x) {
+  tryCatch(
+    {
+      performance::performance_aicc(x)
     },
     error = function(x) { NULL }
   )

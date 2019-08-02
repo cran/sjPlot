@@ -6,14 +6,15 @@ knitr::opts_chunk$set(
   collapse = TRUE, 
   comment = "#>", 
   message = FALSE,
-  # eval = TRUE
-  eval = if (isTRUE(exists("params"))) params$EVAL else FALSE
+  eval = TRUE
+  # eval = if (isTRUE(exists("params"))) params$EVAL else FALSE
 )
 
 ## ---- results='hide', message=FALSE, warning=FALSE-----------------------
 # load required packages
 library(sjPlot)
 library(insight)
+library(httr)
 library(brms)
 
 # load sample models
@@ -45,8 +46,8 @@ tab_model(m1)
 tab_model(m2)
 
 ## ------------------------------------------------------------------------
-tab_model(m2, show.ci50 = FALSE)
+tab_model(m2, show.ci50 = TRUE)
 
 ## ------------------------------------------------------------------------
-tab_model(m1, m2, show.ci50 = FALSE)
+tab_model(m1, m2)
 

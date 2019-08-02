@@ -79,10 +79,13 @@
 #' @param string.std Character vector, used for the column heading of standardized beta coefficients. Default is \code{"std. Beta"}.
 #' @param string.ci Character vector, used for the column heading of confidence interval values. Default is \code{"CI"}.
 #' @param string.se Character vector, used for the column heading of standard error values. Default is \code{"std. Error"}.
+#' @param string.std_se Character vector, used for the column heading of standard error of standardized coefficients. Default is \code{"standardized std. Error"}.
+#' @param string.std_ci Character vector, used for the column heading of confidence intervals of standardized coefficients. Default is \code{"standardized std. Error"}.
 #' @param string.p Character vector, used for the column heading of p values. Default is \code{"p"}.
 #' @param string.df Character vector, used for the column heading of degrees of freedom. Default is \code{"df"}.
 #' @param string.stat Character vector, used for the test statistic. Default is \code{"Statistic"}.
 #' @param string.resp Character vector, used for the column heading of of the response level for multinominal or categorical models. Default is \code{"Response"}.
+#' @param string.intercept Character vector, used as name for the intercept parameter. Default is \code{"(Intercept)"}.
 #' @param strings Named character vector, as alternative to arguments like \code{string.ci}
 #'    or \code{string.p} etc. The name (lhs) must be one of the string-indicator from
 #'    the forementioned arguments, while the value (rhs) is the string that is used
@@ -103,10 +106,9 @@
 #'    \code{collapse.se = FALSE}, inserts a line break between estimate and
 #'    CI resp. SE values. If \code{FALSE}, values are printed in the same line
 #'    as estimate values.
-#' @param group.terms Logical, if \code{TRUE} (default), automatically groups table rows with
-#'    factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
-#'    be grouped, if the factor has more than two levels. Grouping means that a separate headline
-#'    row is inserted to the table just before the predictor values.
+#' @param show.reflvl Logical, if \code{TRUE}, an additional row is inserted to
+#'    the table before each predictor of type \code{\link{factor}}, which will
+#'    indicate the reference level of the related factor.
 #' @param show.ci50 Logical, if \code{TRUE}, for Bayesian models, a second
 #'    credible interval is added to the table output.
 #' @param show.fstat Logical, if \code{TRUE}, the F-statistics for each model is
@@ -217,7 +219,7 @@ tab_model <- function(
   show.intercept = TRUE,
   show.est = TRUE,
   show.ci = .95,
-  show.ci50 = TRUE,
+  show.ci50 = FALSE,
   show.se = NULL,
   show.std = NULL,
   show.p = TRUE,
@@ -235,10 +237,10 @@ tab_model <- function(
   show.dev = FALSE,
   show.loglik = FALSE,
   show.obs = TRUE,
+  show.reflvl = FALSE,
 
   terms = NULL,
   rm.terms = NULL,
-  group.terms = TRUE,
   order.terms = NULL,
 
   title = NULL,
@@ -255,10 +257,13 @@ tab_model <- function(
   string.std = "std. Beta",
   string.ci = "CI",
   string.se = "std. Error",
+  string.std_se = "standardized std. Error",
+  string.std_ci = "standardized CI",
   string.p = "p",
   string.df = "df",
   string.stat = "Statistic",
   string.resp = "Response",
+  string.intercept = "(Intercept)",
   strings = NULL,
   ci.hyphen = "&nbsp;&ndash;&nbsp;",
   minus.sign = "&#45;",
@@ -303,6 +308,7 @@ tab_model <- function(
   prefix.labels <- match.arg(prefix.labels)
   vcov.type <- match.arg(vcov.type)
 
+  change_string_est <- !missing(string.est)
 
   # if we prefix labels, use different default for case conversion,
   # else the separating white spaces after colon are removed.
@@ -344,6 +350,9 @@ tab_model <- function(
   copos <- which("std.est" == col.order)
   if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.estimate"
 
+  copos <- which("std.se" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.std.error"
+
   copos <- which("std.ci" == col.order)
   if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.conf.int"
 
@@ -363,10 +372,13 @@ tab_model <- function(
     if ("std" %in% s.names) string.std <- strings[["std"]]
     if ("ci" %in% s.names) string.ci <- strings[["ci"]]
     if ("se" %in% s.names) string.se <- strings[["se"]]
+    if ("std_se" %in% s.names) string.std_se <- strings[["std_se"]]
+    if ("std_ci" %in% s.names) string.std_ci <- strings[["std_ci"]]
     if ("p" %in% s.names) string.p <- strings[["p"]]
     if ("df" %in% s.names) string.df <- strings[["df"]]
     if ("stat" %in% s.names) string.stat <- strings[["stat"]]
     if ("resp" %in% s.names) string.resp <- strings[["resp"]]
+    if ("intercept" %in% s.names) string.intercept <- strings[["intercept"]]
   }
 
   model.list <- purrr::map2(
@@ -392,13 +404,13 @@ tab_model <- function(
       # get tidy output of summary ----
 
       dat <- tidy_model(
-        model,
+        model = model,
         ci.lvl = ci.lvl,
-        transform,
+        tf = transform,
         type = "est",
-        bpe,
+        bpe = bpe,
         se = show.se,
-        robust = list(vcov.fun, vcov.type, vcov.args),
+        robust = list(vcov.fun = vcov.fun, vcov.type = vcov.type, vcov.args = vcov.args),
         facets = FALSE,
         show.zeroinf = show.zeroinf,
         p.val = p.val
@@ -654,11 +666,18 @@ tab_model <- function(
                 `Conditional R2` = rsqdummy$R2_Bayes
               )
             }
-          } else {
-            rsq <- list(
-              `Marginal R2` = vars$var.fixed / (vars$var.fixed + vars$var.random + vars$var.residual),
-              `Conditional R2` = (vars$var.fixed + vars$var.random) / (vars$var.fixed + vars$var.random + vars$var.residual)
-            )
+          } else if (!is.null(vars)) {
+            if (is.null(vars$var.random)) {
+              rsq <- list(
+                `Marginal R2` = vars$var.fixed / (vars$var.fixed + vars$var.residual),
+                `Conditional R2` = NA
+              )
+            } else {
+              rsq <- list(
+                `Marginal R2` = vars$var.fixed / (vars$var.fixed + vars$var.random + vars$var.residual),
+                `Conditional R2` = (vars$var.fixed + vars$var.random) / (vars$var.fixed + vars$var.random + vars$var.residual)
+              )
+            }
           }
         } else {
           rsq <- tryCatch(
@@ -671,13 +690,7 @@ tab_model <- function(
           # fix names of r-squared values
 
           if (!is.null(rsq)) {
-            r_has_names <- sapply(rsq, function(.n) !is.null(names(.n)))
-            if (all(r_has_names)) {
-              rnames <- as.vector(sapply(rsq, names))
-            } else {
-              rnames <- names(rsq)
-            }
-            rnames <- sub("_", " ", rnames)
+            rnames <- sub("_", " ", names(rsq))
             names(rsq) <- rnames
           }
         }
@@ -703,6 +716,9 @@ tab_model <- function(
       aic <- NULL
       if (show.aic) aic <- model_aic(model)
 
+      aicc <- NULL
+      if (show.aicc) aic <- model_aicc(model)
+
       loglik <- NULL
       if (show.loglik) loglik <- model_loglik(model)
 
@@ -718,6 +734,22 @@ tab_model <- function(
       }
 
 
+      # check if Intercept should be renamed...
+
+      if (string.intercept != "(Intercept)") {
+        intercepts <- which(dat$term == "(Intercept)")
+        if (!sjmisc::is_empty(intercepts)) {
+          dat$term[intercepts] <- string.intercept
+        }
+        if (!is.null(zidat)) {
+          intercepts <- which(zidat$term == "(Intercept)")
+          if (!sjmisc::is_empty(intercepts)) {
+            zidat$term[intercepts] <- string.intercept
+          }
+        }
+      }
+
+
       list(
         dat = dat,
         transform = transform,
@@ -729,7 +761,8 @@ tab_model <- function(
         aic = aic,
         variances = vars,
         n_re_grps = n_re_grps,
-        loglik = loglik
+        loglik = loglik,
+        aicc = aicc
       )
     }
   )
@@ -759,6 +792,7 @@ tab_model <- function(
   variance.data <- purrr::map(model.list, ~.x[[9]])
   ngrps.data <- purrr::map(model.list, ~.x[[10]])
   loglik.data <- purrr::map(model.list, ~.x[[11]])
+  aicc.data <- purrr::map(model.list, ~.x[[12]])
   is.zeroinf <- purrr::map_lgl(model.list, ~ !is.null(.x[[3]]))
 
   zeroinf.data <- purrr::compact(zeroinf.data)
@@ -886,11 +920,11 @@ tab_model <- function(
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
     pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
     no.dupes <- !duplicated(names(pred.labels))
-    pred.labels <- prepare.labels(pred.labels[no.dupes], grp = group.terms)
+    pred.labels <- prepare.labels(pred.labels[no.dupes], grp = show.reflvl)
   } else {
     # no automatic grouping of table rows for categorical variables
     # when user supplies own labels
-    group.terms <- FALSE
+    show.reflvl <- FALSE
   }
 
 
@@ -907,6 +941,15 @@ tab_model <- function(
 
     if (!is.null(names(pred.labels))) {
       labs <- sjmisc::word_wrap(pred.labels, wrap = wrap.labels, linesep = "<br>")
+      if (show.reflvl) {
+        pl <- pred.labels
+        dupes <- which(pred.labels == names(pred.labels))
+        if (!sjmisc::is_empty(dupes)) pl <- pl[-dupes]
+        dat <- merge(dat, data.frame(term = names(pl)), by = "term", all = TRUE)
+        refs <- is.na(dat[, 2])
+      } else {
+        refs <- NULL
+      }
       # some labels may not match. in this case, we only need to replace those
       # elements in the vector that match a specific label, but
       # at the correct position inside "dat$term"
@@ -917,6 +960,17 @@ tab_model <- function(
       rp <- as.vector(stats::na.omit(find.matches))
 
       dat$term[tr] <- unname(labs[rp])
+
+      if (!is.null(refs)) {
+        dat[refs, 2:ncol(dat)] <- ""
+        est.cols <- if (show.est)
+          grepl("^estimate", colnames(dat))
+        else if (show.std)
+          grepl("^std.estimate", colnames(dat))
+        else
+          NULL
+        if (!is.null(est.cols)) dat[refs, est.cols] <- "<em>Reference</em>"
+      }
 
       # also label zero-inflated part
 
@@ -950,14 +1004,6 @@ tab_model <- function(
   }
 
 
-  # group terms ----
-
-  # if (group.terms) {
-  #   ## TODO group terms by variables, so category values of factors are "grouped"
-  #   remember.terms[attr(pred.labels, "category.value")]
-  # }
-
-
   # does user want a specific order for terms?
 
   if (!is.null(order.terms)) {
@@ -982,7 +1028,9 @@ tab_model <- function(
       else
         mr <- NULL
 
-      if (i <= length(models)) {
+      if (change_string_est && !sjmisc::is_empty(string.est)) {
+        x <- string.est
+      } else if (i <= length(models)) {
         x <- estimate_axis_title(
           models[[i]],
           axis.title = NULL,
@@ -992,7 +1040,6 @@ tab_model <- function(
           include.zeroinf = FALSE
         )
       } else if (length(models) == 1) {
-
         x <- estimate_axis_title(
           models[[1]],
           axis.title = NULL,
@@ -1001,7 +1048,6 @@ tab_model <- function(
           multi.resp = mr,
           include.zeroinf = FALSE
         )
-
       } else {
         x <- string.est
       }
@@ -1071,6 +1117,7 @@ tab_model <- function(
     icc.list = icc.data,
     dev.list = dev.data,
     aic.list = aic.data,
+    aicc.list = aicc.data,
     variance.list = variance.data,
     ngrps.list = ngrps.data,
     loglik.list = loglik.data,

@@ -77,7 +77,7 @@
 #'
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom sjmisc is_even var_type is_float
-#' @importFrom sjlabelled get_values
+#' @importFrom sjlabelled get_values drop_labels
 #' @importFrom purrr map_lgl
 #' @importFrom rlang quo_name enquo
 #' @export
@@ -359,15 +359,19 @@ view_df <- function(x,
             }
 
             # check if we have any values...
-            if (!is.null(vals)) {
-              # if yes, add all to a string
-              loop <- stats::na.omit(seq_len(length(vals))[1:max.len])
-              for (i in loop) {
-                valstring <- paste0(valstring, vals[i])
-                if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+            if (!is.null(vals) && !sjmisc::is_empty(vals)) {
+              if (is.character(x[[index]]) && !show.string.values) {
+                valstring <- "&lt;output omitted&gt;"
+              } else {
+                # if yes, add all to a string
+                loop <- stats::na.omit(seq_len(length(vals))[1:max.len])
+                for (i in loop) {
+                  valstring <- paste0(valstring, vals[i])
+                  if (i < length(vals)) valstring <- paste0(valstring, "<br>")
+                }
+                if (max.len < length(vals))
+                  valstring <- paste0(valstring, "<span class=\"omit\">&lt;... truncated&gt;</span>")
               }
-              if (max.len < length(vals))
-                valstring <- paste0(valstring, "<span class=\"omit\">&lt;... truncated&gt;</span>")
             }
           }
         } else {
@@ -381,6 +385,8 @@ view_df <- function(x,
     if (show.frq) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
+      else if (is.character(x[[index]]) && !show.string.values)
+        valstring <- "<span class=\"omit\" title =\"'show.string.values = TRUE' to show values.\">&lt;output omitted&gt;</span>"
       else
         valstring <- frq.value(index, x, df.val, max.len = max.len)
 
@@ -397,6 +403,8 @@ view_df <- function(x,
     if (show.prc) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
+      else if (is.character(x[[index]]) && !show.string.values)
+        valstring <- "<span class=\"omit\" title =\"'show.string.values = TRUE' to show values.\">&lt;output omitted&gt;</span>"
       else
         valstring <- frq.value(index, x, df.val, as.prc = TRUE, max.len = max.len)
 
@@ -413,6 +421,8 @@ view_df <- function(x,
     if (show.wtd.frq && !is.null(weights)) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
+      else if (is.character(x[[index]]) && !show.string.values)
+        valstring <- "<span class=\"omit\" title =\"'show.string.values = TRUE' to show values.\">&lt;output omitted&gt;</span>"
       else
         valstring <- frq.value(index, x, df.val, weights, max.len = max.len)
 
@@ -429,6 +439,8 @@ view_df <- function(x,
     if (show.wtd.prc && !is.null(weights)) {
       if (is.list(x[[index]]))
         valstring <- "<span class=\"omit\">&lt;list&gt;</span>"
+      else if (is.character(x[[index]]) && !show.string.values)
+        valstring <- "<span class=\"omit\" title =\"'show.string.values = TRUE' to show values.\">&lt;output omitted&gt;</span>"
       else
         valstring <- frq.value(index, x, df.val, weights, as.prc = TRUE, max.len = max.len)
 
@@ -489,28 +501,25 @@ view_df <- function(x,
 
 
 #' @importFrom stats xtabs na.pass
-#' @importFrom sjmisc is_empty
+#' @importFrom sjmisc is_empty frq
 frq.value <- function(index, x, df.val, weights, as.prc = FALSE, max.len) {
   valstring <- ""
   # check if we have a valid index
   if (index <= ncol(x) && !is.null(df.val[[index]])) {
     if (!missing(weights)) {
-      frqs <- as.vector(
-        round(stats::xtabs(
-          w ~ v,
-          data = data.frame(v = x[[index]], w = x[[weights]]),
-          na.action = stats::na.pass
-        ))
-      )
+      frqs <- sjmisc::frq(x, index, weights = weights, show.na = FALSE)[[1]]
     } else {
-      frqs <- as.vector(table(x[[index]]))
+      frqs <- sjmisc::frq(x, index, show.na = FALSE)[[1]]
     }
 
     # remove last value, which is N for NA
     if (sjmisc::is_empty(frqs)) {
       valstring <- "<NA>"
     } else {
-      if (as.prc) frqs <- sprintf("%.2f", 100 * frqs / sum(frqs))
+      if (as.prc)
+        frqs <- sprintf("%.2f", frqs$valid.prc)
+      else
+        frqs <- as.character(frqs$frq)
       if (length(frqs) > min(c(length(df.val[[index]]), max.len))) {
         frqs <- frqs[1:min(c(length(df.val[[index]]), max.len))]
       }

@@ -7,12 +7,13 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2019-04-27" />
+<meta name="date" content="2019-08-02" />
 
 <title>Summary of Mixed Models as HTML Table</title>
 
@@ -96,7 +97,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -303,7 +304,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Summary of Mixed Models as HTML Table</h1>
 <h4 class="author">Daniel Lüdecke</h4>
-<h4 class="date">2019-04-27</h4>
+<h4 class="date">2019-08-02</h4>
 
 
 
@@ -917,8 +918,7 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 <a class="sourceLine" id="cb5-8" title="8">)</a>
 <a class="sourceLine" id="cb5-9" title="9"></a>
 <a class="sourceLine" id="cb5-10" title="10"><span class="kw">tab_model</span>(m1, m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb5-11" title="11"><span class="co">#&gt; Warning: get_variance ignores effects of zero-inflation.</span></a>
-<a class="sourceLine" id="cb5-12" title="12"><span class="co">#&gt; Warning: mu of 2.5 is too close to zero, estimate of random effect variances may be unreliable.</span></a></code></pre></div>
+<a class="sourceLine" id="cb5-11" title="11"><span class="co">#&gt; Warning: mu of 2.5 is too close to zero, estimate of random effect variances may be unreliable.</span></a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1457,6 +1457,9 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 <p>Nakagawa S, Johnson P, Schielzeth H (2017) <em>The coefficient of determination R2 and intra-class correlation coefficient from generalized linear mixed-effects models revisted and expanded.</em> J. R. Soc. Interface 14. doi: 10.1098/rsif.2017.0213</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

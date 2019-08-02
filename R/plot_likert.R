@@ -65,10 +65,15 @@
 #' @param rel_heights (optional, only used if groups are supplied) This option can be used to adjust the height of the subplots. The bars in subplots can have different heights due to a differing number of items
 #'   or due to legend placement. This can be adjusted here. Takes a vector of numbers, one
 #'   for each plot. Values are evaluated relative to each other.
+#' @param group.legend.options (optional, only used if groups are supplied) List of options to be passed to \code{\link[ggplot2]{guide_legend}}.
+#' The most notable options are \code{byrow=T} (default), this will order the categories row wise.
+#' And with \code{group.legend.options = list(nrow = 1)} all categories can be forced to be on a single row.
 #' @param cowplot.options (optional, only used if groups are supplied) List of label options to be passed to \code{\link[cowplot]{plot_grid}}.
 #'
+#' @importFrom ggrepel geom_text_repel
+#'
 #' @inheritParams sjp.grpfrq
-#' @inheritParams sjp.stackfrq
+#' @inheritParams plot_stackfrq
 #' @inheritParams plot_model
 #'
 #' @return A ggplot-object.
@@ -105,6 +110,34 @@
 #'             rel_heights = c(6, 8),
 #'             wrap.labels = 40,
 #'             reverse.scale = TRUE)
+#'
+#' # control legend items
+#' six_cat_example = data.frame(
+#'   matrix(sample(1:6, 600, replace = TRUE),
+#'   ncol = 6)
+#' )
+#'
+#' \dontrun{
+#' six_cat_example <-
+#'   six_cat_example %>%
+#'   dplyr::mutate_all(~ordered(.,labels = c("+++","++","+","-","--","---")))
+#'
+#' # Old default
+#' plot_likert(
+#'   six_cat_example,
+#'   groups = c(1, 1, 1, 2, 2, 2),
+#'   group.legend.options = list(nrow = 2, byrow = FALSE)
+#' )
+#'
+#' # New default
+#' plot_likert(six_cat_example, groups = c(1, 1, 1, 2, 2, 2))
+#'
+#' # Single row
+#' plot_likert(
+#'   six_cat_example,
+#'   groups = c(1, 1, 1, 2, 2, 2),
+#'   group.legend.options = list(nrow = 1)
+#' )}
 #'
 #' @import ggplot2
 #' @importFrom stats na.omit xtabs
@@ -150,7 +183,8 @@ plot_likert <- function(items,
                         sort.groups = TRUE, # Group Options
                         legend.pos = "bottom",
                         rel_heights = 1,
-                        cowplot.options = list(label_x = 0.01, hjust = 0, align="v") # Fix for label position depending on label length bug in cowplot
+                        group.legend.options = list(nrow = NULL, byrow = TRUE), # Add rowwise order of levels and option to force a single rowed legend for 6 or more categories
+                        cowplot.options = list(label_x = 0.01, hjust = 0, align = "v") # Fix for label position depending on label length bug in cowplot
                         ) {
 
   # Select options to be passed to .plot_likert()
@@ -161,11 +195,11 @@ plot_likert <- function(items,
     groups <- rep(1, length.out = ncol(items))
   } else {
     if (!requireNamespace("cowplot", quietly = T))
-      stop("plot_likert_grp: Please install the package \"cowplot\"", call. = F)
+      stop("Package 'cowplot' required for this function wor work. Please install it.", call. = F)
   }
 
   if (ncol(items) != length(groups))
-    stop("plot_likert_grp: Length of groups has to equal the number of items: ncol(items) != length(groups)", call. = F)
+    stop("Length of groups has to equal the number of items: ncol(items) != length(groups).", call. = F)
 
   # retrieve unique factor / group index values
   findex <- unique(groups)
@@ -186,9 +220,9 @@ plot_likert <- function(items,
     # If there are 2 or more groups, the legend will be plotted according to legend.pos.
     if (length(findex) != 1) {
       if (legend.pos %in% c("top", "both") & i == 1)
-        .pl <- .pl + theme(legend.position = "top")
+        .pl <- .pl + theme(legend.position = "top") + guides(fill = do.call(guide_legend, group.legend.options))
       else if (legend.pos %in% c("bottom", "both") & i == length(findex))
-        .pl <- .pl + theme(legend.position = "bottom")
+        .pl <- .pl + theme(legend.position = "bottom") + guides(fill = do.call(guide_legend, group.legend.options))
       else if (legend.pos != "all")
         .pl <- .pl + theme(legend.position = "none")
     }
@@ -696,21 +730,29 @@ plot_likert <- function(items,
   if (values == "show") {
     # show them in middle of bar
     gp <- gp +
-      geom_text(
+      ggrepel::geom_text_repel(
         data = dplyr::filter(mydat.pos, .data$frq > 0),
         aes(
           x = .data$x,
-          y = .data$ypos,
+          y = .data$frq,
           label = sprintf("%.*f%s", digits, 100 * .data$frq, percsign)
-        )
+        ),
+        direction = "y",
+        position = position_stack(vjust = 0.5, reverse = TRUE),
+        force = .5,
+        point.padding = NA
       ) +
-      geom_text(
+      ggrepel::geom_text_repel(
         data = dplyr::filter(mydat.neg, .data$frq < 0),
         aes(
           x = .data$x,
-          y = .data$ypos,
+          y = .data$frq,
           label = sprintf("%.*f%s", digits, 100 * abs(.data$frq), percsign)
-        )
+        ),
+        direction = "y",
+        position = position_stack(vjust = 0.5, reverse = TRUE),
+        force = .5,
+        point.padding = NA
       )
 
     if (!is.null(cat.neutral)) {
@@ -725,8 +767,15 @@ plot_likert <- function(items,
         )
     }
   } else if (values == "sum.inside" || values == "sum.outside") {
+    # choose label offsets for summed proportions
+    move_pos_labels_left = dplyr::case_when(
+      values == "sum.outside" & !reverse.scale ~ T,
+      values == "sum.inside" & !reverse.scale ~ F,
+      values == "sum.outside" & reverse.scale ~ F,
+      values == "sum.inside" & reverse.scale ~ T
+    )
     # show cumulative outside bar
-    if (values == "sum.outside") {
+    if (move_pos_labels_left) {
       hort.pos <- -0.15
       hort.neg <- 1.15
       hort.dk <- -0.15

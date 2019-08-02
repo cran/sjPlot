@@ -5,30 +5,33 @@
 \title{Print regression models as HTML table}
 \usage{
 tab_model(..., transform, show.intercept = TRUE, show.est = TRUE,
-  show.ci = 0.95, show.ci50 = TRUE, show.se = NULL,
+  show.ci = 0.95, show.ci50 = FALSE, show.se = NULL,
   show.std = NULL, show.p = TRUE, show.stat = FALSE,
   show.df = FALSE, show.zeroinf = TRUE, show.r2 = TRUE,
   show.icc = TRUE, show.re.var = TRUE, show.ngroups = TRUE,
   show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
   show.dev = FALSE, show.loglik = FALSE, show.obs = TRUE,
-  terms = NULL, rm.terms = NULL, group.terms = TRUE,
+  show.reflvl = FALSE, terms = NULL, rm.terms = NULL,
   order.terms = NULL, title = NULL, pred.labels = NULL,
   dv.labels = NULL, wrap.labels = 25, vcov.fun = NULL,
   vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m",
   "HC5"), vcov.args = NULL, string.pred = "Predictors",
   string.est = "Estimate", string.std = "std. Beta",
-  string.ci = "CI", string.se = "std. Error", string.p = "p",
+  string.ci = "CI", string.se = "std. Error",
+  string.std_se = "standardized std. Error",
+  string.std_ci = "standardized CI", string.p = "p",
   string.df = "df", string.stat = "Statistic",
-  string.resp = "Response", strings = NULL,
-  ci.hyphen = "&nbsp;&ndash;&nbsp;", minus.sign = "&#45;",
-  collapse.ci = FALSE, collapse.se = FALSE, linebreak = TRUE,
-  col.order = c("est", "se", "std.est", "std.se", "ci", "std.ci",
-  "ci.inner", "ci.outer", "stat", "p", "df", "response.level"),
-  digits = 2, digits.p = 3, emph.p = TRUE, p.val = c("wald", "kr"),
-  p.style = c("numeric", "asterisk", "both"), p.threshold = c(0.05,
-  0.01, 0.001), case = "parsed", auto.label = TRUE,
-  prefix.labels = c("none", "varname", "label"), bpe = "median",
-  CSS = css_theme("regression"), file = NULL, use.viewer = TRUE)
+  string.resp = "Response", string.intercept = "(Intercept)",
+  strings = NULL, ci.hyphen = "&nbsp;&ndash;&nbsp;",
+  minus.sign = "&#45;", collapse.ci = FALSE, collapse.se = FALSE,
+  linebreak = TRUE, col.order = c("est", "se", "std.est", "std.se",
+  "ci", "std.ci", "ci.inner", "ci.outer", "stat", "p", "df",
+  "response.level"), digits = 2, digits.p = 3, emph.p = TRUE,
+  p.val = c("wald", "kr"), p.style = c("numeric", "asterisk", "both"),
+  p.threshold = c(0.05, 0.01, 0.001), case = "parsed",
+  auto.label = TRUE, prefix.labels = c("none", "varname", "label"),
+  bpe = "median", CSS = css_theme("regression"), file = NULL,
+  use.viewer = TRUE)
 }
 \arguments{
 \item{...}{One or more regression models, including glm's or mixed models.
@@ -103,6 +106,10 @@ is printed in the table summary.}
 \item{show.obs}{Logical, if \code{TRUE}, the number of observations per model is
 printed in the table summary.}
 
+\item{show.reflvl}{Logical, if \code{TRUE}, an additional row is inserted to
+the table before each predictor of type \code{\link{factor}}, which will
+indicate the reference level of the related factor.}
+
 \item{terms}{Character vector with names of those terms (variables) that should
 be printed in the table. All other terms are removed from the output. If
 \code{NULL}, all terms are printed. Note that the term names must match
@@ -123,11 +130,6 @@ need to be explicitely indicated in square brackets, and match the model's
 coefficient names, e.g. \code{rm.terms = "t_name [2,3]"} would remove the terms
 \code{"t_name2"} and \code{"t_name3"} (assuming that the variable \code{t_name}
 was categorical and has at least the factor levels \code{2} and \code{3}).}
-
-\item{group.terms}{Logical, if \code{TRUE} (default), automatically groups table rows with
-factor levels of same factor, i.e. predictors of type \code{\link{factor}} will
-be grouped, if the factor has more than two levels. Grouping means that a separate headline
-row is inserted to the table just before the predictor values.}
 
 \item{order.terms}{Numeric vector, indicating in which order the coefficients
 should be plotted. See examples in
@@ -179,6 +181,10 @@ Default is based on the response scale, e.g. for logistic regression models,
 
 \item{string.se}{Character vector, used for the column heading of standard error values. Default is \code{"std. Error"}.}
 
+\item{string.std_se}{Character vector, used for the column heading of standard error of standardized coefficients. Default is \code{"standardized std. Error"}.}
+
+\item{string.std_ci}{Character vector, used for the column heading of confidence intervals of standardized coefficients. Default is \code{"standardized std. Error"}.}
+
 \item{string.p}{Character vector, used for the column heading of p values. Default is \code{"p"}.}
 
 \item{string.df}{Character vector, used for the column heading of degrees of freedom. Default is \code{"df"}.}
@@ -186,6 +192,8 @@ Default is based on the response scale, e.g. for logistic regression models,
 \item{string.stat}{Character vector, used for the test statistic. Default is \code{"Statistic"}.}
 
 \item{string.resp}{Character vector, used for the column heading of of the response level for multinominal or categorical models. Default is \code{"Response"}.}
+
+\item{string.intercept}{Character vector, used as name for the intercept parameter. Default is \code{"(Intercept)"}.}
 
 \item{strings}{Named character vector, as alternative to arguments like \code{string.ci}
 or \code{string.p} etc. The name (lhs) must be one of the string-indicator from

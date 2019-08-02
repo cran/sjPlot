@@ -36,8 +36,8 @@
 #'             \item{\code{"likert"}}{calls \code{\link{plot_likert}}. \code{data}
 #'             must be a data frame with items to plot.
 #'             }
-#'             \item{\code{"stackfrq"}}{calls \code{\link{sjp.stackfrq}} or \code{\link{sjt.stackfrq}}.
-#'             \code{data} must be a data frame with items to create the plot or table.
+#'             \item{\code{"stackfrq"}}{calls \code{\link{tab_stackfrq}}.
+#'             \code{data} must be a data frame with items to create the table.
 #'             }
 #'             \item{\code{"xtab"}}{calls \code{\link{sjp.xtab}} or \code{\link{sjt.xtab}}.
 #'             The first two variables in \code{data} are used (and required)
@@ -69,7 +69,7 @@
 #' @importFrom tidyr nest
 #' @importFrom stats complete.cases
 #' @export
-sjplot <- function(data, ..., fun = c("grpfrq", "xtab", "aov1", "likert", "stackfrq")) {
+sjplot <- function(data, ..., fun = c("grpfrq", "xtab", "aov1", "likert")) {
   # check if x is a data frame
   if (!is.data.frame(data)) stop("`data` must be a data frame.", call. = F)
 
@@ -293,8 +293,6 @@ plot_sj <- function(x, fun, args) {
       p <- sjp.grpfrq(x[[1]], x[[2]])
     } else if (fun  == "likert") {
       p <- plot_likert(x)
-    } else if (fun  == "stackfrq") {
-      p <- sjp.stackfrq(x)
     } else if (fun  == "xtab") {
       p <- sjp.xtab(x[[1]], x[[2]])
     } else if (fun  == "aov1") {
@@ -305,8 +303,6 @@ plot_sj <- function(x, fun, args) {
       p <- do.call(sjp.grpfrq, args = c(list(var.cnt = x[[1]], var.grp = x[[2]]), args))
     } else if (fun  == "likert") {
       p <- do.call(plot_likert, args = c(list(items = x), args))
-    } else if (fun  == "stackfrq") {
-      p <- do.call(sjp.stackfrq, args = c(list(items = x), args))
     } else if (fun  == "xtab") {
       p <- do.call(sjp.xtab, args = c(list(x = x[[1]], grp = x[[2]]), args))
     } else if (fun  == "aov1") {
@@ -325,11 +321,11 @@ tab_sj <- function(x, fun, args) {
     if (fun  == "xtab") {
       sjt.xtab(x[[1]], x[[2]])
     } else if (fun  == "stackfrq") {
-      sjt.stackfrq(x)
+      tab_stackfrq(x)
     }
   } else {
     if (fun  == "stackfrq") {
-      do.call(sjt.stackfrq, args = c(list(items = x), args))
+      do.call(tab_stackfrq, args = c(list(items = x), args))
     } else if (fun  == "xtab") {
       do.call(sjt.xtab, args = c(list(var.row = x[[1]], var.col = x[[2]]), args))
     }
