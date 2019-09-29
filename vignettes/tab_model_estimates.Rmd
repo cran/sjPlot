@@ -109,8 +109,8 @@ Other models, like hurdle- or zero-inflated models, also work with `tab_model()`
 ```{r}
 library(pscl)
 data("bioChemists")
+m5 <- zeroinfl(art ~ fem + mar + kid5 + ment | kid5 + phd + ment, data = bioChemists)
 
-m5 <- zeroinfl(art ~ . | ., data = bioChemists)
 tab_model(m5)
 ```
 
@@ -191,6 +191,34 @@ tab_model(
   string.p = "P-Value"
 )
 ``` 
+
+## Including reference level of categorical predictors
+
+By default, for categorical predictors, the variable names and the categories for regression coefficients are shown in the table output. 
+
+```{r}
+library(glmmTMB)
+data("Salamanders")
+model <- glm(
+  count ~ spp + Wtemp + mined + cover,
+  family = poisson(),
+  data = Salamanders
+)
+
+tab_model(model)
+```
+
+You can include the reference level for categorical predictors by setting `show.reflvl = TRUE`.
+
+```{r}
+tab_model(model, show.reflvl = TRUE)
+```
+
+To show variable names, categories and include the reference level, also set `prefix.labels = "varname"`.
+
+```{r}
+tab_model(model, show.reflvl = TRUE, prefix.labels = "varname")
+```
 
 ## Show asterisks instead of numeric p-values
 

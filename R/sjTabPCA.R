@@ -38,7 +38,7 @@
 #' @inheritParams view_df
 #' @inheritParams tab_df
 #' @inheritParams sjt.xtab
-#' @inheritParams sjp.grpfrq
+#' @inheritParams plot_grpfrq
 #' @inheritParams sjt.corr
 #'
 #' @return Invisibly returns
@@ -67,6 +67,7 @@
 #'
 #' @importFrom psych KMO
 #' @importFrom stats prcomp
+#' @importFrom performance cronbachs_alpha
 #' @export
 sjt.pca <- function(data,
                     rotation = c("varimax", "quartimax", "promax", "oblimin", "simplimax", "cluster", "none"),

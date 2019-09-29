@@ -22,7 +22,7 @@ set_theme(
   base = theme_bw()
 )
 
-sjp.grpfrq(
+plot_grpfrq(
   efc$e42dep, 
   efc$e16sex, 
   title = NULL, 
@@ -41,7 +41,7 @@ set_theme(
   geom.label.size = 3
 )
 
-sjp.grpfrq(
+plot_grpfrq(
   efc$e42dep, 
   efc$e15relat, 
   geom.colors = "PuRd", 
@@ -56,7 +56,7 @@ sjp.grpfrq(
 set_theme(geom.label.color = "white", geom.label.size = 3)
 
 # labels appear very large due to export metrics
-sjp.grpfrq(efc$e42dep, efc$e16sex, coord.flip = TRUE)
+plot_grpfrq(efc$e42dep, efc$e16sex, coord.flip = TRUE)
 
 ## ----results='hide', echo=FALSE------------------------------------------
 set_theme(
@@ -68,7 +68,7 @@ set_theme(
 )
 
 ## ------------------------------------------------------------------------
-sjp.grpfrq(efc$e42dep, efc$e16sex, expand.grid = TRUE)
+plot_grpfrq(efc$e42dep, efc$e16sex, expand.grid = TRUE)
 
 ## ------------------------------------------------------------------------
 set_theme(base = theme_light())
@@ -114,7 +114,7 @@ set_theme(
   geom.label.size = 3.5
 )
   
-sjp.grpfrq(
+plot_grpfrq(
   efc$e42dep,
   efc$e16sex,
   coord.flip = TRUE,
@@ -136,7 +136,7 @@ set_theme(
   geom.label.size = 3
 )
 
-sjp.grpfrq(efc$e42dep, efc$e16sex, coord.flip = TRUE)
+plot_grpfrq(efc$e42dep, efc$e16sex, coord.flip = TRUE)
 
 ## ------------------------------------------------------------------------
 set_theme(
@@ -154,5 +154,5 @@ set_theme(
   geom.label.size = 3
 )
 
-sjp.grpfrq(efc$e42dep, efc$e16sex)
+plot_grpfrq(efc$e42dep, efc$e16sex)
 

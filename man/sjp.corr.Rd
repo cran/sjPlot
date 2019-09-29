@@ -38,10 +38,10 @@ the values labels are shown. Default is 3. Only applies when
 abbreviated.}
 
 \item{corr.method}{Indicates the correlation computation method. May be one of
-\code{"spearman"} (default), \code{"pearson"} or \code{"kendall"}.
+\code{"pearson"} (default), \code{"spearman"} or \code{"kendall"}.
 May be abbreviated.}
 
-\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{sjp.grpfrq}}.}
+\item{geom.colors}{user defined color for geoms. See 'Details' in \code{\link{plot_grpfrq}}.}
 
 \item{wrap.title}{numeric, determines how many chars of the plot title are displayed in
 one line and when a line break is inserted.}

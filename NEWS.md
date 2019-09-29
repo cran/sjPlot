@@ -1,3 +1,25 @@
+# sjPlot 2.7.2
+
+## General
+
+* Replaced `performance::principal_component()` by `parameters::principal_component()`.
+* Fixed CRAN check issues, due to the latest *bayestestR* update.
+
+## Function renaming
+
+* `sjp.grpfrq()` is now names `plot_grpfrq()`.
+* `sjp.xtab()` is now names `plot_xtab()`.
+
+## Changes to functions
+
+* `plot_grid()` gets a `tags`-argument to add tags to plot-panels.
+
+## Bug fixes
+
+* Fixed bug in `plot_stackfrq()` for data frames with many missing values.
+* Fixed bug with sorting frequencies in `plot_frq()` when vector had more labels than values. 
+* Fixed bug in `tab_model()` where `show.reflvl = TRUE` did not insert the reference category in first place, but in alphabetical order.
+
 # sjPlot 2.7.1
 
 ## General

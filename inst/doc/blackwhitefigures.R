@@ -8,7 +8,7 @@ library(sjlabelled)
 library(ggplot2)
 theme_set(theme_bw())
 data(efc)
-sjp.grpfrq(efc$e42dep, efc$c172code, geom.colors = "gs")
+plot_grpfrq(efc$e42dep, efc$c172code, geom.colors = "gs")
 
 ## ------------------------------------------------------------------------
 # create binrary response

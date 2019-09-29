@@ -1,6 +1,6 @@
 # sjPlot - Data Visualization for Statistics in Social Science <img src="man/figures/logo.png" align="right" />
 
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/sjPlot)](https://cran.r-project.org/package=sjPlot) &#160;&#160; [![Documentation](https://img.shields.io/badge/documentation-sjPlot-orange.svg?colorB=E91E63)](https://strengejacke.github.io/sjPlot/) &#160;&#160; [![downloads](http://cranlogs.r-pkg.org/badges/sjPlot)](http://cranlogs.r-pkg.org/)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/sjPlot)](https://cran.r-project.org/package=sjPlot) &#160;&#160; [![Documentation](https://img.shields.io/badge/documentation-sjPlot-orange.svg?colorB=E91E63)](https://strengejacke.github.io/sjPlot/) &#160;&#160; [![Build Status](https://travis-ci.org/strengejacke/sjPlot.svg?branch=master)](https://travis-ci.org/strengejacke/sjPlot) &#160;&#160; [![downloads](http://cranlogs.r-pkg.org/badges/sjPlot)](http://cranlogs.r-pkg.org/)
 &#160;&#160; [![total](http://cranlogs.r-pkg.org/badges/grand-total/sjPlot)](http://cranlogs.r-pkg.org/)
 
 
@@ -16,10 +16,6 @@ To install the latest development snapshot (see latest changes below), type foll
 library(devtools)
 devtools::install_github("strengejacke/sjPlot")
 ```
-
-Please note the package dependencies when installing from GitHub. The GitHub version of this package may depend on latest GitHub versions of my other packages, so you may need to install those first, if you encounter any problems. Here's the order for installing packages from GitHub:
-
-[sjlabelled](https://github.com/strengejacke/sjlabelled) &rarr; [sjmisc](https://github.com/strengejacke/sjmisc) &rarr; [sjstats](https://github.com/strengejacke/sjstats) &rarr; [ggeffects](https://github.com/strengejacke/ggeffects) &rarr; [sjPlot](https://github.com/strengejacke/sjPlot)
 
 ### Officiale, stable release
 

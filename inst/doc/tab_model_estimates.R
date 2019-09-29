@@ -51,8 +51,8 @@ tab_model(m3, m4, transform = NULL, auto.label = FALSE)
 ## ------------------------------------------------------------------------
 library(pscl)
 data("bioChemists")
+m5 <- zeroinfl(art ~ fem + mar + kid5 + ment | kid5 + phd + ment, data = bioChemists)
 
-m5 <- zeroinfl(art ~ . | ., data = bioChemists)
 tab_model(m5)
 
 ## ------------------------------------------------------------------------
@@ -84,6 +84,23 @@ tab_model(
   string.ci = "Conf. Int (95%)",
   string.p = "P-Value"
 )
+
+## ------------------------------------------------------------------------
+library(glmmTMB)
+data("Salamanders")
+model <- glm(
+  count ~ spp + Wtemp + mined + cover,
+  family = poisson(),
+  data = Salamanders
+)
+
+tab_model(model)
+
+## ------------------------------------------------------------------------
+tab_model(model, show.reflvl = TRUE)
+
+## ------------------------------------------------------------------------
+tab_model(model, show.reflvl = TRUE, prefix.labels = "varname")
 
 ## ------------------------------------------------------------------------
 tab_model(m1, m2, p.style = "a")

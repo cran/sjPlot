@@ -48,7 +48,7 @@
 #'          to label variable values in the output.
 #'
 #' @inheritParams tab_model
-#' @inheritParams sjp.grpfrq
+#' @inheritParams plot_grpfrq
 #'
 #' @return Invisibly returns
 #'          \itemize{
@@ -98,7 +98,7 @@
 #' )
 #'
 #' @importFrom stats ftable
-#' @importFrom sjstats xtab_statistics
+#' @importFrom sjstats xtab_statistics table_values
 #' @export
 sjt.xtab <- function(var.row,
                      var.col,
