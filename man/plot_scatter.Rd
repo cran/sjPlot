@@ -6,7 +6,7 @@
 \usage{
 plot_scatter(data, x, y, grp, title = "", legend.title = NULL,
   legend.labels = NULL, dot.labels = NULL, axis.titles = NULL,
-  dot.size = 1.5, label.size = 3, colors = "metro ui",
+  dot.size = 1.5, label.size = 3, colors = "metro",
   fit.line = NULL, fit.grps = NULL, show.rug = FALSE,
   show.legend = TRUE, show.ci = FALSE, wrap.title = 50,
   wrap.legend.title = 20, wrap.legend.labels = 20, jitter = 0.05,
@@ -52,7 +52,7 @@ color palette. Following options are valid for the \code{colors} argument:
 \itemize{
   \item If not specified, a default color brewer palette will be used, which is suitable for the plot style.
   \item If \code{"gs"}, a greyscale will be used.
-  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{https://strengejacke.github.io/sjPlot/articles/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).

@@ -10,7 +10,7 @@
 #'   \pkg{lme4}, \pkg{nlme}, \pkg{rstanarm}, \pkg{survey}, \pkg{glmmTMB},
 #'   \pkg{MASS}, \pkg{brms} etc.
 #' @param type Type of plot. There are three groups of plot-types: \cr \cr
-#'   \emph{Coefficients} (\href{../doc/plot_model_estimates.html}{related vignette})
+#'   \emph{Coefficients} (\href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{related vignette})
 #'   \describe{
 #'     \item{\code{type = "est"}}{Forest-plot of estimates. If the fitted model
 #'     only contains one predictor, slope-line is plotted.}
@@ -20,13 +20,15 @@
 #'     \item{\code{type = "std2"}}{Forest-plot of standardized beta values,
 #'     however, standardization is done by dividing by two sd (see 'Details').}
 #'   }
-#'   \emph{Marginal Effects}  (\href{../doc/plot_marginal_effects.html}{related vignette})
+#'   \emph{Marginal Effects}  (\href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{related vignette})
 #'   \describe{
 #'     \item{\code{type = "pred"}}{Predicted values (marginal effects) for
 #'     specific model terms. See \code{\link[ggeffects]{ggpredict}} for details.}
 #'     \item{\code{type = "eff"}}{Similar to \code{type = "pred"}, however,
 #'     discrete predictors are held constant at their proportions (not reference
 #'     level). See \code{\link[ggeffects]{ggeffect}} for details.}
+#'     \item{\code{type = "emm"}}{Similar to \code{type = "eff"}, see
+#'     \code{\link[ggeffects]{ggemmeans}} for details.}
 #'     \item{\code{type = "int"}}{Marginal effects of interaction terms in
 #'     \code{model}.}
 #'   }
@@ -112,7 +114,7 @@
 #'   Each group of coefficients gets its own color (see 'Examples').
 #' @param order.terms Numeric vector, indicating in which order the coefficients
 #'   should be plotted. See examples in
-#'   \href{../doc/plot_model_estimates.html}{this package-vignette}.
+#'   \href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{this package-vignette}.
 #' @param pred.type Character, only applies for \emph{Marginal Effects} plots
 #'   with mixed effects models. Indicates whether predicted values should be
 #'   conditioned on random effects (\code{pred.type = "re"}) or fixed effects
@@ -221,7 +223,7 @@
 #'   \itemize{
 #'     \item If not specified, a default color brewer palette will be used, which is suitable for the plot style.
 #'     \item If \code{"gs"}, a greyscale will be used.
-#'     \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+#'     \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{https://strengejacke.github.io/sjPlot/articles/blackwhitefigures.html}{this package-vignette}).
 #'     \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
 #'     \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
 #'     \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
@@ -243,10 +245,12 @@
 #'   \code{"l"}) or \code{"varname"} (or \code{"v"}) and \code{case} is not
 #'   specified, it will be set to \code{NULL} - this is a more convenient
 #'   default when prefixing labels.
-#' @param auto.label Logical, if \code{TRUE} (the default), plot-labels are
-#'   based on value and variable labels, if the data is labelled. See
-#'   \code{\link[sjlabelled]{get_label}} and
-#'   \code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
+#' @param auto.label Logical, if \code{TRUE} (the default),
+#'    and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+#'    \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+#'    of the coefficients, which will be used as predictor labels. If data is
+#'    not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+#'    is used to create pretty labels. If \code{auto.label = FALSE},
 #'   original variable names and value labels (factor levels) are used.
 #' @param prefix.labels Indicates whether the value labels of categorical variables
 #'   should be prefixed, e.g. with the variable name or variable label. See
@@ -340,11 +344,11 @@
 #'   }
 #'   \item{\code{type = "pred"}}{Plots marginal effects. Simply wraps
 #'     \code{\link[ggeffects]{ggpredict}}. See also
-#'     \href{../doc/plot_marginal_effects.html}{this package-vignette}.
+#'     \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
 #'   }
 #'   \item{\code{type = "eff"}}{Plots marginal effects. Simply wraps
 #'     \code{\link[ggeffects]{ggeffect}}. See also
-#'     \href{../doc/plot_marginal_effects.html}{this package-vignette}.
+#'     \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
 #'   }
 #'   \item{\code{type = "int"}}{A shortcut for marginal effects plots, where
 #'     interaction terms are automatically detected and used as
@@ -358,7 +362,7 @@
 #'     (moderating variable). Use \code{type = "pred"} or \code{type = "eff"}
 #'     and specify a certain order in the \code{terms}-argument to indicate
 #'     which variable(s) should be used as moderator. See also
-#'     \href{../doc/plot_interactions.html}{this package-vignette}.
+#'     \href{https://strengejacke.github.io/sjPlot/articles/plot_interactions.html}{this package-vignette}.
 #'   }
 #'   \item{\code{type = "slope"} and \code{type = "resid"}}{Simple diagnostic-plots,
 #'   where a linear model for each single predictor is plotted against the
@@ -442,7 +446,6 @@
 #'   plot_model(m, bpe.style = "dot")
 #' }}
 #'
-#' @importFrom sjstats std_beta
 #' @importFrom insight model_info find_predictors
 #' @importFrom sjmisc word_wrap str_contains
 #' @importFrom sjlabelled get_dv_labels get_term_labels
@@ -453,7 +456,7 @@
 #'
 #' @export
 plot_model <- function(model,
-                       type = c("est", "re", "eff", "pred", "int", "std", "std2", "slope", "resid", "diag"),
+                       type = c("est", "re", "eff", "emm", "pred", "int", "std", "std2", "slope", "resid", "diag"),
                        transform,
                        terms = NULL,
                        sort.est = NULL,
@@ -550,7 +553,10 @@ plot_model <- function(model,
     title <- sjmisc::word_wrap(title, wrap = wrap.title)
 
     # labels for axis with term names
-    if (is.null(axis.labels)) axis.labels <- sjlabelled::get_term_labels(model, case = case, prefix = prefix.labels, ...)
+    if (is.null(axis.labels)) {
+      term_labels <- sjlabelled::get_term_labels(model, case = case, prefix = prefix.labels, ...)
+      if (.labelled_model_data(model) || is.stan(model)) axis.labels <- term_labels
+    }
     axis.labels <- sjmisc::word_wrap(axis.labels, wrap = wrap.labels)
 
     # title for axis with estimate values
@@ -666,7 +672,7 @@ plot_model <- function(model,
       ...
     )
 
-  } else if (type %in% c("pred", "eff")) {
+  } else if (type %in% c("pred", "eff", "emm")) {
 
     # plot marginal effects ----
 

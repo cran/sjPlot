@@ -1,7 +1,9 @@
 #' @importFrom sjstats robust
 #' @importFrom stats qnorm pnorm
-tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val, ...) {
-  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...)
+tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val, standardize = FALSE, ...) {
+  if (!is.logical(standardize) && standardize == "") standardize <- NULL
+  if (is.logical(standardize) && standardize == FALSE) standardize <- NULL
+  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, ...)
 
   # get robust standard errors, if requestes, and replace former s.e.
 
@@ -24,16 +26,20 @@ tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.ze
 }
 
 
+#' @importFrom effectsize standardize
 #' @importFrom parameters model_parameters standardize_names dof_kenward p_value_wald se_kenward
-get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, ...) {
+get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, ...) {
   if (is.stan(model)) {
     out <- tidy_stan_model(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...)
   } else {
+    if (!is.null(standardize)) {
+      if (isTRUE(standardize)) standardize <- "std"
+      model <- effectsize::standardize(model, two_sd = isTRUE(standardize == "std2"))
+    }
+
     component <- ifelse(show.zeroinf, "all", "conditional")
-    out <- parameters::standardize_names(
-      parameters::model_parameters(model, ci = ci.lvl, standardize = FALSE, component = component),
-      style = "broom"
-    )
+    model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component)
+    out <- parameters::standardize_names(model_params, style = "broom")
 
     column <- which(colnames(out) == "response")
     if (length(column)) colnames(out)[column] <- ifelse(isTRUE(facets), "facet", "response.level")
@@ -64,6 +70,8 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
         error = function(x) { out }
       )
     }
+
+    attr(out, "pretty_names") <- attributes(model_params)$pretty_names
   }
 
   out

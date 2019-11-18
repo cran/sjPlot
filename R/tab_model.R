@@ -27,9 +27,11 @@
 #' @param pred.labels Character vector with labels of predictor variables.
 #'    If not \code{NULL}, \code{pred.labels} will be used in the first
 #'    table column with the predictors' names. By default, if \code{auto.label = TRUE}
-#'    and \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
-#'    of the coefficients, which will be used as predictor labels.
-#'    If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
+#'    and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+#'    \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+#'    of the coefficients, which will be used as predictor labels. If data is
+#'    not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+#'    is used to create pretty labels. If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
 #'    variable names as used in the model formula are used as predictor
 #'    labels. If \code{pred.labels} is a named vector, predictor labels (by
 #'    default, the names of the model's coefficients) will be matched with the
@@ -136,7 +138,7 @@
 #'   or both (\code{"both"}). May be abbreviated.
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions,
 #'    according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
-#'    See 'Details' or \href{../doc/table_css.html}{this package-vignette}.
+#'    See 'Details' or \href{https://strengejacke.github.io/sjPlot/articles/table_css.html}{this package-vignette}.
 #' @param file Destination file, if the output should be saved as file.
 #'    If \code{NULL} (default), the output will be saved as temporary file and
 #'    openend either in the IDE's viewer pane or the default web browser.
@@ -162,9 +164,9 @@
 #'         default behaviour (i.e. \code{file = NULL}).
 #'         \cr \cr
 #'         Examples are shown in these three vignettes:
-#'         \href{../doc/tab_model_estimates.html}{Summary of Regression Models as HTML Table},
-#'         \href{../doc/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
-#'         \href{../doc/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
+#'         \href{https://strengejacke.github.io/sjPlot/articles/tab_model_estimates.html}{Summary of Regression Models as HTML Table},
+#'         \href{https://strengejacke.github.io/sjPlot/articles/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
+#'         \href{https://strengejacke.github.io/sjPlot/articles/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
 #'
 #' @details \strong{Standardized Estimates}
 #'    \cr \cr
@@ -206,7 +208,6 @@
 #' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
 #' @importFrom sjlabelled get_dv_labels get_term_labels
 #' @importFrom sjmisc word_wrap var_rename add_columns add_case
-#' @importFrom sjstats std_beta
 #' @importFrom insight model_info is_multivariate find_random get_data find_predictors
 #' @importFrom performance r2 icc
 #' @importFrom stats nobs
@@ -480,15 +481,27 @@ tab_model <- function(
 
       # tidy output of standardized values ----
 
-      if (!is.null(show.std) && fam.info$is_linear && !is.stan(model)) {
-        dat <- model %>%
-          sjstats::std_beta(type = show.std, ci.lvl = ci.lvl) %>%
+      if (!is.null(show.std) && !is.stan(model)) {
+        std_method <- switch(show.std, "std" = "refit", "std2" = "2sd", "")
+        dat <- tidy_model(
+          model = model,
+          ci.lvl = ci.lvl,
+          tf = transform,
+          type = "est",
+          bpe = bpe,
+          se = show.se,
+          robust = list(vcov.fun = vcov.fun, vcov.type = vcov.type, vcov.args = vcov.args),
+          facets = FALSE,
+          show.zeroinf = show.zeroinf,
+          p.val = p.val,
+          standardize = std_method
+        ) %>%
           sjmisc::var_rename(
+            estimate = "std.estimate",
             std.error = "std.se",
             conf.low = "std.conf.low",
             conf.high = "std.conf.high"
           ) %>%
-          sjmisc::add_case(.after = -1) %>%
           dplyr::select(-1) %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
@@ -918,37 +931,42 @@ tab_model <- function(
   # get default labels for dv and terms ----
 
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
-    pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
-    category.values <- attr(pred.labels, "category.value")
+    if (.labelled_model_data(models) || any(sapply(models, is.stan))) {
+      pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
+      category.values <- attr(pred.labels, "category.value")
 
-    # remove random effect labels
-    re_terms <- unlist(sapply(
-      models,
-      insight::find_predictors,
-      effects = "random",
-      component = "all",
-      flatten = TRUE
-     ))
+      # remove random effect labels
+      re_terms <- unlist(sapply(
+        models,
+        insight::find_predictors,
+        effects = "random",
+        component = "all",
+        flatten = TRUE
+      ))
 
-    if (!is.null(re_terms)) {
-      pred.labels.tmp <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = "varname")
-      for (.re in re_terms) {
-        found <- grepl(paste0("^", .re, ":"), pred.labels.tmp)
-        if (any(found)) {
-          pred.labels <- pred.labels[!found]
-          category.values <- category.values[!found]
-          pred.labels.tmp <- pred.labels.tmp[!found]
+      if (!is.null(re_terms)) {
+        pred.labels.tmp <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = "varname")
+        for (.re in re_terms) {
+          found <- grepl(paste0("^", .re, ":"), pred.labels.tmp)
+          if (any(found)) {
+            pred.labels <- pred.labels[!found]
+            category.values <- category.values[!found]
+            pred.labels.tmp <- pred.labels.tmp[!found]
+          }
         }
       }
-    }
 
-    no.dupes <- !duplicated(names(pred.labels))
-    pred.labels <- prepare.labels(
-      x = pred.labels[no.dupes],
-      grp = show.reflvl,
-      categorical = category.values[no.dupes],
-      models = models
-    )
+      no.dupes <- !duplicated(names(pred.labels))
+      pred.labels <- prepare.labels(
+        x = pred.labels[no.dupes],
+        grp = show.reflvl,
+        categorical = category.values[no.dupes],
+        models = models
+      )
+    } else {
+      pred.labels <- unique(unlist(lapply(models, parameters::format_parameters)))
+      show.reflvl <- FALSE
+    }
   } else {
     # no automatic grouping of table rows for categorical variables
     # when user supplies own labels
@@ -1098,10 +1116,10 @@ tab_model <- function(
     if (!sjmisc::is_empty(pos)) x <- string.std
 
     pos <- grep("^std.se", x)
-    if (!sjmisc::is_empty(pos)) x <- paste("standardized", string.se)
+    if (!sjmisc::is_empty(pos)) x <- string.std_se
 
     pos <- grep("^std.conf.int", x)
-    if (!sjmisc::is_empty(pos)) x <- paste("standardized", string.ci)
+    if (!sjmisc::is_empty(pos)) x <- string.std_ci
 
     pos <- grep("^p.value", x)
     if (!sjmisc::is_empty(pos)) x <- string.p

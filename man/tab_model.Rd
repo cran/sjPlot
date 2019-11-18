@@ -133,16 +133,18 @@ was categorical and has at least the factor levels \code{2} and \code{3}).}
 
 \item{order.terms}{Numeric vector, indicating in which order the coefficients
 should be plotted. See examples in
-\href{../doc/plot_model_estimates.html}{this package-vignette}.}
+\href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{this package-vignette}.}
 
 \item{title}{String, will be used as table caption.}
 
 \item{pred.labels}{Character vector with labels of predictor variables.
 If not \code{NULL}, \code{pred.labels} will be used in the first
 table column with the predictors' names. By default, if \code{auto.label = TRUE}
-and \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
-of the coefficients, which will be used as predictor labels.
-If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
+and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+\code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+of the coefficients, which will be used as predictor labels. If data is
+not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+is used to create pretty labels. If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
 variable names as used in the model formula are used as predictor
 labels. If \code{pred.labels} is a named vector, predictor labels (by
 default, the names of the model's coefficients) will be matched with the
@@ -255,10 +257,12 @@ it will be set to \code{"parsed"}, unless \code{prefix.labels} is not
 specified, it will be set to \code{NULL} - this is a more convenient
 default when prefixing labels.}
 
-\item{auto.label}{Logical, if \code{TRUE} (the default), plot-labels are
-based on value and variable labels, if the data is labelled. See
-\code{\link[sjlabelled]{get_label}} and
-\code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
+\item{auto.label}{Logical, if \code{TRUE} (the default),
+ and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+ \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+ of the coefficients, which will be used as predictor labels. If data is
+ not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+ is used to create pretty labels. If \code{auto.label = FALSE},
 original variable names and value labels (factor levels) are used.}
 
 \item{prefix.labels}{Indicates whether the value labels of categorical variables
@@ -276,7 +280,7 @@ calculate the mean value of the posterior distribution.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
 according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
-See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
+See 'Details' or \href{https://strengejacke.github.io/sjPlot/articles/table_css.html}{this package-vignette}.}
 
 \item{file}{Destination file, if the output should be saved as file.
 If \code{NULL} (default), the output will be saved as temporary file and
@@ -343,7 +347,7 @@ The HTML tables can either be saved as file and manually opened (use argument \c
         default behaviour (i.e. \code{file = NULL}).
         \cr \cr
         Examples are shown in these three vignettes:
-        \href{../doc/tab_model_estimates.html}{Summary of Regression Models as HTML Table},
-        \href{../doc/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
-        \href{../doc/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
+        \href{https://strengejacke.github.io/sjPlot/articles/tab_model_estimates.html}{Summary of Regression Models as HTML Table},
+        \href{https://strengejacke.github.io/sjPlot/articles/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
+        \href{https://strengejacke.github.io/sjPlot/articles/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
 }

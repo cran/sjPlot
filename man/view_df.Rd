@@ -9,7 +9,7 @@ view_df(x, weight.by = NULL, alternate.rows = TRUE, show.id = TRUE,
   show.labels = TRUE, show.frq = FALSE, show.prc = FALSE,
   show.wtd.frq = FALSE, show.wtd.prc = FALSE, show.na = FALSE,
   max.len = 15, sort.by.name = FALSE, wrap.labels = 50,
-  verbose = TRUE, CSS = NULL, encoding = NULL, file = NULL,
+  verbose = FALSE, CSS = NULL, encoding = NULL, file = NULL,
   use.viewer = TRUE, remove.spaces = TRUE)
 }
 \arguments{
@@ -73,7 +73,7 @@ while creating the output.}
 
 \item{CSS}{A \code{\link{list}} with user-defined style-sheet-definitions,
 according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
-See 'Details' or \href{../doc/table_css.html}{this package-vignette}.}
+See 'Details' or \href{https://strengejacke.github.io/sjPlot/articles/table_css.html}{this package-vignette}.}
 
 \item{encoding}{Character vector, indicating the charset encoding used
 for variable and value labels. Default is \code{"UTF-8"}. For Windows

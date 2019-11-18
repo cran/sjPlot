@@ -5,8 +5,8 @@
 \alias{get_model_data}
 \title{Plot regression models}
 \usage{
-plot_model(model, type = c("est", "re", "eff", "pred", "int", "std",
-  "std2", "slope", "resid", "diag"), transform, terms = NULL,
+plot_model(model, type = c("est", "re", "eff", "emm", "pred", "int",
+  "std", "std2", "slope", "resid", "diag"), transform, terms = NULL,
   sort.est = NULL, rm.terms = NULL, group.terms = NULL,
   order.terms = NULL, pred.type = c("fe", "re"),
   mdrt.values = c("minmax", "meansd", "zeromax", "quart", "all"),
@@ -38,7 +38,7 @@ kinds of models are supported, e.g. from packages like \pkg{stats},
 \pkg{MASS}, \pkg{brms} etc.}
 
 \item{type}{Type of plot. There are three groups of plot-types: \cr \cr
-\emph{Coefficients} (\href{../doc/plot_model_estimates.html}{related vignette})
+\emph{Coefficients} (\href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{related vignette})
 \describe{
   \item{\code{type = "est"}}{Forest-plot of estimates. If the fitted model
   only contains one predictor, slope-line is plotted.}
@@ -48,13 +48,15 @@ kinds of models are supported, e.g. from packages like \pkg{stats},
   \item{\code{type = "std2"}}{Forest-plot of standardized beta values,
   however, standardization is done by dividing by two sd (see 'Details').}
 }
-\emph{Marginal Effects}  (\href{../doc/plot_marginal_effects.html}{related vignette})
+\emph{Marginal Effects}  (\href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{related vignette})
 \describe{
   \item{\code{type = "pred"}}{Predicted values (marginal effects) for
   specific model terms. See \code{\link[ggeffects]{ggpredict}} for details.}
   \item{\code{type = "eff"}}{Similar to \code{type = "pred"}, however,
   discrete predictors are held constant at their proportions (not reference
   level). See \code{\link[ggeffects]{ggeffect}} for details.}
+  \item{\code{type = "emm"}}{Similar to \code{type = "eff"}, see
+  \code{\link[ggeffects]{ggemmeans}} for details.}
   \item{\code{type = "int"}}{Marginal effects of interaction terms in
   \code{model}.}
 }
@@ -146,7 +148,7 @@ Each group of coefficients gets its own color (see 'Examples').}
 
 \item{order.terms}{Numeric vector, indicating in which order the coefficients
 should be plotted. See examples in
-\href{../doc/plot_model_estimates.html}{this package-vignette}.}
+\href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{this package-vignette}.}
 
 \item{pred.type}{Character, only applies for \emph{Marginal Effects} plots
 with mixed effects models. Indicates whether predicted values should be
@@ -259,7 +261,7 @@ color palette. Following options are valid for the \code{colors} argument:
 \itemize{
   \item If not specified, a default color brewer palette will be used, which is suitable for the plot style.
   \item If \code{"gs"}, a greyscale will be used.
-  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{https://strengejacke.github.io/sjPlot/articles/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
@@ -322,10 +324,12 @@ it will be set to \code{"parsed"}, unless \code{prefix.labels} is not
 specified, it will be set to \code{NULL} - this is a more convenient
 default when prefixing labels.}
 
-\item{auto.label}{Logical, if \code{TRUE} (the default), plot-labels are
-based on value and variable labels, if the data is labelled. See
-\code{\link[sjlabelled]{get_label}} and
-\code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
+\item{auto.label}{Logical, if \code{TRUE} (the default),
+ and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+ \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+ of the coefficients, which will be used as predictor labels. If data is
+ not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+ is used to create pretty labels. If \code{auto.label = FALSE},
 original variable names and value labels (factor levels) are used.}
 
 \item{prefix.labels}{Indicates whether the value labels of categorical variables
@@ -418,11 +422,11 @@ Depending on the plot-type, \code{plot_model()} returns a
   }
   \item{\code{type = "pred"}}{Plots marginal effects. Simply wraps
     \code{\link[ggeffects]{ggpredict}}. See also
-    \href{../doc/plot_marginal_effects.html}{this package-vignette}.
+    \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
   }
   \item{\code{type = "eff"}}{Plots marginal effects. Simply wraps
     \code{\link[ggeffects]{ggeffect}}. See also
-    \href{../doc/plot_marginal_effects.html}{this package-vignette}.
+    \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
   }
   \item{\code{type = "int"}}{A shortcut for marginal effects plots, where
     interaction terms are automatically detected and used as
@@ -436,7 +440,7 @@ Depending on the plot-type, \code{plot_model()} returns a
     (moderating variable). Use \code{type = "pred"} or \code{type = "eff"}
     and specify a certain order in the \code{terms}-argument to indicate
     which variable(s) should be used as moderator. See also
-    \href{../doc/plot_interactions.html}{this package-vignette}.
+    \href{https://strengejacke.github.io/sjPlot/articles/plot_interactions.html}{this package-vignette}.
   }
   \item{\code{type = "slope"} and \code{type = "resid"}}{Simple diagnostic-plots,
   where a linear model for each single predictor is plotted against the

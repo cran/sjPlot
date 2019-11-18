@@ -4,7 +4,7 @@
 \alias{plot_gpt}
 \title{Plot grouped proportional tables}
 \usage{
-plot_gpt(data, x, y, grp, colors = "metro ui", geom.size = 2.5,
+plot_gpt(data, x, y, grp, colors = "metro", geom.size = 2.5,
   shape.fill.color = "#f0f0f0", shapes = c(15, 16, 17, 18, 21, 22, 23,
   24, 25, 7, 8, 9, 10, 12), title = NULL, axis.labels = NULL,
   axis.titles = NULL, legend.title = NULL, legend.labels = NULL,
@@ -32,7 +32,7 @@ color palette. Following options are valid for the \code{colors} argument:
 \itemize{
   \item If not specified, a default color brewer palette will be used, which is suitable for the plot style.
   \item If \code{"gs"}, a greyscale will be used.
-  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{https://strengejacke.github.io/sjPlot/articles/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).

@@ -28,13 +28,10 @@ automatically use \code{"exp"} as transformation for applicable classes of
 models remain untransformed. Use \code{NULL} if you want the raw,
 non-transformed estimates.}
 
-\item{std.est}{For linear models, choose whether standardized coefficients should
-be used for plotting. Default is no standardization.
-\describe{
-  \item{\code{NULL}}{(default) no standardization, returns original estimates.}
-  \item{\code{"std"}}{standardized beta values.}
-  \item{\code{"std2"}}{standardized beta values, however, standardization is done by rescaling estimates by dividing them by two sd (see \code{\link[sjstats]{std_beta}}).}
-}}
+\item{std.est}{Choose whether standardized coefficients should be used
+for plotting. Default is no standardization (\code{std.est = NULL}).
+May be \code{"std"} for standardized beta values or \code{"std2"}, where
+standardization is done by rescaling estimates by dividing them by two sd.}
 
 \item{rm.terms}{Character vector with names that indicate which terms should
 be removed from the plot. Counterpart to \code{terms}. \code{rm.terms =
@@ -113,7 +110,7 @@ color palette. Following options are valid for the \code{colors} argument:
 \itemize{
   \item If not specified, a default color brewer palette will be used, which is suitable for the plot style.
   \item If \code{"gs"}, a greyscale will be used.
-  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{../doc/blackwhitefigures.html}{this package-vignette}).
+  \item If \code{"bw"}, and plot-type is a line-plot, the plot is black/white and uses different line types to distinguish groups (see \href{https://strengejacke.github.io/sjPlot/articles/blackwhitefigures.html}{this package-vignette}).
   \item If \code{colors} is any valid color brewer palette name, the related palette will be used. Use \code{\link[RColorBrewer]{display.brewer.all}} to view all available palette names.
   \item There are some pre-defined color palettes in this package, see \code{\link{sjPlot-themes}} for details.
   \item Else specify own color values or names as vector (e.g. \code{colors = "#00ff00"} or \code{colors = c("firebrick", "blue")}).
@@ -170,10 +167,12 @@ estimates or values.}
 \item{grid}{Logical, if \code{TRUE}, multiple plots are plotted as grid
 layout.}
 
-\item{auto.label}{Logical, if \code{TRUE} (the default), plot-labels are
-based on value and variable labels, if the data is labelled. See
-\code{\link[sjlabelled]{get_label}} and
-\code{\link[sjlabelled]{get_term_labels}} for details. If \code{FALSE},
+\item{auto.label}{Logical, if \code{TRUE} (the default),
+ and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
+ \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+ of the coefficients, which will be used as predictor labels. If data is
+ not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
+ is used to create pretty labels. If \code{auto.label = FALSE},
 original variable names and value labels (factor levels) are used.}
 
 \item{prefix.labels}{Indicates whether the value labels of categorical variables
@@ -186,7 +185,7 @@ A ggplot-object.
 }
 \description{
 Plot and compare regression coefficients with confidence
-               intervals of multiple regression models in one plot.
+  intervals of multiple regression models in one plot.
 }
 \examples{
 data(efc)

@@ -1,3 +1,26 @@
+# sjPlot 2.8.0
+
+## Breaking changes
+
+* Cluster functions have been removed, as these are now re-implemented in the **parameters** package.
+
+## General
+
+* Standardization of model parameters (in `plot_model()` or `tab_model()`) now uses standardization based on refitting the model (see [vignette](https://easystats.github.io/effectsize/articles/standardize_parameters.html) for details).
+
+## Changes to functions
+
+* `plot_model()` gets `type = "emm"` as marginal effects plot type, which is similar to `type = "eff"`. See [Plotting Marginal Effects of Regression Models](https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html) for details.
+* The `verbose`-argument in `view_df()` now defaults to `FALSE`.
+* Updated and re-arranged internal color palette, especially to have a better behaviour when selecting colors from continuous palettes (see `show_pals()`).
+
+## Bug fixes
+
+* `sort.est = NULL` in `plot_model()` now preserves original order of coefficients.
+* Fixed bug in automatic axis labelling for `plot_frq()` for non-labelled, numeric values.
+* Fixed bug in `plot_frq()` when plotting factors.
+* Arguments `string.std_ci` and `string.std_se` are no longer ignored in `tab_model()`.
+
 # sjPlot 2.7.2
 
 ## General
