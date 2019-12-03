@@ -2,12 +2,13 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.8.0
+Version: 2.8.1
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
     person("Alexander", "Bartel", role = "ctb", comment = c(ORCID = "0000-0002-1280-6138")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb"),
-    person(given = "Chuck", family = "Powell", role = "ctb", email = "ibecav@gmail.com", comment = c(ORCID = "0000-0002-3606-2188"))
+    person(given = "Chuck", family = "Powell", role = "ctb", email = "ibecav@gmail.com", comment = c(ORCID = "0000-0002-3606-2188")), 
+    person(given = "Amir", family = "Djalovski", role = "ctb", email = "Amir.DJV@gmail.com")
           )
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
@@ -22,21 +23,23 @@ License: GPL-3
 Depends: R (>= 3.2), graphics, grDevices, stats, utils
 Imports: bayestestR (>= 0.4.0), dplyr (>= 0.8.1), effectsize, forcats,
         ggeffects (>= 0.13.0), glmmTMB, ggplot2 (>= 3.2.0), ggrepel,
-        knitr, insight (>= 0.6.0), lme4 (>= 1.1-12), magrittr, MASS,
+        knitr, insight (>= 0.7.0), lme4 (>= 1.1-12), magrittr, MASS,
         modelr, parameters (>= 0.2.0), performance (>= 0.4.0), psych,
         purrr, rlang, scales, sjlabelled (>= 1.1.1), sjmisc (>= 2.8.2),
         sjstats (>= 0.17.7), tidyr (>= 1.0.0)
 Suggests: brms, car, cluster, cowplot, GPArotation, gridExtra,
-        ggridges, httr, pscl, rstanarm, survey, TMB, Zelig, testthat
+        ggridges, httr, pscl, rmarkdown, rstanarm, survey, TMB, Zelig,
+        testthat
 URL: https://strengejacke.github.io/sjPlot/
 BugReports: https://github.com/strengejacke/sjPlot/issues
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-11-18 09:01:52 UTC; mail
+Packaged: 2019-12-03 09:42:51 UTC; mail
 Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Alexander Bartel [ctb] (<https://orcid.org/0000-0002-1280-6138>),
   Carsten Schwemmer [ctb],
-  Chuck Powell [ctb] (<https://orcid.org/0000-0002-3606-2188>)
+  Chuck Powell [ctb] (<https://orcid.org/0000-0002-3606-2188>),
+  Amir Djalovski [ctb]
 Repository: CRAN
-Date/Publication: 2019-11-18 10:20:02 UTC
+Date/Publication: 2019-12-03 11:20:02 UTC

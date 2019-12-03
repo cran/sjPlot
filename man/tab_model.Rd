@@ -4,34 +4,77 @@
 \alias{tab_model}
 \title{Print regression models as HTML table}
 \usage{
-tab_model(..., transform, show.intercept = TRUE, show.est = TRUE,
-  show.ci = 0.95, show.ci50 = FALSE, show.se = NULL,
-  show.std = NULL, show.p = TRUE, show.stat = FALSE,
-  show.df = FALSE, show.zeroinf = TRUE, show.r2 = TRUE,
-  show.icc = TRUE, show.re.var = TRUE, show.ngroups = TRUE,
-  show.fstat = FALSE, show.aic = FALSE, show.aicc = FALSE,
-  show.dev = FALSE, show.loglik = FALSE, show.obs = TRUE,
-  show.reflvl = FALSE, terms = NULL, rm.terms = NULL,
-  order.terms = NULL, title = NULL, pred.labels = NULL,
-  dv.labels = NULL, wrap.labels = 25, vcov.fun = NULL,
-  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m",
-  "HC5"), vcov.args = NULL, string.pred = "Predictors",
-  string.est = "Estimate", string.std = "std. Beta",
-  string.ci = "CI", string.se = "std. Error",
+tab_model(
+  ...,
+  transform,
+  show.intercept = TRUE,
+  show.est = TRUE,
+  show.ci = 0.95,
+  show.ci50 = FALSE,
+  show.se = NULL,
+  show.std = NULL,
+  show.p = TRUE,
+  show.stat = FALSE,
+  show.df = FALSE,
+  show.zeroinf = TRUE,
+  show.r2 = TRUE,
+  show.icc = TRUE,
+  show.re.var = TRUE,
+  show.ngroups = TRUE,
+  show.fstat = FALSE,
+  show.aic = FALSE,
+  show.aicc = FALSE,
+  show.dev = FALSE,
+  show.loglik = FALSE,
+  show.obs = TRUE,
+  show.reflvl = FALSE,
+  terms = NULL,
+  rm.terms = NULL,
+  order.terms = NULL,
+  title = NULL,
+  pred.labels = NULL,
+  dv.labels = NULL,
+  wrap.labels = 25,
+  bootstrap = FALSE,
+  iterations = 1000,
+  seed = NULL,
+  vcov.fun = NULL,
+  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+  vcov.args = NULL,
+  string.pred = "Predictors",
+  string.est = "Estimate",
+  string.std = "std. Beta",
+  string.ci = "CI",
+  string.se = "std. Error",
   string.std_se = "standardized std. Error",
-  string.std_ci = "standardized CI", string.p = "p",
-  string.df = "df", string.stat = "Statistic",
-  string.resp = "Response", string.intercept = "(Intercept)",
-  strings = NULL, ci.hyphen = "&nbsp;&ndash;&nbsp;",
-  minus.sign = "&#45;", collapse.ci = FALSE, collapse.se = FALSE,
-  linebreak = TRUE, col.order = c("est", "se", "std.est", "std.se",
-  "ci", "std.ci", "ci.inner", "ci.outer", "stat", "p", "df",
-  "response.level"), digits = 2, digits.p = 3, emph.p = TRUE,
-  p.val = c("wald", "kr"), p.style = c("numeric", "asterisk", "both"),
-  p.threshold = c(0.05, 0.01, 0.001), case = "parsed",
-  auto.label = TRUE, prefix.labels = c("none", "varname", "label"),
-  bpe = "median", CSS = css_theme("regression"), file = NULL,
-  use.viewer = TRUE)
+  string.std_ci = "standardized CI",
+  string.p = "p",
+  string.df = "df",
+  string.stat = "Statistic",
+  string.resp = "Response",
+  string.intercept = "(Intercept)",
+  strings = NULL,
+  ci.hyphen = "&nbsp;&ndash;&nbsp;",
+  minus.sign = "&#45;",
+  collapse.ci = FALSE,
+  collapse.se = FALSE,
+  linebreak = TRUE,
+  col.order = c("est", "se", "std.est", "std.se", "ci", "std.ci", "ci.inner",
+    "ci.outer", "stat", "p", "df", "response.level"),
+  digits = 2,
+  digits.p = 3,
+  emph.p = TRUE,
+  p.val = c("wald", "kr"),
+  p.style = c("numeric", "asterisk", "both"),
+  p.threshold = c(0.05, 0.01, 0.001),
+  case = "parsed",
+  auto.label = TRUE,
+  prefix.labels = c("none", "varname", "label"),
+  bpe = "median",
+  CSS = css_theme("regression"),
+  file = NULL,
+  use.viewer = TRUE
+)
 }
 \arguments{
 \item{...}{One or more regression models, including glm's or mixed models.
@@ -157,6 +200,12 @@ fitted models. See 'Examples'.}
 
 \item{wrap.labels}{Numeric, determines how many chars of the value, variable
 or axis labels are displayed in one line and when a line break is inserted.}
+
+\item{bootstrap}{Logical, if \code{TRUE}, returns bootstrapped estimates..}
+
+\item{iterations}{Numeric, number of bootsrap iterations (default is 1000).}
+
+\item{seed}{Numeric, the number of the seed to replicate bootstrapped estimates. If \code{NULL}, uses random seed.}
 
 \item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
 from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust

@@ -383,6 +383,7 @@ plot_frq_helper <- function(
     stddev <- stats::sd(var.cnt, na.rm = TRUE)
   } else {
     mittelwert <- stats::weighted.mean(var.cnt, weight.by, na.rm = TRUE)
+    ## TODO replace with "weighted_sd()" later
     stddev <- sjstats::wtd_sd(var.cnt, weights = weight.by)
   }
 

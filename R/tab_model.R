@@ -113,6 +113,9 @@
 #'    indicate the reference level of the related factor.
 #' @param show.ci50 Logical, if \code{TRUE}, for Bayesian models, a second
 #'    credible interval is added to the table output.
+#' @param bootstrap Logical, if \code{TRUE}, returns bootstrapped estimates..
+#' @param iterations Numeric, number of bootsrap iterations (default is 1000).
+#' @param seed Numeric, the number of the seed to replicate bootstrapped estimates. If \code{NULL}, uses random seed.
 #' @param show.fstat Logical, if \code{TRUE}, the F-statistics for each model is
 #'    printed in the table summary. This option is not supported by all model types.
 #' @param show.aic Logical, if \code{TRUE}, the AIC value for each model is printed
@@ -249,6 +252,10 @@ tab_model <- function(
   dv.labels = NULL,
   wrap.labels = 25,
 
+  bootstrap = FALSE,
+  iterations = 1000,
+  seed = NULL,
+
   vcov.fun = NULL,
   vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
   vcov.args = NULL,
@@ -272,6 +279,7 @@ tab_model <- function(
   collapse.ci = FALSE,
   collapse.se = FALSE,
   linebreak = TRUE,
+
 
   col.order = c(
     "est",
@@ -414,7 +422,11 @@ tab_model <- function(
         robust = list(vcov.fun = vcov.fun, vcov.type = vcov.type, vcov.args = vcov.args),
         facets = FALSE,
         show.zeroinf = show.zeroinf,
-        p.val = p.val
+        p.val = p.val,
+        bootstrap = bootstrap,
+        iterations = iterations,
+        seed = seed
+
       )
 
 
@@ -494,7 +506,10 @@ tab_model <- function(
           facets = FALSE,
           show.zeroinf = show.zeroinf,
           p.val = p.val,
-          standardize = std_method
+          standardize = std_method,
+          bootstrap = bootstrap,
+          iterations = iterations,
+          seed = seed
         ) %>%
           sjmisc::var_rename(
             estimate = "std.estimate",
@@ -644,6 +659,9 @@ tab_model <- function(
       } else {
         vars <- NULL
       }
+
+      # sanity check for models currently not supported by "get_variance()"
+      if (!is.null(vars) && length(vars) == 1 && is.na(vars)) vars <- NULL
 
       # Add ICC statistic ----
 
@@ -931,7 +949,7 @@ tab_model <- function(
   # get default labels for dv and terms ----
 
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
-    if (.labelled_model_data(models) || any(sapply(models, is.stan))) {
+    if (.labelled_model_data(models) || any(sapply(models, is.stan)) || isTRUE(show.reflvl)) {
       pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
       category.values <- attr(pred.labels, "category.value")
 
@@ -964,7 +982,11 @@ tab_model <- function(
         models = models
       )
     } else {
-      pred.labels <- unique(unlist(lapply(models, parameters::format_parameters)))
+      pred.labels <- NULL
+      for (pl_counter in 1:length(models)) {
+        pred.labels <- c(pred.labels, parameters::format_parameters(models[[pl_counter]]))
+      }
+      pred.labels <- pred.labels[!duplicated(names(pred.labels))]
       show.reflvl <- FALSE
     }
   } else {

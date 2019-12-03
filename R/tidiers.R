@@ -1,9 +1,13 @@
 #' @importFrom sjstats robust
 #' @importFrom stats qnorm pnorm
-tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val, standardize = FALSE, ...) {
+tidy_model <- function(
+  model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val,
+  standardize = FALSE, bootstrap = FALSE, iterations = 1000, seed = NULL, ...) {
+
   if (!is.logical(standardize) && standardize == "") standardize <- NULL
   if (is.logical(standardize) && standardize == FALSE) standardize <- NULL
-  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, ...)
+
+  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, bootstrap, iterations, seed, ...)
 
   # get robust standard errors, if requestes, and replace former s.e.
 
@@ -28,7 +32,7 @@ tidy_model <- function(model, ci.lvl, tf, type, bpe, se, robust, facets, show.ze
 
 #' @importFrom effectsize standardize
 #' @importFrom parameters model_parameters standardize_names dof_kenward p_value_wald se_kenward
-get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, ...) {
+get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, bootstrap, iterations, seed, ...) {
   if (is.stan(model)) {
     out <- tidy_stan_model(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...)
   } else {
@@ -36,9 +40,11 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
       if (isTRUE(standardize)) standardize <- "std"
       model <- effectsize::standardize(model, two_sd = isTRUE(standardize == "std2"))
     }
-
-    component <- ifelse(show.zeroinf, "all", "conditional")
-    model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component)
+    if (!is.null(seed)) {
+      set.seed(seed)
+    }
+    component <- ifelse(show.zeroinf & insight::model_info(model)$is_zero_inflated, "all", "conditional")
+    model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations)
     out <- parameters::standardize_names(model_params, style = "broom")
 
     column <- which(colnames(out) == "response")
@@ -62,7 +68,14 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
         {
           dof <- parameters::dof_kenward(model)
           out$p.value <- parameters::p_value_wald(model, dof = dof)[["p"]]
-          out$std.error <- parameters::se_kenward(model)
+
+          ## TODO fix once parameters 0.4.0 is on CRAN
+          se_kr <- parameters::se_kenward(model)
+          if (is.data.frame(se_kr))
+            out$std.error <- se_kr[["SE"]]
+          else
+            out$std.error <- se_kr
+
           out$df <- dof
           out$statistic <- out$estimate / out$std.error
           out
