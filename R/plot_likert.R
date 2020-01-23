@@ -70,8 +70,6 @@
 #' And with \code{group.legend.options = list(nrow = 1)} all categories can be forced to be on a single row.
 #' @param cowplot.options (optional, only used if groups are supplied) List of label options to be passed to \code{\link[cowplot]{plot_grid}}.
 #'
-#' @importFrom ggrepel geom_text_repel
-#'
 #' @inheritParams plot_grpfrq
 #' @inheritParams plot_stackfrq
 #' @inheritParams plot_model
@@ -234,7 +232,7 @@ plot_likert <- function(items,
   if (.is_false(groups.titles)) {
     groups.titles <- rep("", length(findex))
   } else if (!is.null(groups.titles) && (groups.titles[1] == "auto" || length(groups.titles) != length(findex)) && (is.numeric(groups))) {
-    groups.titles <- sprintf("Component %i", seq_along(findex)) # For sjt.itemanalysis compatibility
+    groups.titles <- sprintf("Component %i", seq_along(findex)) # For tab_itemscale compatibility
   } else if (length(groups.titles) != length(findex)) {
     groups.titles <- findex
   }
@@ -728,6 +726,9 @@ plot_likert <- function(items,
   ypos.sum.dk.lab  <- ifelse(ypos.sum.dk > -1, sprintf("%.*f%s", digits, 100 * (1 + ypos.sum.dk), percsign), "")
 
   if (values == "show") {
+    if (!requireNamespace("ggrepel", quietly = TRUE)) {
+      stop("Package `ggrepel` needed to plot labels. Please install it.", call. = FALSE)
+    }
     # show them in middle of bar
     gp <- gp +
       ggrepel::geom_text_repel(

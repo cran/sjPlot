@@ -1,38 +1,14 @@
 #' @importFrom sjstats robust
 #' @importFrom stats qnorm pnorm
+#' @importFrom effectsize standardize
+#' @importFrom parameters model_parameters standardize_names
 tidy_model <- function(
-  model, ci.lvl, tf, type, bpe, se, robust, facets, show.zeroinf, p.val,
+  model, ci.lvl, tf, type, bpe, robust, facets, show.zeroinf, p.val,
   standardize = FALSE, bootstrap = FALSE, iterations = 1000, seed = NULL, ...) {
 
   if (!is.logical(standardize) && standardize == "") standardize <- NULL
   if (is.logical(standardize) && standardize == FALSE) standardize <- NULL
 
-  dat <- get_tidy_data(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, bootstrap, iterations, seed, ...)
-
-  # get robust standard errors, if requestes, and replace former s.e.
-
-  if (!is.null(robust) && !is.null(robust$vcov.fun) && obj_has_name(dat, "std.error")) {
-    std.err <- sjstats::robust(model, vcov.fun = robust$vcov.fun, vcov.type = robust$vcov.type, vcov.args = robust$vcov.args)
-    dat[["std.error"]] <- std.err[["std.error"]]
-
-    # also fix CI and p-value after robust SE
-    ci <- .get_confint(ci.lvl)
-
-    dat$conf.low <- dat$estimate - stats::qnorm(ci) * dat$std.error
-    dat$conf.high <- dat$estimate + stats::qnorm(ci) * dat$std.error
-
-    if (obj_has_name(dat, "p.value")) {
-      dat$p.value <- 2 * stats::pnorm(abs(dat$estimate / dat$std.error), lower.tail = FALSE)
-    }
-  }
-
-  dat
-}
-
-
-#' @importFrom effectsize standardize
-#' @importFrom parameters model_parameters standardize_names dof_kenward p_value_wald se_kenward
-get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.val, standardize, bootstrap, iterations, seed, ...) {
   if (is.stan(model)) {
     out <- tidy_stan_model(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...)
   } else {
@@ -44,7 +20,23 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
       set.seed(seed)
     }
     component <- ifelse(show.zeroinf & insight::model_info(model)$is_zero_inflated, "all", "conditional")
-    model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations)
+
+    if (is.null(p.val)) p.val <- "wald"
+
+    df_method <- switch(
+      p.val,
+      "wald" = "wald",
+      "kr" = ,
+      "kenward" = "kenward",
+      "s" = ,
+      "satterthwaite" = "satterthwaite"
+    )
+
+    if (!is.null(robust) && !is.null(robust$vcov.fun)) {
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, robust = TRUE, vcov_estimation = robust$vcov.fun, vcov_type = robust$vcov.type, vcov_args = robust$vcov.args, df_method = df_method, ...)
+    } else {
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, df_method = df_method)
+    }
     out <- parameters::standardize_names(model_params, style = "broom")
 
     column <- which(colnames(out) == "response")
@@ -61,27 +53,6 @@ get_tidy_data <- function(model, ci.lvl, tf, type, bpe, facets, show.zeroinf, p.
       out$component[out$component == "zi"] <- "Zero-Inflated Model"
       out$component[out$component == "conditional"] <- "Conditional Model"
       out$component[out$component == "count"] <- "Conditional Model"
-    }
-
-    if (is_merMod(model) && !is.null(p.val) && p.val == "kr") {
-      out <- tryCatch(
-        {
-          dof <- parameters::dof_kenward(model)
-          out$p.value <- parameters::p_value_wald(model, dof = dof)[["p"]]
-
-          ## TODO fix once parameters 0.4.0 is on CRAN
-          se_kr <- parameters::se_kenward(model)
-          if (is.data.frame(se_kr))
-            out$std.error <- se_kr[["SE"]]
-          else
-            out$std.error <- se_kr
-
-          out$df <- dof
-          out$statistic <- out$estimate / out$std.error
-          out
-        },
-        error = function(x) { out }
-      )
     }
 
     attr(out, "pretty_names") <- attributes(model_params)$pretty_names
@@ -154,7 +125,7 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
   # for brmsfit models, we need to remove some columns here to
   # match data rows later
 
-  mod.dat <- as.data.frame(model)
+  mod.dat <- as.data.frame(model, optional = FALSE)
 
   if (inherits(model, "brmsfit")) {
     re.sd <- string_starts_with("sd_", x = colnames(mod.dat))

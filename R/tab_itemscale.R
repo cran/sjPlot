@@ -1,5 +1,5 @@
 #' @title Summary of item analysis of an item scale as HTML table
-#' @name sjt.itemanalysis
+#' @name tab_itemscale
 #'
 #' @description This function performs an item analysis with certain statistics that are
 #'                useful for scale or index development. The resulting tables are shown in the
@@ -57,7 +57,7 @@
 #'
 #' @inheritParams tab_model
 #' @inheritParams view_df
-#' @inheritParams sjt.xtab
+#' @inheritParams tab_xtab
 #' @inheritParams tab_df
 #'
 #' @return Invisibly returns
@@ -107,28 +107,27 @@
 #' colnames(mydf) <- varlabs[start:end]
 #'
 #' \dontrun{
-#' sjt.itemanalysis(mydf)
+#' tab_itemscale(mydf)
 #'
 #' # auto-detection of labels
-#' sjt.itemanalysis(efc[, start:end])
+#' tab_itemscale(efc[, start:end])
 #'
 #' # Compute PCA on Cope-Index, and perform a
 #' # item analysis for each extracted factor.
 #' indices <- sjt.pca(mydf)$factor.index
-#' sjt.itemanalysis(mydf, factor.groups = indices)
+#' tab_itemscale(mydf, factor.groups = indices)
 #'
 #' # or, equivalent
-#' sjt.itemanalysis(mydf, factor.groups = "auto")}
+#' tab_itemscale(mydf, factor.groups = "auto")}
 #'
-#' @importFrom psych describe
 #' @importFrom stats shapiro.test na.omit
 #' @importFrom sjstats mean_n
 #' @importFrom performance item_reliability cronbachs_alpha item_intercor
-#' @importFrom parameters principal_components
-#' @importFrom sjmisc std
+#' @importFrom parameters principal_components kurtosis
+#' @importFrom sjmisc std descr
 #' @importFrom sjlabelled set_label
 #' @export
-sjt.itemanalysis <- function(df,
+tab_itemscale <- function(df,
                              factor.groups = NULL,
                              factor.groups.titles = "auto",
                              scale = FALSE,
@@ -222,7 +221,7 @@ sjt.itemanalysis <- function(df,
     diff.ideal <- apply(df.sub, 2, fun.diff.ideal)
 
     # get statistics
-    dstat <- psych::describe(df.sub)
+    dstat <- sjmisc::descr(df.sub)
     reli <- performance::item_reliability(df.sub, standardize = scale)
 
     # get index score value, by retrieving the row mean
@@ -255,7 +254,7 @@ sjt.itemanalysis <- function(df,
 
     # include kurtosis statistics
     if (show.kurtosis) {
-      df.dummy <- data_frame(cbind(df.dummy, round(dstat$kurtosis, 2)))
+      df.dummy <- data_frame(cbind(df.dummy, round(parameters::kurtosis(df.sub), 2)))
       df.colnames <- c(df.colnames, "Kurtosis")
     }
 
@@ -368,3 +367,8 @@ sjt.itemanalysis <- function(df,
 
   html
 }
+
+
+#' @rdname tab_itemscale
+#' @export
+sjt.itemanalysis <- tab_itemscale

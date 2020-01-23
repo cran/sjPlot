@@ -57,13 +57,12 @@ utils::globalVariables("density")
 #'
 #' @inheritParams plot_scatter
 #' @inheritParams plot_grpfrq
-#' @inheritParams sjt.xtab
+#' @inheritParams tab_xtab
 #'
 #' @return A ggplot-object.
 #'
 #' @examples
 #' library(sjlabelled)
-#' library(dplyr)
 #' data(efc)
 #' data(iris)
 #'
@@ -74,19 +73,23 @@ utils::globalVariables("density")
 #' # boxplot
 #' plot_frq(efc$e17age, type = "box")
 #'
-#' # histogram, pipe-workflow
-#' efc %>%
-#'   dplyr::select(e17age, c160age) %>%
-#'   plot_frq(type = "hist", show.mean = TRUE)
+#' if (require("dplyr")) {
+#'   # histogram, pipe-workflow
+#'   efc %>%
+#'     dplyr::select(e17age, c160age) %>%
+#'     plot_frq(type = "hist", show.mean = TRUE)
 #'
-#' # bar plot(s)
-#' plot_frq(efc, e42dep, c172code)
+#'   # bar plot(s)
+#'   plot_frq(efc, e42dep, c172code)
+#' }
 #'
-#' # grouped data frame, all panels in one plot
-#' efc %>%
-#'   group_by(e42dep) %>%
-#'   plot_frq(c161sex) %>%
-#'   plot_grid()
+#' if (require("dplyr") && require("gridExtra")) {
+#'   # grouped data frame, all panels in one plot
+#'   efc %>%
+#'     group_by(e42dep) %>%
+#'     plot_frq(c161sex) %>%
+#'     plot_grid()
+#' }
 #'
 #' library(sjmisc)
 #' # grouped variable
@@ -104,9 +107,8 @@ utils::globalVariables("density")
 #' plot_frq(efc$c160age, type = "h", show.mean = TRUE, show.mean.val = TRUE,
 #'         normal.curve = TRUE, show.sd = TRUE, normal.curve.color = "blue",
 #'         normal.curve.size = 3, ylim = c(0,50))
-#'
 #' @import ggplot2
-#' @importFrom sjstats wtd_sd
+#' @importFrom sjstats weighted_sd
 #' @importFrom sjmisc group_labels group_var to_value frq
 #' @importFrom sjlabelled set_labels drop_labels
 #' @importFrom stats na.omit sd weighted.mean dnorm
@@ -383,8 +385,7 @@ plot_frq_helper <- function(
     stddev <- stats::sd(var.cnt, na.rm = TRUE)
   } else {
     mittelwert <- stats::weighted.mean(var.cnt, weight.by, na.rm = TRUE)
-    ## TODO replace with "weighted_sd()" later
-    stddev <- sjstats::wtd_sd(var.cnt, weights = weight.by)
+    stddev <- sjstats::weighted_sd(var.cnt, weights = weight.by)
   }
 
   # If we have boxplots, use different data frame structure

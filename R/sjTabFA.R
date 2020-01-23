@@ -15,7 +15,7 @@
 #' @inheritParams sjt.pca
 #' @inheritParams tab_model
 #' @inheritParams tab_df
-#' @inheritParams sjt.xtab
+#' @inheritParams tab_xtab
 #' @inheritParams plot_grpfrq
 #' @inheritParams sjt.corr
 #'
@@ -47,11 +47,6 @@
 #' end <- which(colnames(efc) == "c90cop9")
 #' # auto-detection of labels
 #' sjt.fa(efc[, start:end])}
-#'
-#' @importFrom psych KMO
-#' @importFrom psych fa
-#' @importFrom psych fa.parallel
-#'
 #' @export
 sjt.fa <- function(data,
                    rotation = c("promax", "varimax"),
@@ -78,6 +73,11 @@ sjt.fa <- function(data,
   # check arguments
   rotation <- match.arg(rotation)
   method <- match.arg(method)
+
+  if (!requireNamespace("psych", quietly = TRUE)) {
+    stop("Package 'psych' required for this function to work. Please install it.", call. = FALSE)
+  }
+
   # --------------------------------------------------------
   # try to automatically set labels is not passed as parameter
   # --------------------------------------------------------
