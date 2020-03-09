@@ -1,6 +1,5 @@
 #' @importFrom purrr map map_df map2
 #' @importFrom stats qnorm
-#' @importFrom forcats fct_reorder
 #' @importFrom dplyr if_else
 #' @importFrom sjmisc remove_var
 #' @importFrom insight find_random
@@ -286,7 +285,7 @@ plot_type_ranef <- function(model,
       function(x, y) {
 
         # sort terms
-        x$term <- forcats::fct_reorder(x$term, x$reihe)
+        x$term <- factor(x$term, levels = unique(x$term[order(x$reihe)]))
 
 
         # now we need a named vector, in order

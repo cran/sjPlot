@@ -28,7 +28,7 @@
 #'    If not \code{NULL}, \code{pred.labels} will be used in the first
 #'    table column with the predictors' names. By default, if \code{auto.label = TRUE}
 #'    and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
-#'    \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+#'    \code{\link[sjlabelled]{term_labels}} is called to retrieve the labels
 #'    of the coefficients, which will be used as predictor labels. If data is
 #'    not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
 #'    is used to create pretty labels. If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
@@ -63,7 +63,9 @@
 #' @param show.se Logical, if \code{TRUE}, the standard errors are
 #'   also printed. If robust standard errors are required, use arguments
 #'   \code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
-#'   \code{\link[parameters]{standard_error_robust}} for details).
+#'   \code{\link[parameters]{standard_error_robust}} and
+#'   \href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
+#'   for details).
 #' @param show.r2 Logical, if \code{TRUE}, the r-squared value is also printed.
 #'    Depending on the model, these might be pseudo-r-squared values, or Bayesian
 #'    r-squared etc. See \code{\link[performance]{r2}} for details.
@@ -150,6 +152,8 @@
 #' @param use.viewer Logical, if \code{TRUE}, the HTML table is shown in the IDE's
 #'    viewer pane. If \code{FALSE} or no viewer available, the HTML table is
 #'    opened in a web browser.
+#' @param p.adjust Character vector, if not \code{NULL}, indicates the method
+#'   to adjust p-values. See \code{\link[stats]{p.adjust}} for details.
 #'
 #' @inheritParams plot_models
 #' @inheritParams plot_model
@@ -173,23 +177,23 @@
 #'         \href{https://strengejacke.github.io/sjPlot/articles/tab_mixed.html}{Summary of Mixed Models as HTML Table} and
 #'         \href{https://strengejacke.github.io/sjPlot/articles/tab_bayes.html}{Summary of Bayesian Models as HTML Table}.
 #'
-#' @details \strong{Standardized Estimates}
-#'    \cr \cr
-#'    Concerning the \code{show.std} argument, \code{show.std = "std"}
-#'    will print normal standardized estimates. For \code{show.std = "std2"},
-#'    however, standardization of estimates follows
-#'    \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
-#'    suggestion, rescaling the estimates by dividing them by two standard
-#'    deviations instead of just one. Resulting coefficients are then
-#'    directly comparable for untransformed binary predictors.
-#'    For backward compatibility reasons, \code{show.std} also may be
-#'    a logical value; if \code{TRUE}, normal standardized estimates are
-#'    printed (same effect as \code{show.std = "std"}). Use
-#'    \code{show.std = NULL} (default) or \code{show.std = FALSE},
-#'    if standardized estimats should not be printed.
-#'    \cr \cr
-#'    \strong{How do I use \code{CSS}-argument?}
-#'    \cr \cr
+#' @details
+#' \subsection{Standardized Estimates}{
+#'   Default standardization is done by completely refitting the model on the
+#'   standardized data. Hence, this approach is equal to standardizing the
+#'   variables before fitting the model, which is particularly recommended for
+#'   complex models that include interactions or transformations (e.g., polynomial
+#'   or spline terms). When \code{show.std = "std2"}, standardization of estimates
+#'   follows \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
+#'   suggestion, rescaling the estimates by dividing them by two standard deviations
+#'   instead of just one. Resulting coefficients are then directly comparable for
+#'   untransformed binary predictors. For backward compatibility reasons,
+#'   \code{show.std} also may be a logical value; if \code{TRUE}, normal standardized
+#'   estimates are printed (same effect as \code{show.std = "std"}). Use
+#'   \code{show.std = NULL} (default) or \code{show.std = FALSE}, if no standardization
+#'   is required.
+#' }
+#' \subsection{How do I use \code{CSS}-argument?}{
 #'    With the \code{CSS}-argument, the visual appearance of the tables
 #'    can be modified. To get an overview of all style-sheet-classnames
 #'    that are used in this function, see return value \code{page.style} for details.
@@ -208,10 +212,11 @@
 #'      \item \code{css.arc = 'color:blue;'} for a blue text color each 2nd row.
 #'      \item \code{css.caption = '+color:red;'} to add red font-color to the default table caption style.
 #'    }
+#' }
 #
 #' @importFrom dplyr full_join select if_else mutate
 #' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
-#' @importFrom sjlabelled get_dv_labels get_term_labels
+#' @importFrom sjlabelled response_labels term_labels
 #' @importFrom sjmisc word_wrap var_rename add_columns add_case
 #' @importFrom insight model_info is_multivariate find_random get_data find_predictors
 #' @importFrom performance r2 icc
@@ -259,6 +264,7 @@ tab_model <- function(
   iterations = 1000,
   seed = NULL,
 
+  robust = FALSE,
   vcov.fun = NULL,
   vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
   vcov.args = NULL,
@@ -295,7 +301,7 @@ tab_model <- function(
     "ci.outer",
     "stat",
     "p",
-    "df",
+    "df.error",
     "response.level"
   ),
 
@@ -305,6 +311,7 @@ tab_model <- function(
   p.val = c("wald", "kenward", "kr", "satterthwaite"),
   p.style = c("numeric", "asterisk", "both"),
   p.threshold = c(0.05, 0.01, 0.001),
+  p.adjust = NULL,
 
   case = "parsed",
   auto.label = TRUE,
@@ -320,11 +327,6 @@ tab_model <- function(
   prefix.labels <- match.arg(prefix.labels)
   vcov.type <- match.arg(vcov.type)
 
-  ## TODO remove once parameters update is on CRAN
-  if (p.val != "wald" && utils::packageVersion("parameters") <= "0.4.1") {
-    message("Computation of Kenward-Roger or Satterthwaite approximated degrees of freedom for p-values will be inaccurate with the current version of the 'parameters' package. Please update package 'parameters' from GitHub to get reliable p-values.")
-  }
-
   change_string_est <- !missing(string.est)
 
   # if we prefix labels, use different default for case conversion,
@@ -337,6 +339,12 @@ tab_model <- function(
   }
 
   if (p.style == "asterisk") show.p <- FALSE
+
+  # default robust?
+  if (isTRUE(robust)) {
+    vcov.type <- "HC3"
+    vcov.fun <- "vcovHC"
+  }
 
   # check se-argument
   vcov.fun <- check_se_argument(se = vcov.fun, type = NULL)
@@ -432,7 +440,8 @@ tab_model <- function(
         p.val = p.val,
         bootstrap = bootstrap,
         iterations = iterations,
-        seed = seed
+        seed = seed,
+        p_adjust = p.adjust
       )
 
 
@@ -467,7 +476,7 @@ tab_model <- function(
 
       # emphasize p-values ----
 
-      if (emph.p && !all(dat$p.value == "NA")) dat$p.value[dat$p.sig] <- sprintf("<strong>%s</strong>", dat$p.value[dat$p.sig])
+      if (emph.p && !all(dat$p.value == "NA")) dat$p.value[which(dat$p.sig)] <- sprintf("<strong>%s</strong>", dat$p.value[which(dat$p.sig)])
       dat <- dplyr::select(dat, -.data$p.sig)
 
 
@@ -522,7 +531,7 @@ tab_model <- function(
             conf.low = "std.conf.low",
             conf.high = "std.conf.high"
           ) %>%
-          dplyr::select(-1) %>%
+          dplyr::select(-1, -.data$p.value) %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
             "%.*f%s%.*f",
@@ -588,9 +597,11 @@ tab_model <- function(
 
         # for stan models, we also have 50% HDI
         if (!sjmisc::is_empty(string_starts_with("ci", x = colnames(dat)))) {
+          if (isTRUE(show.ci50)) {
+            dat <- dplyr::select(dat, -string_starts_with("ci.inner", x = colnames(dat)))
+            dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
+          }
           dat <- dplyr::select(dat, -string_starts_with("ci.outer", x = colnames(dat)))
-          dat[[est.cols]] <- sprintf("%s%s(%s)", dat[[est.cols]], lb, dat[[est.cols + 2]])
-          dat <- dplyr::select(dat, -string_starts_with("ci.inner", x = colnames(dat)))
         } else {
           dat <- dplyr::select(dat, -string_starts_with("conf.int", x = colnames(dat)))
         }
@@ -659,7 +670,7 @@ tab_model <- function(
           vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
           vars$var.residual <- attr(vars_brms, "var_residual")
         } else {
-          vars <- insight::get_variance(model)
+          vars <- suppressWarnings(insight::get_variance(model))
         }
       } else {
         vars <- NULL
@@ -948,7 +959,7 @@ tab_model <- function(
 
   if (isTRUE(auto.label) && sjmisc::is_empty(pred.labels)) {
     if (.labelled_model_data(models) || any(sapply(models, is.stan)) || isTRUE(show.reflvl)) {
-      pred.labels <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
+      pred.labels <- sjlabelled::term_labels(models, case = case, mark.cat = TRUE, prefix = prefix.labels)
       category.values <- attr(pred.labels, "category.value")
 
       # remove random effect labels
@@ -961,7 +972,7 @@ tab_model <- function(
       ))
 
       if (!is.null(re_terms)) {
-        pred.labels.tmp <- sjlabelled::get_term_labels(models, case = case, mark.cat = TRUE, prefix = "varname")
+        pred.labels.tmp <- sjlabelled::term_labels(models, case = case, mark.cat = TRUE, prefix = "varname")
         for (.re in re_terms) {
           found <- grepl(paste0("^", .re, ":"), pred.labels.tmp)
           if (any(found)) {
@@ -1064,7 +1075,7 @@ tab_model <- function(
 
   if (isTRUE(auto.label) && sjmisc::is_empty(dv.labels)) {
     dv.labels <- sjmisc::word_wrap(
-      sjlabelled::get_dv_labels(models, case = case),
+      sjlabelled::response_labels(models, case = case),
       wrap = wrap.labels,
       linesep = "<br>"
     )
@@ -1218,7 +1229,7 @@ sort_columns <- function(x, is.stan, col.order) {
     "ci.outer",
     "statistic",
     "p.value",
-    "df",
+    "df.error",
     "wrap.facet",
     "response.level"
   )

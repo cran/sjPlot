@@ -68,8 +68,7 @@
 #' @import ggplot2
 #' @importFrom purrr map map_df map2
 #' @importFrom dplyr slice bind_rows filter
-#' @importFrom forcats fct_rev
-#' @importFrom sjlabelled get_dv_labels get_term_labels
+#' @importFrom sjlabelled response_labels term_labels
 #' @importFrom rlang .data
 #' @importFrom sjmisc word_wrap var_rename add_variables
 #' @export
@@ -98,6 +97,7 @@ plot_models <- function(...,
                         p.shape = FALSE,
                         p.threshold = c(0.05, 0.01, 0.001),
                         ci.lvl = .95,
+                        robust = FALSE,
                         vcov.fun = NULL,
                         vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
                         vcov.args = NULL,
@@ -111,6 +111,12 @@ plot_models <- function(...,
   names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
 
   vcov.type <- match.arg(vcov.type)
+
+  if (isTRUE(robust)) {
+    vcov.type <- "HC3"
+    vcov.fun <- "vcovHC"
+  }
+
   # check se-argument
   vcov.fun <- check_se_argument(se = vcov.fun, type = "est")
 
@@ -210,7 +216,7 @@ plot_models <- function(...,
 
   # get labels of dependent variables, and wrap them if too long
 
-  if (is.null(m.labels)) m.labels <- sjlabelled::get_dv_labels(input_list)
+  if (is.null(m.labels)) m.labels <- sjlabelled::response_labels(input_list)
   m.labels <- sjmisc::word_wrap(m.labels, wrap = wrap.labels)
 
 
@@ -226,7 +232,7 @@ plot_models <- function(...,
 
 
   # reverse group, to plot correct order from top to bottom
-  ff$group <- forcats::fct_rev(ff$group)
+  ff$group <- factor(ff$group, levels = rev(unique(ff$group)))
 
 
   # add p-asterisks to data
@@ -298,7 +304,7 @@ plot_models <- function(...,
 
   # check axis labels
   if (is.null(axis.labels) && isTRUE(auto.label))
-    axis.labels <- sjlabelled::get_term_labels(input_list, prefix = prefix.labels)
+    axis.labels <- sjlabelled::term_labels(input_list, prefix = prefix.labels)
 
   # set axis labels
   p <- p + scale_x_discrete(labels = sjmisc::word_wrap(axis.labels, wrap = wrap.labels))

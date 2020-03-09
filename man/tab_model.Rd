@@ -38,6 +38,7 @@ tab_model(
   bootstrap = FALSE,
   iterations = 1000,
   seed = NULL,
+  robust = FALSE,
   vcov.fun = NULL,
   vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
   vcov.args = NULL,
@@ -60,13 +61,14 @@ tab_model(
   collapse.se = FALSE,
   linebreak = TRUE,
   col.order = c("est", "se", "std.est", "std.se", "ci", "std.ci", "ci.inner",
-    "ci.outer", "stat", "p", "df", "response.level"),
+    "ci.outer", "stat", "p", "df.error", "response.level"),
   digits = 2,
   digits.p = 3,
   emph.p = TRUE,
   p.val = c("wald", "kenward", "kr", "satterthwaite"),
   p.style = c("numeric", "asterisk", "both"),
   p.threshold = c(0.05, 0.01, 0.001),
+  p.adjust = NULL,
   case = "parsed",
   auto.label = TRUE,
   prefix.labels = c("none", "varname", "label"),
@@ -102,7 +104,9 @@ credible interval is added to the table output.}
 \item{show.se}{Logical, if \code{TRUE}, the standard errors are
 also printed. If robust standard errors are required, use arguments
 \code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
-\code{\link[parameters]{standard_error_robust}} for details).}
+\code{\link[parameters]{standard_error_robust}} and
+\href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
+for details).}
 
 \item{show.std}{Indicates whether standardized beta-coefficients should
 also printed, and if yes, which type of standardization is done.
@@ -184,7 +188,7 @@ should be plotted. See examples in
 If not \code{NULL}, \code{pred.labels} will be used in the first
 table column with the predictors' names. By default, if \code{auto.label = TRUE}
 and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
-\code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+\code{\link[sjlabelled]{term_labels}} is called to retrieve the labels
 of the coefficients, which will be used as predictor labels. If data is
 not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
 is used to create pretty labels. If \code{pred.labels = ""} or \code{auto.label = FALSE}, the raw
@@ -206,6 +210,13 @@ or axis labels are displayed in one line and when a line break is inserted.}
 \item{iterations}{Numeric, number of bootsrap iterations (default is 1000).}
 
 \item{seed}{Numeric, the number of the seed to replicate bootstrapped estimates. If \code{NULL}, uses random seed.}
+
+\item{robust}{Logical, shortcut for arguments \code{vcov.fun} and \code{vcov.type}.
+If \code{TRUE}, uses \code{vcov.fun = "vcovHC"} and \code{vcov.type = "HC3"} as
+default, that is, \code{\link[sandwich]{vcovHC}} with default-type is called
+(see \code{\link[parameters]{standard_error_robust}} and
+\href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
+for further details).}
 
 \item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
 from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
@@ -299,6 +310,9 @@ or both (\code{"both"}). May be abbreviated.}
 annotating p-values with asterisks. Only applies if
 \code{p.style = "asterisk"}.}
 
+\item{p.adjust}{Character vector, if not \code{NULL}, indicates the method
+to adjust p-values. See \code{\link[stats]{p.adjust}} for details.}
+
 \item{case}{Desired target case. Labels will automatically converted into the
 specified character case. See \code{\link[snakecase]{to_any_case}} for more
 details on this argument. By default, if \code{case} is not specified,
@@ -310,7 +324,7 @@ default when prefixing labels.}
 
 \item{auto.label}{Logical, if \code{TRUE} (the default),
  and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
- \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+ \code{\link[sjlabelled]{term_labels}} is called to retrieve the labels
  of the coefficients, which will be used as predictor labels. If data is
  not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
  is used to create pretty labels. If \code{auto.label = FALSE},
@@ -318,7 +332,7 @@ original variable names and value labels (factor levels) are used.}
 
 \item{prefix.labels}{Indicates whether the value labels of categorical variables
 should be prefixed, e.g. with the variable name or variable label. See
-argument \code{prefix} in \code{\link[sjlabelled]{get_term_labels}} for
+argument \code{prefix} in \code{\link[sjlabelled]{term_labels}} for
 details.}
 
 \item{bpe}{For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
@@ -355,23 +369,22 @@ Invisibly returns
 \code{tab_model()} creates HTML tables from regression models.
 }
 \details{
-\strong{Standardized Estimates}
-   \cr \cr
-   Concerning the \code{show.std} argument, \code{show.std = "std"}
-   will print normal standardized estimates. For \code{show.std = "std2"},
-   however, standardization of estimates follows
-   \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
-   suggestion, rescaling the estimates by dividing them by two standard
-   deviations instead of just one. Resulting coefficients are then
-   directly comparable for untransformed binary predictors.
-   For backward compatibility reasons, \code{show.std} also may be
-   a logical value; if \code{TRUE}, normal standardized estimates are
-   printed (same effect as \code{show.std = "std"}). Use
-   \code{show.std = NULL} (default) or \code{show.std = FALSE},
-   if standardized estimats should not be printed.
-   \cr \cr
-   \strong{How do I use \code{CSS}-argument?}
-   \cr \cr
+\subsection{Standardized Estimates}{
+  Default standardization is done by completely refitting the model on the
+  standardized data. Hence, this approach is equal to standardizing the
+  variables before fitting the model, which is particularly recommended for
+  complex models that include interactions or transformations (e.g., polynomial
+  or spline terms). When \code{show.std = "std2"}, standardization of estimates
+  follows \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
+  suggestion, rescaling the estimates by dividing them by two standard deviations
+  instead of just one. Resulting coefficients are then directly comparable for
+  untransformed binary predictors. For backward compatibility reasons,
+  \code{show.std} also may be a logical value; if \code{TRUE}, normal standardized
+  estimates are printed (same effect as \code{show.std = "std"}). Use
+  \code{show.std = NULL} (default) or \code{show.std = FALSE}, if no standardization
+  is required.
+}
+\subsection{How do I use \code{CSS}-argument?}{
    With the \code{CSS}-argument, the visual appearance of the tables
    can be modified. To get an overview of all style-sheet-classnames
    that are used in this function, see return value \code{page.style} for details.
@@ -390,6 +403,7 @@ Invisibly returns
      \item \code{css.arc = 'color:blue;'} for a blue text color each 2nd row.
      \item \code{css.caption = '+color:red;'} to add red font-color to the default table caption style.
    }
+}
 }
 \note{
 The HTML tables can either be saved as file and manually opened (use argument \code{file}) or

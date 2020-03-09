@@ -43,7 +43,7 @@ axis_limits_and_ticks <- function(axis.lim, min.val, max.val, grid.breaks, expon
   if (is.infinite(max.val) || is.na(max.val)) max.val <- max.est
 
 
-  # for negative signes, need to change multiplier
+  # for negative signs, need to change multiplier
 
   if (min.val < 0) fac.ll <- 1 / fac.ll
   if (max.val < 0) fac.ul <- 1 / fac.ul
@@ -122,10 +122,12 @@ estimate_axis_title <- function(fit, axis.title, type, transform = NULL, multi.r
       !is.null(transform) && transform == "plogis" ~ "Probabilities",
       is.null(transform) && fitfam$is_binomial ~ "Log-Odds",
       is.null(transform) && fitfam$is_ordinal ~ "Log-Odds",
+      is.null(transform) && fitfam$is_multinomial ~ "Log-Odds",
       is.null(transform) && fitfam$is_categorical ~ "Log-Odds",
       is.null(transform) && fitfam$is_count ~ "Log-Mean",
       fitfam$is_count ~ "Incidence Rate Ratios",
       fitfam$is_ordinal ~ "Odds Ratios",
+      fitfam$is_multinomial ~ "Odds Ratios",
       fitfam$is_categorical ~ "Odds Ratios",
       fitfam$is_binomial && !fitfam$is_logit ~ "Risk Ratios",
       fitfam$is_binomial ~ "Odds Ratios",

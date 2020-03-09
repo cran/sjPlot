@@ -28,6 +28,7 @@ plot_model(
   grid.breaks = NULL,
   ci.lvl = NULL,
   se = NULL,
+  robust = FALSE,
   vcov.fun = NULL,
   vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
   vcov.args = NULL,
@@ -89,9 +90,9 @@ kinds of models are supported, e.g. from packages like \pkg{stats},
   only contains one predictor, slope-line is plotted.}
   \item{\code{type = "re"}}{For mixed effects models, plots the random
   effects.}
-  \item{\code{type = "std"}}{Forest-plot of standardized beta values.}
-  \item{\code{type = "std2"}}{Forest-plot of standardized beta values,
-  however, standardization is done by dividing by two sd (see 'Details').}
+  \item{\code{type = "std"}}{Forest-plot of standardized coefficients.}
+  \item{\code{type = "std2"}}{Forest-plot of standardized coefficients,
+  however, standardization is done by dividing by two SD (see 'Details').}
 }
 \emph{Marginal Effects}  (\href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{related vignette})
 \describe{
@@ -229,7 +230,7 @@ which random intercept (or: which list elements of
 random effects will be plotted.}
 
 \item{title}{Character vector, used as plot title. By default,
-\code{\link[sjlabelled]{get_dv_labels}} is called to retrieve the label of
+\code{\link[sjlabelled]{response_labels}} is called to retrieve the label of
 the dependent variable, which will be used as title. Use \code{title = ""}
 to remove title.}
 
@@ -242,7 +243,7 @@ ggplot-object and add axis titles manually with
 titles.}
 
 \item{axis.labels}{Character vector with labels for the model terms, used as
-axis labels. By default, \code{\link[sjlabelled]{get_term_labels}} is
+axis labels. By default, \code{\link[sjlabelled]{term_labels}} is
 called to retrieve the labels of the coefficients, which will be used as
 axis labels. Use \code{axis.labels = ""} or \code{auto.label = FALSE} to
 use the variable names as labels instead. If \code{axis.labels} is a named
@@ -284,10 +285,18 @@ such cases. See \code{prob.inner} and \code{prob.outer} under the
 \item{se}{Logical, if \code{TRUE}, the standard errors are
 also printed. If robust standard errors are required, use arguments
 \code{vcov.fun}, \code{vcov.type} and \code{vcov.args} (see
-\code{\link[sjstats]{robust}} for details). \code{se} overrides
-\code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl}
-and \code{transform} will be ignored. Currently, \code{se} only applies
-to \emph{Coefficients} plots.}
+\code{\link[parameters]{standard_error_robust}} and
+\href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
+for details), or use argument \code{robust} as shortcut. \code{se} overrides
+\code{ci.lvl}: if not \code{NULL}, arguments \code{ci.lvl} and \code{transform}
+will be ignored. Currently, \code{se} only applies to \emph{Coefficients} plots.}
+
+\item{robust}{Logical, shortcut for arguments \code{vcov.fun} and \code{vcov.type}.
+If \code{TRUE}, uses \code{vcov.fun = "vcovHC"} and \code{vcov.type = "HC3"} as
+default, that is, \code{\link[sandwich]{vcovHC}} with default-type is called
+(see \code{\link[parameters]{standard_error_robust}} and
+\href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
+for further details).}
 
 \item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
 from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
@@ -371,7 +380,7 @@ default when prefixing labels.}
 
 \item{auto.label}{Logical, if \code{TRUE} (the default),
  and \href{https://strengejacke.github.io/sjlabelled/articles/intro_sjlabelled.html}{data is labelled},
- \code{\link[sjlabelled]{get_term_labels}} is called to retrieve the labels
+ \code{\link[sjlabelled]{term_labels}} is called to retrieve the labels
  of the coefficients, which will be used as predictor labels. If data is
  not labelled, \href{https://easystats.github.io/parameters/reference/format_parameters.html}{format_parameters()}
  is used to create pretty labels. If \code{auto.label = FALSE},
@@ -379,7 +388,7 @@ original variable names and value labels (factor levels) are used.}
 
 \item{prefix.labels}{Indicates whether the value labels of categorical variables
 should be prefixed, e.g. with the variable name or variable label. See
-argument \code{prefix} in \code{\link[sjlabelled]{get_term_labels}} for
+argument \code{prefix} in \code{\link[sjlabelled]{term_labels}} for
 details.}
 
 \item{bpe}{For \strong{Stan}-models (fitted with the \pkg{rstanarm}- or
@@ -454,23 +463,21 @@ Depending on the plot-type, \code{plot_model()} returns a
   estimates (as so-called forest or dot whisker plots) or marginal effects.
 }
 \details{
-\code{get_model_data()} simply calls \code{plot_model()} and returns
-  the data from the ggplot-object. Hence, it is rather inefficient and should
-  be used as alternative to \pkg{brooms} \code{tidy()}-function only in
-  specific situations. \cr \cr Some details on the different plot-types:
+\subsection{Different Plot Types}{
   \describe{
-  \item{\code{type = "std2"}}{Plots standardized beta values,
-    however, standardization follows Gelman's (2008) suggestion, rescaling the
+  \item{\code{type = "std"}}{Plots standardized estimates. See details below.}
+  \item{\code{type = "std2"}}{Plots standardized estimates, however,
+    standardization follows Gelman's (2008) suggestion, rescaling the
     estimates by dividing them by two standard deviations instead of just one.
     Resulting coefficients are then directly comparable for untransformed
     binary predictors.
   }
-  \item{\code{type = "pred"}}{Plots marginal effects. Simply wraps
-    \code{\link[ggeffects]{ggpredict}}. See also
+  \item{\code{type = "pred"}}{Plots estimated marginal means (or marginal effects).
+    Simply wraps \code{\link[ggeffects]{ggpredict}}. See also
     \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
   }
-  \item{\code{type = "eff"}}{Plots marginal effects. Simply wraps
-    \code{\link[ggeffects]{ggeffect}}. See also
+  \item{\code{type = "eff"}}{Plots estimated marginal means (or marginal effects).
+    Simply wraps \code{\link[ggeffects]{ggeffect}}. See also
     \href{https://strengejacke.github.io/sjPlot/articles/plot_marginal_effects.html}{this package-vignette}.
   }
   \item{\code{type = "int"}}{A shortcut for marginal effects plots, where
@@ -501,9 +508,21 @@ Depending on the plot-type, \code{plot_model()} returns a
   multicollinearity-check (Variance Inflation Factors), QQ-plots,
   checks for normal distribution of residuals and homoscedasticity
   (constant variance of residuals) are shown. For \strong{generalized
-  lineare mixed models}, returns the QQ-plot for random effects.
+  linear mixed models}, returns the QQ-plot for random effects.
   }
   }
+}
+\subsection{Standardized Estimates}{
+  Default standardization is done by completely refitting the model on the
+  standardized data. Hence, this approach is equal to standardizing the
+  variables before fitting the model, which is particularly recommended for
+  complex models that include interactions or transformations (e.g., polynomial
+  or spline terms). When \code{type = "std2"}, standardization of estimates
+  follows \href{http://www.stat.columbia.edu/~gelman/research/published/standardizing7.pdf}{Gelman's (2008)}
+  suggestion, rescaling the estimates by dividing them by two standard deviations
+  instead of just one. Resulting coefficients are then directly comparable for
+  untransformed binary predictors.
+}
 }
 \examples{
 # prepare data

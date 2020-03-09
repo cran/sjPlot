@@ -1,3 +1,22 @@
+# sjPlot 2.8.3
+
+## General
+
+* `tab_model()` and `plot_model()` now support _clogit_ models (requires latest update of package **insight**).
+
+## Changes to functions
+
+* `tab_model()` gets a `p.adjust` argument to adjust p-values for multiple comparisons.
+* `tab_model()`, `plot_model()` and `plot_models()` get a `robust`-argument to easily compute standard errors, confidence intervals and p-values based on robust estimation of the variance-covariance matrix. `robust` is just a convenient shortcut for `vcov.fun` and `vcov.type`.
+
+## Bug fixes
+
+* Fixed issue in `tab_model()` and `plot_model()` for certain cases when coefficients could not be estimated and were `NA`.
+* Fixed issue in `tab_model()` with `collapse.ci` for Bayesian models.
+* Fixed issue in `tab_model()` when `p.val="kr"` and `show.df=TRUE`.
+* Fixed issue in `tab_model()` with formatting issues of p-values when standardized coefficients where requested.
+* Fixed issue in `tab_model()` due to changes in other packages *sjPlot* depends on.
+
 # sjPlot 2.8.2
 
 ## Function renaming

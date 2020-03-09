@@ -4,7 +4,7 @@
 #' @importFrom parameters model_parameters standardize_names
 tidy_model <- function(
   model, ci.lvl, tf, type, bpe, robust, facets, show.zeroinf, p.val,
-  standardize = FALSE, bootstrap = FALSE, iterations = 1000, seed = NULL, ...) {
+  standardize = FALSE, bootstrap = FALSE, iterations = 1000, seed = NULL, p_adjust = NULL, ...) {
 
   if (!is.logical(standardize) && standardize == "") standardize <- NULL
   if (is.logical(standardize) && standardize == FALSE) standardize <- NULL
@@ -33,9 +33,12 @@ tidy_model <- function(
     )
 
     if (!is.null(robust) && !is.null(robust$vcov.fun)) {
-      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, robust = TRUE, vcov_estimation = robust$vcov.fun, vcov_type = robust$vcov.type, vcov_args = robust$vcov.args, df_method = df_method, ...)
+      if (grepl("^vcov", robust$vcov.fun)) {
+        robust$vcov.fun <- sub("^vcov", "", robust$vcov.fun)
+      }
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, robust = TRUE, vcov_estimation = robust$vcov.fun, vcov_type = robust$vcov.type, vcov_args = robust$vcov.args, df_method = df_method, p_adjust = p_adjust, ...)
     } else {
-      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, df_method = df_method)
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, df_method = df_method, p_adjust = p_adjust)
     }
     out <- parameters::standardize_names(model_params, style = "broom")
 
@@ -101,8 +104,8 @@ tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, 
   else
     ty <- "fixed"
 
-  d1 <- bayestestR::ci(model, ci = p.outer, effects = ty)
-  d2 <- bayestestR::ci(model, ci = p.inner, effects = ty)
+  d1 <- bayestestR::ci(model, ci = p.outer, effects = ty, component = "all")
+  d2 <- bayestestR::ci(model, ci = p.inner, effects = ty, component = "all")
 
   if (!is.null(tf)) {
     funtrans <- match.fun(tf)
