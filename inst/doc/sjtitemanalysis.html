@@ -12,48 +12,34 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2020-03-09" />
+<meta name="date" content="2020-05-23" />
 
 <title>Item Analysis of a Scale or an Index</title>
 
-<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
-// be compatible with the behavior of Pandoc < 2.8).
-document.addEventListener('DOMContentLoaded', function(e) {
-  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
-  var i, h, a;
-  for (i = 0; i < hs.length; i++) {
-    h = hs[i];
-    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
-    a = h.attributes;
-    while (a.length > 0) h.removeAttribute(a[0].name);
-  }
-});
-</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -62,9 +48,9 @@ pre.numberSource code > span > a:first-child::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {   }
+  {  }
 @media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+a.sourceLine::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -315,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Item Analysis of a Scale or an Index</h1>
 <h4 class="author">Daniel Lüdecke</h4>
-<h4 class="date">2020-03-09</h4>
+<h4 class="date">2020-05-23</h4>
 
 
 
@@ -338,13 +324,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <li>kurstosis</li>
 <li>Shapiro-Wilk Normality Test</li>
 </ul>
-<p>If the argument <code>factor.groups</code> is <em>not</em> <code>NULL</code>, the data frame df will be splitted into groups, assuming that <code>factor.groups</code> indicate those columns (variables) of the data frame that belong to a certain factor (see, for instance, return value of function <code>sjt.pca()</code> or <code>sjp.pca()</code> as example for retrieving factor groups for a scale). This is useful when you have perfomed a principal component analysis or factor analysis as first step, and now want to see whether the found factors / components represent a scale or index score.</p>
+<p>If the argument <code>factor.groups</code> is <em>not</em> <code>NULL</code>, the data frame df will be splitted into groups, assuming that <code>factor.groups</code> indicate those columns (variables) of the data frame that belong to a certain factor (see, for instance, return value of function <code>tab_pca()</code> or <code>parameters::principal_components()</code> as example for retrieving factor groups for a scale). This is useful when you have perfomed a principal component analysis or factor analysis as first step, and now want to see whether the found factors / components represent a scale or index score.</p>
 <p>To demonstrate this function, we first need some data:</p>
 </div>
 <div id="index-score-with-one-component" class="section level2">
 <h2>Index score with one component</h2>
 <p>The simplest function call is just passing the data frame as argument. In this case, the function assumes that all variables of the data frame belong to one factor only.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">tab_itemscale</span>(mydf)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">tab_itemscale</span>(mydf)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
@@ -625,214 +611,22 @@ Mean inter-item-correlation=0.092 · Cronbach’s α=0.459
 <div id="index-score-with-more-than-one-component" class="section level2">
 <h2>Index score with more than one component</h2>
 <p>The items of the COPE index used for our example do not represent a single factor. We can check this, for instance, with a principle component analysis. If you know, which variable belongs to which factor (i.e. which variable is part of which component), you can pass a numeric vector with these group indices to the argument <code>factor.groups</code>. In this case, the data frame is divided into the components specified by <code>factor.groups</code>, and each component (or factor) is analysed.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Compute PCA on Cope-Index, and retrieve </span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="co"># factor indices for each COPE index variable</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a>factor.groups &lt;-<span class="st"> </span><span class="kw">sjt.pca</span>(mydf)<span class="op">$</span>factor.index</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(parameters)</a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="co"># Compute PCA on Cope-Index, and retrieve </span></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="co"># factor indices for each COPE index variable</span></a>
+<a class="sourceLine" id="cb2-4" title="4">pca &lt;-<span class="st"> </span>parameters<span class="op">::</span><span class="kw">principal_components</span>(mydf)</a>
+<a class="sourceLine" id="cb2-5" title="5">factor.groups &lt;-<span class="st"> </span>parameters<span class="op">::</span><span class="kw">closest_component</span>(pca)</a></code></pre></div>
 <p>The PCA extracted two components. Now <code>tab_itemscale()</code> …</p>
 <ol style="list-style-type: decimal">
 <li>performs an item analysis on both components, showing whether each of them is a reliable and useful scale or index score</li>
 <li>builds an index of each component, by standardizing each scale</li>
 <li>and adds a component-correlation-matrix, to see whether the index scores (which are based on the components) are highly correlated or not.</li>
 </ol>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">tab_itemscale</span>(mydf, factor.groups)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">tab_itemscale</span>(mydf, factor.groups)</a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
-</caption>
-<tr>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left;text-align:left; ">
-Row
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-Missings
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-Mean
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-SD
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-Skew
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-Item Difficulty
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">
-Item Discrimination
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">
-α if deleted
-</th>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-do you find caregiving too demanding?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.66 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-2.02
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.72
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.65
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.51
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.549
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.75
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-does caregiving cause difficulties in your relationship with your friends?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.66 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.63
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.41
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.562
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.746
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-does caregiving have negative effect on your physical health?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.10 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.77
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.06
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.44
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.576
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.742
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-does caregiving cause difficulties in your relationship with your family?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.66 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.39
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.67
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.77
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.35
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.449
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.772
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-does caregiving cause financial difficulties?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.88 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.64
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-2.43
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.32
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.468
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.768
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; border-bottom: double; background-color:#f2f2f2; ">
-do you feel trapped in your role as caregiver?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.88 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-1.92
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.91
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.83
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.48
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col7">
-0.617
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col8">
-0.731
-</td>
-</tr>
-<tr>
-<td colspan="9" style="font-style:italic; border-top:double black; text-align:right;">
-Mean inter-item-correlation=0.378 · Cronbach’s α=0.785
-</td>
-</tr>
-</table>
-<p>
- 
-</p>
-<table style="border-collapse:collapse; border:none;">
-<caption style="font-weight: bold; text-align:left;">
-Component 2
 </caption>
 <tr>
 <th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left;text-align:left; ">
@@ -880,67 +674,171 @@ do you feel you cope well as caregiver?
 0.78
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.258
+-0.368
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.414
+0.782
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-do you feel supported by friends/neighbours?
+do you find caregiving too demanding?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.77 %
+0.66 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-2.16
+2.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.04
+0.72
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.65
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.51
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
+0.488
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
+0.612
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
+does caregiving cause difficulties in your relationship with your friends?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.66 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.63
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.31
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.41
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+0.546
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+0.587
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
+does caregiving have negative effect on your physical health?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.10 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.77
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.06
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.44
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
+0.544
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
+0.588
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
+does caregiving cause difficulties in your relationship with your family?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.66 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.39
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.67
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.77
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.35
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+0.438
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+0.628
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
+does caregiving cause financial difficulties?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.88 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.29
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.64
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+2.43
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
 0.32
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.54
-</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.255
+0.469
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.415
+0.623
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; border-bottom: double; ">
-do you feel caregiving worthwhile?
+do you feel trapped in your role as caregiver?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-2.20 %
+0.88 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-2.93
+1.92
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-0.96
+0.91
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
--0.45
+0.83
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-0.73
+0.48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col7">
-0.355
+0.566
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col8">
-0.188
+0.579
 </td>
 </tr>
 <tr>
 <td colspan="9" style="font-style:italic; border-top:double black; text-align:right;">
-Mean inter-item-correlation=0.226 · Cronbach’s α=0.449
+Mean inter-item-correlation=0.196 · Cronbach’s α=0.676
 </td>
 </tr>
 </table>
@@ -948,52 +846,8 @@ Mean inter-item-correlation=0.226 · Cronbach’s α=0.449
  
 </p>
 <table style="border-collapse:collapse; border:none;">
-<tr>
-<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
- 
-</th>
-<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
-Component 1
-</th>
-<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
-Component 2
-</th>
-</tr>
-<tr>
-<td style="font-style:italic;">
-Component 1
-</td>
-<td style="padding:0.2cm; text-align:center;">
-α=0.785
-</td>
-<td style="padding:0.2cm; text-align:center;">
- 
-</td>
-</tr>
-<tr>
-<td style="font-style:italic;">
-Component 2
-</td>
-<td style="padding:0.2cm; text-align:center;">
--0.318<br><span style="font-style:italic;">(&lt;.001)</span>
-</td>
-<td style="padding:0.2cm; text-align:center;">
-α=0.449
-</td>
-</tr>
-<tr>
-<td colspan="3" style="border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;">
-Computed correlation used pearson-method with listwise-deletion.
-</td>
-</tr>
-</table>
-</div>
-<div id="adding-further-statistics" class="section level2">
-<h2>Adding further statistics</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">tab_itemscale</span>(mydf, factor.groups, <span class="dt">show.shapiro =</span> <span class="ot">TRUE</span>, <span class="dt">show.kurtosis =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
-<table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
-Component 1
+Component 2
 </caption>
 <tr>
 <th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left;text-align:left; ">
@@ -1012,216 +866,70 @@ SD
 Skew
 </th>
 <th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
-Kurtosis
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">
-W(p)
-</th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">
 Item Difficulty
 </th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col9">
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">
 Item Discrimination
 </th>
-<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; 0">
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">
 α if deleted
 </th>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-do you find caregiving too demanding?
+do you feel supported by friends/neighbours?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.66 %
+0.77 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-2.02
+2.16
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.72
+1.04
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.65
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.73
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.80 (0.000)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.51
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
-0.549
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
-0.75
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-does caregiving cause difficulties in your relationship with your friends?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.66 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.63
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.86
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.72 (0.000)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.41
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col9">
-0.562
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; 0">
-0.746
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-does caregiving have negative effect on your physical health?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.10 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.77
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.06
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.48
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.78 (0.000)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
-0.44
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
-0.576
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
-0.742
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-does caregiving cause difficulties in your relationship with your family?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.66 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.39
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.67
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.77
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-2.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.62 (0.000)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.35
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col9">
-0.449
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; 0">
-0.772
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
-does caregiving cause financial difficulties?
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.88 %
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-1.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-0.64
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-2.43
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
-5.77
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
-0.51 (0.000)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
 0.32
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
-0.468
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.54
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
-0.768
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+NA
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+NA
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; border-bottom: double; background-color:#f2f2f2; ">
-do you feel trapped in your role as caregiver?
+do you feel caregiving worthwhile?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.88 %
+2.20 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-1.92
+2.93
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.91
+0.96
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
-0.83
+-0.45
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
--0.08
+0.73
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col7">
-0.81 (0.000)
+NA
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col8">
-0.48
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col9">
-0.617
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; 0">
-0.731
+NA
 </td>
 </tr>
 <tr>
-<td colspan="11" style="font-style:italic; border-top:double black; text-align:right;">
-Mean inter-item-correlation=0.378 · Cronbach’s α=0.785
+<td colspan="9" style="font-style:italic; border-top:double black; text-align:right;">
+Mean inter-item-correlation=0.260 · Cronbach’s α=0.412
 </td>
 </tr>
 </table>
@@ -1229,8 +937,53 @@ Mean inter-item-correlation=0.378 · Cronbach’s α=0.785
  
 </p>
 <table style="border-collapse:collapse; border:none;">
-<caption style="font-weight: bold; text-align:left;">
+<tr>
+<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
+ 
+</th>
+<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
+Component 1
+</th>
+<th style="font-style:italic; font-weight:normal; border-top:double black; border-bottom:1px solid black; padding:0.2cm;">
 Component 2
+</th>
+</tr>
+<tr>
+<td style="font-style:italic;">
+Component 1
+</td>
+<td style="padding:0.2cm; text-align:center;">
+α=0.676
+</td>
+<td style="padding:0.2cm; text-align:center;">
+ 
+</td>
+</tr>
+<tr>
+<td style="font-style:italic;">
+Component 2
+</td>
+<td style="padding:0.2cm; text-align:center;">
+-0.196<br><span style="font-style:italic;">(&lt;.001)</span>
+</td>
+<td style="padding:0.2cm; text-align:center;">
+α=0.412
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom:double black; border-top:1px solid black; font-style:italic; font-size:0.9em; text-align:right;">
+Computed correlation used pearson-method with listwise-deletion.
+</td>
+</tr>
+</table>
+</div>
+<div id="adding-further-statistics" class="section level2">
+<h2>Adding further statistics</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">tab_itemscale</span>(mydf, factor.groups, <span class="dt">show.shapiro =</span> <span class="ot">TRUE</span>, <span class="dt">show.kurtosis =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></a></code></pre></div>
+<table style="border-collapse:collapse; border:none;">
+<caption style="font-weight: bold; text-align:left;">
+Component 1
 </caption>
 <tr>
 <th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left;text-align:left; ">
@@ -1290,79 +1043,316 @@ do you feel you cope well as caregiver?
 0.78
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
-0.258
+-0.368
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
-0.414
+0.782
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
-do you feel supported by friends/neighbours?
+do you find caregiving too demanding?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.77 %
+0.66 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-2.16
+2.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-1.04
+0.72
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
-0.32
+0.65
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
--1.14
+0.73
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
-0.85 (0.000)
+0.80 (0.000)
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
-0.54
+0.51
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col9">
-0.255
+0.488
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; 0">
-0.415
+0.612
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
+does caregiving cause difficulties in your relationship with your friends?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.66 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.63
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.31
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.86
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+0.72 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+0.41
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
+0.546
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
+0.587
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
+does caregiving have negative effect on your physical health?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.10 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.77
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.06
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.48
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
+0.78 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
+0.44
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col9">
+0.544
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; 0">
+0.588
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
+does caregiving cause difficulties in your relationship with your family?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.66 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.39
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.67
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.77
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+2.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+0.62 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+0.35
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
+0.438
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
+0.628
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; background-color:#f2f2f2; ">
+does caregiving cause financial difficulties?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.88 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+1.29
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+0.64
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+2.43
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; ">
+5.77
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col7">
+0.51 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col8">
+0.32
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; col9">
+0.469
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; background-color:#f2f2f2; 0">
+0.623
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; border-bottom: double; ">
-do you feel caregiving worthwhile?
+do you feel trapped in your role as caregiver?
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-2.20 %
+0.88 %
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-2.93
+1.92
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
-0.96
+0.91
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
--0.45
+0.83
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; ">
--0.83
+-0.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col7">
-0.85 (0.000)
+0.81 (0.000)
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col8">
-0.73
+0.48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; col9">
-0.355
+0.566
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; 0">
-0.188
+0.579
 </td>
 </tr>
 <tr>
 <td colspan="11" style="font-style:italic; border-top:double black; text-align:right;">
-Mean inter-item-correlation=0.226 · Cronbach’s α=0.449
+Mean inter-item-correlation=0.196 · Cronbach’s α=0.676
+</td>
+</tr>
+</table>
+<p>
+ 
+</p>
+<table style="border-collapse:collapse; border:none;">
+<caption style="font-weight: bold; text-align:left;">
+Component 2
+</caption>
+<tr>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left;text-align:left; ">
+Row
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
+Missings
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
+Mean
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
+SD
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
+Skew
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; ">
+Kurtosis
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col7">
+W(p)
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col8">
+Item Difficulty
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; col9">
+Item Discrimination
+</th>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; 0">
+α if deleted
+</th>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; ">
+do you feel supported by friends/neighbours?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.77 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+2.16
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+1.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+0.32
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; ">
+-1.14
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col7">
+0.85 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col8">
+0.54
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; col9">
+NA
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; 0">
+NA
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left;text-align:left; border-bottom: double; background-color:#f2f2f2; ">
+do you feel caregiving worthwhile?
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
+2.20 %
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
+2.93
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
+0.96
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
+-0.45
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; ">
+-0.83
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col7">
+0.85 (0.000)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col8">
+0.73
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; col9">
+NA
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center; border-bottom: double; background-color:#f2f2f2; 0">
+NA
+</td>
+</tr>
+<tr>
+<td colspan="11" style="font-style:italic; border-top:double black; text-align:right;">
+Mean inter-item-correlation=0.260 · Cronbach’s α=0.412
 </td>
 </tr>
 </table>
@@ -1386,7 +1376,7 @@ Component 2
 Component 1
 </td>
 <td style="padding:0.2cm; text-align:center;">
-α=0.785
+α=0.676
 </td>
 <td style="padding:0.2cm; text-align:center;">
  
@@ -1397,10 +1387,10 @@ Component 1
 Component 2
 </td>
 <td style="padding:0.2cm; text-align:center;">
--0.318<br><span style="font-style:italic;">(&lt;.001)</span>
+-0.196<br><span style="font-style:italic;">(&lt;.001)</span>
 </td>
 <td style="padding:0.2cm; text-align:center;">
-α=0.449
+α=0.412
 </td>
 </tr>
 <tr>

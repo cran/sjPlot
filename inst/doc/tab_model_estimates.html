@@ -12,48 +12,34 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2020-03-09" />
+<meta name="date" content="2020-05-23" />
 
 <title>Summary of Regression Models as HTML Table</title>
 
-<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
-// be compatible with the behavior of Pandoc < 2.8).
-document.addEventListener('DOMContentLoaded', function(e) {
-  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
-  var i, h, a;
-  for (i = 0; i < hs.length; i++) {
-    h = hs[i];
-    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
-    a = h.attributes;
-    while (a.length > 0) h.removeAttribute(a[0].name);
-  }
-});
-</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
 @media screen {
 div.sourceCode { overflow: auto; }
 }
 @media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
 }
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
+    border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -62,9 +48,9 @@ pre.numberSource code > span > a:first-child::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {   }
+  {  }
 @media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+a.sourceLine::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -315,7 +301,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Summary of Regression Models as HTML Table</h1>
 <h4 class="author">Daniel Lüdecke</h4>
-<h4 class="date">2020-03-09</h4>
+<h4 class="date">2020-05-23</h4>
 
 
 
@@ -323,21 +309,21 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>HTML is the only output-format, you can’t (directly) create a LaTex or PDF output from <code>tab_model()</code> and related table-functions. However, it is possible to easily export the tables into Microsoft Word or Libre Office Writer.</p>
 <p>This vignette shows how to create table from regression models with <code>tab_model()</code>. There’s a dedicated vignette that demonstrate how to change the <a href="table_css.html">table layout and appearance with CSS</a>.</p>
 <p><strong>Note!</strong> Due to the custom CSS, the layout of the table inside a knitr-document differs from the output in the viewer-pane and web browser!</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># load package</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">library</span>(sjPlot)</span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">library</span>(sjmisc)</span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">library</span>(sjlabelled)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># sample data</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">data</span>(<span class="st">&quot;efc&quot;</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a>efc &lt;-<span class="st"> </span><span class="kw">as_factor</span>(efc, c161sex, c172code)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="co"># load package</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">library</span>(sjPlot)</a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="kw">library</span>(sjmisc)</a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">library</span>(sjlabelled)</a>
+<a class="sourceLine" id="cb1-5" title="5"></a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="co"># sample data</span></a>
+<a class="sourceLine" id="cb1-7" title="7"><span class="kw">data</span>(<span class="st">&quot;efc&quot;</span>)</a>
+<a class="sourceLine" id="cb1-8" title="8">efc &lt;-<span class="st"> </span><span class="kw">as_factor</span>(efc, c161sex, c172code)</a></code></pre></div>
 <div id="a-simple-html-table-from-regression-results" class="section level2">
 <h2>A simple HTML table from regression results</h2>
 <p>First, we fit two linear models to demonstrate the <code>tab_model()</code>-function.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>m1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, <span class="dt">data =</span> efc)</span>
-<span id="cb2-2"><a href="#cb2-2"></a>m2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e17age, <span class="dt">data =</span> efc)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">m1 &lt;-<span class="st"> </span><span class="kw">lm</span>(barthtot <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, <span class="dt">data =</span> efc)</a>
+<a class="sourceLine" id="cb2-2" title="2">m2 &lt;-<span class="st"> </span><span class="kw">lm</span>(neg_c_<span class="dv">7</span> <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>e17age, <span class="dt">data =</span> efc)</a></code></pre></div>
 <p>The simplest way of producing the table output is by passing the fitted model as parameter. By default, estimates, confidence intervals (<em>CI</em>) and p-values (<em>p</em>) are reported. As summary, the numbers of observations as well as the R-squared values are shown.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">tab_model</span>(m1)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">tab_model</span>(m1)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -466,9 +452,9 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="automatic-labelling" class="section level2">
 <h2>Automatic labelling</h2>
 <p>As the <strong>sjPlot</strong>-packages features <a href="https://strengejacke.github.io/sjlabelled/">labelled data</a>, the coefficients in the table are already labelled in this example. The name of the dependent variable(s) is used as main column header for each model. For non-labelled data, the coefficient names are shown.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">data</span>(mtcars)</span>
-<span id="cb4-2"><a href="#cb4-2"></a>m.mtcars &lt;-<span class="st"> </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>cyl <span class="op">+</span><span class="st"> </span>hp <span class="op">+</span><span class="st"> </span>wt, <span class="dt">data =</span> mtcars)</span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="kw">tab_model</span>(m.mtcars)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">data</span>(mtcars)</a>
+<a class="sourceLine" id="cb4-2" title="2">m.mtcars &lt;-<span class="st"> </span><span class="kw">lm</span>(mpg <span class="op">~</span><span class="st"> </span>cyl <span class="op">+</span><span class="st"> </span>hp <span class="op">+</span><span class="st"> </span>wt, <span class="dt">data =</span> mtcars)</a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="kw">tab_model</span>(m.mtcars)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -566,15 +552,15 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </tr>
 </table>
 <p>If factors are involved and <code>auto.label = TRUE</code>, “pretty” parameters names are used (see <a href="https://easystats.github.io/parameters/reference/format_parameters.html"><code>format_parameters()</code></a>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">set.seed</span>(<span class="dv">2</span>)</span>
-<span id="cb5-2"><a href="#cb5-2"></a>dat &lt;-<span class="st"> </span><span class="kw">data.frame</span>(</span>
-<span id="cb5-3"><a href="#cb5-3"></a>  <span class="dt">y =</span> <span class="kw">runif</span>(<span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">100</span>),</span>
-<span id="cb5-4"><a href="#cb5-4"></a>  <span class="dt">drug =</span> <span class="kw">as.factor</span>(<span class="kw">sample</span>(<span class="kw">c</span>(<span class="st">&quot;nonsense&quot;</span>, <span class="st">&quot;useful&quot;</span>, <span class="st">&quot;placebo&quot;</span>), <span class="dv">100</span>, <span class="ot">TRUE</span>)),</span>
-<span id="cb5-5"><a href="#cb5-5"></a>  <span class="dt">group =</span> <span class="kw">as.factor</span>(<span class="kw">sample</span>(<span class="kw">c</span>(<span class="st">&quot;control&quot;</span>, <span class="st">&quot;treatment&quot;</span>), <span class="dv">100</span>, <span class="ot">TRUE</span>))</span>
-<span id="cb5-6"><a href="#cb5-6"></a>)</span>
-<span id="cb5-7"><a href="#cb5-7"></a></span>
-<span id="cb5-8"><a href="#cb5-8"></a>pretty_names &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>drug <span class="op">*</span><span class="st"> </span>group, <span class="dt">data =</span> dat)</span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="kw">tab_model</span>(pretty_names)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">set.seed</span>(<span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb5-2" title="2">dat &lt;-<span class="st"> </span><span class="kw">data.frame</span>(</a>
+<a class="sourceLine" id="cb5-3" title="3">  <span class="dt">y =</span> <span class="kw">runif</span>(<span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">100</span>),</a>
+<a class="sourceLine" id="cb5-4" title="4">  <span class="dt">drug =</span> <span class="kw">as.factor</span>(<span class="kw">sample</span>(<span class="kw">c</span>(<span class="st">&quot;nonsense&quot;</span>, <span class="st">&quot;useful&quot;</span>, <span class="st">&quot;placebo&quot;</span>), <span class="dv">100</span>, <span class="ot">TRUE</span>)),</a>
+<a class="sourceLine" id="cb5-5" title="5">  <span class="dt">group =</span> <span class="kw">as.factor</span>(<span class="kw">sample</span>(<span class="kw">c</span>(<span class="st">&quot;control&quot;</span>, <span class="st">&quot;treatment&quot;</span>), <span class="dv">100</span>, <span class="ot">TRUE</span>))</a>
+<a class="sourceLine" id="cb5-6" title="6">)</a>
+<a class="sourceLine" id="cb5-7" title="7"></a>
+<a class="sourceLine" id="cb5-8" title="8">pretty_names &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>drug <span class="op">*</span><span class="st"> </span>group, <span class="dt">data =</span> dat)</a>
+<a class="sourceLine" id="cb5-9" title="9"><span class="kw">tab_model</span>(pretty_names)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -702,7 +688,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="turn-off-automatic-labelling" class="section level3">
 <h3>Turn off automatic labelling</h3>
 <p>To turn off automatic labelling, use <code>auto.label = FALSE</code>, or provide an empty character vector for <code>pred.labels</code> and <code>dv.labels</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">tab_model</span>(m1, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -828,7 +814,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </tr>
 </table>
 <p>Same for models with non-labelled data and factors.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">tab_model</span>(pretty_names, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">tab_model</span>(pretty_names, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -958,7 +944,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="more-than-one-model" class="section level2">
 <h2>More than one model</h2>
 <p><code>tab_model()</code> can print multiple models at once, which are then printed side-by-side. Identical coefficients are matched in a row.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">tab_model</span>(m1, m2)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">tab_model</span>(m1, m2)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1173,20 +1159,20 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="generalized-linear-models" class="section level2">
 <h2>Generalized linear models</h2>
 <p>For generalized linear models, the ouput is slightly adapted. Instead of <em>Estimates</em>, the column is named <em>Odds Ratios</em>, <em>Incidence Rate Ratios</em> etc., depending on the model. The coefficients are in this case automatically converted (exponentiated). Furthermore, pseudo R-squared statistics are shown in the summary.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>m3 &lt;-<span class="st"> </span><span class="kw">glm</span>(</span>
-<span id="cb9-2"><a href="#cb9-2"></a>  tot_sc_e <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, </span>
-<span id="cb9-3"><a href="#cb9-3"></a>  <span class="dt">data =</span> efc,</span>
-<span id="cb9-4"><a href="#cb9-4"></a>  <span class="dt">family =</span> <span class="kw">poisson</span>(<span class="dt">link =</span> <span class="st">&quot;log&quot;</span>)</span>
-<span id="cb9-5"><a href="#cb9-5"></a>)</span>
-<span id="cb9-6"><a href="#cb9-6"></a></span>
-<span id="cb9-7"><a href="#cb9-7"></a>efc<span class="op">$</span>neg_c_7d &lt;-<span class="st"> </span><span class="kw">ifelse</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span> <span class="op">&lt;</span><span class="st"> </span><span class="kw">median</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span>, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb9-8"><a href="#cb9-8"></a>m4 &lt;-<span class="st"> </span><span class="kw">glm</span>(</span>
-<span id="cb9-9"><a href="#cb9-9"></a>  neg_c_7d <span class="op">~</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>barthtot <span class="op">+</span><span class="st"> </span>c172code,</span>
-<span id="cb9-10"><a href="#cb9-10"></a>  <span class="dt">data =</span> efc,</span>
-<span id="cb9-11"><a href="#cb9-11"></a>  <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;logit&quot;</span>)</span>
-<span id="cb9-12"><a href="#cb9-12"></a>)</span>
-<span id="cb9-13"><a href="#cb9-13"></a></span>
-<span id="cb9-14"><a href="#cb9-14"></a><span class="kw">tab_model</span>(m3, m4)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">m3 &lt;-<span class="st"> </span><span class="kw">glm</span>(</a>
+<a class="sourceLine" id="cb9-2" title="2">  tot_sc_e <span class="op">~</span><span class="st"> </span>c160age <span class="op">+</span><span class="st"> </span>c12hour <span class="op">+</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>c172code, </a>
+<a class="sourceLine" id="cb9-3" title="3">  <span class="dt">data =</span> efc,</a>
+<a class="sourceLine" id="cb9-4" title="4">  <span class="dt">family =</span> <span class="kw">poisson</span>(<span class="dt">link =</span> <span class="st">&quot;log&quot;</span>)</a>
+<a class="sourceLine" id="cb9-5" title="5">)</a>
+<a class="sourceLine" id="cb9-6" title="6"></a>
+<a class="sourceLine" id="cb9-7" title="7">efc<span class="op">$</span>neg_c_7d &lt;-<span class="st"> </span><span class="kw">ifelse</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span> <span class="op">&lt;</span><span class="st"> </span><span class="kw">median</span>(efc<span class="op">$</span>neg_c_<span class="dv">7</span>, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), <span class="dv">0</span>, <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb9-8" title="8">m4 &lt;-<span class="st"> </span><span class="kw">glm</span>(</a>
+<a class="sourceLine" id="cb9-9" title="9">  neg_c_7d <span class="op">~</span><span class="st"> </span>c161sex <span class="op">+</span><span class="st"> </span>barthtot <span class="op">+</span><span class="st"> </span>c172code,</a>
+<a class="sourceLine" id="cb9-10" title="10">  <span class="dt">data =</span> efc,</a>
+<a class="sourceLine" id="cb9-11" title="11">  <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="dt">link =</span> <span class="st">&quot;logit&quot;</span>)</a>
+<a class="sourceLine" id="cb9-12" title="12">)</a>
+<a class="sourceLine" id="cb9-13" title="13"></a>
+<a class="sourceLine" id="cb9-14" title="14"><span class="kw">tab_model</span>(m3, m4)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1400,7 +1386,7 @@ R<sup>2</sup> Nagelkerke
 <div id="untransformed-estimates-on-the-linear-scale" class="section level3">
 <h3>Untransformed estimates on the linear scale</h3>
 <p>To plot the estimates on the linear scale, use <code>transform = NULL</code>.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">tab_model</span>(m3, m4, <span class="dt">transform =</span> <span class="ot">NULL</span>, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">tab_model</span>(m3, m4, <span class="dt">transform =</span> <span class="ot">NULL</span>, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1616,11 +1602,11 @@ R<sup>2</sup> Nagelkerke
 <div id="more-complex-models" class="section level2">
 <h2>More complex models</h2>
 <p>Other models, like hurdle- or zero-inflated models, also work with <code>tab_model()</code>. In this case, the zero inflation model is indicated in the table. Use <code>show.zeroinf = FALSE</code> to hide this part from the table.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">library</span>(pscl)</span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="kw">data</span>(<span class="st">&quot;bioChemists&quot;</span>)</span>
-<span id="cb11-3"><a href="#cb11-3"></a>m5 &lt;-<span class="st"> </span><span class="kw">zeroinfl</span>(art <span class="op">~</span><span class="st"> </span>fem <span class="op">+</span><span class="st"> </span>mar <span class="op">+</span><span class="st"> </span>kid5 <span class="op">+</span><span class="st"> </span>ment <span class="op">|</span><span class="st"> </span>kid5 <span class="op">+</span><span class="st"> </span>phd <span class="op">+</span><span class="st"> </span>ment, <span class="dt">data =</span> bioChemists)</span>
-<span id="cb11-4"><a href="#cb11-4"></a></span>
-<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">tab_model</span>(m5)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">library</span>(pscl)</a>
+<a class="sourceLine" id="cb11-2" title="2"><span class="kw">data</span>(<span class="st">&quot;bioChemists&quot;</span>)</a>
+<a class="sourceLine" id="cb11-3" title="3">m5 &lt;-<span class="st"> </span><span class="kw">zeroinfl</span>(art <span class="op">~</span><span class="st"> </span>fem <span class="op">+</span><span class="st"> </span>mar <span class="op">+</span><span class="st"> </span>kid5 <span class="op">+</span><span class="st"> </span>ment <span class="op">|</span><span class="st"> </span>kid5 <span class="op">+</span><span class="st"> </span>phd <span class="op">+</span><span class="st"> </span>ment, <span class="dt">data =</span> bioChemists)</a>
+<a class="sourceLine" id="cb11-4" title="4"></a>
+<a class="sourceLine" id="cb11-5" title="5"><span class="kw">tab_model</span>(m5)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1798,7 +1784,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </tr>
 </table>
 <p>You can combine any model in one table.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">tab_model</span>(m1, m3, m5, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">tab_model</span>(m1, m3, m5, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -2184,13 +2170,13 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="adding-columns" class="section level3">
 <h3>Adding columns</h3>
 <p>In the following example, standard errors, standardized coefficients and test statistics are also shown.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">tab_model</span>(m1, <span class="dt">show.se =</span> <span class="ot">TRUE</span>, <span class="dt">show.std =</span> <span class="ot">TRUE</span>, <span class="dt">show.stat =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">show.se =</span> <span class="ot">TRUE</span>, <span class="dt">show.std =</span> <span class="ot">TRUE</span>, <span class="dt">show.stat =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
  
 </th>
-<th colspan="7" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+<th colspan="8" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
 Total score BARTHEL INDEX
 </th>
 </tr>
@@ -2208,15 +2194,18 @@ std. Error
 std. Beta
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
+standardized std. Error
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-standardized CI
+CI
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
-Statistic
+standardized CI
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col8">
+Statistic
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col9">
 p
 </td>
 </tr>
@@ -2234,15 +2223,18 @@ p
 -0.01
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-77.96 – 96.34
+0.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.17 – 0.16
+77.96 – 96.34
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
--0.09
+-0.17 – 0.16
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+-0.09
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 <strong>&lt;0.001
 </td>
 </tr>
@@ -2260,15 +2252,18 @@ carer’age
 -0.09
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.35 – -0.07
+0.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.16 – -0.03
+-0.35 – -0.07
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
--2.87
+-0.16 – -0.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+-2.87
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 <strong>0.004</strong>
 </td>
 </tr>
@@ -2286,15 +2281,18 @@ average number of hours<br>of care per week
 -0.48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.32 – -0.24
+0.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.54 – -0.42
+-0.32 – -0.24
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
--14.95
+-0.54 – -0.42
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+-14.95
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 <strong>&lt;0.001
 </td>
 </tr>
@@ -2312,15 +2310,18 @@ carer’s gender: Female
 -0.01
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--4.49 – 3.71
+0.07
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.15 – 0.13
+-4.49 – 3.71
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
--0.19
+-0.15 – 0.13
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+-0.19
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 0.850
 </td>
 </tr>
@@ -2338,15 +2339,18 @@ carer’s level of<br>education: intermediate<br>level of education
 0.05
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--3.12 – 5.85
+0.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.11 – 0.20
+-3.12 – 5.85
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.60
+-0.11 – 0.20
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+0.60
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 0.550
 </td>
 </tr>
@@ -2364,15 +2368,18 @@ carer’s level of<br>education: high level of<br>education
 -0.06
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--7.22 – 3.93
+0.10
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
--0.24 – 0.13
+-7.22 – 3.93
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
--0.58
+-0.24 – 0.13
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col8">
+-0.58
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col9">
 0.564
 </td>
 </tr>
@@ -2380,7 +2387,7 @@ carer’s level of<br>education: high level of<br>education
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
 Observations
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="7">
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="8">
 821
 </td>
 </tr>
@@ -2388,7 +2395,7 @@ Observations
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="7">
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="8">
 0.271 / 0.266
 </td>
 </tr>
@@ -2397,7 +2404,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="removing-columns" class="section level3">
 <h3>Removing columns</h3>
 <p>In the following example, default columns are removed.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">tab_model</span>(m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>, <span class="dt">show.p =</span> <span class="ot">FALSE</span>, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1"><span class="kw">tab_model</span>(m3, m4, <span class="dt">show.ci =</span> <span class="ot">FALSE</span>, <span class="dt">show.p =</span> <span class="ot">FALSE</span>, <span class="dt">auto.label =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -2524,16 +2531,16 @@ R<sup>2</sup> Nagelkerke
 <p>Another way to remove columns, which also allows to reorder the columns, is the <code>col.order</code>-argument. This is a character vector, where each element indicates a column in the output. The value <code>&quot;est&quot;</code>, for instance, indicates the estimates, while <code>&quot;std.est&quot;</code> is the column for standardized estimates and so on.</p>
 <p>By default, <code>col.order</code> contains all possible columns. All columns that should shown (see previous tables, for example using <code>show.se = TRUE</code> to show standard errors, or <code>show.st = TRUE</code> to show standardized estimates) are then printed by default. Colums that are <em>excluded</em> from <code>col.order</code> are <em>not shown</em>, no matter if the <code>show*</code>-arguments are <code>TRUE</code> or <code>FALSE</code>. So if <code>show.se = TRUE</code>, but<code>col.order</code> does not contain the element <code>&quot;se&quot;</code>, standard errors are not shown. On the other hand, if <code>show.est = FALSE</code>, but <code>col.order</code> <em>does include</em> the element <code>&quot;est&quot;</code>, the columns with estimates are not shown.</p>
 <p>In summary, <code>col.order</code> can be used to <em>exclude</em> columns from the table and to change the order of colums.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">tab_model</span>(</span>
-<span id="cb15-2"><a href="#cb15-2"></a>  m1, <span class="dt">show.se =</span> <span class="ot">TRUE</span>, <span class="dt">show.std =</span> <span class="ot">TRUE</span>, <span class="dt">show.stat =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb15-3"><a href="#cb15-3"></a>  <span class="dt">col.order =</span> <span class="kw">c</span>(<span class="st">&quot;p&quot;</span>, <span class="st">&quot;stat&quot;</span>, <span class="st">&quot;est&quot;</span>, <span class="st">&quot;std.se&quot;</span>, <span class="st">&quot;se&quot;</span>, <span class="st">&quot;std.est&quot;</span>)</span>
-<span id="cb15-4"><a href="#cb15-4"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">tab_model</span>(</a>
+<a class="sourceLine" id="cb15-2" title="2">  m1, <span class="dt">show.se =</span> <span class="ot">TRUE</span>, <span class="dt">show.std =</span> <span class="ot">TRUE</span>, <span class="dt">show.stat =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb15-3" title="3">  <span class="dt">col.order =</span> <span class="kw">c</span>(<span class="st">&quot;p&quot;</span>, <span class="st">&quot;stat&quot;</span>, <span class="st">&quot;est&quot;</span>, <span class="st">&quot;std.se&quot;</span>, <span class="st">&quot;se&quot;</span>, <span class="st">&quot;std.est&quot;</span>)</a>
+<a class="sourceLine" id="cb15-4" title="4">)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
  
 </th>
-<th colspan="5" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+<th colspan="6" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
 Total score BARTHEL INDEX
 </th>
 </tr>
@@ -2551,9 +2558,12 @@ Statistic
 Estimates
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-std. Error
+standardized std. Error
 </td>
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+std. Error
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
 std. Beta
 </td>
 </tr>
@@ -2571,9 +2581,12 @@ std. Beta
 87.15
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-4.68
+0.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+4.68
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 -0.01
 </td>
 </tr>
@@ -2591,9 +2604,12 @@ carer’age
 -0.21
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.07
+0.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.07
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 -0.09
 </td>
 </tr>
@@ -2611,9 +2627,12 @@ average number of hours<br>of care per week
 -0.28
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.02
+0.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 -0.48
 </td>
 </tr>
@@ -2631,9 +2650,12 @@ carer’s gender: Female
 -0.39
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-2.09
+0.07
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.09
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 -0.01
 </td>
 </tr>
@@ -2651,9 +2673,12 @@ carer’s level of<br>education: intermediate<br>level of education
 1.37
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-2.28
+0.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.28
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 0.05
 </td>
 </tr>
@@ -2671,9 +2696,12 @@ carer’s level of<br>education: high level of<br>education
 -1.64
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-2.84
+0.10
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.84
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 -0.06
 </td>
 </tr>
@@ -2681,7 +2709,7 @@ carer’s level of<br>education: high level of<br>education
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
 Observations
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="5">
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="6">
 821
 </td>
 </tr>
@@ -2689,7 +2717,7 @@ Observations
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="5">
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="6">
 0.271 / 0.266
 </td>
 </tr>
@@ -2698,7 +2726,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="collapsing-columns" class="section level3">
 <h3>Collapsing columns</h3>
 <p>With <code>collapse.ci</code> and <code>collapse.se</code>, the columns for confidence intervals and standard errors can be collapsed into one column together with the estimates. Sometimes this table layout is required.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">tab_model</span>(m1, <span class="dt">collapse.ci =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">collapse.ci =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -2812,16 +2840,16 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <li><code>dv.labels</code> to change the names of the model columns, which are labelled with the variable labels / names from the dependent variables.</li>
 <li>Further more, there are various <code>string.*</code>-arguments, to change the name of column headings.</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">tab_model</span>(</span>
-<span id="cb17-2"><a href="#cb17-2"></a>  m1, m2, </span>
-<span id="cb17-3"><a href="#cb17-3"></a>  <span class="dt">pred.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Age (Carer)&quot;</span>, <span class="st">&quot;Hours per Week&quot;</span>, <span class="st">&quot;Gender (Carer)&quot;</span>,</span>
-<span id="cb17-4"><a href="#cb17-4"></a>                  <span class="st">&quot;Education: middle (Carer)&quot;</span>, <span class="st">&quot;Education: high (Carer)&quot;</span>, </span>
-<span id="cb17-5"><a href="#cb17-5"></a>                  <span class="st">&quot;Age (Older Person)&quot;</span>),</span>
-<span id="cb17-6"><a href="#cb17-6"></a>  <span class="dt">dv.labels =</span> <span class="kw">c</span>(<span class="st">&quot;First Model&quot;</span>, <span class="st">&quot;M2&quot;</span>),</span>
-<span id="cb17-7"><a href="#cb17-7"></a>  <span class="dt">string.pred =</span> <span class="st">&quot;Coeffcient&quot;</span>,</span>
-<span id="cb17-8"><a href="#cb17-8"></a>  <span class="dt">string.ci =</span> <span class="st">&quot;Conf. Int (95%)&quot;</span>,</span>
-<span id="cb17-9"><a href="#cb17-9"></a>  <span class="dt">string.p =</span> <span class="st">&quot;P-Value&quot;</span></span>
-<span id="cb17-10"><a href="#cb17-10"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">tab_model</span>(</a>
+<a class="sourceLine" id="cb17-2" title="2">  m1, m2, </a>
+<a class="sourceLine" id="cb17-3" title="3">  <span class="dt">pred.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Age (Carer)&quot;</span>, <span class="st">&quot;Hours per Week&quot;</span>, <span class="st">&quot;Gender (Carer)&quot;</span>,</a>
+<a class="sourceLine" id="cb17-4" title="4">                  <span class="st">&quot;Education: middle (Carer)&quot;</span>, <span class="st">&quot;Education: high (Carer)&quot;</span>, </a>
+<a class="sourceLine" id="cb17-5" title="5">                  <span class="st">&quot;Age (Older Person)&quot;</span>),</a>
+<a class="sourceLine" id="cb17-6" title="6">  <span class="dt">dv.labels =</span> <span class="kw">c</span>(<span class="st">&quot;First Model&quot;</span>, <span class="st">&quot;M2&quot;</span>),</a>
+<a class="sourceLine" id="cb17-7" title="7">  <span class="dt">string.pred =</span> <span class="st">&quot;Coeffcient&quot;</span>,</a>
+<a class="sourceLine" id="cb17-8" title="8">  <span class="dt">string.ci =</span> <span class="st">&quot;Conf. Int (95%)&quot;</span>,</a>
+<a class="sourceLine" id="cb17-9" title="9">  <span class="dt">string.p =</span> <span class="st">&quot;P-Value&quot;</span></a>
+<a class="sourceLine" id="cb17-10" title="10">)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -3036,15 +3064,15 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="including-reference-level-of-categorical-predictors" class="section level2">
 <h2>Including reference level of categorical predictors</h2>
 <p>By default, for categorical predictors, the variable names and the categories for regression coefficients are shown in the table output.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">library</span>(glmmTMB)</span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">data</span>(<span class="st">&quot;Salamanders&quot;</span>)</span>
-<span id="cb18-3"><a href="#cb18-3"></a>model &lt;-<span class="st"> </span><span class="kw">glm</span>(</span>
-<span id="cb18-4"><a href="#cb18-4"></a>  count <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>Wtemp <span class="op">+</span><span class="st"> </span>mined <span class="op">+</span><span class="st"> </span>cover,</span>
-<span id="cb18-5"><a href="#cb18-5"></a>  <span class="dt">family =</span> <span class="kw">poisson</span>(),</span>
-<span id="cb18-6"><a href="#cb18-6"></a>  <span class="dt">data =</span> Salamanders</span>
-<span id="cb18-7"><a href="#cb18-7"></a>)</span>
-<span id="cb18-8"><a href="#cb18-8"></a></span>
-<span id="cb18-9"><a href="#cb18-9"></a><span class="kw">tab_model</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">library</span>(glmmTMB)</a>
+<a class="sourceLine" id="cb18-2" title="2"><span class="kw">data</span>(<span class="st">&quot;Salamanders&quot;</span>)</a>
+<a class="sourceLine" id="cb18-3" title="3">model &lt;-<span class="st"> </span><span class="kw">glm</span>(</a>
+<a class="sourceLine" id="cb18-4" title="4">  count <span class="op">~</span><span class="st"> </span>spp <span class="op">+</span><span class="st"> </span>Wtemp <span class="op">+</span><span class="st"> </span>mined <span class="op">+</span><span class="st"> </span>cover,</a>
+<a class="sourceLine" id="cb18-5" title="5">  <span class="dt">family =</span> <span class="kw">poisson</span>(),</a>
+<a class="sourceLine" id="cb18-6" title="6">  <span class="dt">data =</span> Salamanders</a>
+<a class="sourceLine" id="cb18-7" title="7">)</a>
+<a class="sourceLine" id="cb18-8" title="8"></a>
+<a class="sourceLine" id="cb18-9" title="9"><span class="kw">tab_model</span>(model)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -3226,7 +3254,7 @@ R<sup>2</sup> Nagelkerke
 </tr>
 </table>
 <p>You can include the reference level for categorical predictors by setting <code>show.reflvl = TRUE</code>.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">tab_model</span>(model, <span class="dt">show.reflvl =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">tab_model</span>(model, <span class="dt">show.reflvl =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -3432,7 +3460,7 @@ R<sup>2</sup> Nagelkerke
 </tr>
 </table>
 <p>To show variable names, categories and include the reference level, also set <code>prefix.labels = &quot;varname&quot;</code>.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">tab_model</span>(model, <span class="dt">show.reflvl =</span> <span class="ot">TRUE</span>, <span class="dt">prefix.labels =</span> <span class="st">&quot;varname&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1"><span class="kw">tab_model</span>(model, <span class="dt">show.reflvl =</span> <span class="ot">TRUE</span>, <span class="dt">prefix.labels =</span> <span class="st">&quot;varname&quot;</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -3638,10 +3666,10 @@ R<sup>2</sup> Nagelkerke
 </tr>
 </table>
 </div>
-<div id="show-asterisks-instead-of-numeric-p-values" class="section level2">
-<h2>Show asterisks instead of numeric p-values</h2>
-<p>You can change the style of how p-values are displayed with the argument <code>p.style</code>. With <code>p.style = &quot;asterisk&quot;</code>, the p-values are indicated as <code>*</code> in the table.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">tab_model</span>(m1, m2, <span class="dt">p.style =</span> <span class="st">&quot;a&quot;</span>)</span></code></pre></div>
+<div id="style-of-p-values" class="section level2">
+<h2>Style of p-values</h2>
+<p>You can change the style of how p-values are displayed with the argument <code>p.style</code>. With <code>p.style = &quot;stars&quot;</code>, the p-values are indicated as <code>*</code> in the table.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1"><span class="kw">tab_model</span>(m1, m2, <span class="dt">p.style =</span> <span class="st">&quot;stars&quot;</span>)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -3814,56 +3842,268 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </tr></li>
 </ul>
 </table>
+<p>Another option would be scientific notation, using <code>p.style = &quot;scientific&quot;</code>, which also can be combined with <code>digits.p</code>.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">tab_model</span>(m1, m2, <span class="dt">p.style =</span> <span class="st">&quot;scientific&quot;</span>, <span class="dt">digits.p =</span> <span class="dv">2</span>)</a></code></pre></div>
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+Total score BARTHEL INDEX
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+Negative impact with 7<br>items
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+87.15
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+77.96 – 96.34
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>9.33e-65</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+9.83
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+7.33 – 12.33
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+<strong>3.11e-14</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+carer’age
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.21
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.35 – -0.07
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>4.18e-03</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.01 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+3.59e-01
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+average number of hours<br>of care per week
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.28
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.32 – -0.24
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>7.77e-45</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01 – 0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+<strong>2.69e-11</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+carer’s gender: Female
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.39
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-4.49 – 3.71
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+8.50e-01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.43
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.15 – 1.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+1.47e-01
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+carer’s level of<br>education: intermediate<br>level of education
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+1.37
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-3.12 – 5.85
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+5.50e-01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+carer’s level of<br>education: high level of<br>education
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-1.64
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-7.22 – 3.93
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+5.64e-01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+elder’age
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.03 – 0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
+7.41e-01
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+821
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+879
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+R<sup>2</sup> / R<sup>2</sup> adjusted
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.271 / 0.266
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.067 / 0.063
+</td>
+</tr>
+</table>
 <div id="automatic-matching-for-named-vectors" class="section level3">
 <h3>Automatic matching for named vectors</h3>
 <p>Another way to easily assign labels are <em>named vectors</em>. In this case, it doesn’t matter if <code>pred.labels</code> has more labels than coefficients in the model(s), or in which order the labels are passed to <code>tab_model()</code>. The only requirement is that the labels’ names equal the coefficients names as they appear in the <code>summary()</code>-output.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co"># example, coefficients are &quot;c161sex2&quot; or &quot;c172code3&quot;</span></span>
-<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">summary</span>(m1)</span>
-<span id="cb22-3"><a href="#cb22-3"></a><span class="co">#&gt; </span></span>
-<span id="cb22-4"><a href="#cb22-4"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb22-5"><a href="#cb22-5"></a><span class="co">#&gt; lm(formula = barthtot ~ c160age + c12hour + c161sex + c172code, </span></span>
-<span id="cb22-6"><a href="#cb22-6"></a><span class="co">#&gt;     data = efc)</span></span>
-<span id="cb22-7"><a href="#cb22-7"></a><span class="co">#&gt; </span></span>
-<span id="cb22-8"><a href="#cb22-8"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb22-9"><a href="#cb22-9"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb22-10"><a href="#cb22-10"></a><span class="co">#&gt; -75.144 -14.944   4.401  18.661  72.393 </span></span>
-<span id="cb22-11"><a href="#cb22-11"></a><span class="co">#&gt; </span></span>
-<span id="cb22-12"><a href="#cb22-12"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb22-13"><a href="#cb22-13"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb22-14"><a href="#cb22-14"></a><span class="co">#&gt; (Intercept) 87.14994    4.68009  18.621  &lt; 2e-16 ***</span></span>
-<span id="cb22-15"><a href="#cb22-15"></a><span class="co">#&gt; c160age     -0.20716    0.07211  -2.873  0.00418 ** </span></span>
-<span id="cb22-16"><a href="#cb22-16"></a><span class="co">#&gt; c12hour     -0.27883    0.01865 -14.950  &lt; 2e-16 ***</span></span>
-<span id="cb22-17"><a href="#cb22-17"></a><span class="co">#&gt; c161sex2    -0.39402    2.08893  -0.189  0.85044    </span></span>
-<span id="cb22-18"><a href="#cb22-18"></a><span class="co">#&gt; c172code2    1.36596    2.28440   0.598  0.55004    </span></span>
-<span id="cb22-19"><a href="#cb22-19"></a><span class="co">#&gt; c172code3   -1.64045    2.84037  -0.578  0.56373    </span></span>
-<span id="cb22-20"><a href="#cb22-20"></a><span class="co">#&gt; ---</span></span>
-<span id="cb22-21"><a href="#cb22-21"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb22-22"><a href="#cb22-22"></a><span class="co">#&gt; </span></span>
-<span id="cb22-23"><a href="#cb22-23"></a><span class="co">#&gt; Residual standard error: 25.35 on 815 degrees of freedom</span></span>
-<span id="cb22-24"><a href="#cb22-24"></a><span class="co">#&gt;   (87 observations deleted due to missingness)</span></span>
-<span id="cb22-25"><a href="#cb22-25"></a><span class="co">#&gt; Multiple R-squared:  0.2708, Adjusted R-squared:  0.2664 </span></span>
-<span id="cb22-26"><a href="#cb22-26"></a><span class="co">#&gt; F-statistic: 60.54 on 5 and 815 DF,  p-value: &lt; 2.2e-16</span></span>
-<span id="cb22-27"><a href="#cb22-27"></a></span>
-<span id="cb22-28"><a href="#cb22-28"></a>pl &lt;-<span class="st"> </span><span class="kw">c</span>(</span>
-<span id="cb22-29"><a href="#cb22-29"></a>  <span class="st">`</span><span class="dt">(Intercept)</span><span class="st">`</span> =<span class="st"> &quot;Intercept&quot;</span>,</span>
-<span id="cb22-30"><a href="#cb22-30"></a>  <span class="dt">e17age =</span> <span class="st">&quot;Age (Older Person)&quot;</span>,</span>
-<span id="cb22-31"><a href="#cb22-31"></a>  <span class="dt">c160age =</span> <span class="st">&quot;Age (Carer)&quot;</span>, </span>
-<span id="cb22-32"><a href="#cb22-32"></a>  <span class="dt">c12hour =</span> <span class="st">&quot;Hours per Week&quot;</span>, </span>
-<span id="cb22-33"><a href="#cb22-33"></a>  <span class="dt">barthtot =</span> <span class="st">&quot;Barthel-Index&quot;</span>,</span>
-<span id="cb22-34"><a href="#cb22-34"></a>  <span class="dt">c161sex2 =</span> <span class="st">&quot;Gender (Carer)&quot;</span>,</span>
-<span id="cb22-35"><a href="#cb22-35"></a>  <span class="dt">c172code2 =</span> <span class="st">&quot;Education: middle (Carer)&quot;</span>, </span>
-<span id="cb22-36"><a href="#cb22-36"></a>  <span class="dt">c172code3 =</span> <span class="st">&quot;Education: high (Carer)&quot;</span>,</span>
-<span id="cb22-37"><a href="#cb22-37"></a>  <span class="dt">a_non_used_label =</span> <span class="st">&quot;We don&#39;t care&quot;</span></span>
-<span id="cb22-38"><a href="#cb22-38"></a>)</span>
-<span id="cb22-39"><a href="#cb22-39"></a> </span>
-<span id="cb22-40"><a href="#cb22-40"></a><span class="kw">tab_model</span>(</span>
-<span id="cb22-41"><a href="#cb22-41"></a>  m1, m2, m3, m4, </span>
-<span id="cb22-42"><a href="#cb22-42"></a>  <span class="dt">pred.labels =</span> pl, </span>
-<span id="cb22-43"><a href="#cb22-43"></a>  <span class="dt">dv.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Model1&quot;</span>, <span class="st">&quot;Model2&quot;</span>, <span class="st">&quot;Model3&quot;</span>, <span class="st">&quot;Model4&quot;</span>),</span>
-<span id="cb22-44"><a href="#cb22-44"></a>  <span class="dt">show.ci =</span> <span class="ot">FALSE</span>, </span>
-<span id="cb22-45"><a href="#cb22-45"></a>  <span class="dt">show.p =</span> <span class="ot">FALSE</span>, </span>
-<span id="cb22-46"><a href="#cb22-46"></a>  <span class="dt">transform =</span> <span class="ot">NULL</span></span>
-<span id="cb22-47"><a href="#cb22-47"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" title="1"><span class="co"># example, coefficients are &quot;c161sex2&quot; or &quot;c172code3&quot;</span></a>
+<a class="sourceLine" id="cb23-2" title="2"><span class="kw">summary</span>(m1)</a>
+<a class="sourceLine" id="cb23-3" title="3"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb23-4" title="4"><span class="co">#&gt; Call:</span></a>
+<a class="sourceLine" id="cb23-5" title="5"><span class="co">#&gt; lm(formula = barthtot ~ c160age + c12hour + c161sex + c172code, </span></a>
+<a class="sourceLine" id="cb23-6" title="6"><span class="co">#&gt;     data = efc)</span></a>
+<a class="sourceLine" id="cb23-7" title="7"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb23-8" title="8"><span class="co">#&gt; Residuals:</span></a>
+<a class="sourceLine" id="cb23-9" title="9"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
+<a class="sourceLine" id="cb23-10" title="10"><span class="co">#&gt; -75.144 -14.944   4.401  18.661  72.393 </span></a>
+<a class="sourceLine" id="cb23-11" title="11"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb23-12" title="12"><span class="co">#&gt; Coefficients:</span></a>
+<a class="sourceLine" id="cb23-13" title="13"><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></a>
+<a class="sourceLine" id="cb23-14" title="14"><span class="co">#&gt; (Intercept) 87.14994    4.68009  18.621  &lt; 2e-16 ***</span></a>
+<a class="sourceLine" id="cb23-15" title="15"><span class="co">#&gt; c160age     -0.20716    0.07211  -2.873  0.00418 ** </span></a>
+<a class="sourceLine" id="cb23-16" title="16"><span class="co">#&gt; c12hour     -0.27883    0.01865 -14.950  &lt; 2e-16 ***</span></a>
+<a class="sourceLine" id="cb23-17" title="17"><span class="co">#&gt; c161sex2    -0.39402    2.08893  -0.189  0.85044    </span></a>
+<a class="sourceLine" id="cb23-18" title="18"><span class="co">#&gt; c172code2    1.36596    2.28440   0.598  0.55004    </span></a>
+<a class="sourceLine" id="cb23-19" title="19"><span class="co">#&gt; c172code3   -1.64045    2.84037  -0.578  0.56373    </span></a>
+<a class="sourceLine" id="cb23-20" title="20"><span class="co">#&gt; ---</span></a>
+<a class="sourceLine" id="cb23-21" title="21"><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></a>
+<a class="sourceLine" id="cb23-22" title="22"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb23-23" title="23"><span class="co">#&gt; Residual standard error: 25.35 on 815 degrees of freedom</span></a>
+<a class="sourceLine" id="cb23-24" title="24"><span class="co">#&gt;   (87 observations deleted due to missingness)</span></a>
+<a class="sourceLine" id="cb23-25" title="25"><span class="co">#&gt; Multiple R-squared:  0.2708, Adjusted R-squared:  0.2664 </span></a>
+<a class="sourceLine" id="cb23-26" title="26"><span class="co">#&gt; F-statistic: 60.54 on 5 and 815 DF,  p-value: &lt; 2.2e-16</span></a>
+<a class="sourceLine" id="cb23-27" title="27"></a>
+<a class="sourceLine" id="cb23-28" title="28">pl &lt;-<span class="st"> </span><span class="kw">c</span>(</a>
+<a class="sourceLine" id="cb23-29" title="29">  <span class="st">`</span><span class="dt">(Intercept)</span><span class="st">`</span> =<span class="st"> &quot;Intercept&quot;</span>,</a>
+<a class="sourceLine" id="cb23-30" title="30">  <span class="dt">e17age =</span> <span class="st">&quot;Age (Older Person)&quot;</span>,</a>
+<a class="sourceLine" id="cb23-31" title="31">  <span class="dt">c160age =</span> <span class="st">&quot;Age (Carer)&quot;</span>, </a>
+<a class="sourceLine" id="cb23-32" title="32">  <span class="dt">c12hour =</span> <span class="st">&quot;Hours per Week&quot;</span>, </a>
+<a class="sourceLine" id="cb23-33" title="33">  <span class="dt">barthtot =</span> <span class="st">&quot;Barthel-Index&quot;</span>,</a>
+<a class="sourceLine" id="cb23-34" title="34">  <span class="dt">c161sex2 =</span> <span class="st">&quot;Gender (Carer)&quot;</span>,</a>
+<a class="sourceLine" id="cb23-35" title="35">  <span class="dt">c172code2 =</span> <span class="st">&quot;Education: middle (Carer)&quot;</span>, </a>
+<a class="sourceLine" id="cb23-36" title="36">  <span class="dt">c172code3 =</span> <span class="st">&quot;Education: high (Carer)&quot;</span>,</a>
+<a class="sourceLine" id="cb23-37" title="37">  <span class="dt">a_non_used_label =</span> <span class="st">&quot;We don&#39;t care&quot;</span></a>
+<a class="sourceLine" id="cb23-38" title="38">)</a>
+<a class="sourceLine" id="cb23-39" title="39"> </a>
+<a class="sourceLine" id="cb23-40" title="40"><span class="kw">tab_model</span>(</a>
+<a class="sourceLine" id="cb23-41" title="41">  m1, m2, m3, m4, </a>
+<a class="sourceLine" id="cb23-42" title="42">  <span class="dt">pred.labels =</span> pl, </a>
+<a class="sourceLine" id="cb23-43" title="43">  <span class="dt">dv.labels =</span> <span class="kw">c</span>(<span class="st">&quot;Model1&quot;</span>, <span class="st">&quot;Model2&quot;</span>, <span class="st">&quot;Model3&quot;</span>, <span class="st">&quot;Model4&quot;</span>),</a>
+<a class="sourceLine" id="cb23-44" title="44">  <span class="dt">show.ci =</span> <span class="ot">FALSE</span>, </a>
+<a class="sourceLine" id="cb23-45" title="45">  <span class="dt">show.p =</span> <span class="ot">FALSE</span>, </a>
+<a class="sourceLine" id="cb23-46" title="46">  <span class="dt">transform =</span> <span class="ot">NULL</span></a>
+<a class="sourceLine" id="cb23-47" title="47">)</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -4065,7 +4305,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 <div id="keep-or-remove-coefficients-from-the-table" class="section level2">
 <h2>Keep or remove coefficients from the table</h2>
 <p>Using the <code>terms</code>- or <code>rm.terms</code>-argument allows us to explicitly show or remove specific coefficients from the table output.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">tab_model</span>(m1, <span class="dt">terms =</span> <span class="kw">c</span>(<span class="st">&quot;c160age&quot;</span>, <span class="st">&quot;c12hour&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">terms =</span> <span class="kw">c</span>(<span class="st">&quot;c160age&quot;</span>, <span class="st">&quot;c12hour&quot;</span>))</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -4135,7 +4375,7 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </tr>
 </table>
 <p>Note that the names of terms to keep or remove should match the coefficients names. For categorical predictors, one example would be:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">tab_model</span>(m1, <span class="dt">rm.terms =</span> <span class="kw">c</span>(<span class="st">&quot;c172code2&quot;</span>, <span class="st">&quot;c161sex2&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1"><span class="kw">tab_model</span>(m1, <span class="dt">rm.terms =</span> <span class="kw">c</span>(<span class="st">&quot;c172code2&quot;</span>, <span class="st">&quot;c161sex2&quot;</span>))</a></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">

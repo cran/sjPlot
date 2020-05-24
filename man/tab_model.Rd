@@ -40,7 +40,8 @@ tab_model(
   seed = NULL,
   robust = FALSE,
   vcov.fun = NULL,
-  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5", "CR0",
+    "CR1", "CR1p", "CR1S", "CR2", "CR3"),
   vcov.args = NULL,
   string.pred = "Predictors",
   string.est = "Estimate",
@@ -64,9 +65,10 @@ tab_model(
     "ci.outer", "stat", "p", "df.error", "response.level"),
   digits = 2,
   digits.p = 3,
+  digits.re = 2,
   emph.p = TRUE,
-  p.val = c("wald", "kenward", "kr", "satterthwaite"),
-  p.style = c("numeric", "asterisk", "both"),
+  p.val = c("wald", "kenward", "kr", "satterthwaite", "ml1", "betwithin"),
+  p.style = c("numeric", "stars", "numeric_stars", "scientific", "scientific_stars"),
   p.threshold = c(0.05, 0.01, 0.001),
   p.adjust = NULL,
   case = "parsed",
@@ -173,7 +175,7 @@ use \code{terms = "Species [versicolor,virginica]"}.}
 be removed from the output Counterpart to \code{terms}. \code{rm.terms =
 "t_name"} would remove the term \emph{t_name}. Default is \code{NULL}, i.e.
 all terms are used. For factors, levels that should be removed from the plot
-need to be explicitely indicated in square brackets, and match the model's
+need to be explicitly indicated in square brackets, and match the model's
 coefficient names, e.g. \code{rm.terms = "t_name [2,3]"} would remove the terms
 \code{"t_name2"} and \code{"t_name3"} (assuming that the variable \code{t_name}
 was categorical and has at least the factor levels \code{2} and \code{3}).}
@@ -207,7 +209,7 @@ or axis labels are displayed in one line and when a line break is inserted.}
 
 \item{bootstrap}{Logical, if \code{TRUE}, returns bootstrapped estimates..}
 
-\item{iterations}{Numeric, number of bootsrap iterations (default is 1000).}
+\item{iterations}{Numeric, number of bootstrap iterations (default is 1000).}
 
 \item{seed}{Numeric, the number of the seed to replicate bootstrapped estimates. If \code{NULL}, uses random seed.}
 
@@ -219,12 +221,12 @@ default, that is, \code{\link[sandwich]{vcovHC}} with default-type is called
 for further details).}
 
 \item{vcov.fun}{Character vector, indicating the name of the \code{vcov*()}-function
-from the \pkg{sandwich}-package, e.g. \code{vcov.fun = "vcovCL"}, if robust
-standard errors are required.}
+from the \pkg{sandwich} or \pkg{clubSandwich} package, e.g. \code{vcov.fun = "vcovCL"},
+if robust standard errors are required.}
 
 \item{vcov.type}{Character vector, specifying the estimation type for the
-robust covariance matrix estimation (see \code{\link[sandwich]{vcovHC}}
-for details).}
+robust covariance matrix estimation (see \code{\link[sandwich:vcovHC]{vcovHC()}}
+or \code{\link[clubSandwich:vcovCR]{vcovCR()}} for details).}
 
 \item{vcov.args}{List of named vectors, used as additional arguments that
 are passed down to \code{vcov.fun}.}
@@ -259,7 +261,7 @@ Default is based on the response scale, e.g. for logistic regression models,
 
 \item{strings}{Named character vector, as alternative to arguments like \code{string.ci}
 or \code{string.p} etc. The name (lhs) must be one of the string-indicator from
-the forementioned arguments, while the value (rhs) is the string that is used
+the aforementioned arguments, while the value (rhs) is the string that is used
 as column heading. E.g., \code{strings = c(ci = "Conf.Int.", se = "std. Err")}
 would be equivalent to setting \code{string.ci = "Conf.Int.", string.se = "std. Err"}.}
 
@@ -291,6 +293,8 @@ Table columns are printed in the order as they appear in \code{col.order}.}
 
 \item{digits.p}{Amount of decimals for p-values}
 
+\item{digits.re}{Amount of decimals for random effects part of the summary table.}
+
 \item{emph.p}{Logical, if \code{TRUE}, significant p-values are shown bold faced.}
 
 \item{p.val}{Character, for mixed models, indicates how p-values are computed.
@@ -298,13 +302,15 @@ Use \code{p.val = "wald"} for a faster, but less precise computation. For
 \code{p.val = "kenward"} (or \code{p.val = "kr"}), computation of p-values
 is based on conditional F-tests with Kenward-Roger approximation for the
 degrees of freedom. \code{p.val = "satterthwaite"} uses Satterthwaite's
-approximation (see \code{\link[parameters]{dof_kenward}} and \code{\link[parameters]{dof_satterthwaite}}
-for details). In the latter cases, use \code{show.df = TRUE} to show the
-approximated degrees of freedom for each coefficient.}
+approximation and \code{"ml1"} uses a "m-l-1" heuristic (see
+\code{\link[parameters]{degrees_of_freedom}} for details). Use
+\code{show.df = TRUE} to show the approximated degrees of freedom
+for each coefficient.}
 
 \item{p.style}{Character, indicating if p-values should be printed as
-numeric value (\code{"numeric"}), as asterisks (\code{"asterisk"})
-or both (\code{"both"}). May be abbreviated.}
+numeric value (\code{"numeric"}), as 'stars' (asterisks) only (\code{"stars"}),
+or scientific (\code{"scientific"}). Scientific and numeric style can be
+combined with "stars", e.g. \code{"numeric_stars"}}
 
 \item{p.threshold}{Numeric vector of length 3, indicating the treshold for
 annotating p-values with asterisks. Only applies if
