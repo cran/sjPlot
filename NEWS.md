@@ -1,3 +1,20 @@
+# sjPlot 2.8.5
+
+## Changes to functions
+
+* `tab_model()` gains an argument `df.method`, which will replace the less generic `p.val` argument in the future. Currently, `df.method` is an alias of `p.val`.
+
+## Bug fixes
+
+* Fixed issue with wrong n's in `plot_stackfrq()` when weights were applied.
+* Fixed issue `plot_stackfrq()` when weights were applied and items should be sorted.
+* Fixed issue in `plot_models()` for models without intercept.
+* Fixed issue for wrong legend labelling in `plot_models()` when showing p-stars.
+* Fixed issue in `plot_model()` with `type = "int"` in detecting interaction terms when these were partly in parenthesis (like `a * (b + c)`).
+* Fixed issue in `tab_model()` with arguments `show.stat = TRUE` and `show.std = TRUE`, where the related statistic and CI columns for standardized coefficients were not shown.
+* Fixed issue in `tab_model()` for *brmsfit* models that did no longer show random effects information after the last update from the *performance*  package.
+* Fixed issue with argument `show.rownames` in `tab_df()`.
+
 # sjPlot 2.8.4
 
 ## Changes to functions

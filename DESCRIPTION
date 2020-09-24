@@ -2,14 +2,14 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.8.4
+Version: 2.8.5
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
     person("Alexander", "Bartel", role = "ctb", comment = c(ORCID = "0000-0002-1280-6138")),
     person("Carsten", "Schwemmer", email = "carsten.schwemmer@uni-bamberg.de", role = "ctb"),
     person(given = "Chuck", family = "Powell", role = "ctb", email = "ibecav@gmail.com", comment = c(ORCID = "0000-0002-3606-2188")), 
-    person(given = "Amir", family = "Djalovski", role = "ctb", email = "Amir.DJV@gmail.com")
-          )
+    person(given = "Amir", family = "Djalovski", role = "ctb", email = "Amir.DJV@gmail.com"),
+    person(given = "Johannes", family = "Titz", role = "ctb", email = "johannes@titz.science", comment = c(ORCID = "0000-0002-1102-5719")))
 Maintainer: Daniel Lüdecke <d.luedecke@uke.de>
 Description: Collection of plotting and table output functions for data
     visualization. Results of various statistical analyses (that are commonly used
@@ -33,14 +33,15 @@ Suggests: brms, car, clubSandwich, cluster, cowplot, GPArotation,
         TMB, testthat
 URL: https://strengejacke.github.io/sjPlot/
 BugReports: https://github.com/strengejacke/sjPlot/issues
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-05-23 11:41:58 UTC; Daniel
+Packaged: 2020-09-24 12:05:31 UTC; mail
 Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Alexander Bartel [ctb] (<https://orcid.org/0000-0002-1280-6138>),
   Carsten Schwemmer [ctb],
   Chuck Powell [ctb] (<https://orcid.org/0000-0002-3606-2188>),
-  Amir Djalovski [ctb]
+  Amir Djalovski [ctb],
+  Johannes Titz [ctb] (<https://orcid.org/0000-0002-1102-5719>)
 Repository: CRAN
-Date/Publication: 2020-05-24 05:00:05 UTC
+Date/Publication: 2020-09-24 13:00:02 UTC

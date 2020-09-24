@@ -131,7 +131,7 @@
 #'   popularized by Aiken and West (1991), i.e. using the mean, the value one
 #'   standard deviation above, and the value one standard deviation below the
 #'   mean as values of the moderator, see
-#'   \href{http://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin
+#'   \href{https://www.theanalysisfactor.com/3-tips-interpreting-moderation/}{Grace-Martin
 #'   K: 3 Tips to Make Interpreting Moderation Effects Easier}).}
 #'   \item{\code{"zeromax"}}{is similar to the \code{"minmax"} option, however,
 #'   \code{0} is always used as minimum value for the moderator. This may be
@@ -859,10 +859,11 @@ get_model_data <- function(model,
 }
 
 
+#' @importFrom insight has_intercept
 one_par <- function(model) {
   tryCatch(
     {
-      length(stats::coef(model)) <= 2
+      length(stats::coef(model)) < 2 & !insight::has_intercept(model)
     },
     error = function(x) { FALSE }
   )

@@ -86,8 +86,10 @@
 #' @param string.std_se Character vector, used for the column heading of standard error of standardized coefficients. Default is \code{"standardized std. Error"}.
 #' @param string.std_ci Character vector, used for the column heading of confidence intervals of standardized coefficients. Default is \code{"standardized std. Error"}.
 #' @param string.p Character vector, used for the column heading of p values. Default is \code{"p"}.
+#' @param string.std.p Character vector, used for the column heading of p values. Default is \code{"std. p"}.
 #' @param string.df Character vector, used for the column heading of degrees of freedom. Default is \code{"df"}.
 #' @param string.stat Character vector, used for the test statistic. Default is \code{"Statistic"}.
+#' @param string.std.stat Character vector, used for the test statistic. Default is \code{"std. Statistic"}.
 #' @param string.resp Character vector, used for the column heading of of the response level for multinominal or categorical models. Default is \code{"Response"}.
 #' @param string.intercept Character vector, used as name for the intercept parameter. Default is \code{"(Intercept)"}.
 #' @param strings Named character vector, as alternative to arguments like \code{string.ci}
@@ -133,13 +135,13 @@
 #'    are only shown in the table when the related argument (like \code{show.est}
 #'    for \code{"estimate"}) is set to \code{TRUE} or another valid value.
 #'    Table columns are printed in the order as they appear in \code{col.order}.
-#' @param p.val Character, for mixed models, indicates how p-values are computed.
-#'   Use \code{p.val = "wald"} for a faster, but less precise computation. For
-#'   \code{p.val = "kenward"} (or \code{p.val = "kr"}), computation of p-values
-#'   is based on conditional F-tests with Kenward-Roger approximation for the
-#'   degrees of freedom. \code{p.val = "satterthwaite"} uses Satterthwaite's
-#'   approximation and \code{"ml1"} uses a "m-l-1" heuristic (see
-#'   \code{\link[parameters]{degrees_of_freedom}} for details). Use
+#' @param df.method,p.val Method for computing degrees of freedom for p-values,
+#'   standard errors and confidence intervals (CI). Only applies to mixed models.
+#'   Use \code{df.method = "wald"} for a faster, but less precise computation.
+#'   \code{df.method = "kenward"} (or \code{df.method = "kr"}) uses Kenward-Roger
+#'   approximation for the degrees of freedom. \code{df.method = "satterthwaite"}
+#'   uses Satterthwaite's approximation and \code{"ml1"} uses a "m-l-1" heuristic
+#'   see \code{\link[parameters]{degrees_of_freedom}} for details). Use
 #'   \code{show.df = TRUE} to show the approximated degrees of freedom
 #'   for each coefficient.
 #' @param p.style Character, indicating if p-values should be printed as
@@ -220,7 +222,7 @@
 #' @importFrom sjlabelled response_labels term_labels
 #' @importFrom sjmisc word_wrap var_rename add_columns add_case
 #' @importFrom insight model_info is_multivariate find_random get_data find_predictors
-#' @importFrom performance r2 icc
+#' @importFrom performance r2 variance_decomposition
 #' @importFrom stats nobs setNames
 #' @importFrom rlang .data
 #' @importFrom utils packageVersion
@@ -278,8 +280,10 @@ tab_model <- function(
   string.std_se = "standardized std. Error",
   string.std_ci = "standardized CI",
   string.p = "p",
+  string.std.p = "std. p",
   string.df = "df",
   string.stat = "Statistic",
+  string.std.stat = "std. Statistic",
   string.resp = "Response",
   string.intercept = "(Intercept)",
   strings = NULL,
@@ -301,7 +305,9 @@ tab_model <- function(
     "ci.inner",
     "ci.outer",
     "stat",
+    "std.stat",
     "p",
+    "std.p",
     "df.error",
     "response.level"
   ),
@@ -310,7 +316,8 @@ tab_model <- function(
   digits.p = 3,
   digits.re = 2,
   emph.p = TRUE,
-  p.val = c("wald", "kenward", "kr", "satterthwaite", "ml1", "betwithin"),
+  p.val = NULL,
+  df.method = NULL,
   p.style = c("numeric", "stars", "numeric_stars", "scientific", "scientific_stars"),
   p.threshold = c(0.05, 0.01, 0.001),
   p.adjust = NULL,
@@ -324,7 +331,13 @@ tab_model <- function(
   use.viewer = TRUE
 ) {
 
-  p.val <- match.arg(p.val)
+  if (!missing(df.method)) {
+    p.val <- df.method
+  }
+
+  if (!is.null(p.val)) {
+    p.val <- match.arg(p.val, choices = c("wald", "profile", "kenward", "kr", "satterthwaite", "ml1", "betwithin"))
+  }
   p.style <- match.arg(p.style)
   prefix.labels <- match.arg(prefix.labels)
   vcov.type <- match.arg(vcov.type)
@@ -386,9 +399,14 @@ tab_model <- function(
   copos <- which("p" == col.order)
   if (!sjmisc::is_empty(copos)) col.order[copos] <- "p.value"
 
+  copos <- which("std.p" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.p.value"
+
   copos <- which("stat" == col.order)
   if (!sjmisc::is_empty(copos)) col.order[copos] <- "statistic"
 
+  copos <- which("std.stat" == col.order)
+  if (!sjmisc::is_empty(copos)) col.order[copos] <- "std.statistic"
 
   # match strings, to label the default strings in the table,
   # like "Estimate", "CI" etc.
@@ -402,8 +420,10 @@ tab_model <- function(
     if ("std_se" %in% s.names) string.std_se <- strings[["std_se"]]
     if ("std_ci" %in% s.names) string.std_ci <- strings[["std_ci"]]
     if ("p" %in% s.names) string.p <- strings[["p"]]
+    if ("std.p" %in% s.names) string.std.p <- strings[["std.p"]]
     if ("df" %in% s.names) string.df <- strings[["df"]]
     if ("stat" %in% s.names) string.stat <- strings[["stat"]]
+    if ("std.stat" %in% s.names) string.std.stat <- strings[["std.stat"]]
     if ("resp" %in% s.names) string.resp <- strings[["resp"]]
     if ("intercept" %in% s.names) string.intercept <- strings[["intercept"]]
   }
@@ -468,24 +488,7 @@ tab_model <- function(
           digits,
           .data$conf.high
         )) %>%
-        dplyr::select(-.data$conf.low, -.data$conf.high) %>%
-        dplyr::mutate(
-          p.stars = get_p_stars(.data$p.value, p.threshold),
-          p.sig = .data$p.value < .05
-        )
-
-      if (grepl("scientific", p.style)) {
-        dat$p.value <- formatC(dat$p.value, format = "e", digits = digits.p)
-      } else {
-        dat$p.value <- sprintf("%.*f", digits.p, dat$p.value)
-      }
-
-
-      # emphasize p-values ----
-
-      if (emph.p && !all(dat$p.value == "NA")) dat$p.value[which(dat$p.sig)] <- sprintf("<strong>%s</strong>", dat$p.value[which(dat$p.sig)])
-      dat <- dplyr::select(dat, -.data$p.sig)
-
+        dplyr::select(-.data$conf.low, -.data$conf.high)
 
       # get inner probability (i.e. 2nd CI for Stan-models) ----
 
@@ -502,16 +505,6 @@ tab_model <- function(
           )) %>%
             dplyr::select(-.data$conf.low50, -.data$conf.high50)
       }
-
-
-      # indicate p <0.001 ----
-
-      pv <- paste0("0.", paste(rep("0", digits.p), collapse = ""))
-      dat$p.value[dat$p.value == pv] <- "&lt;0.001"
-
-      pv <- paste0("<strong>0.", paste(rep("0", digits.p), collapse = ""), "</strong>")
-      dat$p.value[dat$p.value == pv] <- "<strong>&lt;0.001"
-
 
       # tidy output of standardized values ----
 
@@ -533,13 +526,17 @@ tab_model <- function(
           iterations = iterations,
           seed = seed
         ) %>%
+          format_p_values(p.style, digits.p, emph.p, p.threshold) %>%
           sjmisc::var_rename(
             estimate = "std.estimate",
             std.error = "std.se",
             conf.low = "std.conf.low",
-            conf.high = "std.conf.high"
+            conf.high = "std.conf.high",
+            p.value = "std.p.value",
+            statistic = "std.statistic",
+            p.stars = "std.p.stars"
           ) %>%
-          dplyr::select(-1, -.data$p.value) %>%
+          dplyr::select(-1) %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
             "%.*f%s%.*f",
@@ -550,16 +547,26 @@ tab_model <- function(
             .data$std.conf.high
           )) %>%
           dplyr::select(-.data$std.conf.low, -.data$std.conf.high)
+        # if t-statistic is the same for standardized and unstandardized model
+        # remove standardized; ignore intercept
+        if (all(round(dat$statistic[-1], 3) == round(dat$std.statistic[-1], 3))) {
+          dat <- dat %>%
+            dplyr::select(-.data$std.statistic, -.data$std.p.value)
+        }
       }
 
+      # format p values for unstandardized model
+      dat <- format_p_values(dat, p.style, digits.p, emph.p, p.threshold)
 
       # add asterisks to estimates ----
 
       if (grepl("stars", p.style)) {
         if (obj_has_name(dat, "estimate"))
           dat$estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$estimate, dat$p.stars)
-        if (!show.est && obj_has_name(dat, "std.estimate"))
-          dat$std.estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$std.estimate, dat$p.stars)
+        if (!show.est && obj_has_name(dat, "std.estimate")) {
+          dat$std.estimate <- sprintf("%.*f <sup>%s</sup>", digits, dat$std.estimate, dat$std.p.stars)
+          dat <- dplyr::select(dat, -.data$std.p.stars)
+        }
       }
 
       dat <- dplyr::select(dat, -.data$p.stars)
@@ -668,15 +675,18 @@ tab_model <- function(
       }
 
 
-      vars <- NULL
+      vars <- vars_brms <- NULL
 
       # extract variance components ----
 
       if ((show.icc || show.re.var || show.r2) && is_mixed_model(model)) {
         if (inherits(model, "brmsfit")) {
-          vars_brms <- performance::icc(model)
-          vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
-          vars$var.residual <- attr(vars_brms, "var_residual")
+          vars <- suppressWarnings(insight::get_variance(model))
+          if (is.null(vars)) {
+            vars_brms <- performance::variance_decomposition(model)
+            vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
+            vars$var.residual <- attr(vars_brms, "var_residual")
+          }
         } else {
           vars <- suppressWarnings(insight::get_variance(model))
         }
@@ -692,7 +702,7 @@ tab_model <- function(
       icc <- NULL
 
       if (show.icc && is_mixed_model(model) && !is.null(vars) && !all(is.na(vars))) {
-        if (inherits(model, "brmsfit")) {
+        if (inherits(model, "brmsfit") && !is.null(vars_brms)) {
           icc <- list(icc.adjusted = vars_brms$ICC_decomposed)
         } else {
           icc <- list(icc.adjusted = vars$var.random / (vars$var.random + vars$var.residual))
@@ -1163,11 +1173,17 @@ tab_model <- function(
     pos <- grep("^p.value", x)
     if (!sjmisc::is_empty(pos)) x <- string.p
 
+    pos <- grep("^std.p.value", x)
+    if (!sjmisc::is_empty(pos)) x <- string.std.p
+
     pos <- grep("^df", x)
     if (!sjmisc::is_empty(pos)) x <- string.df
 
     pos <- grep("^statistic", x)
     if (!sjmisc::is_empty(pos)) x <- string.stat
+
+    pos <- grep("^std.statistic", x)
+    if (!sjmisc::is_empty(pos)) x <- string.std.stat
 
     pos <- grep("^response.level", x)
     if (!sjmisc::is_empty(pos)) x <- string.resp
@@ -1303,7 +1319,8 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
   }
 
   if (show.stat == FALSE) {
-    dat <- dplyr::select(dat, -string_starts_with("statistic", x = colnames(dat)))
+    dat <- dplyr::select(dat, -string_starts_with("statistic", x = colnames(dat)),
+                         -string_starts_with("std.statistic", x = colnames(dat)))
   }
 
   if (show.response == FALSE) {
@@ -1311,7 +1328,8 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
   }
 
   if (show.p == FALSE) {
-    dat <- dplyr::select(dat, -string_starts_with("p.value", x = colnames(dat)))
+    dat <- dplyr::select(dat, -string_starts_with("p.value", x = colnames(dat)),
+                         -string_starts_with("std.p.value", x = colnames(dat)))
   }
 
   if (show.df == FALSE) {
@@ -1361,4 +1379,36 @@ prepare.labels <- function(x, grp, categorical, models) {
   }
 
   x
+}
+
+format_p_values <- function(dat, p.style, digits.p, emph.p, p.threshold){
+  # get stars and significance at alpha = 0.05 ----
+
+  dat <- dat %>%
+    dplyr::mutate(
+    p.stars = get_p_stars(.data$p.value, p.threshold),
+    p.sig = .data$p.value < .05
+  )
+
+  # scientific notation ----
+
+  if (grepl("scientific", p.style)) {
+    dat$p.value <- formatC(dat$p.value, format = "e", digits = digits.p)
+  } else {
+    dat$p.value <- sprintf("%.*f", digits.p, dat$p.value)
+  }
+
+  # emphasize p-values ----
+
+  if (emph.p && !all(dat$p.value == "NA")) dat$p.value[which(dat$p.sig)] <- sprintf("<strong>%s</strong>", dat$p.value[which(dat$p.sig)])
+  dat <- dplyr::select(dat, -.data$p.sig)
+
+  # indicate p <0.001 ----
+
+  pv <- paste0("0.", paste(rep("0", digits.p), collapse = ""))
+  dat$p.value[dat$p.value == pv] <- "&lt;0.001"
+
+  pv <- paste0("<strong>0.", paste(rep("0", digits.p), collapse = ""), "</strong>")
+  dat$p.value[dat$p.value == pv] <- "<strong>&lt;0.001"
+  dat
 }
