@@ -1,3 +1,15 @@
+# sjPlot 2.8.6
+
+## Changes to functions
+
+* When `dv.labels = ""` in `tab_model()`, the row with names of dependent variables is omitted.
+
+## Bug fixes
+
+* Fix CRAN check issues (removed cross-references to archived packages).
+* The `minus.sign` argument in `tab_model()` now works.
+* `show.std = TRUE` in `tab_model()` did not exponentiate standardized coefficients for non-Gaussian models.
+
 # sjPlot 2.8.5
 
 ## Changes to functions

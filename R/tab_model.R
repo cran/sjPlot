@@ -39,7 +39,8 @@
 #'    related predictor in the table, no matter in which way the predictors
 #'    are sorted. See 'Examples'.
 #' @param dv.labels Character vector with labels of dependent variables of all
-#'    fitted models. See 'Examples'.
+#'    fitted models. If \code{dv.labels = ""}, the row with names of dependent
+#'    variables is omitted from the table.
 #' @param show.intercept Logical, if \code{TRUE}, the intercepts are printed.
 #' @param show.est Logical, if \code{TRUE}, the estimates are printed.
 #' @param show.zeroinf Logical, if \code{TRUE} and model has a zero-inflated
@@ -474,6 +475,7 @@ tab_model <- function(
         dat[["estimate"]] <- funtrans(dat[["estimate"]])
         dat[["conf.low"]] <- funtrans(dat[["conf.low"]])
         dat[["conf.high"]] <- funtrans(dat[["conf.high"]])
+        dat[["std.error"]] <- dat[["std.error"]] * dat[["estimate"]]
       }
 
 
@@ -510,7 +512,7 @@ tab_model <- function(
 
       if (!is.null(show.std) && !is.stan(model)) {
         std_method <- switch(show.std, "std" = "refit", "std2" = "2sd", "")
-        dat <- tidy_model(
+        tmp_dat <- tidy_model(
           model = model,
           ci.lvl = ci.lvl,
           tf = transform,
@@ -536,7 +538,19 @@ tab_model <- function(
             statistic = "std.statistic",
             p.stars = "std.p.stars"
           ) %>%
-          dplyr::select(-1) %>%
+          dplyr::select(-1)
+
+        # transform estimates
+
+        if (!is.stan(model) && !is.null(transform)) {
+          funtrans <- match.fun(transform)
+          tmp_dat[["std.estimate"]] <- funtrans(tmp_dat[["std.estimate"]])
+          tmp_dat[["std.conf.low"]] <- funtrans(tmp_dat[["std.conf.low"]])
+          tmp_dat[["std.conf.high"]] <- funtrans(tmp_dat[["std.conf.high"]])
+          tmp_dat[["std.se"]] <- tmp_dat[["std.se"]] * tmp_dat[["std.estimate"]]
+        }
+
+        dat <- tmp_dat %>%
           sjmisc::add_columns(dat) %>%
           dplyr::mutate(std.conf.int = sprintf(
             "%.*f%s%.*f",
@@ -645,6 +659,10 @@ tab_model <- function(
           dat <- dplyr::select(dat, -string_starts_with("std.se", x = colnames(dat)))
         }
       }
+
+
+      # replace minus signs
+      dat[] <- lapply(dat, function(i) gsub("-(\\d)(.*)", paste0(minus.sign, "\\1\\2"), i))
 
 
       # handle zero-inflation part ----
@@ -1091,13 +1109,13 @@ tab_model <- function(
   }
 
 
-  if (isTRUE(auto.label) && sjmisc::is_empty(dv.labels)) {
+  if (isTRUE(auto.label) && is.null(dv.labels)) {
     dv.labels <- sjmisc::word_wrap(
       sjlabelled::response_labels(models, case = case),
       wrap = wrap.labels,
       linesep = "<br>"
     )
-  } else if (sjmisc::is_empty(dv.labels)) {
+  } else if (is.null(dv.labels)) {
     dv.labels <- purrr::map(models, insight::find_response) %>% purrr::flatten_chr()
   }
 

@@ -2,7 +2,7 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.8.5
+Version: 2.8.6
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
     person("Alexander", "Bartel", role = "ctb", comment = c(ORCID = "0000-0002-1280-6138")),
@@ -27,16 +27,15 @@ Imports: graphics, grDevices, stats, utils, bayestestR (>= 0.6.0),
         0.7.0), performance (>= 0.4.3), purrr, rlang, scales,
         sjlabelled (>= 1.1.2), sjmisc (>= 2.8.2), sjstats (>= 0.17.8),
         tidyr (>= 1.0.0)
-Suggests: brms, car, clubSandwich, cluster, cowplot, GPArotation,
-        ggrepel, glmmTMB, gridExtra, ggridges, httr, lme4 (>= 1.1-12),
-        nFactors, pscl, psych, rmarkdown, rstanarm, sandwich, survey,
-        TMB, testthat
+Suggests: brms, car, cluster, cowplot, GPArotation, ggrepel, glmmTMB,
+        gridExtra, ggridges, httr, lme4 (>= 1.1-12), nFactors, pscl,
+        psych, rmarkdown, rstanarm, sandwich, survey, TMB, testthat
 URL: https://strengejacke.github.io/sjPlot/
 BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-09-24 12:05:31 UTC; mail
+Packaged: 2020-10-28 20:33:45 UTC; Daniel
 Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Alexander Bartel [ctb] (<https://orcid.org/0000-0002-1280-6138>),
   Carsten Schwemmer [ctb],
@@ -44,4 +43,4 @@ Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Amir Djalovski [ctb],
   Johannes Titz [ctb] (<https://orcid.org/0000-0002-1102-5719>)
 Repository: CRAN
-Date/Publication: 2020-09-24 13:00:02 UTC
+Date/Publication: 2020-10-28 21:40:02 UTC

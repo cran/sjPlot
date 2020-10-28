@@ -21,8 +21,7 @@ knitr::opts_chunk$set(
 
 if (!requireNamespace("dplyr", quietly = TRUE) ||
     !requireNamespace("sandwich", quietly = TRUE) ||
-    !requireNamespace("lme4", quietly = TRUE) ||
-    !requireNamespace("clubSandwich", quietly = TRUE)) {
+    !requireNamespace("lme4", quietly = TRUE)) {
   knitr::opts_chunk$set(eval = FALSE)
 } else {
   knitr::opts_chunk$set(eval = TRUE)
@@ -87,7 +86,7 @@ unname(sqrt(diag(sandwich::vcovCL(model, cluster = iris$cluster))))
 
 Cluster-robust estimation of the variance-covariance matrix can also be achieved using `clubSandwich::vcovCR()`. Thus, when `vcov.fun = "CR"`, the related function from the **clubSandwich** package is called. Note that this function _requires_ the specification of the `cluster`-argument.
 
-```{r}
+```{r eval=FALSE}
 # create fake-cluster-variable, to demonstrate cluster robust standard errors
 iris$cluster <- factor(rep(LETTERS[1:8], length.out = nrow(iris)))
 
@@ -123,7 +122,7 @@ tab_model(
 
 For linear mixed models, that by definition have a clustered ("hierarchical" or multilevel) structure in the data, it is also possible to estimate a cluster-robust covariance matrix. This is possible due to the **clubSandwich** package, thus we need to define the same arguments as in the above example.
 
-```{r}
+```{r eval=FALSE}
 library(lme4)
 data(iris)
 set.seed(1234)
@@ -151,7 +150,7 @@ tab_model(
 
 Again, robust estimation can be combined with standardization for linear mixed models as well, which in such cases also only works for `show.std = "std"`.
 
-```{r}
+```{r eval=FALSE}
 # model parameters, cluster robust estimation on standardized mixed model
 tab_model(
   model, 
