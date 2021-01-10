@@ -1,3 +1,16 @@
+# sjPlot 2.8.7
+
+## Changes to functions
+
+* `tab_model()` also gains an `encoding` argument.
+* `tab_df()` and `tab_dfs()` no longer set the argument `show.rownames` to `TRUE`. Therefore, both functions now use row numbers as row names, if no other rownames are present.
+* `tab_dfs()` also gains a `digits` argument.
+
+## Bug fixes
+
+* Argument `df.method` in `tab_model()` did not accept all available options that were documented.
+* Fix CRAN check issues (warnings in new R-devel).
+
 # sjPlot 2.8.6
 
 ## Changes to functions

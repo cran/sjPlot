@@ -161,6 +161,7 @@
 #'
 #' @inheritParams plot_models
 #' @inheritParams plot_model
+#' @inheritParams tab_df
 #'
 #' @return Invisibly returns
 #'          \itemize{
@@ -329,7 +330,8 @@ tab_model <- function(
   bpe = "median",
   CSS = css_theme("regression"),
   file = NULL,
-  use.viewer = TRUE
+  use.viewer = TRUE,
+  encoding = "UTF-8"
 ) {
 
   if (!missing(df.method)) {
@@ -701,9 +703,18 @@ tab_model <- function(
         if (inherits(model, "brmsfit")) {
           vars <- suppressWarnings(insight::get_variance(model))
           if (is.null(vars)) {
-            vars_brms <- performance::variance_decomposition(model)
-            vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
-            vars$var.residual <- attr(vars_brms, "var_residual")
+            vars_brms <- tryCatch(
+              {
+                performance::variance_decomposition(model)
+              },
+              error = function(e) {
+                NULL
+              }
+            )
+            if (!is.null(vars_brms)) {
+              vars$var.intercept <- attr(vars_brms, "var_rand_intercept")
+              vars$var.residual <- attr(vars_brms, "var_residual")
+            }
           }
         } else {
           vars <- suppressWarnings(insight::get_variance(model))
@@ -1250,7 +1261,8 @@ tab_model <- function(
     file = file,
     use.viewer = use.viewer,
     footnote = footnote,
-    digits.re = digits.re
+    digits.re = digits.re,
+    encoding = encoding
   )
 }
 
