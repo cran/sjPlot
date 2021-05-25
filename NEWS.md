@@ -1,3 +1,13 @@
+# sjPlot 2.8.8
+
+## Changes to functions
+
+* `tab_model()` now works properly with forthcoming *parameters* update.
+
+## Bug fixes
+
+* `plot_models()` did not work properly for Bayesian models.
+
 # sjPlot 2.8.7
 
 ## Changes to functions

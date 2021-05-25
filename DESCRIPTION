@@ -2,7 +2,7 @@ Package: sjPlot
 Type: Package
 Encoding: UTF-8
 Title: Data Visualization for Statistics in Social Science
-Version: 2.8.7
+Version: 2.8.8
 Authors@R: c(
     person("Daniel", "Lüdecke", email = "d.luedecke@uke.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8895-3206")),
     person("Alexander", "Bartel", role = "ctb", comment = c(ORCID = "0000-0002-1280-6138")),
@@ -35,7 +35,7 @@ BugReports: https://github.com/strengejacke/sjPlot/issues
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-01-10 18:33:32 UTC; Daniel
+Packaged: 2021-05-25 07:58:25 UTC; Daniel
 Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Alexander Bartel [ctb] (<https://orcid.org/0000-0002-1280-6138>),
   Carsten Schwemmer [ctb],
@@ -43,4 +43,4 @@ Author: Daniel Lüdecke [aut, cre] (<https://orcid.org/0000-0002-8895-3206>),
   Amir Djalovski [ctb],
   Johannes Titz [ctb] (<https://orcid.org/0000-0002-1102-5719>)
 Repository: CRAN
-Date/Publication: 2021-01-10 19:20:03 UTC
+Date/Publication: 2021-05-25 08:50:02 UTC
