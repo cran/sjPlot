@@ -24,6 +24,14 @@
 #'    coefficient names, e.g. \code{rm.terms = "t_name [2,3]"} would remove the terms
 #'    \code{"t_name2"} and \code{"t_name3"} (assuming that the variable \code{t_name}
 #'    was categorical and has at least the factor levels \code{2} and \code{3}).
+#' @param keep,drop Character containing a regular expression pattern that
+#'   describes the parameters that should be included (for \code{keep}) or excluded
+#'   (for \code{drop}) in the returned data frame. \code{keep} may also be a
+#'   named list of regular expressions. All non-matching parameters will be
+#'   removed from the output. If \code{keep} has more than one element, these
+#'   will be merged with an \code{OR} operator into a regular expression pattern
+#'   like this: \code{"(one|two|three)"}. See further details in
+#'   \code{?parameters::model_parameters}.
 #' @param pred.labels Character vector with labels of predictor variables.
 #'    If not \code{NULL}, \code{pred.labels} will be used in the first
 #'    table column with the predictors' names. By default, if \code{auto.label = TRUE}
@@ -105,6 +113,7 @@
 #' @param emph.p Logical, if \code{TRUE}, significant p-values are shown bold faced.
 #' @param digits Amount of decimals for estimates
 #' @param digits.p Amount of decimals for p-values
+#' @param digits.rsq Amount of decimals for r-squared values
 #' @param digits.re Amount of decimals for random effects part of the summary table.
 #' @param collapse.ci Logical, if \code{FALSE}, the CI values are shown in
 #'    a separate table column.
@@ -261,6 +270,8 @@ tab_model <- function(
   terms = NULL,
   rm.terms = NULL,
   order.terms = NULL,
+  keep = NULL,
+  drop = NULL,
 
   title = NULL,
   pred.labels = NULL,
@@ -318,6 +329,7 @@ tab_model <- function(
 
   digits = 2,
   digits.p = 3,
+  digits.rsq = 3,
   digits.re = 2,
   emph.p = TRUE,
   p.val = NULL,
@@ -447,7 +459,7 @@ tab_model <- function(
       # check whether estimates should be transformed or not
 
       if (auto.transform) {
-        if (fam.info$is_linear)
+        if (fam.info$is_linear || identical(fam.info$link_function, "identity"))
           transform <- NULL
         else
           transform <- "exp"
@@ -468,7 +480,9 @@ tab_model <- function(
         bootstrap = bootstrap,
         iterations = iterations,
         seed = seed,
-        p_adjust = p.adjust
+        p_adjust = p.adjust,
+        keep = keep,
+        drop = drop
       )
 
 
@@ -530,7 +544,9 @@ tab_model <- function(
           standardize = std_method,
           bootstrap = bootstrap,
           iterations = iterations,
-          seed = seed
+          seed = seed,
+          keep = keep,
+          drop = drop
         ) %>%
           format_p_values(p.style, digits.p, emph.p, p.threshold) %>%
           sjmisc::var_rename(
@@ -1263,6 +1279,7 @@ tab_model <- function(
     file = file,
     use.viewer = use.viewer,
     footnote = footnote,
+    digits.rsq = digits.rsq,
     digits.re = digits.re,
     encoding = encoding
   )
@@ -1370,14 +1387,14 @@ remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, sh
 
   if (!is.null(terms)) {
     terms <- parse_terms(terms)
-    keep <- which(dat$term %in% terms)
-    dat <- dplyr::slice(dat, !! keep)
+    keep_terms <- which(dat$term %in% terms)
+    dat <- dplyr::slice(dat, !! keep_terms)
   }
 
   if (!is.null(rm.terms)) {
     rm.terms <- parse_terms(rm.terms)
-    keep <- which(!(dat$term %in% rm.terms))
-    dat <- dplyr::slice(dat, !! keep)
+    keep_terms <- which(!(dat$term %in% rm.terms))
+    dat <- dplyr::slice(dat, !! keep_terms)
   }
 
   dat

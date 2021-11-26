@@ -31,6 +31,8 @@ tab_model(
   terms = NULL,
   rm.terms = NULL,
   order.terms = NULL,
+  keep = NULL,
+  drop = NULL,
   title = NULL,
   pred.labels = NULL,
   dv.labels = NULL,
@@ -67,6 +69,7 @@ tab_model(
     "ci.outer", "stat", "std.stat", "p", "std.p", "df.error", "response.level"),
   digits = 2,
   digits.p = 3,
+  digits.rsq = 3,
   digits.re = 2,
   emph.p = TRUE,
   p.val = NULL,
@@ -188,6 +191,15 @@ was categorical and has at least the factor levels \code{2} and \code{3}).}
 should be plotted. See examples in
 \href{https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html}{this package-vignette}.}
 
+\item{keep, drop}{Character containing a regular expression pattern that
+describes the parameters that should be included (for \code{keep}) or excluded
+(for \code{drop}) in the returned data frame. \code{keep} may also be a
+named list of regular expressions. All non-matching parameters will be
+removed from the output. If \code{keep} has more than one element, these
+will be merged with an \code{OR} operator into a regular expression pattern
+like this: \code{"(one|two|three)"}. See further details in
+\code{?parameters::model_parameters}.}
+
 \item{title}{String, will be used as table caption.}
 
 \item{pred.labels}{Character vector with labels of predictor variables.
@@ -301,6 +313,8 @@ Table columns are printed in the order as they appear in \code{col.order}.}
 \item{digits}{Amount of decimals for estimates}
 
 \item{digits.p}{Amount of decimals for p-values}
+
+\item{digits.rsq}{Amount of decimals for r-squared values}
 
 \item{digits.re}{Amount of decimals for random effects part of the summary table.}
 

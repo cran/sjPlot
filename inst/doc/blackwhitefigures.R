@@ -1,6 +1,13 @@
 ## ----echo = FALSE-------------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "png", fig.width = 7, fig.height = 5, message = FALSE, warning = FALSE)
 
+if (!requireNamespace("sjmisc", quietly = TRUE) ||
+    !requireNamespace("haven", quietly = TRUE) ||
+    !requireNamespace("ggplot2", quietly = TRUE) ||
+    !requireNamespace("sjlabelled", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
+
 ## -----------------------------------------------------------------------------
 library(sjPlot)
 library(sjmisc)
