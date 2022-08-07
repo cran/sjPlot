@@ -46,10 +46,6 @@
 #'   plot_stackfrq()
 #'
 #' @import ggplot2
-#' @importFrom sjmisc frq
-#' @importFrom scales percent
-#' @importFrom stats na.omit
-#' @importFrom rlang .data
 #' @export
 plot_stackfrq <- function(items,
                          title = NULL,
@@ -201,7 +197,7 @@ plot_stackfrq <- function(items,
 
   if (is.null(legend.labels)) {
     legend.labels <- as.character(sort(unique(unlist(
-      apply(items, 2, function(x) unique(stats::na.omit(x)))))))
+      apply(items, 2, function(x) unique(stats::na.omit(x)), simplify = FALSE)))))
   }
 
   # if we have legend labels, we know the exact

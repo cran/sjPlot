@@ -1,5 +1,5 @@
 params <-
-list(EVAL = TRUE)
+list(EVAL = FALSE)
 
 ## ----message=FALSE, warning=FALSE, include=FALSE------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(
@@ -26,14 +26,14 @@ data(iris)
 model <- lm(Petal.Length ~ Sepal.Length * Species + Sepal.Width, data = iris)
 
 # model parameters, where SE, CI and p-values are based on robust estimation
-tab_model(model, vcov.fun = "HC", show.se = TRUE)
+tab_model(model, vcov.fun = "HC3", show.se = TRUE)
 
 # compare standard errors to result from sandwich-package
 unname(sqrt(diag(sandwich::vcovHC(model))))
 
 ## -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # change estimation-type
-tab_model(model, vcov.fun = "CL", vcov.type = "HC1", show.se = TRUE)
+tab_model(model, vcov.fun = "CL", vcov.args = list(type = "HC1"), show.se = TRUE)
 
 # compare standard errors to result from sandwich-package
 unname(sqrt(diag(sandwich::vcovCL(model))))
@@ -44,8 +44,7 @@ iris$cluster <- factor(rep(LETTERS[1:8], length.out = nrow(iris)))
 tab_model(
   model, 
   vcov.fun = "CL", 
-  vcov.type = "HC1",
-  vcov.args = list(cluster = iris$cluster),
+  vcov.args = list(type = "HC1", cluster = iris$cluster),
   show.se = TRUE
 )
 
@@ -59,8 +58,7 @@ iris$cluster <- factor(rep(LETTERS[1:8], length.out = nrow(iris)))
 # cluster-robust estimation
 tab_model(
   model, 
-  vcov.fun = "CR", 
-  vcov.type = "CR1",
+  vcov.fun = "CR1", 
   vcov.args = list(cluster = iris$cluster),
   show.se = TRUE
 )
@@ -94,8 +92,7 @@ tab_model(model)
 # model parameters, cluster robust estimation for mixed models
 tab_model(
   model, 
-  vcov.fun = "CR", 
-  vcov.type = "CR1", 
+  vcov.fun = "CR1", 
   vcov.args = list(cluster = iris$grp)
 )
 
@@ -104,8 +101,7 @@ tab_model(
 tab_model(
   model, 
   show.std = "std",
-  vcov.fun = "CR", 
-  vcov.type = "CR1", 
+  vcov.fun = "CR1", 
   vcov.args = list(cluster = iris$grp)
 )
 

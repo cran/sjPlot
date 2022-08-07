@@ -29,7 +29,6 @@ get_dot_data <- function(data, dots) {
 dot_names <- function(dots) unname(unlist(lapply(dots, as.character)))
 
 
-#' @importFrom dplyr quos select
 get_dplyr_dot_data <- function(x, qs) {
   if (sjmisc::is_empty(qs))
     x
@@ -72,7 +71,7 @@ print.table.summary <- function(baseplot,
 get_var_name <- function(x) {
   if (is.null(x)) return(NULL)
   # remove "data frame name"
-  dollar_pos <- regexpr("$", x, fixed = T)[1]
+  dollar_pos <- regexpr("$", x, fixed = TRUE)[1]
   if (dollar_pos != -1)
     x <- substr(x, start = dollar_pos + 1, stop = nchar(x))
 
@@ -92,8 +91,8 @@ create.xtab.df <- function(x,
   # ------------------------------
   # convert to labels
   # ------------------------------
-  x_full <- suppressWarnings(sjmisc::to_label(x, add.non.labelled = T))
-  grp_full <- suppressWarnings(sjmisc::to_label(grp, add.non.labelled = T))
+  x_full <- suppressWarnings(sjmisc::to_label(x, add.non.labelled = TRUE))
+  grp_full <- suppressWarnings(sjmisc::to_label(grp, add.non.labelled = TRUE))
   # ------------------------------
   # create frequency crosstable. we need to convert
   # vector to labelled factor first.
@@ -190,16 +189,20 @@ get.encoding <- function(encoding, data = NULL) {
       labs <- sjlabelled::get_label(data[[1]])
       # check if vectors of data frame have
       # any valid label. else, default to utf-8
-      if (!is.null(labs) && is.character(labs))
+      if (!is.null(labs) && is.character(labs)) {
         encoding <- Encoding(sjlabelled::get_label(data[[1]]))
-      else
+      } else {
         encoding <- "UTF-8"
+      }
       # unknown encoding? default to utf-8
-      if (encoding == "unknown") encoding <- "UTF-8"
-    } else if (.Platform$OS.type == "unix")
+      if (encoding == "unknown") {
+        encoding <- "UTF-8"
+      }
+    } else if (.Platform$OS.type == "unix") {
       encoding <- "UTF-8"
-    else
+    } else {
       encoding <- "Windows-1252"
+    }
   }
   return(encoding)
 }
@@ -294,7 +297,6 @@ crosstabsum <- function(x, grp, weight.by) {
 #         (prcomp(myData...))
 # - factors: the amount of factors. can be calculated from the
 #            below function "factorcount"
-#' @importFrom stats varimax
 varimaxrota <- function(data, factors) {
   # Faktorladungen berechnen
   # Die Faktorladungen erhält man durch Multiplikation der Eigenvektoren

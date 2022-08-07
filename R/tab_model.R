@@ -230,15 +230,7 @@
 #'    }
 #' }
 #
-#' @importFrom dplyr full_join select if_else mutate
-#' @importFrom purrr reduce map2 map_if map_df compact map_lgl map_chr flatten_chr
-#' @importFrom sjlabelled response_labels term_labels
-#' @importFrom sjmisc word_wrap var_rename add_columns add_case
-#' @importFrom insight model_info is_multivariate find_random get_data find_predictors
-#' @importFrom performance r2 variance_decomposition
-#' @importFrom stats nobs setNames
 #' @importFrom rlang .data
-#' @importFrom utils packageVersion
 #' @export
 tab_model <- function(
   ...,
@@ -284,7 +276,7 @@ tab_model <- function(
 
   robust = FALSE,
   vcov.fun = NULL,
-  vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5", "CR0", "CR1", "CR1p", "CR1S", "CR2", "CR3"),
+  vcov.type = NULL,
   vcov.args = NULL,
 
   string.pred = "Predictors",
@@ -353,11 +345,10 @@ tab_model <- function(
   }
 
   if (!is.null(p.val)) {
-    p.val <- match.arg(p.val, choices = c("wald", "profile", "kenward", "kr", "satterthwaite", "ml1", "betwithin"))
+    p.val <- match.arg(p.val, choices = c("wald", "profile", "kenward", "kr", "satterthwaite", "ml1", "betwithin", "residual", "normal"))
   }
   p.style <- match.arg(p.style)
   prefix.labels <- match.arg(prefix.labels)
-  vcov.type <- match.arg(vcov.type)
 
   change_string_est <- !missing(string.est)
 
@@ -374,21 +365,16 @@ tab_model <- function(
 
   # default robust?
   if (isTRUE(robust)) {
-    vcov.type <- "HC3"
-    vcov.fun <- "vcovHC"
+    vcov.fun <- "HC3"
   }
-
-  # check se-argument
-  vcov.fun <- check_se_argument(se = vcov.fun, type = NULL)
-
 
   models <- list(...)
 
-  if (length(class(models[[1]])) == 1 && class(models[[1]]) == "list")
+  if (length(class(models[[1]])) == 1 && inherits(models[[1]], "list"))
     models <- lapply(models[[1]], function(x) x)
 
   names(models) <- unlist(lapply(
-    match.call(expand.dots = F)$`...`,
+    match.call(expand.dots = FALSE)$`...`,
     function(.x) deparse(.x, width.cutoff = 500L))
   )
 
@@ -447,7 +433,7 @@ tab_model <- function(
 
   model.list <- purrr::map2(
     models,
-    1:length(models),
+    seq_along(models),
     function(model, i) {
 
       # get info on model family
@@ -766,12 +752,8 @@ tab_model <- function(
         # multiple computation
         if (is_mixed_model(model)) {
           if (inherits(model, "brmsfit")) {
-            rsqdummy <- tryCatch(
-              {
-                suppressWarnings(performance::r2(model))
-              },
-              error = function(x) { NULL }
-            )
+            rsqdummy <- tryCatch(suppressWarnings(performance::r2(model)),
+                                 error = function(x) NULL)
             if (!is.null(rsqdummy)) {
               rsq <- list(
                 `Marginal R2` = rsqdummy$R2_Bayes_marginal,
@@ -792,12 +774,8 @@ tab_model <- function(
             }
           }
         } else {
-          rsq <- tryCatch(
-            {
-              suppressWarnings(performance::r2(model))
-            },
-            error = function(x) { NULL }
-          )
+          rsq <- tryCatch(suppressWarnings(performance::r2(model)),
+                          error = function(x) NULL)
 
           # fix names of r-squared values
 
@@ -957,7 +935,7 @@ tab_model <- function(
         dv.labels <- sjmisc::word_wrap(dv.labels, wrap = wrap.labels, linesep = "<br>")
       }
 
-      model.data <- purrr::map2(model.data, 1:length(model.data), function(x, y) {
+      model.data <- purrr::map2(model.data, seq_along(model.data), function(x, y) {
         colnames(x) <- gsub(
           pattern = "_1",
           replacement = sprintf("_%i", y),
@@ -1057,7 +1035,7 @@ tab_model <- function(
       )
     } else {
       pred.labels <- NULL
-      for (pl_counter in 1:length(models)) {
+      for (pl_counter in seq_along(models)) {
         pred.labels <- c(pred.labels, parameters::format_parameters(models[[pl_counter]]))
       }
       pred.labels <- pred.labels[!duplicated(names(pred.labels))]
@@ -1098,7 +1076,7 @@ tab_model <- function(
       # some labels may not match. in this case, we only need to replace those
       # elements in the vector that match a specific label, but
       # at the correct position inside "dat$term"
-      tr <- 1:nrow(dat)
+      tr <- seq_len(nrow(dat))
       find.matches <- match(dat$term, names(pred.labels))
       find.na <- which(is.na(find.matches))
       if (!sjmisc::is_empty(find.na)) tr <- tr[-find.na]
@@ -1120,7 +1098,7 @@ tab_model <- function(
       # also label zero-inflated part
 
       if (!is.null(zeroinf)) {
-        tr <- 1:nrow(zeroinf)
+        tr <- seq_len(nrow(zeroinf))
         find.matches <- match(zeroinf$term, names(pred.labels))
         find.na <- which(is.na(find.matches))
         if (!sjmisc::is_empty(find.na)) tr <- tr[-find.na]
@@ -1166,7 +1144,7 @@ tab_model <- function(
     pos <- grep("^estimate_", x)
 
     if (!sjmisc::is_empty(pos)) {
-      i <- as.numeric(sub("estimate_", "", x = x, fixed = T))
+      i <- as.numeric(sub("estimate_", "", x = x, fixed = TRUE))
 
       if (insight::is_multivariate(models[[1]]))
         mr <- i
@@ -1324,7 +1302,18 @@ sort_columns <- function(x, is.stan, col.order) {
 
 
 #' @importFrom dplyr select slice
-remove_unwanted <- function(dat, show.intercept, show.est, show.std, show.ci, show.se, show.stat, show.p, show.df, show.response, terms, rm.terms) {
+remove_unwanted <- function(dat,
+                            show.intercept,
+                            show.est,
+                            show.std,
+                            show.ci,
+                            show.se,
+                            show.stat,
+                            show.p,
+                            show.df,
+                            show.response,
+                            terms,
+                            rm.terms) {
   if (!show.intercept) {
     ints1 <- string_contains("(Intercept", x = dat$term)
     ints2 <- string_contains("b_Intercept", x = dat$term)
@@ -1430,7 +1419,7 @@ prepare.labels <- function(x, grp, categorical, models) {
   x
 }
 
-format_p_values <- function(dat, p.style, digits.p, emph.p, p.threshold){
+format_p_values <- function(dat, p.style, digits.p, emph.p, p.threshold) {
   # get stars and significance at alpha = 0.05 ----
 
   dat <- dat %>%
@@ -1455,9 +1444,9 @@ format_p_values <- function(dat, p.style, digits.p, emph.p, p.threshold){
   # indicate p <0.001 ----
 
   pv <- paste0("0.", paste(rep("0", digits.p), collapse = ""))
-  dat$p.value[dat$p.value == pv] <- "&lt;0.001"
+  dat$p.value[dat$p.value == pv] <- paste("&lt;", format(10^(-digits.p), scientific = FALSE), sep = "")
 
   pv <- paste0("<strong>0.", paste(rep("0", digits.p), collapse = ""), "</strong>")
-  dat$p.value[dat$p.value == pv] <- "<strong>&lt;0.001</strong>"
+  dat$p.value[dat$p.value == pv] <- paste("<strong>&lt;", format(10^(-digits.p), scientific = FALSE), "</strong>", sep = "")
   dat
 }

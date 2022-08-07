@@ -1,9 +1,5 @@
-#' @importFrom stats qnorm pnorm
-#' @importFrom effectsize standardize
-#' @importFrom parameters model_parameters
-#' @importFrom insight standardize_names
 tidy_model <- function(
-  model, ci.lvl, tf, type, bpe, robust, facets, show.zeroinf, p.val,
+  model, ci.lvl, tf, type, bpe, robust, facets, show.zeroinf, p.val = NULL,
   standardize = FALSE, bootstrap = FALSE, iterations = 1000, seed = NULL,
   p_adjust = NULL, keep = NULL, drop = NULL, ...) {
 
@@ -20,7 +16,13 @@ tidy_model <- function(
     if (!is.null(seed)) {
       set.seed(seed)
     }
-    component <- ifelse(show.zeroinf & insight::model_info(model)$is_zero_inflated, "all", "conditional")
+
+    minfo <- insight::model_info(model)
+    if ((show.zeroinf && minfo$is_zero_inflated) || minfo$is_dispersion) {
+      component <- "all"
+    } else {
+      component <- "conditional"
+    }
 
     if (is.null(p.val)) {
       if (inherits(model, c("glm", "polr"))) {
@@ -45,13 +47,17 @@ tidy_model <- function(
       p.val
     )
 
-    if (!is.null(robust) && !is.null(robust$vcov.fun)) {
-      if (grepl("^vcov", robust$vcov.fun)) {
-        robust$vcov.fun <- sub("^vcov", "", robust$vcov.fun)
+    if (isTRUE(bootstrap)) {
+      ci_method <- "eti"
+    }
+
+    if (!insight::is_empty_object(insight::compact_list(robust))) {
+      if (!is.null(robust$vcov.type)) {
+        robust$vcov.args[["type"]] <- robust$vcov.type
       }
-      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, robust = TRUE, vcov_estimation = robust$vcov.fun, vcov_type = robust$vcov.type, vcov_args = robust$vcov.args, ci_method = ci_method, p_adjust = p_adjust, effects = "fixed", keep = keep, drop = drop)
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, vcov = robust$vcov.fun, vcov_args = robust$vcov.args, ci_method = ci_method, p_adjust = p_adjust, effects = "fixed", keep = keep, drop = drop, verbose = FALSE)
     } else {
-      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, ci_method = ci_method, p_adjust = p_adjust, effects = "fixed", keep = keep, drop = drop)
+      model_params <- parameters::model_parameters(model, ci = ci.lvl, component = component, bootstrap = bootstrap, iterations = iterations, ci_method = ci_method, p_adjust = p_adjust, effects = "fixed", keep = keep, drop = drop, verbose = FALSE)
     }
     out <- insight::standardize_names(model_params, style = "broom")
 
@@ -99,12 +105,6 @@ tidy_model <- function(
 
 
 
-#' @importFrom stats mad formula
-#' @importFrom bayestestR ci
-#' @importFrom insight is_multivariate model_info
-#' @importFrom sjmisc var_rename add_columns is_empty typical_value
-#' @importFrom dplyr select filter slice inner_join n_distinct
-#' @importFrom purrr map_dbl
 #' @importFrom rlang .data
 tidy_stan_model <- function(model, ci.lvl, tf, type, bpe, show.zeroinf, facets, ...) {
 

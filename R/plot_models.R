@@ -67,11 +67,7 @@
 #' plot_models(fit1, fit2, fit3, std.est = "std2")
 #' }
 #' @import ggplot2
-#' @importFrom purrr map map_df map2
-#' @importFrom dplyr slice bind_rows filter
-#' @importFrom sjlabelled response_labels term_labels
 #' @importFrom rlang .data
-#' @importFrom sjmisc word_wrap var_rename add_variables
 #' @export
 plot_models <- function(...,
                         transform = NULL,
@@ -112,7 +108,7 @@ plot_models <- function(...,
                         prefix.labels = c("none", "varname", "label")) {
   # retrieve list of fitted models
   input_list <- list(...)
-  names(input_list) <- unlist(lapply(match.call(expand.dots = F)$`...`, deparse))
+  names(input_list) <- unlist(lapply(match.call(expand.dots = FALSE)$`...`, deparse))
 
   vcov.type <- match.arg(vcov.type)
 
@@ -128,7 +124,7 @@ plot_models <- function(...,
   if (missing(value.size) || is.null(value.size)) value.size <- 4
 
   # check length. if we have a list of fitted model, we need to "unlist" them
-  if (length(input_list) == 1 && class(input_list[[1]]) == "list")
+  if (length(input_list) == 1 && inherits(input_list[[1]], "list"))
     input_list <- purrr::map(input_list[[1]], ~ .x)
 
 
@@ -141,12 +137,14 @@ plot_models <- function(...,
   # check whether estimates should be transformed or not
 
   if (missing(transform)) {
-    if (fam.info$is_linear)
+    if (fam.info$is_linear) {
       tf <- NULL
-    else
+    } else {
       tf <- "exp"
-  } else
+    }
+  } else {
     tf <- transform
+  }
 
 
   # check for standardization, only applies to linear models
@@ -212,7 +210,9 @@ plot_models <- function(...,
 
 
   # add grouping index
-  for (i in 1:length(fl)) fl[[i]] <- sjmisc::add_variables(fl[[i]], group = as.character(i), .after = Inf)
+  for (i in seq_along(fl)) {
+    fl[[i]] <- sjmisc::add_variables(fl[[i]], group = as.character(i), .after = Inf)
+  }
 
   # merge models to one data frame
   ff <- dplyr::bind_rows(fl)

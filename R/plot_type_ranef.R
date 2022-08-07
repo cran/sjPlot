@@ -1,8 +1,3 @@
-#' @importFrom purrr map map_df map2
-#' @importFrom stats qnorm
-#' @importFrom dplyr if_else
-#' @importFrom sjmisc remove_var
-#' @importFrom insight find_random
 plot_type_ranef <- function(model,
                             dat,
                             ri.nr,
@@ -116,18 +111,15 @@ plot_type_ranef <- function(model,
 
   # convert to list of data frames, keep only needed random effects
 
-  rand.ef <- purrr::map(
-    loops,
-    ~ rownames_as_column(rand.ef[[.x]])
-  )
+  rand.ef <- purrr::map(loops, ~ rownames_as_column(rand.ef[[.x]]))
 
 
   # same for standard errors...
 
-  rand.se <- purrr::map(
-    loops,
-    ~ rand.se[.x] %>% as.data.frame() %>% rownames_as_column()
-  )
+  rand.se <- purrr::map(loops, ~ rownames_as_column(as.data.frame(rand.se[.x])))
+
+  # update loops counter
+  loops <- 1:length(rand.ef)
 
 
   # if we have only one random intercept, and facet.grid

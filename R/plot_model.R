@@ -206,20 +206,20 @@
 #'   legend.
 #' @param show.zeroinf Logical, if \code{TRUE}, shows the zero-inflation part of
 #'   hurdle- or zero-inflated models.
-#' @param robust Logical, shortcut for arguments \code{vcov.fun} and \code{vcov.type}.
-#'   If \code{TRUE}, uses \code{vcov.fun = "vcovHC"} and \code{vcov.type = "HC3"} as
-#'   default, that is, \code{\link[sandwich]{vcovHC}} with default-type is called
-#'   (see \code{\link[parameters]{standard_error_robust}} and
-#'   \href{https://easystats.github.io/parameters/articles/model_parameters_robust.html}{this vignette}
-#'   for further details).
-#' @param vcov.fun Character vector, indicating the name of the \code{vcov*()}-function
-#'    from the \pkg{sandwich} or \pkg{clubSandwich} package, e.g. \code{vcov.fun = "vcovCL"},
-#'    if robust standard errors are required.
-#' @param vcov.type Character vector, specifying the estimation type for the
-#'    robust covariance matrix estimation (see \code{\link[sandwich:vcovHC]{vcovHC()}}
-#'    or \code{clubSandwich::vcovCR()} for details).
-#' @param vcov.args List of named vectors, used as additional arguments that
-#'    are passed down to \code{vcov.fun}.
+#' @param robust Deprecated. Please use \code{vcov.fun} directly to specify
+#'   the estimation of the variance-covariance matrix.
+#' @param vcov.fun Variance-covariance matrix used to compute uncertainty
+#'   estimates (e.g., for robust standard errors). This argument accepts a
+#'   covariance matrix, a function which returns a covariance matrix, or a
+#'   string which identifies the function to be used to compute the covariance
+#'   matrix. See \code{\link[parameters:model_parameters]{model_parameters()}}.
+#' @param vcov.type Deprecated. The \code{type}-argument is now included in
+#'   \code{vcov.args}.
+#' @param vcov.args List of arguments to be passed to the function identified by
+#'   the \code{vcov.fun} argument. This function is typically supplied by the
+#'   \pkg{sandwich} or \pkg{clubSandwich} packages. Please refer to their
+#'   documentation (e.g., \code{?sandwich::vcovHAC}) to see the list of
+#'   available arguments.
 #' @param value.offset Numeric, offset for text labels to adjust their position
 #'   relative to the dots or lines.
 #' @param dot.size Numeric, size of the dots that indicate the point estimates.
@@ -240,6 +240,8 @@
 #' @param p.threshold Numeric vector of length 3, indicating the treshold for
 #'   annotating p-values with asterisks. Only applies if
 #'   \code{p.style = "asterisk"}.
+#' @param p.val Character specifying method to be used to calculate p-values.
+#'   Defaults to "profile" for glm/polr models, otherwise "wald".
 #' @param wrap.title Numeric, determines how many chars of the plot title are
 #'   displayed in one line and when a line break is inserted.
 #' @param wrap.labels Numeric, determines how many chars of the value, variable
@@ -465,14 +467,6 @@
 #'   plot_model(m, bpe.style = "dot")
 #' }}
 #'
-#' @importFrom insight model_info find_predictors
-#' @importFrom sjmisc word_wrap str_contains
-#' @importFrom sjlabelled response_labels term_labels
-#' @importFrom dplyr if_else n_distinct
-#' @importFrom graphics plot
-#' @importFrom ggeffects ggpredict ggeffect
-#' @importFrom stats terms
-#'
 #' @export
 plot_model <- function(model,
                        type = c("est", "re", "eff", "emm", "pred", "int", "std", "std2", "slope", "resid", "diag"),
@@ -497,7 +491,7 @@ plot_model <- function(model,
                        se = NULL,
                        robust = FALSE,
                        vcov.fun = NULL,
-                       vcov.type = c("HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5"),
+                       vcov.type = NULL,
                        vcov.args = NULL,
                        colors = "Set1",
                        show.intercept = FALSE,
@@ -514,6 +508,7 @@ plot_model <- function(model,
                        line.size = NULL,
                        vline.color = NULL,
                        p.threshold = c(0.05, 0.01, 0.001),
+                       p.val = NULL,
                        p.adjust = NULL,
                        grid,
                        case,
@@ -530,7 +525,6 @@ plot_model <- function(model,
   pred.type <- match.arg(pred.type)
   mdrt.values <- match.arg(mdrt.values)
   prefix.labels <- match.arg(prefix.labels)
-  vcov.type <- match.arg(vcov.type)
   ci.style <- match.arg(ci.style)
 
   # if we prefix labels, use different default for case conversion,
@@ -543,13 +537,8 @@ plot_model <- function(model,
   }
 
   if (isTRUE(robust)) {
-    vcov.type <- "HC3"
-    vcov.fun <- "vcovHC"
+    vcov.fun <- "HC3"
   }
-
-  # check se-argument
-  vcov.fun <- check_se_argument(se = vcov.fun, type = type)
-
 
   # get info on model family
   fam.info <- insight::model_info(model)
@@ -662,6 +651,7 @@ plot_model <- function(model,
       facets = grid,
       show.zeroinf = show.zeroinf,
       p.threshold = p.threshold,
+      p.val = p.val,
       vcov.fun = vcov.fun,
       vcov.type = vcov.type,
       vcov.args = vcov.args,

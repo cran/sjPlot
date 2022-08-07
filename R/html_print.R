@@ -33,6 +33,7 @@
 #'   alternatig colors (white and light grey by default).
 #' @param digits Numeric, amount of digits after decimal point when rounding
 #'   values.
+#' @param rnames Character vector, can be used to set row names when \code{show.rownames=TRUE}.
 #' @param ... Currently not used.
 #'
 #' @inheritParams tab_model
@@ -88,8 +89,6 @@
 #' # sort 2nd column descending
 #' tab_df(iris[1:5, ], sort.column = -2)}
 #'
-#' @importFrom sjmisc var_type is_even is_float
-#' @importFrom purrr flatten_chr map
 #' @export
 tab_df <- function(x,
                    title = NULL,
@@ -187,6 +186,7 @@ tab_dfs <- function(x,
                     CSS = NULL,
                     file = NULL,
                     use.viewer = TRUE,
+                    rnames = NULL,
                     ...) {
 
   # make sure list elements in CSS argument have proper name attribute
@@ -217,6 +217,14 @@ tab_dfs <- function(x,
             .i
         })
 
+        if (isTRUE(show.rownames)) {
+          if (!is.null(rnames)) {
+            tmp_rnames <- rnames
+          } else {
+            tmp_rnames <- row.names(dat)
+          }
+        }
+
         tab_df_content(
           mydf = dat,
           title = title,
@@ -228,6 +236,7 @@ tab_dfs <- function(x,
           altr.row.col = alternate.rows,
           sort.column = sort.column,
           include.table.tag = TRUE,
+          rnames = tmp_rnames,
           ...
         )
       })),
@@ -264,11 +273,8 @@ tab_dfs <- function(x,
   )
 }
 
-
+#' @importFrom dplyr "%>%"
 # this function is used from tab_model()
-#' @importFrom dplyr slice full_join
-#' @importFrom sjmisc replace_na
-#' @importFrom purrr map map_dbl
 tab_model_df <- function(x,
                          zeroinf,
                          is.zeroinf,
