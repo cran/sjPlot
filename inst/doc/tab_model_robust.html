@@ -119,13 +119,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -474,7 +481,7 @@ Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[versicolor]
+Sepal Length × Species<br>[versicolor]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.61
@@ -491,7 +498,7 @@ Sepal Length * Species<br>[versicolor]
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[virginica]
+Sepal Length × Species<br>[virginica]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.68
@@ -655,7 +662,7 @@ Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[versicolor]
+Sepal Length × Species<br>[versicolor]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.61
@@ -672,7 +679,7 @@ Sepal Length * Species<br>[versicolor]
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[virginica]
+Sepal Length × Species<br>[virginica]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.68
@@ -836,7 +843,7 @@ Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[versicolor]
+Sepal Length × Species<br>[versicolor]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.61
@@ -853,7 +860,7 @@ Sepal Length * Species<br>[versicolor]
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[virginica]
+Sepal Length × Species<br>[virginica]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.68
@@ -1021,7 +1028,7 @@ Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[versicolor]
+Sepal Length × Species<br>[versicolor]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.61
@@ -1038,7 +1045,7 @@ Sepal Length * Species<br>[versicolor]
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[virginica]
+Sepal Length × Species<br>[virginica]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.68
@@ -1236,7 +1243,7 @@ Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[versicolor]
+Sepal Length × Species<br>[versicolor]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.61
@@ -1259,7 +1266,7 @@ Sepal Length * Species<br>[versicolor]
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Sepal Length * Species<br>[virginica]
+Sepal Length × Species<br>[virginica]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.68
@@ -1416,7 +1423,7 @@ Petal Length
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [versicolor] *<br>Sepal Width
+Species [versicolor] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.48
@@ -1430,7 +1437,7 @@ Species [versicolor] *<br>Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [virginica] *<br>Sepal Width
+Species [virginica] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.36
@@ -1595,7 +1602,7 @@ Petal Length
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [versicolor] *<br>Sepal Width
+Species [versicolor] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.48
@@ -1609,7 +1616,7 @@ Species [versicolor] *<br>Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [virginica] *<br>Sepal Width
+Species [virginica] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.36
@@ -1835,7 +1842,7 @@ Petal Length
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [versicolor] *<br>Sepal Width
+Species [versicolor] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.48
@@ -1858,7 +1865,7 @@ Species [versicolor] *<br>Sepal Width
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-Species [virginica] *<br>Sepal Width
+Species [virginica] ×<br>Sepal Width
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 -0.36

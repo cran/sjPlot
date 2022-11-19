@@ -1,3 +1,17 @@
+# sjPlot 2.8.12
+
+## General
+
+* Minor changes to work properly with updates of upstream packages and 
+  various smaller bug fixes and improvements.
+  
+# sjPlot 2.8.11
+
+## General
+
+* Minor changes to work properly with updates of upstream packages and 
+  various smaller bug fixes and improvements.
+
 # sjPlot 2.8.10
 
 ## General
@@ -137,7 +151,7 @@
 
 ## General
 
-* Standardization of model parameters (in `plot_model()` or `tab_model()`) now uses standardization based on refitting the model (see [vignette](https://easystats.github.io/parameters/articles/model_parameters_standardized.html) for details).
+* Standardization of model parameters (in `plot_model()` or `tab_model()`) now uses standardization based on refitting the model.
 
 ## Changes to functions
 
