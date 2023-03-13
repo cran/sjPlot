@@ -159,7 +159,7 @@
 #'   or scientific (\code{"scientific"}). Scientific and numeric style can be
 #'   combined with "stars", e.g. \code{"numeric_stars"}
 #' @param CSS A \code{\link{list}} with user-defined style-sheet-definitions,
-#'    according to the \href{http://www.w3.org/Style/CSS/}{official CSS syntax}.
+#'    according to the \href{https://www.w3.org/Style/CSS/}{official CSS syntax}.
 #'    See 'Details' or \href{https://strengejacke.github.io/sjPlot/articles/table_css.html}{this package-vignette}.
 #' @param file Destination file, if the output should be saved as file.
 #'    If \code{NULL} (default), the output will be saved as temporary file and
@@ -443,7 +443,7 @@ tab_model <- function(
       # check whether estimates should be transformed or not
 
       if (auto.transform) {
-        if (fam.info$is_linear || identical(fam.info$link_function, "identity"))
+        if (is.null(fam.info) || fam.info$is_linear || identical(fam.info$link_function, "identity"))
           transform <- NULL
         else
           transform <- "exp"
@@ -483,16 +483,18 @@ tab_model <- function(
 
       # merge CI columns
 
-      dat <- dat %>%
-        dplyr::mutate(conf.int = sprintf(
-          "%.*f%s%.*f",
-          digits,
-          .data$conf.low,
-          ci.hyphen,
-          digits,
-          .data$conf.high
-        )) %>%
-        dplyr::select(-.data$conf.low, -.data$conf.high)
+      if (all(c("conf.low", "conf.high") %in% names(dat))) {
+        dat <- dat %>%
+          dplyr::mutate(conf.int = sprintf(
+            "%.*f%s%.*f",
+            digits,
+            .data$conf.low,
+            ci.hyphen,
+            digits,
+            .data$conf.high
+          )) %>%
+          dplyr::select(-.data$conf.low, -.data$conf.high)
+      }
 
       # get inner probability (i.e. 2nd CI for Stan-models) ----
 
@@ -587,7 +589,9 @@ tab_model <- function(
         }
       }
 
-      dat <- dplyr::select(dat, -.data$p.stars)
+      if ("p.stars" %in% names(dat)) {
+        dat <- dplyr::select(dat, -.data$p.stars)
+      }
 
 
       # switch column for p-value and conf. int. ----
@@ -914,7 +918,7 @@ tab_model <- function(
     if (insight::is_multivariate(models[[1]]))
       fi <- fi[[1]]
 
-    if (insight::is_multivariate(models[[1]]) || fi$is_categorical) {
+    if (!is.null(fi) && (insight::is_multivariate(models[[1]]) || fi$is_categorical)) {
 
       show.response <- FALSE
 
@@ -1419,6 +1423,10 @@ prepare.labels <- function(x, grp, categorical, models) {
 
 format_p_values <- function(dat, p.style, digits.p, emph.p, p.threshold) {
   # get stars and significance at alpha = 0.05 ----
+
+  if (!"p.value" %in% names(dat)) {
+    return(dat)
+  }
 
   dat <- dat %>%
     dplyr::mutate(
