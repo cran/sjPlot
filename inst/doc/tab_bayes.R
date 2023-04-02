@@ -8,42 +8,49 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
+m1 <- m2 <- NULL
+
 if (!requireNamespace("insight", quietly = TRUE) ||
     !requireNamespace("httr", quietly = TRUE) ||
     !requireNamespace("brms", quietly = TRUE)) {
   knitr::opts_chunk$set(eval = FALSE)
 } else {
   knitr::opts_chunk$set(eval = TRUE)
+  library(insight)
+  library(httr)
+  library(sjPlot)
+  library(brms)
+  m1 <- tryCatch(insight::download_model("brms_zi_2"), error = function(e) NULL)
+  m2 <- tryCatch(insight::download_model("brms_mv_3"), error = function(e) NULL)
 }
 
-## ---- results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# load required packages
-library(sjPlot)
-library(insight)
-library(httr)
-library(brms)
+if (is.null(m1) || is.null(m2)) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
 
-# load sample models
-
-# zinb <- read.csv("http://stats.idre.ucla.edu/stat/data/fish.csv")
-# set.seed(123)
-# m1 <- brm(bf(
-#     count ~ persons + child + camper + (1 | persons),
-#     zi ~ child + camper + (1 | persons)
-#   ),
-#   data = zinb,
-#   family = zero_inflated_poisson()
-# )
-m1 <- insight::download_model("brms_zi_2")
-
-# data(epilepsy)
-# set.seed(123)
-# epilepsy$visit <- as.numeric(epilepsy$visit)
-# epilepsy$Base2 <- sample(epilepsy$Base, nrow(epilepsy), replace = TRUE)
-# f1 <- bf(Base ~ zAge + count + (1 |ID| patient))
-# f2 <- bf(Base2 ~ zAge + Trt + (1 |ID| patient))
-# m2 <- brm(f1 + f2 + set_rescor(FALSE), data = epilepsy)
-m2 <- insight::download_model("brms_mv_3")
+## ---- results='hide', message=FALSE, warning=FALSE, eval=FALSE----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#  # load required packages
+#  library(sjPlot)
+#  library(brms)
+#  
+#  # sample models
+#  zinb <- read.csv("http://stats.idre.ucla.edu/stat/data/fish.csv")
+#  set.seed(123)
+#  m1 <- brm(bf(
+#      count ~ persons + child + camper + (1 | persons),
+#      zi ~ child + camper + (1 | persons)
+#    ),
+#    data = zinb,
+#    family = zero_inflated_poisson()
+#  )
+#  
+#  data(epilepsy)
+#  set.seed(123)
+#  epilepsy$visit <- as.numeric(epilepsy$visit)
+#  epilepsy$Base2 <- sample(epilepsy$Base, nrow(epilepsy), replace = TRUE)
+#  f1 <- bf(Base ~ zAge + count + (1 |ID| patient))
+#  f2 <- bf(Base2 ~ zAge + Trt + (1 |ID| patient))
+#  m2 <- brm(f1 + f2 + set_rescor(FALSE), data = epilepsy)
 
 ## -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 tab_model(m1)

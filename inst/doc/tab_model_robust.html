@@ -363,11 +363,11 @@ options of robust estimation: <code>vcov.fun</code> and
 heteroskedasticity-consistent covariance matrix estimation with
 estimation-type “HC3” (i.e. <code>sandwich::vcovHC(type = &quot;HC3&quot;)</code>
 is called):</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Petal.Length <span class="sc">~</span> Sepal.Length <span class="sc">*</span> Species <span class="sc">+</span> Sepal.Width, <span class="at">data =</span> iris)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># model parameters, where SE, CI and p-values are based on robust estimation</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(model, <span class="at">vcov.fun =</span> <span class="st">&quot;HC3&quot;</span>, <span class="at">show.se =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Petal.Length <span class="sc">~</span> Sepal.Length <span class="sc">*</span> Species <span class="sc">+</span> Sepal.Width, <span class="at">data =</span> iris)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># model parameters, where SE, CI and p-values are based on robust estimation</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">tab_model</span>(model, <span class="at">vcov.fun =</span> <span class="st">&quot;HC3&quot;</span>, <span class="at">show.se =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -530,10 +530,10 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
 </tr>
 </table>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovHC</span>(model))))</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.45382603 0.11884474 0.69296611 0.63031982 0.08318559 0.13045539 0.11841325</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovHC</span>(model))))</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.45382603 0.11884474 0.69296611 0.63031982 0.08318559 0.13045539 0.11841325</span></span></code></pre></div>
 </div>
 <div id="cluster-robust-covariance-matrix-estimation-sandwich" class="section level3">
 <h3>Cluster-Robust Covariance Matrix Estimation (sandwich)</h3>
@@ -547,8 +547,8 @@ call <code>sandwich::vcovHAC()</code>.</p>
 <code>vcov.args</code>. E.g., <code>sandwich::vcovCL()</code> accepts
 estimation types HC0 to HC3. In the next example, we use a clustered
 covariance matrix estimation with HC1-estimation type.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change estimation-type</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(model, <span class="at">vcov.fun =</span> <span class="st">&quot;CL&quot;</span>, <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>), <span class="at">show.se =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># change estimation-type</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">tab_model</span>(model, <span class="at">vcov.fun =</span> <span class="st">&quot;CL&quot;</span>, <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>), <span class="at">show.se =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -711,10 +711,10 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
 </tr>
 </table>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovCL</span>(model))))</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.42197635 0.11148130 0.65274212 0.58720711 0.07934029 0.12251570 0.11058144</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovCL</span>(model))))</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.42197635 0.11148130 0.65274212 0.58720711 0.07934029 0.12251570 0.11058144</span></span></code></pre></div>
 <p>Usually, clustered covariance matrix estimation is used when there is
 a cluster-structure in the data. The variable indicating the
 cluster-structure can be defined in <code>sandwich::vcovCL()</code> with
@@ -722,14 +722,14 @@ the <code>cluster</code>-argument. In <code>tab_model()</code>,
 additional arguments that should be passed down to functions from the
 <strong>sandwich</strong> package can be specified in
 <code>vcov.args</code>:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>iris<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">rep</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>], <span class="at">length.out =</span> <span class="fu">nrow</span>(iris)))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># change estimation-type, defining additional arguments</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  model, </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CL&quot;</span>, </span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.se =</span> <span class="cn">TRUE</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>iris<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">rep</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>], <span class="at">length.out =</span> <span class="fu">nrow</span>(iris)))</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># change estimation-type, defining additional arguments</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  model, </span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CL&quot;</span>, </span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster),</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">show.se =</span> <span class="cn">TRUE</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -892,10 +892,10 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
 </tr>
 </table>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovCL</span>(model, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster))))</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.33714287 0.07192334 0.51893777 0.26415406 0.07201145 0.09661348 0.05123446</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># compare standard errors to result from sandwich-package</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(sandwich<span class="sc">::</span><span class="fu">vcovCL</span>(model, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster))))</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.33714287 0.07192334 0.51893777 0.26415406 0.07201145 0.09661348 0.05123446</span></span></code></pre></div>
 </div>
 <div id="cluster-robust-covariance-matrix-estimation-clubsandwich" class="section level3">
 <h3>Cluster-Robust Covariance Matrix Estimation (clubSandwich)</h3>
@@ -905,16 +905,16 @@ be achieved using <code>clubSandwich::vcovCR()</code>. Thus, when
 <strong>clubSandwich</strong> package is called. Note that this function
 <em>requires</em> the specification of the
 <code>cluster</code>-argument.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create fake-cluster-variable, to demonstrate cluster robust standard errors</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>iris<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">rep</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>], <span class="at">length.out =</span> <span class="fu">nrow</span>(iris)))</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># cluster-robust estimation</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  model, </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>cluster),</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.se =</span> <span class="cn">TRUE</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># create fake-cluster-variable, to demonstrate cluster robust standard errors</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>iris<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">rep</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>], <span class="at">length.out =</span> <span class="fu">nrow</span>(iris)))</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># cluster-robust estimation</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  model, </span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>cluster),</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">show.se =</span> <span class="cn">TRUE</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1077,10 +1077,10 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 </td>
 </tr>
 </table>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># compare standard errors to result from clubSsandwich-package</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(clubSandwich<span class="sc">::</span><span class="fu">vcovCR</span>(model, <span class="at">type =</span> <span class="st">&quot;CR1&quot;</span>, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster))))</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.33028501 0.07046034 0.50838200 0.25878087 0.07054666 0.09464825 0.05019229</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># compare standard errors to result from clubSsandwich-package</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">unname</span>(<span class="fu">sqrt</span>(<span class="fu">diag</span>(clubSandwich<span class="sc">::</span><span class="fu">vcovCR</span>(model, <span class="at">type =</span> <span class="st">&quot;CR1&quot;</span>, <span class="at">cluster =</span> iris<span class="sc">$</span>cluster))))</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.33028501 0.07046034 0.50838200 0.25878087 0.07054666 0.09464825 0.05019229</span></span></code></pre></div>
 </div>
 <div id="robust-covariance-matrix-estimation-on-standardized-model-parameters" class="section level3">
 <h3>Robust Covariance Matrix Estimation on Standardized Model
@@ -1088,12 +1088,12 @@ Parameters</h3>
 <p>Finally, robust estimation can be combined with standardization.
 However, robust covariance matrix estimation only works for
 <code>show.std = &quot;std&quot;</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model parameters, robust estimation on standardized model</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  model, </span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.std =</span> <span class="st">&quot;std&quot;</span>,</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;HC&quot;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># model parameters, robust estimation on standardized model</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  model, </span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">show.std =</span> <span class="st">&quot;std&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;HC&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1315,19 +1315,19 @@ R<sup>2</sup> / R<sup>2</sup> adjusted
 possible to estimate a cluster-robust covariance matrix. This is
 possible due to the <strong>clubSandwich</strong> package, thus we need
 to define the same arguments as in the above example.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>iris<span class="sc">$</span>grp <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">nrow</span>(iris), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># fit example model</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  Sepal.Length <span class="sc">~</span> Species <span class="sc">*</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> grp),</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> iris</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># normal model parameters, like from &#39;summary()&#39;</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>iris<span class="sc">$</span>grp <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="fu">nrow</span>(iris), <span class="at">replace =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co"># fit example model</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  Sepal.Length <span class="sc">~</span> Species <span class="sc">*</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> grp),</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="at">data =</span> iris</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co"># normal model parameters, like from &#39;summary()&#39;</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="fu">tab_model</span>(model)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1500,13 +1500,13 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 </tr>
 </table>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># model parameters, cluster robust estimation for mixed models</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  model, </span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>grp)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># model parameters, cluster robust estimation for mixed models</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  model, </span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>grp)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1686,13 +1686,13 @@ Parameters</h3>
 <p>Again, robust estimation can be combined with standardization for
 linear mixed models as well, which in such cases also only works for
 <code>show.std = &quot;std&quot;</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># model parameters, cluster robust estimation on standardized mixed model</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  model, </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.std =</span> <span class="st">&quot;std&quot;</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>grp)</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># model parameters, cluster robust estimation on standardized mixed model</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">tab_model</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  model, </span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">show.std =</span> <span class="st">&quot;std&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">vcov.fun =</span> <span class="st">&quot;CR1&quot;</span>, </span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">vcov.args =</span> <span class="fu">list</span>(<span class="at">cluster =</span> iris<span class="sc">$</span>grp)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2023-03-13" />
+<meta name="date" content="2023-04-02" />
 
 <title>Summary of Bayesian Models as HTML Table</title>
 
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Summary of Bayesian Models as HTML
 Table</h1>
 <h4 class="author">Daniel Lüdecke</h4>
-<h4 class="date">2023-03-13</h4>
+<h4 class="date">2023-04-02</h4>
 
 
 
@@ -351,38 +351,44 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 -->
+<pre><code>## Loading &#39;brms&#39; package (version 2.19.0). Useful instructions
+## can be found by typing help(&#39;brms&#39;). A more detailed introduction
+## to the package is available through vignette(&#39;brms_overview&#39;).</code></pre>
+<pre><code>## 
+## Attaching package: &#39;brms&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:rstanarm&#39;:
+## 
+##     dirichlet, exponential, get_y, lasso, ngrps</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     ar</code></pre>
 <p>This vignette shows examples for using <code>tab_model()</code> to
 create HTML tables for mixed models. Basically, <code>tab_model()</code>
 behaves in a very similar way for mixed models as for other, simple
 regression models, as shown <a href="tab_model_estimates.html">in this
 vignette</a>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load required packages</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sjPlot)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(insight)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># load sample models</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># zinb &lt;- read.csv(&quot;http://stats.idre.ucla.edu/stat/data/fish.csv&quot;)</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># set.seed(123)</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># m1 &lt;- brm(bf(</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#     count ~ persons + child + camper + (1 | persons),</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     zi ~ child + camper + (1 | persons)</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   ),</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   data = zinb,</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   family = zero_inflated_poisson()</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> insight<span class="sc">::</span><span class="fu">download_model</span>(<span class="st">&quot;brms_zi_2&quot;</span>)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># data(epilepsy)</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># set.seed(123)</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># epilepsy$visit &lt;- as.numeric(epilepsy$visit)</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># epilepsy$Base2 &lt;- sample(epilepsy$Base, nrow(epilepsy), replace = TRUE)</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># f1 &lt;- bf(Base ~ zAge + count + (1 |ID| patient))</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># f2 &lt;- bf(Base2 ~ zAge + Trt + (1 |ID| patient))</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># m2 &lt;- brm(f1 + f2 + set_rescor(FALSE), data = epilepsy)</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> insight<span class="sc">::</span><span class="fu">download_model</span>(<span class="st">&quot;brms_mv_3&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># load required packages</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">library</span>(sjPlot)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co"># sample models</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>zinb <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;http://stats.idre.ucla.edu/stat/data/fish.csv&quot;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="fu">bf</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>    count <span class="sc">~</span> persons <span class="sc">+</span> child <span class="sc">+</span> camper <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> persons),</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>    zi <span class="sc">~</span> child <span class="sc">+</span> camper <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> persons)</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  ),</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="at">data =</span> zinb,</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">zero_inflated_poisson</span>()</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>)</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="fu">data</span>(epilepsy)</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>epilepsy<span class="sc">$</span>visit <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(epilepsy<span class="sc">$</span>visit)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>epilepsy<span class="sc">$</span>Base2 <span class="ot">&lt;-</span> <span class="fu">sample</span>(epilepsy<span class="sc">$</span>Base, <span class="fu">nrow</span>(epilepsy), <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="fu">bf</span>(Base <span class="sc">~</span> zAge <span class="sc">+</span> count <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span>ID<span class="sc">|</span> patient))</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="fu">bf</span>(Base2 <span class="sc">~</span> zAge <span class="sc">+</span> Trt <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span>ID<span class="sc">|</span> patient))</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">brm</span>(f1 <span class="sc">+</span> f2 <span class="sc">+</span> <span class="fu">set_rescor</span>(<span class="cn">FALSE</span>), <span class="at">data =</span> epilepsy)</span></code></pre></div>
 <div id="bayesian-models-summaries-as-html-table" class="section level2">
 <h2>Bayesian models summaries as HTML table</h2>
 <p>For Bayesian regression models, some of the differences to the table
@@ -390,7 +396,7 @@ output from <a href="tab_model_estimates.html">simple models</a> or <a href="tab
 the use of <em>Highest Density Intervals</em> instead of confidence
 intervals, the Bayes-R-squared values, and a different “point estimate”
 (which is, by default, the median from the posterior draws).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(m1)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">tab_model</span>(m1)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -508,7 +514,7 @@ Random Effects
 σ<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-5.61
+5.57
 </td>
 </tr>
 <tr>
@@ -516,7 +522,7 @@ Random Effects
 τ<sub>00</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-33.71
+33.61
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
@@ -555,7 +561,7 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 <p>For multivariate response models, like mediator-analysis-models, it
 is recommended to print just one model in the table, as each regression
 is displayed as own “model” in the output.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(m2)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">tab_model</span>(m2)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -659,7 +665,7 @@ Random Effects
 σ<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
-56.27
+54.98
 </td>
 </tr>
 <tr>
@@ -667,7 +673,7 @@ Random Effects
 τ<sub>00</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
-4.40
+3.90
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
@@ -696,7 +702,7 @@ Observations
 <div id="show-two-credible-interval-column" class="section level2">
 <h2>Show two Credible Interval-column</h2>
 <p>To show a second CI-column, use <code>show.ci50 = TRUE</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(m2, <span class="at">show.ci50 =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">tab_model</span>(m2, <span class="at">show.ci50 =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -828,7 +834,7 @@ Random Effects
 σ<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="6">
-55.92
+55.75
 </td>
 </tr>
 <tr>
@@ -836,7 +842,7 @@ Random Effects
 τ<sub>00</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="6">
-4.65
+4.73
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
@@ -867,7 +873,7 @@ Observations
 <p>When both multivariate and univariate response models are displayed
 in one table, a column <em>Response</em> is added for the multivariate
 response model, to indicate the different outcomes.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(m1, m2)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">tab_model</span>(m1, m2)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -1129,10 +1135,10 @@ Random Effects
 σ<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-5.35
+5.37
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-56.30
+54.04
 </td>
 </tr>
 <tr>
@@ -1140,10 +1146,10 @@ Random Effects
 τ<sub>00</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="2">
-33.74
+33.71
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-4.34
+4.37
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">

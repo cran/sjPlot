@@ -12,7 +12,7 @@
 
 <meta name="author" content="Daniel Lüdecke" />
 
-<meta name="date" content="2023-03-13" />
+<meta name="date" content="2023-04-02" />
 
 <title>Item Analysis of a Scale or an Index</title>
 
@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Item Analysis of a Scale or an Index</h1>
 <h4 class="author">Daniel Lüdecke</h4>
-<h4 class="date">2023-03-13</h4>
+<h4 class="date">2023-04-02</h4>
 
 
 
@@ -383,7 +383,7 @@ represent a scale or index score.</p>
 <p>The simplest function call is just passing the data frame as
 argument. In this case, the function assumes that all variables of the
 data frame belong to one factor only.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf)</span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
@@ -679,11 +679,11 @@ vector with these group indices to the argument
 <code>factor.groups</code>. In this case, the data frame is divided into
 the components specified by <code>factor.groups</code>, and each
 component (or factor) is analysed.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parameters)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute PCA on Cope-Index, and retrieve </span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># factor indices for each COPE index variable</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">principal_components</span>(mydf)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>factor.groups <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">closest_component</span>(pca)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(parameters)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># Compute PCA on Cope-Index, and retrieve </span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># factor indices for each COPE index variable</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>pca <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">principal_components</span>(mydf)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>factor.groups <span class="ot">&lt;-</span> parameters<span class="sc">::</span><span class="fu">closest_component</span>(pca)</span></code></pre></div>
 <p>The PCA extracted two components. Now <code>tab_itemscale()</code>
 …</p>
 <ol style="list-style-type: decimal">
@@ -694,8 +694,8 @@ of them is a reliable and useful scale or index score</li>
 scores (which are based on the components) are highly correlated or
 not.</li>
 </ol>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf, factor.groups)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf, factor.groups)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
@@ -1053,8 +1053,8 @@ Computed correlation used pearson-method with listwise-deletion.
 </div>
 <div id="adding-further-statistics" class="section level2">
 <h2>Adding further statistics</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf, factor.groups, <span class="at">show.shapiro =</span> <span class="cn">TRUE</span>, <span class="at">show.kurtosis =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">tab_itemscale</span>(mydf, factor.groups, <span class="at">show.shapiro =</span> <span class="cn">TRUE</span>, <span class="at">show.kurtosis =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; Warning: Data frame needs at least three columns for reliability-test.</span></span></code></pre></div>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
 Component 1
