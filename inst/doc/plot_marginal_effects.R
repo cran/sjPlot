@@ -17,6 +17,8 @@ options(width = 800, tibble.width = Inf)
 
 if (!requireNamespace("sjmisc", quietly = TRUE) ||
     !requireNamespace("splines", quietly = TRUE) ||
+    !requireNamespace("ggeffects", quietly = TRUE) ||
+    !requireNamespace("effects", quietly = TRUE) ||
     !requireNamespace("ggplot2", quietly = TRUE) ||
     !requireNamespace("haven", quietly = TRUE) ||
     !requireNamespace("sjlabelled", quietly = TRUE)) {
