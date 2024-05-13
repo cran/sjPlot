@@ -55,7 +55,7 @@ plot_grpfrq(
   show.values = FALSE
 )
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  library(RColorBrewer)
 #  display.brewer.all()
 
