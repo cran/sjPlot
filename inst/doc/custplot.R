@@ -56,8 +56,8 @@ plot_grpfrq(
 )
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  library(RColorBrewer)
-#  display.brewer.all()
+# library(RColorBrewer)
+# display.brewer.all()
 
 ## -----------------------------------------------------------------------------
 set_theme(geom.label.color = "white", geom.label.size = 3)

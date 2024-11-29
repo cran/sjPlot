@@ -98,11 +98,16 @@ plot_type_int <- function(model,
 
 
     # compute marginal effects for interaction terms
+    pred.type <- switch(pred.type,
+      fe = "fixed",
+      re = "random",
+      pred.type
+    )
 
     dat <- ggeffects::ggpredict(
       model = model,
       terms = ia,
-      ci_lvl = ci.lvl,
+      ci_level = ci.lvl,
       type = pred.type,
       full.data = FALSE,
       ...

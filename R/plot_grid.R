@@ -31,13 +31,13 @@
 #'
 #'   # plot marginal effects for each predictor, each as single plot
 #'   p1 <- ggpredict(fit, "c12hour") %>%
-#'     plot(show.y.title = FALSE, show.title = FALSE)
+#'     plot(show_y_title = FALSE, show_title = FALSE)
 #'   p2 <- ggpredict(fit, "e17age") %>%
-#'     plot(show.y.title = FALSE, show.title = FALSE)
+#'     plot(show_y_title = FALSE, show_title = FALSE)
 #'   p3 <- ggpredict(fit, "e42dep") %>%
-#'     plot(show.y.title = FALSE, show.title = FALSE)
+#'     plot(show_y_title = FALSE, show_title = FALSE)
 #'   p4 <- ggpredict(fit, "neg_c_7") %>%
-#'     plot(show.y.title = FALSE, show.title = FALSE)
+#'     plot(show_y_title = FALSE, show_title = FALSE)
 #'
 #'   # plot grid
 #'   plot_grid(list(p1, p2, p3, p4))
@@ -64,15 +64,13 @@ plot_grid <- function(x, margin = c(1, 1, 1, 1), tags = NULL) {
   tags_labels <- NULL
 
   # Add tags
-  if (isTRUE(tags)) {
+  if (isTRUE(tags) || is.null(tags)) {
+    tags_labels = LETTERS
+  } else if (length(tags) < length(x)) {
+    insight::format_warning("Not enough tags labels in list. Using letters instead.")
     tags_labels = LETTERS
   } else{
-    if (length(tags) < length(x)) {
-      warning("Not enough tags labels in list. Using letters instead.")
-      tags_labels = LETTERS
-    } else{
-      tags_labels = tags
-    }
+    tags_labels = tags
   }
 
   if (!is.null(tags_labels)) {
